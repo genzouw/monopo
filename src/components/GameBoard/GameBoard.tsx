@@ -1,11 +1,10 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef } from 'react';
 import type { Dispatch } from 'react';
 import type { GameState } from '../../game/types';
 import type { GameAction } from '../../game/actions';
 import { BOARD_SPACES } from '../../game/board';
 import { calculateTotalAssets } from '../../game/rules';
 import PlayerPanel from '../PlayerPanel/PlayerPanel';
-import FocusView from '../Board/FocusView';
 import MiniMap from '../Board/MiniMap';
 import Dice from '../Dice/Dice';
 import Button from '../common/Button';
@@ -29,17 +28,17 @@ type GameBoardProps = {
 export default function GameBoard({ state, dispatch }: GameBoardProps) {
   const [isRolling, setIsRolling] = useState(false);
   const [showTradeSelect, setShowTradeSelect] = useState(false);
-  const [focusPosition, setFocusPosition] = useState<number | null>(null);
   const [animatingPosition, setAnimatingPosition] = useState<number | null>(
     null,
   );
   const [showPlayerDetail, setShowPlayerDetail] = useState<string | null>(null);
   const { muted, toggleMute, play } = useSound();
   const movingRef = useRef(false);
+  // Refs to capture current values for the animation callback
+  const positionRef = useRef(0);
+  const diceRef = useRef<[number, number]>([1, 1]);
 
   const currentPlayer = state.players[state.currentPlayerIndex];
-  const displayPosition =
-    animatingPosition ?? focusPosition ?? currentPlayer.position;
 
   const currentSpace = state.board.find(
     (s) => s.position === currentPlayer.position,
@@ -53,18 +52,21 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
     isPurchasable && !state.propertyStates[currentSpace.id]?.ownerId;
 
   const handleRoll = () => {
+    // Capture position before dispatch changes state
+    positionRef.current = currentPlayer.position;
     play('diceRoll');
     setIsRolling(true);
     dispatch({ type: 'ROLL_DICE' });
   };
 
-  const handleRollComplete = useCallback(() => {
+  const handleRollComplete = () => {
     setIsRolling(false);
     if (movingRef.current) return;
     movingRef.current = true;
 
-    const startPos = currentPlayer.position;
-    const diceTotal = state.dice.values[0] + state.dice.values[1];
+    // Use refs to get correct values captured at roll time
+    const startPos = positionRef.current;
+    const diceTotal = diceRef.current[0] + diceRef.current[1];
     let step = 0;
 
     const moveInterval = setInterval(() => {
@@ -82,7 +84,10 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
         }, 200);
       }
     }, 300);
-  }, [currentPlayer.position, state.dice.values, play, dispatch]);
+  };
+
+  // Keep diceRef in sync
+  diceRef.current = state.dice.values;
 
   const handleBuy = () => {
     play('purchase');
@@ -119,7 +124,6 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
   };
 
   const handleEndTurn = () => {
-    setFocusPosition(null);
     dispatch({ type: 'END_TURN' });
   };
 
@@ -133,6 +137,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
   };
 
   const handleRollForJail = () => {
+    positionRef.current = currentPlayer.position;
     play('diceRoll');
     setIsRolling(true);
     dispatch({ type: 'ROLL_FOR_JAIL' });
@@ -179,27 +184,17 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
     !state.currentCard;
 
   const showCardDialog = !!state.currentCard;
-
   const showAuctionDialog = state.turnPhase === 'auction' && !!state.auction;
-
   const showJailDialog = state.turnPhase === 'roll' && currentPlayer.inJail;
-
   const showBuildDialog = state.turnPhase === 'build';
-
   const showMortgageDialog = state.turnPhase === 'mortgage';
-
   const showTradeDialog = state.turnPhase === 'trade' && !!state.trade;
-
   const showBankruptDialog = state.turnPhase === 'bankrupt';
-
   const canSubAction =
     state.turnPhase === 'endTurn' || state.turnPhase === 'roll';
 
-  // Tax action
   const showPayTax =
     state.turnPhase === 'action' && currentSpace?.type === 'tax';
-
-  // Draw card action
   const showDrawCard =
     state.turnPhase === 'action' &&
     (currentSpace?.type === 'chance' ||
@@ -209,6 +204,16 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
   const tradeTargetPlayer = state.trade
     ? state.players.find((p) => p.id === state.trade!.toPlayerId)
     : null;
+
+  // Players with animating position override for minimap
+  const displayPlayers =
+    animatingPosition !== null
+      ? state.players.map((p, i) =>
+          i === state.currentPlayerIndex
+            ? { ...p, position: animatingPosition }
+            : p,
+        )
+      : state.players;
 
   return (
     <div className={styles.gameBoard}>
@@ -220,17 +225,11 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
       />
 
       <div className={styles.boardSection}>
-        <FocusView
-          board={state.board}
-          propertyStates={state.propertyStates}
-          players={state.players}
-          currentPosition={displayPosition}
-        />
         <MiniMap
           board={state.board}
           propertyStates={state.propertyStates}
-          players={state.players}
-          onSpaceClick={(pos) => setFocusPosition(pos)}
+          players={displayPlayers}
+          onSpaceClick={() => {}}
         />
       </div>
 
@@ -469,7 +468,10 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                   </div>
                   {ownedProps.length === 0 && (
                     <div
-                      style={{ color: 'var(--color-text-light)', fontSize: 14 }}
+                      style={{
+                        color: 'var(--color-text-light)',
+                        fontSize: 14,
+                      }}
                     >
                       まだもっていないよ
                     </div>

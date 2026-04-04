@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import styles from './Dice.module.css';
 
 const DICE_FACES = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
@@ -12,6 +12,8 @@ type DiceProps = {
 export default function Dice({ values, rolling, onRollComplete }: DiceProps) {
   const [displayValues, setDisplayValues] = useState(values);
   const [isAnimating, setIsAnimating] = useState(false);
+  const callbackRef = useRef(onRollComplete);
+  callbackRef.current = onRollComplete;
 
   useEffect(() => {
     if (rolling) {
@@ -27,14 +29,14 @@ export default function Dice({ values, rolling, onRollComplete }: DiceProps) {
           clearInterval(interval);
           setDisplayValues(values);
           setIsAnimating(false);
-          onRollComplete?.();
+          callbackRef.current?.();
         }
       }, 100);
       return () => clearInterval(interval);
     } else {
       setDisplayValues(values);
     }
-  }, [rolling, values, onRollComplete]);
+  }, [rolling, values]);
 
   const isDoubles = values[0] === values[1];
   return (
