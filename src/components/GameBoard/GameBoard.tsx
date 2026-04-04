@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import type { Dispatch } from 'react';
 import type { GameState } from '../../game/types';
 import type { GameAction } from '../../game/actions';
+import { BOARD_SPACES } from '../../game/board';
+import { calculateTotalAssets } from '../../game/rules';
 import PlayerPanel from '../PlayerPanel/PlayerPanel';
 import FocusView from '../Board/FocusView';
 import MiniMap from '../Board/MiniMap';
@@ -28,10 +30,16 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
   const [isRolling, setIsRolling] = useState(false);
   const [showTradeSelect, setShowTradeSelect] = useState(false);
   const [focusPosition, setFocusPosition] = useState<number | null>(null);
+  const [animatingPosition, setAnimatingPosition] = useState<number | null>(
+    null,
+  );
+  const [showPlayerDetail, setShowPlayerDetail] = useState<string | null>(null);
   const { muted, toggleMute, play } = useSound();
+  const movingRef = useRef(false);
 
   const currentPlayer = state.players[state.currentPlayerIndex];
-  const displayPosition = focusPosition ?? currentPlayer.position;
+  const displayPosition =
+    animatingPosition ?? focusPosition ?? currentPlayer.position;
 
   const currentSpace = state.board.find(
     (s) => s.position === currentPlayer.position,
@@ -50,13 +58,31 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
     dispatch({ type: 'ROLL_DICE' });
   };
 
-  const handleRollComplete = () => {
+  const handleRollComplete = useCallback(() => {
     setIsRolling(false);
-    setTimeout(() => {
-      play('land');
-      dispatch({ type: 'FINISH_MOVING' });
-    }, 500);
-  };
+    if (movingRef.current) return;
+    movingRef.current = true;
+
+    const startPos = currentPlayer.position;
+    const diceTotal = state.dice.values[0] + state.dice.values[1];
+    let step = 0;
+
+    const moveInterval = setInterval(() => {
+      step++;
+      const nextPos = (startPos + step) % 40;
+      setAnimatingPosition(nextPos);
+
+      if (step >= diceTotal) {
+        clearInterval(moveInterval);
+        setTimeout(() => {
+          play('land');
+          setAnimatingPosition(null);
+          movingRef.current = false;
+          dispatch({ type: 'FINISH_MOVING' });
+        }, 200);
+      }
+    }, 300);
+  }, [currentPlayer.position, state.dice.values, play, dispatch]);
 
   const handleBuy = () => {
     play('purchase');
@@ -190,6 +216,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
         currentPlayer={currentPlayer}
         allPlayers={state.players}
         currentPlayerIndex={state.currentPlayerIndex}
+        onPlayerClick={(id) => setShowPlayerDetail(id)}
       />
 
       <div className={styles.boardSection}>
@@ -347,6 +374,150 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           onConfirm={handleBankrupt}
         />
       )}
+
+      {/* Player detail dialog */}
+      {showPlayerDetail &&
+        (() => {
+          const detailPlayer = state.players.find(
+            (p) => p.id === showPlayerDetail,
+          );
+          if (!detailPlayer) return null;
+          const totalAssets = calculateTotalAssets(
+            detailPlayer,
+            state.propertyStates,
+            BOARD_SPACES,
+          );
+          const ownedProps = detailPlayer.properties.map((id) => ({
+            space: BOARD_SPACES.find((s) => s.id === id)!,
+            state: state.propertyStates[id],
+          }));
+          const currentSpaceName =
+            BOARD_SPACES[detailPlayer.position]?.name ?? '';
+          return (
+            <Dialog
+              title={`${detailPlayer.token} ${detailPlayer.name}`}
+              actions={
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowPlayerDetail(null)}
+                >
+                  とじる
+                </Button>
+              }
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 12,
+                  fontSize: 15,
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    padding: '8px 0',
+                    borderBottom: '1px solid #eee',
+                  }}
+                >
+                  <span>💰 もちがね</span>
+                  <span style={{ fontWeight: 700 }}>
+                    ${detailPlayer.money.toLocaleString()}
+                  </span>
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    padding: '8px 0',
+                    borderBottom: '1px solid #eee',
+                  }}
+                >
+                  <span>📊 そうしさん</span>
+                  <span style={{ fontWeight: 700 }}>
+                    ${totalAssets.toLocaleString()}
+                  </span>
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    padding: '8px 0',
+                    borderBottom: '1px solid #eee',
+                  }}
+                >
+                  <span>📍 いまのばしょ</span>
+                  <span style={{ fontWeight: 700 }}>{currentSpaceName}</span>
+                </div>
+                {detailPlayer.inJail && (
+                  <div
+                    style={{ padding: '4px 0', color: 'var(--color-danger)' }}
+                  >
+                    🔒 刑務所にいるよ（{detailPlayer.jailTurns}/3ターン）
+                  </div>
+                )}
+                {detailPlayer.getOutOfJailCards > 0 && (
+                  <div style={{ padding: '4px 0' }}>
+                    🎫 刑務所から出られるカード:{' '}
+                    {detailPlayer.getOutOfJailCards}枚
+                  </div>
+                )}
+                <div style={{ marginTop: 4 }}>
+                  <div style={{ fontWeight: 700, marginBottom: 8 }}>
+                    🏠 もっている土地（{ownedProps.length}件）
+                  </div>
+                  {ownedProps.length === 0 && (
+                    <div
+                      style={{ color: 'var(--color-text-light)', fontSize: 14 }}
+                    >
+                      まだもっていないよ
+                    </div>
+                  )}
+                  {ownedProps.map(({ space, state: ps }) => (
+                    <div
+                      key={space.id}
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '4px 0',
+                        fontSize: 14,
+                        borderBottom: '1px solid #f0f0f0',
+                      }}
+                    >
+                      <span>
+                        {space.color && (
+                          <span
+                            style={{
+                              display: 'inline-block',
+                              width: 10,
+                              height: 10,
+                              borderRadius: 2,
+                              backgroundColor: `var(--color-${space.color})`,
+                              marginRight: 6,
+                              verticalAlign: 'middle',
+                            }}
+                          />
+                        )}
+                        {space.name}
+                      </span>
+                      <span style={{ color: 'var(--color-text-light)' }}>
+                        {ps?.isMortgaged
+                          ? '💤'
+                          : ps?.houses === 5
+                            ? '🏨'
+                            : ps?.houses
+                              ? '🏠'.repeat(ps.houses)
+                              : ''}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Dialog>
+          );
+        })()}
 
       {/* Trade target selection modal */}
       {showTradeSelect && (

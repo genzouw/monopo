@@ -5,12 +5,14 @@ type PlayerPanelProps = {
   currentPlayer: Player;
   allPlayers: Player[];
   currentPlayerIndex: number;
+  onPlayerClick?: (playerId: string) => void;
 };
 
 export default function PlayerPanel({
   currentPlayer,
   allPlayers,
   currentPlayerIndex,
+  onPlayerClick,
 }: PlayerPanelProps) {
   return (
     <>
@@ -29,6 +31,8 @@ export default function PlayerPanel({
           <div
             key={player.id}
             className={`${styles.playerChip} ${idx === currentPlayerIndex ? styles.playerChipActive : ''} ${player.isBankrupt ? styles.playerChipBankrupt : ''}`}
+            onClick={() => onPlayerClick?.(player.id)}
+            style={{ cursor: 'pointer' }}
           >
             <span>{player.token}</span>
             <span>${player.money.toLocaleString()}</span>
