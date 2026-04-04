@@ -1,0 +1,102 @@
+.propertyInfo {
+  text-align: center;
+  padding: 12px 0;
+}
+.propertyName {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.propertyPrice {
+  font-size: 16px;
+  color: var(--color-text-light);
+}
+.auctionInfo {
+  text-align: center;
+  padding: 8px 0;
+}
+.bidAmount {
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--color-primary);
+  margin: 8px 0;
+}
+.bidder {
+  font-size: 14px;
+  color: var(--color-text-light);
+}
+.bidButtons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 12px;
+}
+.cardContent {
+  text-align: center;
+  padding: 16px 0;
+  font-size: 18px;
+  line-height: 1.6;
+}
+.cardEmoji {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+.buildList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+.buildItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #f8f8f8;
+  border-radius: var(--radius-sm);
+}
+.buildItemName {
+  font-size: 14px;
+  font-weight: 600;
+}
+.buildItemInfo {
+  font-size: 12px;
+  color: var(--color-text-light);
+}
+.tradeSection {
+  margin: 8px 0;
+  padding: 12px;
+  background: #f8f8f8;
+  border-radius: var(--radius-sm);
+}
+.tradeSectionTitle {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.tradePropertyList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tradePropertyChip {
+  padding: 4px 10px;
+  background: var(--color-white);
+  border: 2px solid #e0e0e0;
+  border-radius: 16px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.tradePropertyChipSelected {
+  border-color: var(--color-primary);
+  background: #fff0f0;
+}
+.moneyInput {
+  width: 100px;
+  padding: 6px 10px;
+  border: 2px solid #e0e0e0;
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  text-align: center;
+}
