@@ -102,6 +102,13 @@ export default function MiniMap({
                   {players.find((p) => p.id === ownerId)?.token}
                 </span>
               )}
+              {propState && propState.houses > 0 && (
+                <span className={styles.miniHouses}>
+                  {propState.houses === 5
+                    ? '🏨'
+                    : '🏠'.repeat(propState.houses)}
+                </span>
+              )}
               {playersHere.map((p, i) => (
                 <span
                   key={p.id}
