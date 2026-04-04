@@ -38,6 +38,48 @@ function checkWinner(players: Player[]): string | null {
   return null;
 }
 
+/** 所持金がマイナスで物件もないプレイヤーを自動破産させる */
+function autoBankrupt(state: GameState): GameState {
+  let changed = false;
+  const newPlayers = state.players.map((p) => {
+    if (!p.isBankrupt && p.money < 0 && p.properties.length === 0) {
+      changed = true;
+      return { ...p, isBankrupt: true, money: 0 };
+    }
+    return p;
+  });
+  if (!changed) return state;
+
+  // 破産したプレイヤーの物件を解放
+  const newPropertyStates = { ...state.propertyStates };
+  for (const player of newPlayers) {
+    if (player.isBankrupt) {
+      for (const [id, ps] of Object.entries(newPropertyStates)) {
+        if (ps.ownerId === player.id) {
+          newPropertyStates[id] = {
+            ownerId: null,
+            houses: 0,
+            isMortgaged: false,
+          };
+        }
+      }
+    }
+  }
+
+  const winnerId = checkWinner(newPlayers);
+
+  return {
+    ...state,
+    players: newPlayers,
+    propertyStates: newPropertyStates,
+    phase: winnerId ? 'finished' : state.phase,
+    winnerId: winnerId ?? state.winnerId,
+    message: winnerId
+      ? `${newPlayers.find((p) => p.id === winnerId)!.name}のかちだよ！🎉`
+      : state.message,
+  };
+}
+
 function drawCard(
   deck: Card[],
   cardType: 'chance' | 'communityChest',
@@ -364,6 +406,12 @@ export function createInitialGameState(): GameState {
 // ── Reducer ──
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
+  const result = gameReducerInner(state, action);
+  // 全アクション後に自動破産判定
+  return result.phase === 'playing' ? autoBankrupt(result) : result;
+}
+
+function gameReducerInner(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     // ── START_GAME ──
     case 'START_GAME': {
