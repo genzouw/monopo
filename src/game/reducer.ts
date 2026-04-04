@@ -38,45 +38,45 @@ function checkWinner(players: Player[]): string | null {
   return null;
 }
 
-/** 所持金がマイナスで物件もないプレイヤーを自動破産させる */
-function autoBankrupt(state: GameState): GameState {
-  let changed = false;
-  const newPlayers = state.players.map((p) => {
-    if (!p.isBankrupt && p.money < 0 && p.properties.length === 0) {
-      changed = true;
-      return { ...p, isBankrupt: true, money: 0 };
-    }
-    return p;
-  });
-  if (!changed) return state;
+/**
+ * 所持金がマイナスのプレイヤーを検出し:
+ * - 物件あり → forceSellフェーズに遷移（強制売りだし）
+ * - 物件なし → 自動破産
+ */
+function checkNegativeMoney(state: GameState): GameState {
+  const currentPlayer = state.players[state.currentPlayerIndex];
 
-  // 破産したプレイヤーの物件を解放
-  const newPropertyStates = { ...state.propertyStates };
-  for (const player of newPlayers) {
-    if (player.isBankrupt) {
-      for (const [id, ps] of Object.entries(newPropertyStates)) {
-        if (ps.ownerId === player.id) {
-          newPropertyStates[id] = {
-            ownerId: null,
-            houses: 0,
-            isMortgaged: false,
-          };
-        }
-      }
-    }
+  // 現在のプレイヤーが所持金マイナスか
+  if (!currentPlayer || currentPlayer.isBankrupt || currentPlayer.money >= 0) {
+    return state;
   }
+
+  // 物件を持っていれば強制売りだし
+  // (家がある物件のみの場合もあるので、家を売るか物件を売るか選べるようにする)
+  if (currentPlayer.properties.length > 0) {
+    return {
+      ...state,
+      turnPhase: 'forceSell',
+      message: `${currentPlayer.name}のおかねがマイナスだよ！物件を売ってお金をつくろう！`,
+    };
+  }
+
+  // 物件もない → 破産
+  const newPlayers = state.players.map((p) =>
+    p.id === currentPlayer.id ? { ...p, isBankrupt: true, money: 0 } : p,
+  );
 
   const winnerId = checkWinner(newPlayers);
 
   return {
     ...state,
     players: newPlayers,
-    propertyStates: newPropertyStates,
     phase: winnerId ? 'finished' : state.phase,
     winnerId: winnerId ?? state.winnerId,
+    turnPhase: 'endTurn',
     message: winnerId
       ? `${newPlayers.find((p) => p.id === winnerId)!.name}のかちだよ！🎉`
-      : state.message,
+      : `${currentPlayer.name}ははさんしたよ…`,
   };
 }
 
@@ -407,8 +407,15 @@ export function createInitialGameState(): GameState {
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
   const result = gameReducerInner(state, action);
-  // 全アクション後に自動破産判定
-  return result.phase === 'playing' ? autoBankrupt(result) : result;
+  // 全アクション後に所持金マイナスチェック（強制売りだし or 破産）
+  if (
+    result.phase === 'playing' &&
+    result.turnPhase !== 'forceSell' &&
+    result.turnPhase !== 'auction'
+  ) {
+    return checkNegativeMoney(result);
+  }
+  return result;
 }
 
 function gameReducerInner(state: GameState, action: GameAction): GameState {

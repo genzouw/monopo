@@ -8,7 +8,9 @@ type SellDialogProps = {
   board: BoardSpace[];
   propertyStates: Record<string, PropertyState>;
   onSell: (propertyId: string) => void;
+  onSellHouse: (propertyId: string) => void;
   onClose: () => void;
+  forced?: boolean;
 };
 
 export default function SellDialog({
@@ -16,19 +18,39 @@ export default function SellDialog({
   board,
   propertyStates,
   onSell,
+  onSellHouse,
   onClose,
+  forced = false,
 }: SellDialogProps) {
   const ownedProperties = currentPlayer.properties
     .map((id) => board.find((s) => s.id === id))
     .filter((s): s is BoardSpace => !!s);
 
+  const title = forced
+    ? '⚠️ お金がたりないよ！物件を売ろう！'
+    : '🏷️ 物件を売りだす';
+
   return (
     <Dialog
-      title="🏷️ 物件を売りだす"
+      title={title}
       actions={
-        <Button variant="secondary" onClick={onClose}>
-          とじる
-        </Button>
+        forced ? (
+          <div
+            style={{
+              fontSize: 13,
+              color: 'var(--color-danger)',
+              textAlign: 'center',
+            }}
+          >
+            💰 もちがね: ${currentPlayer.money.toLocaleString()}
+            <br />
+            プラスになるまで売りだしてね
+          </div>
+        ) : (
+          <Button variant="secondary" onClick={onClose}>
+            とじる
+          </Button>
+        )
       }
     >
       <div className={styles.buildList}>
@@ -45,25 +67,40 @@ export default function SellDialog({
         )}
         {ownedProperties.map((space) => {
           const propState = propertyStates[space.id];
-          const hasHouses = (propState?.houses ?? 0) > 0;
+          const houses = propState?.houses ?? 0;
+          const hasHouses = houses > 0;
+          const houseLabel =
+            houses === 5 ? '🏨' : houses > 0 ? `🏠×${houses}` : '';
+          const sellPrice = Math.floor((space.houseCost ?? 0) / 2);
           return (
             <div key={space.id} className={styles.buildItem}>
               <div>
-                <div className={styles.buildItemName}>{space.name}</div>
+                <div className={styles.buildItemName}>
+                  {space.name} {houseLabel}
+                </div>
                 <div className={styles.buildItemInfo}>
                   {hasHouses
-                    ? `家があるから先に売ってね`
+                    ? `家を売る: +$${sellPrice}`
                     : `購入価格: $${space.price}`}
                 </div>
               </div>
-              <Button
-                size="small"
-                variant="danger"
-                onClick={() => onSell(space.id)}
-                disabled={hasHouses}
-              >
-                売りだす
-              </Button>
+              {hasHouses ? (
+                <Button
+                  size="small"
+                  variant="secondary"
+                  onClick={() => onSellHouse(space.id)}
+                >
+                  家を売る
+                </Button>
+              ) : (
+                <Button
+                  size="small"
+                  variant="danger"
+                  onClick={() => onSell(space.id)}
+                >
+                  売りだす
+                </Button>
+              )}
             </div>
           );
         })}

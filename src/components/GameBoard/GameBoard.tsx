@@ -190,7 +190,8 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
   const showAuctionDialog = state.turnPhase === 'auction' && !!state.auction;
   const showJailDialog = state.turnPhase === 'roll' && currentPlayer.inJail;
   const showBuildDialog = state.turnPhase === 'build';
-  const showSellDialog = state.turnPhase === 'sell';
+  const showSellDialog =
+    state.turnPhase === 'sell' || state.turnPhase === 'forceSell';
   const showTradeDialog = state.turnPhase === 'trade' && !!state.trade;
   const showBankruptDialog = state.turnPhase === 'bankrupt';
   const canSubAction =
@@ -354,7 +355,9 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           board={state.board}
           propertyStates={state.propertyStates}
           onSell={handleSellProperty}
+          onSellHouse={handleSellHouse}
           onClose={() => dispatch({ type: 'CLOSE_SELL_DIALOG' })}
+          forced={state.turnPhase === 'forceSell'}
         />
       )}
 
