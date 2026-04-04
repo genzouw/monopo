@@ -58,6 +58,11 @@
 
 .miniMap {
   padding: 8px 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
 }
 .miniMapBoard {
   display: grid;
@@ -68,8 +73,8 @@
   background: #e0e0e0;
   border-radius: var(--radius-sm);
   overflow: hidden;
-  width: 100%;
-  max-height: none;
+  height: 100%;
+  max-width: 100%;
 }
 .miniSpace {
   background: var(--color-white);
