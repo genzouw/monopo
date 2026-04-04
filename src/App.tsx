@@ -1,15 +1,27 @@
-import { useReducer } from 'react';
+import { useReducer, useEffect, useState } from 'react';
 import { gameReducer, createInitialGameState } from './game/reducer';
+import { saveGame, loadGame, clearSave } from './game/storage';
+import type { GameState } from './game/types';
 import Setup from './components/Setup/Setup';
 import GameBoard from './components/GameBoard/GameBoard';
 import styles from './App.module.css';
 
 export default function App() {
+  const [savedGame] = useState<GameState | null>(() => loadGame());
+
   const [state, dispatch] = useReducer(
     gameReducer,
     undefined,
     createInitialGameState,
   );
+
+  useEffect(() => {
+    if (state.phase === 'playing') {
+      saveGame(state);
+    } else if (state.phase === 'finished') {
+      clearSave();
+    }
+  }, [state]);
 
   if (state.phase === 'setup') {
     return (
@@ -22,6 +34,16 @@ export default function App() {
               playerTokens: tokens,
             })
           }
+          onResume={
+            savedGame
+              ? () =>
+                  dispatch({
+                    type: 'RESUME_GAME',
+                    savedState: savedGame,
+                  })
+              : undefined
+          }
+          savedGame={savedGame}
         />
       </div>
     );

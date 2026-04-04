@@ -1,9 +1,14 @@
 import { useState } from 'react';
 import { TOKENS } from '../../game/types';
+import type { GameState } from '../../game/types';
 import Button from '../common/Button';
 import styles from './Setup.module.css';
 
-type SetupProps = { onStart: (names: string[], tokens: string[]) => void };
+type SetupProps = {
+  onStart: (names: string[], tokens: string[]) => void;
+  onResume?: () => void;
+  savedGame?: GameState | null;
+};
 const DEFAULT_NAMES = [
   'プレイヤー1',
   'プレイヤー2',
@@ -11,7 +16,7 @@ const DEFAULT_NAMES = [
   'プレイヤー4',
 ];
 
-export default function Setup({ onStart }: SetupProps) {
+export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
   const [playerCount, setPlayerCount] = useState(2);
   const [names, setNames] = useState(DEFAULT_NAMES);
   const [selectedTokens, setSelectedTokens] = useState([
@@ -45,6 +50,34 @@ export default function Setup({ onStart }: SetupProps) {
     <div className={styles.setup}>
       <div className={styles.title}>🎲 モノポリ</div>
       <div className={styles.subtitle}>いっしょにあそぼう！</div>
+      {onResume && savedGame && (
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 8,
+            marginBottom: 16,
+            padding: '16px 24px',
+            background: 'var(--color-bg-card, #f5f5f5)',
+            borderRadius: 16,
+            width: '100%',
+          }}
+        >
+          <div
+            style={{
+              fontSize: 14,
+              color: 'var(--color-text-light)',
+              marginBottom: 4,
+            }}
+          >
+            {savedGame.players.map((p) => `${p.token} ${p.name}`).join('・')}
+          </div>
+          <Button size="large" onClick={onResume}>
+            つづきからあそぶ
+          </Button>
+        </div>
+      )}
       <div className={styles.playerCount}>
         <button
           className={styles.countButton}

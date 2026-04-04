@@ -1130,6 +1130,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       };
     }
 
+    // ── RESUME_GAME ──
+    case 'RESUME_GAME': {
+      return action.savedState;
+    }
+
     default:
       return state;
   }

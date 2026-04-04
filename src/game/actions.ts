@@ -1,7 +1,8 @@
-import type { TradeOffer } from './types';
+import type { TradeOffer, GameState } from './types';
 
 export type GameAction =
   | { type: 'START_GAME'; playerNames: string[]; playerTokens: string[] }
+  | { type: 'RESUME_GAME'; savedState: GameState }
   | { type: 'ROLL_DICE' }
   | { type: 'FINISH_MOVING' }
   | { type: 'BUY_PROPERTY' }
