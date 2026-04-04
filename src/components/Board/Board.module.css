@@ -90,10 +90,6 @@
 }
 .miniSpaceColor {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
 }
 .miniCenter {
   grid-column: 2 / 11;

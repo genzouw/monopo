@@ -55,6 +55,24 @@ function getGridPosition(position: number): { row: number; col: number } {
   return { row: position - 30 + 1, col: 11 };
 }
 
+/** 色バーを経路の内側に配置するスタイル */
+function getColorBarStyle(position: number): React.CSSProperties {
+  if (position <= 10) {
+    // 下辺: 内側 = 上
+    return { top: 0, left: 0, right: 0, height: 3 };
+  }
+  if (position <= 20) {
+    // 左辺: 内側 = 右
+    return { top: 0, bottom: 0, right: 0, width: 3 };
+  }
+  if (position <= 30) {
+    // 上辺: 内側 = 下
+    return { bottom: 0, left: 0, right: 0, height: 3 };
+  }
+  // 右辺: 内側 = 左
+  return { top: 0, bottom: 0, left: 0, width: 3 };
+}
+
 export default function MiniMap({
   board,
   propertyStates,
@@ -91,7 +109,10 @@ export default function MiniMap({
               {space.color && (
                 <div
                   className={styles.miniSpaceColor}
-                  style={{ background: COLOR_MAP[space.color] }}
+                  style={{
+                    background: COLOR_MAP[space.color],
+                    ...getColorBarStyle(space.position),
+                  }}
                 />
               )}
               {icon && !ownerId && (
