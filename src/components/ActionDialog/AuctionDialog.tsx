@@ -15,7 +15,6 @@ type AuctionDialogProps = {
 export default function AuctionDialog({
   auction,
   players,
-  currentPlayer,
   onBid,
   onPass,
 }: AuctionDialogProps) {
@@ -23,8 +22,7 @@ export default function AuctionDialog({
   const currentBidder = auction.currentBidderId
     ? players.find((p) => p.id === auction.currentBidderId)
     : null;
-  const isActivePlayer =
-    players[auction.activePlayerIndex]?.id === currentPlayer.id;
+  const activePlayer = players[auction.activePlayerIndex];
 
   return (
     <Dialog title="オークション！">
@@ -36,39 +34,48 @@ export default function AuctionDialog({
             ? `${currentBidder.token} ${currentBidder.name}がリード中`
             : 'まだだれもビッドしていないよ'}
         </div>
-        <div className={styles.bidder} style={{ marginTop: 4 }}>
-          いまのばん: {players[auction.activePlayerIndex]?.token}{' '}
-          {players[auction.activePlayerIndex]?.name}
+        <div
+          className={styles.bidder}
+          style={{ marginTop: 8, fontWeight: 700, fontSize: 16 }}
+        >
+          {activePlayer?.token} {activePlayer?.name}のばん
+        </div>
+        <div className={styles.bidder}>
+          もちがね: ${activePlayer?.money.toLocaleString()}
         </div>
       </div>
-      {isActivePlayer && (
-        <div className={styles.bidButtons}>
-          <Button
-            size="small"
-            onClick={() => onBid(10)}
-            disabled={currentPlayer.money < auction.currentBid + 10}
-          >
-            +$10
-          </Button>
-          <Button
-            size="small"
-            onClick={() => onBid(50)}
-            disabled={currentPlayer.money < auction.currentBid + 50}
-          >
-            +$50
-          </Button>
-          <Button
-            size="small"
-            onClick={() => onBid(100)}
-            disabled={currentPlayer.money < auction.currentBid + 100}
-          >
-            +$100
-          </Button>
-          <Button size="small" variant="secondary" onClick={onPass}>
-            パス
-          </Button>
-        </div>
-      )}
+      <div className={styles.bidButtons}>
+        <Button
+          size="small"
+          onClick={() => onBid(10)}
+          disabled={
+            !activePlayer || activePlayer.money < auction.currentBid + 10
+          }
+        >
+          +$10
+        </Button>
+        <Button
+          size="small"
+          onClick={() => onBid(50)}
+          disabled={
+            !activePlayer || activePlayer.money < auction.currentBid + 50
+          }
+        >
+          +$50
+        </Button>
+        <Button
+          size="small"
+          onClick={() => onBid(100)}
+          disabled={
+            !activePlayer || activePlayer.money < auction.currentBid + 100
+          }
+        >
+          +$100
+        </Button>
+        <Button size="small" variant="secondary" onClick={onPass}>
+          パス
+        </Button>
+      </div>
     </Dialog>
   );
 }
