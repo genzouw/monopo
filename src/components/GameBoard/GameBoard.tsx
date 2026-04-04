@@ -35,6 +35,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
   const [showSpaceDetail, setShowSpaceDetail] = useState<number | null>(null);
   const { muted, toggleMute, play } = useSound();
   const movingRef = useRef(false);
+  const jailRollRef = useRef(false);
   // Refs to capture current values for the animation callback
   const positionRef = useRef(0);
   const diceRef = useRef<[number, number]>([1, 1]);
@@ -62,6 +63,13 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
 
   const handleRollComplete = () => {
     setIsRolling(false);
+
+    // ROLL_FOR_JAIL の場合はreducer側で移動処理済みなのでアニメーション不要
+    if (jailRollRef.current) {
+      jailRollRef.current = false;
+      return;
+    }
+
     if (movingRef.current) return;
     movingRef.current = true;
 
@@ -138,7 +146,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
   };
 
   const handleRollForJail = () => {
-    positionRef.current = currentPlayer.position;
+    jailRollRef.current = true;
     play('diceRoll');
     setIsRolling(true);
     dispatch({ type: 'ROLL_FOR_JAIL' });
