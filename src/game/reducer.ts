@@ -836,6 +836,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return {
         ...state,
         trade: action.offer,
+        turnPhase: 'tradeConfirm',
         message: `とりひきのていあんがきたよ！`,
       };
     }

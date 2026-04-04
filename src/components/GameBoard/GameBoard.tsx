@@ -376,6 +376,93 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
         />
       )}
 
+      {state.turnPhase === 'tradeConfirm' &&
+        state.trade &&
+        (() => {
+          const from = state.players.find(
+            (p) => p.id === state.trade!.fromPlayerId,
+          );
+          const to = state.players.find(
+            (p) => p.id === state.trade!.toPlayerId,
+          );
+          const offer = state.trade!;
+          const offerSpaces = offer.offerProperties.map(
+            (id) => BOARD_SPACES.find((s) => s.id === id)!,
+          );
+          const requestSpaces = offer.requestProperties.map(
+            (id) => BOARD_SPACES.find((s) => s.id === id)!,
+          );
+          return (
+            <Dialog
+              title={`${to?.token} ${to?.name}へのていあん`}
+              actions={
+                <>
+                  <Button onClick={() => dispatch({ type: 'ACCEPT_TRADE' })}>
+                    うけいれる！
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => dispatch({ type: 'REJECT_TRADE' })}
+                  >
+                    ことわる
+                  </Button>
+                </>
+              }
+            >
+              <div
+                style={{
+                  fontSize: 14,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 8,
+                }}
+              >
+                <div style={{ fontWeight: 700 }}>
+                  {from?.token} {from?.name}からのていあん:
+                </div>
+                {(offerSpaces.length > 0 || offer.offerMoney > 0) && (
+                  <div
+                    style={{
+                      padding: 8,
+                      background: '#f0fff0',
+                      borderRadius: 8,
+                    }}
+                  >
+                    <div style={{ fontWeight: 600, marginBottom: 4 }}>
+                      📦 もらえるもの
+                    </div>
+                    {offerSpaces.map((s) => (
+                      <div key={s.id}>・{s.name}</div>
+                    ))}
+                    {offer.offerMoney > 0 && (
+                      <div>・💰 ${offer.offerMoney}</div>
+                    )}
+                  </div>
+                )}
+                {(requestSpaces.length > 0 || offer.requestMoney > 0) && (
+                  <div
+                    style={{
+                      padding: 8,
+                      background: '#fff0f0',
+                      borderRadius: 8,
+                    }}
+                  >
+                    <div style={{ fontWeight: 600, marginBottom: 4 }}>
+                      📤 わたすもの
+                    </div>
+                    {requestSpaces.map((s) => (
+                      <div key={s.id}>・{s.name}</div>
+                    ))}
+                    {offer.requestMoney > 0 && (
+                      <div>・💰 ${offer.requestMoney}</div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </Dialog>
+          );
+        })()}
+
       {showBankruptDialog && (
         <BankruptDialog
           playerName={currentPlayer.name}

@@ -103,6 +103,7 @@ export type TurnPhase =
   | 'action'
   | 'auction'
   | 'trade'
+  | 'tradeConfirm'
   | 'build'
   | 'mortgage'
   | 'bankrupt'
