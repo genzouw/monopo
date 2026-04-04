@@ -857,7 +857,8 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       return { ...state, turnPhase: 'build' };
     }
     case 'CLOSE_BUILD_DIALOG': {
-      return { ...state, turnPhase: 'endTurn' };
+      const phase = state.dice.rolled ? 'endTurn' : 'roll';
+      return { ...state, turnPhase: phase };
     }
 
     // ── OPEN/CLOSE_SELL_DIALOG ──
@@ -865,7 +866,8 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       return { ...state, turnPhase: 'sell' };
     }
     case 'CLOSE_SELL_DIALOG': {
-      return { ...state, turnPhase: 'endTurn' };
+      const phase = state.dice.rolled ? 'endTurn' : 'roll';
+      return { ...state, turnPhase: phase };
     }
 
     // ── OPEN_TRADE_DIALOG ──
