@@ -32,6 +32,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
     null,
   );
   const [showPlayerDetail, setShowPlayerDetail] = useState<string | null>(null);
+  const [showSpaceDetail, setShowSpaceDetail] = useState<number | null>(null);
   const { muted, toggleMute, play } = useSound();
   const movingRef = useRef(false);
   // Refs to capture current values for the animation callback
@@ -229,7 +230,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           board={state.board}
           propertyStates={state.propertyStates}
           players={displayPlayers}
-          onSpaceClick={() => {}}
+          onSpaceClick={(pos) => setShowSpaceDetail(pos)}
         />
       </div>
 
@@ -373,6 +374,236 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           onConfirm={handleBankrupt}
         />
       )}
+
+      {/* Space detail dialog */}
+      {showSpaceDetail !== null &&
+        (() => {
+          const space = BOARD_SPACES[showSpaceDetail];
+          if (!space) return null;
+          const ps = state.propertyStates[space.id];
+          const owner = ps?.ownerId
+            ? state.players.find((p) => p.id === ps.ownerId)
+            : null;
+          const isProp = space.type === 'property';
+          const isRR = space.type === 'railroad';
+          const isUtil = space.type === 'utility';
+          const purchasable = isProp || isRR || isUtil;
+
+          const rentLabels = isProp
+            ? [
+                'たてものなし',
+                '家1けん',
+                '家2けん',
+                '家3けん',
+                '家4けん',
+                'ホテル',
+              ]
+            : isRR
+              ? ['1つ所有', '2つ所有', '3つ所有', '4つ所有']
+              : [];
+
+          const typeLabel = isProp
+            ? '🏠 土地'
+            : isRR
+              ? '🚂 鉄道'
+              : isUtil
+                ? space.id === 'electric'
+                  ? '💡 でんりょく会社'
+                  : '💧 すいどう会社'
+                : space.type === 'tax'
+                  ? '💸 ぜいきん'
+                  : space.type === 'chance'
+                    ? '❓ チャンスカード'
+                    : space.type === 'communityChest'
+                      ? '💝 おたすけカード'
+                      : '📍 マス';
+
+          return (
+            <Dialog
+              title={space.name}
+              actions={
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowSpaceDetail(null)}
+                >
+                  とじる
+                </Button>
+              }
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 8,
+                  fontSize: 14,
+                }}
+              >
+                <div
+                  style={{
+                    textAlign: 'center',
+                    color: 'var(--color-text-light)',
+                    marginBottom: 4,
+                  }}
+                >
+                  {typeLabel}
+                </div>
+
+                {purchasable && (
+                  <>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        padding: '6px 0',
+                        borderBottom: '1px solid #eee',
+                      }}
+                    >
+                      <span>💰 かかく</span>
+                      <span style={{ fontWeight: 700 }}>${space.price}</span>
+                    </div>
+                    {space.mortgageValue && (
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          padding: '6px 0',
+                          borderBottom: '1px solid #eee',
+                        }}
+                      >
+                        <span>🏦 ていとう（かりられるお金）</span>
+                        <span style={{ fontWeight: 700 }}>
+                          ${space.mortgageValue}
+                        </span>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {isProp && space.houseCost && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      padding: '6px 0',
+                      borderBottom: '1px solid #eee',
+                    }}
+                  >
+                    <span>🔨 家をたてるひよう</span>
+                    <span style={{ fontWeight: 700 }}>
+                      ${space.houseCost} / 1けん
+                    </span>
+                  </div>
+                )}
+
+                {space.rent && space.rent.length > 0 && (
+                  <div style={{ marginTop: 4 }}>
+                    <div style={{ fontWeight: 700, marginBottom: 6 }}>
+                      📋 とまり賃（レンタル料）
+                    </div>
+                    {space.rent.map((r, i) => (
+                      <div
+                        key={i}
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          padding: '3px 8px',
+                          borderRadius: 4,
+                          background:
+                            ps && ps.houses === i
+                              ? 'var(--color-accent)'
+                              : i % 2 === 0
+                                ? '#f8f8f8'
+                                : 'transparent',
+                          fontWeight: ps && ps.houses === i ? 700 : 400,
+                        }}
+                      >
+                        <span>{rentLabels[i] ?? `${i}`}</span>
+                        <span>${r}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {isUtil && (
+                  <div style={{ marginTop: 4 }}>
+                    <div style={{ fontWeight: 700, marginBottom: 6 }}>
+                      📋 とまり賃
+                    </div>
+                    <div
+                      style={{
+                        padding: '3px 8px',
+                        background: '#f8f8f8',
+                        borderRadius: 4,
+                      }}
+                    >
+                      1つ所有: サイコロの目 × 4
+                    </div>
+                    <div style={{ padding: '3px 8px', marginTop: 2 }}>
+                      2つ所有: サイコロの目 × 10
+                    </div>
+                  </div>
+                )}
+
+                {owner && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      padding: '6px 0',
+                      borderTop: '1px solid #eee',
+                      marginTop: 4,
+                    }}
+                  >
+                    <span>👤 オーナー</span>
+                    <span style={{ fontWeight: 700 }}>
+                      {owner.token} {owner.name}
+                    </span>
+                  </div>
+                )}
+
+                {ps && ps.isMortgaged && (
+                  <div
+                    style={{
+                      color: 'var(--color-text-light)',
+                      textAlign: 'center',
+                    }}
+                  >
+                    💤 いまお金をかりている状態だよ
+                  </div>
+                )}
+
+                {ps && isProp && ps.houses > 0 && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      padding: '6px 0',
+                      borderTop: '1px solid #eee',
+                    }}
+                  >
+                    <span>🏗️ たてもの</span>
+                    <span style={{ fontWeight: 700 }}>
+                      {ps.houses === 5 ? '🏨 ホテル' : `🏠 × ${ps.houses}`}
+                    </span>
+                  </div>
+                )}
+
+                {!purchasable && space.type === 'tax' && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      padding: '6px 0',
+                    }}
+                  >
+                    <span>💸 しはらうお金</span>
+                    <span style={{ fontWeight: 700 }}>${space.price}</span>
+                  </div>
+                )}
+              </div>
+            </Dialog>
+          );
+        })()}
 
       {/* Player detail dialog */}
       {showPlayerDetail &&
