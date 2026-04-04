@@ -407,14 +407,30 @@ export function createInitialGameState(): GameState {
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
   const result = gameReducerInner(state, action);
-  // 全アクション後に所持金マイナスチェック（強制売りだし or 破産）
-  if (
-    result.phase === 'playing' &&
-    result.turnPhase !== 'forceSell' &&
-    result.turnPhase !== 'auction'
-  ) {
-    return checkNegativeMoney(result);
+  if (result.phase !== 'playing') return result;
+
+  // forceSell中にプラスになったらendTurnに戻す
+  if (result.turnPhase === 'forceSell') {
+    const player = result.players[result.currentPlayerIndex];
+    if (player && player.money >= 0) {
+      return {
+        ...result,
+        turnPhase: 'endTurn',
+        message: 'おかねがプラスにもどったよ！',
+      };
+    }
+    // まだマイナスで物件もない → 破産
+    if (player && player.properties.length === 0) {
+      return checkNegativeMoney(result);
+    }
+    return result;
   }
+
+  // オークション中はスキップ
+  if (result.turnPhase === 'auction') return result;
+
+  // 通常時の所持金マイナスチェック
+  return checkNegativeMoney(result);
   return result;
 }
 
