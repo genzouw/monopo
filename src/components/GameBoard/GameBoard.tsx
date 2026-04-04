@@ -625,10 +625,30 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
             state.propertyStates,
             BOARD_SPACES,
           );
-          const ownedProps = detailPlayer.properties.map((id) => ({
-            space: BOARD_SPACES.find((s) => s.id === id)!,
-            state: state.propertyStates[id],
-          }));
+          const colorOrder = [
+            'brown',
+            'lightblue',
+            'pink',
+            'orange',
+            'red',
+            'yellow',
+            'green',
+            'blue',
+          ];
+          const ownedProps = detailPlayer.properties
+            .map((id) => ({
+              space: BOARD_SPACES.find((s) => s.id === id)!,
+              state: state.propertyStates[id],
+            }))
+            .sort((a, b) => {
+              const ai = a.space.color
+                ? colorOrder.indexOf(a.space.color)
+                : colorOrder.length;
+              const bi = b.space.color
+                ? colorOrder.indexOf(b.space.color)
+                : colorOrder.length;
+              return ai !== bi ? ai - bi : a.space.position - b.space.position;
+            });
           const currentSpaceName =
             BOARD_SPACES[detailPlayer.position]?.name ?? '';
           return (
