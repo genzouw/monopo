@@ -496,24 +496,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     // ── DECLINE_PURCHASE ──
     case 'DECLINE_PURCHASE': {
-      const player = state.players[state.currentPlayerIndex];
-      const space = BOARD_SPACES.find((s) => s.position === player.position);
-      if (!space) return state;
-
-      // 競売開始: 現在のプレイヤーから競売開始
-      const auction: AuctionState = {
-        propertyId: space.id,
-        currentBid: 0,
-        currentBidderId: null,
-        passedPlayerIds: [],
-        activePlayerIndex: state.currentPlayerIndex,
-      };
-
       return {
         ...state,
-        auction,
-        turnPhase: 'auction',
-        message: `${space.name}の競売をはじめるよ！いくらで買う？`,
+        turnPhase: 'endTurn',
+        message: '買わなかったよ',
       };
     }
 
