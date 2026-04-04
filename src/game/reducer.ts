@@ -885,7 +885,8 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     }
 
     case 'CLOSE_TRADE_DIALOG': {
-      return { ...state, trade: null, turnPhase: 'endTurn' };
+      const phase = state.dice.rolled ? 'endTurn' : 'roll';
+      return { ...state, trade: null, turnPhase: phase };
     }
 
     // ── PROPOSE_TRADE ──
@@ -968,7 +969,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         players: newPlayers,
         propertyStates: newPropertyStates,
         trade: null,
-        turnPhase: 'endTurn',
+        turnPhase: state.dice.rolled ? 'endTurn' : 'roll',
         message: `とりひきがせいりつしたよ！`,
       };
     }
@@ -978,7 +979,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       return {
         ...state,
         trade: null,
-        turnPhase: 'endTurn',
+        turnPhase: state.dice.rolled ? 'endTurn' : 'roll',
         message: `とりひきをことわったよ`,
       };
     }
