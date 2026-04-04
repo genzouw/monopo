@@ -26,7 +26,7 @@ export default function PurchaseDialog({
             ${space.price}で買う！
           </Button>
           <Button variant="secondary" onClick={onDecline}>
-            買わない（オークション）
+            買わない
           </Button>
         </>
       }
