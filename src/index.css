@@ -1,0 +1,55 @@
+:root {
+  /* ポップ/カジュアル カラーパレット */
+  --color-bg: #fff8f0;
+  --color-primary: #ff6b6b;
+  --color-secondary: #4ecdc4;
+  --color-accent: #ffe66d;
+  --color-text: #2c3e50;
+  --color-text-light: #7f8c8d;
+  --color-white: #ffffff;
+  --color-danger: #e74c3c;
+  --color-success: #2ecc71;
+  --color-money-up: #27ae60;
+  --color-money-down: #e74c3c;
+
+  /* 物件カラーグループ */
+  --color-brown: #8b4513;
+  --color-lightblue: #87ceeb;
+  --color-pink: #ff69b4;
+  --color-orange: #ffa500;
+  --color-red: #ff0000;
+  --color-yellow: #ffd700;
+  --color-green: #008000;
+  --color-blue: #0000ff;
+
+  /* サイズ */
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-lg: 16px;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family:
+    'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+  user-select: none;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+}
