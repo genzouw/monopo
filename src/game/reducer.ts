@@ -449,7 +449,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const steps = state.dice.values[0] + state.dice.values[1];
       const oldPos = player.position;
       const newPos = (oldPos + steps) % 40;
-      const passedGo = newPos < oldPos || (oldPos === 0 && steps > 0);
+      const passedGo = oldPos !== 0 && newPos < oldPos;
 
       let newState = updateCurrentPlayer(state, {
         position: newPos,
