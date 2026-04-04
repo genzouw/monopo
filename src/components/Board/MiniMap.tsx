@@ -58,21 +58,25 @@ function getGridPosition(position: number): { row: number; col: number } {
 }
 
 /** 色バーを経路の内側に配置するスタイル */
-function getColorBarStyle(position: number): React.CSSProperties {
+function getColorBarPosition(position: number): React.CSSProperties {
   if (position <= 10) {
     // 下辺: 内側 = 上
-    return { top: 0, left: 0, right: 0, height: 3 };
+    return { top: 0, left: 0, right: 0 };
   }
   if (position <= 20) {
     // 左辺: 内側 = 右
-    return { top: 0, bottom: 0, right: 0, width: 3 };
+    return { top: 0, bottom: 0, right: 0 };
   }
   if (position <= 30) {
     // 上辺: 内側 = 下
-    return { bottom: 0, left: 0, right: 0, height: 3 };
+    return { bottom: 0, left: 0, right: 0 };
   }
   // 右辺: 内側 = 左
-  return { top: 0, bottom: 0, left: 0, width: 3 };
+  return { top: 0, bottom: 0, left: 0 };
+}
+
+function isHorizontalEdge(position: number): boolean {
+  return position <= 10 || (position > 20 && position <= 30);
 }
 
 export default function MiniMap({
@@ -105,16 +109,22 @@ export default function MiniMap({
               style={{
                 gridRow: row,
                 gridColumn: col,
-                background: ownerBg ?? 'var(--color-white)',
+                background:
+                  ownerBg ??
+                  (space.position === 0
+                    ? '#e8f5e9'
+                    : space.type === 'chance'
+                      ? '#fff3e0'
+                      : 'var(--color-white)'),
               }}
               onClick={() => onSpaceClick(space.position)}
             >
               {space.color && (
                 <div
-                  className={styles.miniSpaceColor}
+                  className={`${styles.miniSpaceColor} ${isHorizontalEdge(space.position) ? styles.miniSpaceColorH : styles.miniSpaceColorV}`}
                   style={{
                     background: COLOR_MAP[space.color],
-                    ...getColorBarStyle(space.position),
+                    ...getColorBarPosition(space.position),
                   }}
                 />
               )}

@@ -63,6 +63,7 @@
   align-items: center;
   justify-content: center;
   min-height: 0;
+  container-type: size;
 }
 .miniMapBoard {
   display: grid;
@@ -73,8 +74,9 @@
   background: #e0e0e0;
   border-radius: var(--radius-sm);
   overflow: hidden;
-  height: 100%;
-  max-width: 100%;
+  width: min(100cqi, 100cqb);
+  aspect-ratio: 1;
+  container-type: inline-size;
 }
 .miniSpace {
   background: var(--color-white);
@@ -87,7 +89,7 @@
   overflow: hidden;
 }
 .miniSpaceIcon {
-  font-size: clamp(8px, 2.5vw, 14px);
+  font-size: clamp(8px, 2.5cqi, 20px);
   opacity: 0.5;
   position: absolute;
   pointer-events: none;
@@ -96,6 +98,12 @@
 .miniSpaceColor {
   position: absolute;
 }
+.miniSpaceColorH {
+  height: clamp(2px, 0.6cqi, 5px);
+}
+.miniSpaceColorV {
+  width: clamp(2px, 0.6cqi, 5px);
+}
 .miniCenter {
   grid-column: 2 / 11;
   grid-row: 2 / 11;
@@ -103,19 +111,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: clamp(20px, 5cqi, 36px);
   font-weight: 900;
   color: var(--color-primary);
 }
 .miniToken {
-  font-size: clamp(12px, 3vw, 18px);
+  font-size: clamp(12px, 3.2cqi, 24px);
   position: absolute;
 }
 .miniOwnerToken {
   position: absolute;
   bottom: 0;
   right: 0;
-  font-size: clamp(6px, 1.8vw, 10px);
+  font-size: clamp(6px, 1.8cqi, 14px);
   line-height: 1;
   z-index: 0;
   opacity: 0.8;
@@ -124,7 +132,7 @@
   position: absolute;
   top: 0;
   left: 1px;
-  font-size: clamp(5px, 1.5vw, 8px);
+  font-size: clamp(5px, 1.5cqi, 12px);
   line-height: 1;
   z-index: 0;
   pointer-events: none;
