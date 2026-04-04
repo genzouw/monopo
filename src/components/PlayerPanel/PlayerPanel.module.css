@@ -1,0 +1,51 @@
+.currentPlayer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--color-white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.token {
+  font-size: 32px;
+}
+.info {
+  flex: 1;
+}
+.name {
+  font-size: 18px;
+  font-weight: 700;
+}
+.money {
+  font-size: 16px;
+  font-weight: 600;
+}
+.allPlayers {
+  display: flex;
+  gap: 8px;
+  padding: 8px 16px;
+  overflow-x: auto;
+}
+.playerChip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--color-white);
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: var(--shadow);
+}
+.playerChipActive {
+  border: 2px solid var(--color-primary);
+}
+.playerChipBankrupt {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+.jailBadge {
+  font-size: 12px;
+}
