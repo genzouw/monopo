@@ -17,6 +17,30 @@ const COLOR_MAP: Record<ColorGroup, string> = {
   blue: 'var(--color-blue)',
 };
 
+/** プレイヤーごとの所有マス背景色（薄い色） */
+const OWNER_BG: Record<string, string> = {
+  p1: 'rgba(255, 107, 107, 0.25)',
+  p2: 'rgba(78, 205, 196, 0.25)',
+  p3: 'rgba(255, 230, 109, 0.35)',
+  p4: 'rgba(155, 89, 182, 0.25)',
+};
+
+/** マスタイプに応じたアイコン */
+function getSpaceIcon(space: BoardSpace): string | null {
+  if (space.type === 'railroad') return '🚂';
+  if (space.type === 'utility') {
+    return space.id === 'electric' ? '💡' : '💧';
+  }
+  if (space.type === 'chance') return '❓';
+  if (space.type === 'communityChest') return '💝';
+  if (space.type === 'tax') return '💸';
+  if (space.id === 'go') return '▶️';
+  if (space.id === 'jail') return '🔒';
+  if (space.id === 'free-parking') return '🅿️';
+  if (space.id === 'go-to-jail') return '👮';
+  return null;
+}
+
 type MiniMapProps = {
   board: BoardSpace[];
   propertyStates: Record<string, PropertyState>;
@@ -47,11 +71,21 @@ export default function MiniMap({
             (p) => p.position === space.position,
           );
           const propState = propertyStates[space.id];
+          const icon = getSpaceIcon(space);
+          const ownerId = propState?.ownerId;
+          const ownerBg = ownerId
+            ? (OWNER_BG[ownerId] ?? 'rgba(150,150,150,0.2)')
+            : undefined;
+
           return (
             <div
               key={space.id}
-              className={`${styles.miniSpace} ${propState?.ownerId ? styles.miniOwned : ''}`}
-              style={{ gridRow: row, gridColumn: col }}
+              className={styles.miniSpace}
+              style={{
+                gridRow: row,
+                gridColumn: col,
+                background: ownerBg ?? 'var(--color-white)',
+              }}
               onClick={() => onSpaceClick(space.position)}
             >
               {space.color && (
@@ -59,6 +93,9 @@ export default function MiniMap({
                   className={styles.miniSpaceColor}
                   style={{ background: COLOR_MAP[space.color] }}
                 />
+              )}
+              {icon && !playersHere.length && (
+                <span className={styles.miniSpaceIcon}>{icon}</span>
               )}
               {playersHere.map((p, i) => (
                 <span
