@@ -193,7 +193,7 @@ export const COMMUNITY_CHEST_CARDS: Card[] = [
   {
     id: 'cc16',
     type: 'communityChest',
-    text: 'いでんで$100もらえるよ！',
+    text: 'おじいちゃんからおこづかい！$100もらえるよ！',
     action: { type: 'money', amount: 100 },
   },
 ];
