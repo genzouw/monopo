@@ -15,6 +15,7 @@ const COLOR_MAP: Record<ColorGroup, string> = {
   yellow: 'var(--color-yellow)',
   green: 'var(--color-green)',
   blue: 'var(--color-blue)',
+  railroad: '#555',
 };
 
 type SpaceCardProps = {

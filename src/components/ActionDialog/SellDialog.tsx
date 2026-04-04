@@ -1,7 +1,36 @@
-import type { BoardSpace, Player, PropertyState } from '../../game/types';
+import type {
+  BoardSpace,
+  ColorGroup,
+  Player,
+  PropertyState,
+} from '../../game/types';
 import Dialog from '../common/Dialog';
 import Button from '../common/Button';
 import styles from './ActionDialog.module.css';
+
+const COLOR_MAP: Record<ColorGroup, string> = {
+  brown: 'var(--color-brown)',
+  lightblue: 'var(--color-lightblue)',
+  pink: 'var(--color-pink)',
+  orange: 'var(--color-orange)',
+  red: 'var(--color-red)',
+  yellow: 'var(--color-yellow)',
+  green: 'var(--color-green)',
+  blue: 'var(--color-blue)',
+  railroad: '#555',
+};
+
+const COLOR_ORDER: ColorGroup[] = [
+  'brown',
+  'lightblue',
+  'pink',
+  'orange',
+  'red',
+  'yellow',
+  'green',
+  'blue',
+  'railroad',
+];
 
 type SellDialogProps = {
   currentPlayer: Player;
@@ -24,7 +53,12 @@ export default function SellDialog({
 }: SellDialogProps) {
   const ownedProperties = currentPlayer.properties
     .map((id) => board.find((s) => s.id === id))
-    .filter((s): s is BoardSpace => !!s);
+    .filter((s): s is BoardSpace => !!s)
+    .sort((a, b) => {
+      const ai = a.color ? COLOR_ORDER.indexOf(a.color) : COLOR_ORDER.length;
+      const bi = b.color ? COLOR_ORDER.indexOf(b.color) : COLOR_ORDER.length;
+      return ai - bi;
+    });
 
   const title = forced
     ? '⚠️ お金がたりないよ！物件を売ろう！'
@@ -76,6 +110,12 @@ export default function SellDialog({
             <div key={space.id} className={styles.buildItem}>
               <div>
                 <div className={styles.buildItemName}>
+                  {space.color && (
+                    <span
+                      className={styles.tradePropertyColor}
+                      style={{ background: COLOR_MAP[space.color] }}
+                    />
+                  )}
                   {space.name} {houseLabel}
                 </div>
                 <div className={styles.buildItemInfo}>

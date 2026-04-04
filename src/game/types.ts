@@ -10,7 +10,8 @@ export type ColorGroup =
   | 'red'
   | 'yellow'
   | 'green'
-  | 'blue';
+  | 'blue'
+  | 'railroad';
 
 // ── ボードマスの種別 ──
 export type SpaceType =
