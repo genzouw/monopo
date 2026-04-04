@@ -1,0 +1,95 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.1s,
+    box-shadow 0.1s;
+  touch-action: manipulation;
+}
+.button:active {
+  transform: scale(0.96);
+}
+.button:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.primary {
+  background: var(--color-primary);
+  color: var(--color-white);
+  box-shadow: 0 3px 0 #d94848;
+}
+.secondary {
+  background: var(--color-secondary);
+  color: var(--color-white);
+  box-shadow: 0 3px 0 #3aafa3;
+}
+.danger {
+  background: var(--color-danger);
+  color: var(--color-white);
+  box-shadow: 0 3px 0 #c0392b;
+}
+.ghost {
+  background: transparent;
+  color: var(--color-text);
+  border: 2px solid var(--color-text-light);
+}
+.large {
+  padding: 16px 32px;
+  font-size: 20px;
+  border-radius: var(--radius-lg);
+}
+.small {
+  padding: 8px 16px;
+  font-size: 14px;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+.dialog {
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  animation: slideUp 0.3s ease-out;
+}
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.dialogTitle {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  text-align: center;
+}
+.dialogActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
