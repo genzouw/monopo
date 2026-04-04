@@ -108,14 +108,18 @@ export default function SellDialog({
           const sellPrice = Math.floor((space.houseCost ?? 0) / 2);
           return (
             <div key={space.id} className={styles.buildItem}>
-              <div>
+              {space.color && (
+                <div
+                  style={{
+                    width: 6,
+                    borderRadius: 3,
+                    background: COLOR_MAP[space.color],
+                    flexShrink: 0,
+                  }}
+                />
+              )}
+              <div style={{ flex: 1 }}>
                 <div className={styles.buildItemName}>
-                  {space.color && (
-                    <span
-                      className={styles.tradePropertyColor}
-                      style={{ background: COLOR_MAP[space.color] }}
-                    />
-                  )}
                   {space.name} {houseLabel}
                 </div>
                 <div className={styles.buildItemInfo}>
@@ -124,23 +128,25 @@ export default function SellDialog({
                     : `購入価格: $${space.price}`}
                 </div>
               </div>
-              {hasHouses ? (
-                <Button
-                  size="small"
-                  variant="secondary"
-                  onClick={() => onSellHouse(space.id)}
-                >
-                  家を売る
-                </Button>
-              ) : (
-                <Button
-                  size="small"
-                  variant="danger"
-                  onClick={() => onSell(space.id)}
-                >
-                  売りだす
-                </Button>
-              )}
+              <div style={{ marginLeft: 'auto', alignSelf: 'center' }}>
+                {hasHouses ? (
+                  <Button
+                    size="small"
+                    variant="secondary"
+                    onClick={() => onSellHouse(space.id)}
+                  >
+                    家を売る
+                  </Button>
+                ) : (
+                  <Button
+                    size="small"
+                    variant="danger"
+                    onClick={() => onSell(space.id)}
+                  >
+                    売りだす
+                  </Button>
+                )}
+              </div>
             </div>
           );
         })}

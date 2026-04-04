@@ -108,6 +108,7 @@ export type TurnPhase =
   | 'tradeConfirm'
   | 'build'
   | 'sell'
+  | 'forceBuy'
   | 'forceSell'
   | 'bankrupt'
   | 'endTurn';

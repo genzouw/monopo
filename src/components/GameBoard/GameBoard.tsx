@@ -17,6 +17,7 @@ import BuildDialog from '../ActionDialog/BuildDialog';
 import SellDialog from '../ActionDialog/SellDialog';
 import TradeDialog from '../ActionDialog/TradeDialog';
 import BankruptDialog from '../ActionDialog/BankruptDialog';
+import ForceBuyDialog from '../ActionDialog/ForceBuyDialog';
 import { useSound } from '../../sound/SoundContext';
 import styles from './GameBoard.module.css';
 
@@ -194,6 +195,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
     state.turnPhase === 'sell' || state.turnPhase === 'forceSell';
   const showTradeDialog = state.turnPhase === 'trade' && !!state.trade;
   const showBankruptDialog = state.turnPhase === 'bankrupt';
+  const showForceBuyDialog = state.turnPhase === 'forceBuy';
   const canSubAction =
     state.turnPhase === 'endTurn' || state.turnPhase === 'roll';
 
@@ -465,6 +467,26 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           onConfirm={handleBankrupt}
         />
       )}
+
+      {showForceBuyDialog &&
+        currentSpace &&
+        (() => {
+          const ps = state.propertyStates[currentSpace.id];
+          const owner = ps?.ownerId
+            ? state.players.find((p) => p.id === ps.ownerId)
+            : null;
+          if (!owner) return null;
+          return (
+            <ForceBuyDialog
+              space={currentSpace}
+              currentPlayer={currentPlayer}
+              owner={owner}
+              houses={ps?.houses ?? 0}
+              onBuy={() => dispatch({ type: 'FORCE_BUY' })}
+              onDecline={() => dispatch({ type: 'DECLINE_FORCE_BUY' })}
+            />
+          );
+        })()}
 
       {/* Space detail dialog */}
       {showSpaceDetail !== null &&

@@ -1,8 +1,36 @@
-import type { BoardSpace, Player, PropertyState } from '../../game/types';
+import type {
+  BoardSpace,
+  ColorGroup,
+  Player,
+  PropertyState,
+} from '../../game/types';
 import { canBuildHouse, canSellHouse } from '../../game/rules';
 import Dialog from '../common/Dialog';
 import Button from '../common/Button';
 import styles from './ActionDialog.module.css';
+
+const COLOR_MAP: Record<ColorGroup, string> = {
+  brown: 'var(--color-brown)',
+  lightblue: 'var(--color-lightblue)',
+  pink: 'var(--color-pink)',
+  orange: 'var(--color-orange)',
+  red: 'var(--color-red)',
+  yellow: 'var(--color-yellow)',
+  green: 'var(--color-green)',
+  blue: 'var(--color-blue)',
+  railroad: '#555',
+};
+
+const COLOR_ORDER: ColorGroup[] = [
+  'brown',
+  'lightblue',
+  'pink',
+  'orange',
+  'red',
+  'yellow',
+  'green',
+  'blue',
+];
 
 type BuildDialogProps = {
   currentPlayer: Player;
@@ -27,7 +55,12 @@ export default function BuildDialog({
     .map((id) => board.find((s) => s.id === id))
     .filter(
       (s): s is BoardSpace => !!s && s.type === 'property' && !!s.houseCost,
-    );
+    )
+    .sort((a, b) => {
+      const ai = COLOR_ORDER.indexOf(a.color as ColorGroup);
+      const bi = COLOR_ORDER.indexOf(b.color as ColorGroup);
+      return ai - bi;
+    });
 
   return (
     <Dialog
@@ -68,13 +101,30 @@ export default function BuildDialog({
           const canAffordBuild = currentPlayer.money >= (space.houseCost ?? 0);
           return (
             <div key={space.id} className={styles.buildItem}>
-              <div>
+              {space.color && (
+                <div
+                  style={{
+                    width: 6,
+                    borderRadius: 3,
+                    background: COLOR_MAP[space.color],
+                    flexShrink: 0,
+                  }}
+                />
+              )}
+              <div style={{ flex: 1 }}>
                 <div className={styles.buildItemName}>{space.name}</div>
                 <div className={styles.buildItemInfo}>
                   {HOUSE_LABELS[houses]} たてるコスト: ${space.houseCost}
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 4 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: 4,
+                  marginLeft: 'auto',
+                  alignItems: 'center',
+                }}
+              >
                 <Button
                   size="small"
                   onClick={() => onBuild(space.id)}

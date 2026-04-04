@@ -50,8 +50,8 @@
 }
 .buildItem {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: stretch;
+  gap: 8px;
   padding: 8px 12px;
   background: #f8f8f8;
   border-radius: var(--radius-sm);

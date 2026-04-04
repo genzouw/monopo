@@ -26,6 +26,8 @@ export type GameAction =
   | { type: 'PAY_JAIL_FINE' }
   | { type: 'USE_JAIL_CARD' }
   | { type: 'ROLL_FOR_JAIL' }
+  | { type: 'FORCE_BUY' }
+  | { type: 'DECLINE_FORCE_BUY' }
   | { type: 'DECLARE_BANKRUPTCY'; creditorId: string | null }
   | { type: 'END_TURN' }
   | { type: 'PAY_TAX' };

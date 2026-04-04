@@ -216,6 +216,18 @@ function handleLanding(state: GameState): GameState {
         return p;
       });
 
+      // 5倍買い可能かチェック（所持金が足りる場合のみ提示）
+      const forceBuyCost = (space.price ?? 0) * 5;
+      const playerAfterRent = newPlayers.find((p) => p.id === player.id)!;
+      if (forceBuyCost > 0 && playerAfterRent.money >= forceBuyCost) {
+        return {
+          ...state,
+          players: newPlayers,
+          turnPhase: 'forceBuy',
+          message: `${owner.name}に$${rent}のとまり賃をはらったよ。$${forceBuyCost}で5ばいがいする？`,
+        };
+      }
+
       return {
         ...state,
         players: newPlayers,
@@ -819,6 +831,62 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       };
     }
 
+    // ── FORCE_BUY (5倍買い) ──
+    case 'FORCE_BUY': {
+      const player = state.players[state.currentPlayerIndex];
+      const space = BOARD_SPACES.find((s) => s.position === player.position)!;
+      const propState = state.propertyStates[space.id];
+      if (!propState?.ownerId || propState.ownerId === player.id) return state;
+
+      const cost = (space.price ?? 0) * 5;
+      if (player.money < cost) return state;
+
+      const ownerId = propState.ownerId;
+      const owner = state.players.find((p) => p.id === ownerId)!;
+      const toOwner = Math.floor(cost * 0.6);
+
+      // 家の取り壊し: 建設費の半額を元の持ち主に返す
+      const houseSellBack =
+        propState.houses > 0 && space.houseCost
+          ? Math.floor(space.houseCost * propState.houses * 0.5)
+          : 0;
+
+      const newPlayers = state.players.map((p) => {
+        if (p.id === player.id) {
+          return {
+            ...p,
+            money: p.money - cost,
+            properties: [...p.properties, space.id],
+          };
+        }
+        if (p.id === ownerId) {
+          return {
+            ...p,
+            money: p.money + toOwner + houseSellBack,
+            properties: p.properties.filter((id) => id !== space.id),
+          };
+        }
+        return p;
+      });
+
+      const newPropertyStates = {
+        ...state.propertyStates,
+        [space.id]: { ownerId: player.id, houses: 0, isMortgaged: false },
+      };
+
+      return {
+        ...state,
+        players: newPlayers,
+        propertyStates: newPropertyStates,
+        turnPhase: 'endTurn',
+        message: `${player.name}が${space.name}を5ばいがいしたよ！（${owner.name}に$${toOwner}${houseSellBack > 0 ? `+おうち分$${houseSellBack}` : ''}）`,
+      };
+    }
+
+    case 'DECLINE_FORCE_BUY': {
+      return { ...state, turnPhase: 'endTurn' };
+    }
+
     // ── SELL_PROPERTY (オークション形式で売り出し) ──
     case 'SELL_PROPERTY': {
       const player = state.players[state.currentPlayerIndex];
@@ -1048,21 +1116,22 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       // ゾロ目でない
       const newJailTurns = player.jailTurns + 1;
 
-      // 3回目のターンは$50強制支払い
-      if (newJailTurns >= 3) {
+      // 2回休んだら自動的に脱出（出目の分だけ進む）
+      if (newJailTurns >= 2) {
         const steps = d1 + d2;
         const newPos = (player.position + steps) % 40;
+        const passedGo = newPos < player.position;
         let newState = updateCurrentPlayer(state, {
           position: newPos,
           inJail: false,
           jailTurns: 0,
-          money: player.money - 50,
+          money: passedGo ? player.money + 200 : player.money,
         });
         newState = {
           ...newState,
           dice: { values: [d1, d2], doubles: 0, rolled: true },
           turnPhase: 'landed',
-          message: `3かいめなので$50はらって刑務所をでたよ！`,
+          message: `2かい休んだので刑務所をでたよ！`,
         };
         return handleLanding(newState);
       }
@@ -1173,9 +1242,11 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       return {
         ...state,
         currentPlayerIndex: nextIndex,
-        turnPhase: nextPlayer.inJail ? 'roll' : 'roll',
+        turnPhase: 'roll',
         dice: { values: [1, 1], doubles: 0, rolled: false },
-        message: `${nextPlayer.name}のばんだよ！サイコロをふろう！`,
+        message: nextPlayer.inJail
+          ? `${nextPlayer.name}のばんだよ！刑務所にいるよ`
+          : `${nextPlayer.name}のばんだよ！サイコロをふろう！`,
       };
     }
 
