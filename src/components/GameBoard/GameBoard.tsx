@@ -234,18 +234,18 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           propertyStates={state.propertyStates}
           players={displayPlayers}
           onSpaceClick={(pos) => setShowSpaceDetail(pos)}
-        />
+        >
+          {state.dice.rolled ? (
+            <Dice
+              values={state.dice.values}
+              rolling={isRolling}
+              onRollComplete={handleRollComplete}
+            />
+          ) : undefined}
+        </MiniMap>
       </div>
 
       {state.message && <div className={styles.message}>{state.message}</div>}
-
-      {state.dice.rolled && (
-        <Dice
-          values={state.dice.values}
-          rolling={isRolling}
-          onRollComplete={handleRollComplete}
-        />
-      )}
 
       <div className={styles.actions}>
         {state.turnPhase === 'roll' && !currentPlayer.inJail && (

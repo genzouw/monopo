@@ -46,6 +46,7 @@ type MiniMapProps = {
   propertyStates: Record<string, PropertyState>;
   players: Player[];
   onSpaceClick: (position: number) => void;
+  children?: React.ReactNode;
 };
 
 function getGridPosition(position: number): { row: number; col: number } {
@@ -78,6 +79,7 @@ export default function MiniMap({
   propertyStates,
   players,
   onSpaceClick,
+  children,
 }: MiniMapProps) {
   const activePlayers = players.filter((p) => !p.isBankrupt);
   return (
@@ -142,7 +144,7 @@ export default function MiniMap({
             </div>
           );
         })}
-        <div className={styles.miniCenter}>🎲</div>
+        <div className={styles.miniCenter}>{children ?? '🎲'}</div>
       </div>
     </div>
   );
