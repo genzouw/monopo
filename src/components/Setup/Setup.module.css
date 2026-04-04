@@ -1,0 +1,79 @@
+.setup {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  gap: 24px;
+}
+.title {
+  font-size: 36px;
+  font-weight: 900;
+  color: var(--color-primary);
+  text-align: center;
+}
+.subtitle {
+  font-size: 16px;
+  color: var(--color-text-light);
+  text-align: center;
+}
+.playerCount {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 18px;
+}
+.countButton {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-secondary);
+  color: var(--color-white);
+  font-size: 24px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.countButton:disabled {
+  opacity: 0.3;
+}
+.playerList {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.playerRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--color-white);
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.nameInput {
+  flex: 1;
+  padding: 8px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  font-family: inherit;
+}
+.nameInput:focus {
+  outline: none;
+  border-color: var(--color-secondary);
+}
+.tokenPicker {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.startButton {
+  margin-top: 16px;
+}
