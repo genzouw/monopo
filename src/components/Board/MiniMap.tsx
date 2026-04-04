@@ -94,8 +94,13 @@ export default function MiniMap({
                   style={{ background: COLOR_MAP[space.color] }}
                 />
               )}
-              {icon && !playersHere.length && (
+              {icon && !playersHere.length && !ownerId && (
                 <span className={styles.miniSpaceIcon}>{icon}</span>
+              )}
+              {ownerId && !playersHere.length && (
+                <span className={styles.miniOwnerToken}>
+                  {players.find((p) => p.id === ownerId)?.token}
+                </span>
               )}
               {playersHere.map((p, i) => (
                 <span
