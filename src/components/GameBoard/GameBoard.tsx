@@ -132,11 +132,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
     dispatch({ type: 'UNMORTGAGE_PROPERTY', propertyId });
   };
 
-  const handleProposeTrade = (
-    offer: Parameters<typeof dispatch>[0] extends { type: 'PROPOSE_TRADE' }
-      ? Parameters<typeof dispatch>[0]['offer']
-      : never,
-  ) => {
+  const handleProposeTrade = (offer: import('../../game/types').TradeOffer) => {
     dispatch({ type: 'PROPOSE_TRADE', offer });
   };
 

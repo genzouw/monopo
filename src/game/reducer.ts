@@ -64,17 +64,6 @@ function updateCurrentPlayer(
   return { ...state, players };
 }
 
-function updatePlayer(
-  state: GameState,
-  playerId: string,
-  updates: Partial<Player>,
-): GameState {
-  const players = state.players.map((p) =>
-    p.id === playerId ? { ...p, ...updates } : p,
-  );
-  return { ...state, players };
-}
-
 function sendToJail(state: GameState): GameState {
   const player = state.players[state.currentPlayerIndex];
   const newState = updateCurrentPlayer(state, {

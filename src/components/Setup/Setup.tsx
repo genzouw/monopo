@@ -19,7 +19,7 @@ const DEFAULT_NAMES = [
 export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
   const [playerCount, setPlayerCount] = useState(2);
   const [names, setNames] = useState(DEFAULT_NAMES);
-  const [selectedTokens, setSelectedTokens] = useState([
+  const [selectedTokens, setSelectedTokens] = useState<string[]>([
     TOKENS[0],
     TOKENS[1],
     TOKENS[2],
