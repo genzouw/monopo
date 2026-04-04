@@ -107,7 +107,7 @@
   color: var(--color-primary);
 }
 .miniToken {
-  font-size: 10px;
+  font-size: clamp(12px, 3vw, 18px);
   position: absolute;
 }
 .miniOwnerToken {
