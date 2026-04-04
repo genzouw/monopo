@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type {
   BoardSpace,
+  ColorGroup,
   Player,
   PropertyState,
   TradeOffer,
@@ -8,6 +9,17 @@ import type {
 import Dialog from '../common/Dialog';
 import Button from '../common/Button';
 import styles from './ActionDialog.module.css';
+
+const COLOR_MAP: Record<ColorGroup, string> = {
+  brown: 'var(--color-brown)',
+  lightblue: 'var(--color-lightblue)',
+  pink: 'var(--color-pink)',
+  orange: 'var(--color-orange)',
+  red: 'var(--color-red)',
+  yellow: 'var(--color-yellow)',
+  green: 'var(--color-green)',
+  blue: 'var(--color-blue)',
+};
 
 type TradeDialogProps = {
   currentPlayer: Player;
@@ -89,7 +101,18 @@ export default function TradeDialog({
               className={`${styles.tradePropertyChip} ${offerProperties.includes(space.id) ? styles.tradePropertyChipSelected : ''}`}
               onClick={() => toggleOffer(space.id)}
             >
-              {space.name}
+              {space.color && (
+                <span
+                  className={styles.tradePropertyColor}
+                  style={{ background: COLOR_MAP[space.color] }}
+                />
+              )}
+              <span>{space.name}</span>
+              {space.price != null && (
+                <span className={styles.tradePropertyPrice}>
+                  ${space.price}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -121,7 +144,18 @@ export default function TradeDialog({
               className={`${styles.tradePropertyChip} ${requestProperties.includes(space.id) ? styles.tradePropertyChipSelected : ''}`}
               onClick={() => toggleRequest(space.id)}
             >
-              {space.name}
+              {space.color && (
+                <span
+                  className={styles.tradePropertyColor}
+                  style={{ background: COLOR_MAP[space.color] }}
+                />
+              )}
+              <span>{space.name}</span>
+              {space.price != null && (
+                <span className={styles.tradePropertyPrice}>
+                  ${space.price}
+                </span>
+              )}
             </button>
           ))}
         </div>
