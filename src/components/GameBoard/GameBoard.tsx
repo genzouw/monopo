@@ -14,7 +14,7 @@ import AuctionDialog from '../ActionDialog/AuctionDialog';
 import CardDialog from '../ActionDialog/CardDialog';
 import JailDialog from '../ActionDialog/JailDialog';
 import BuildDialog from '../ActionDialog/BuildDialog';
-import MortgageDialog from '../ActionDialog/MortgageDialog';
+import SellDialog from '../ActionDialog/SellDialog';
 import TradeDialog from '../ActionDialog/TradeDialog';
 import BankruptDialog from '../ActionDialog/BankruptDialog';
 import { useSound } from '../../sound/SoundContext';
@@ -162,14 +162,8 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
     dispatch({ type: 'SELL_HOUSE', propertyId });
   };
 
-  const handleMortgage = (propertyId: string) => {
-    play('moneyGain');
-    dispatch({ type: 'MORTGAGE_PROPERTY', propertyId });
-  };
-
-  const handleUnmortgage = (propertyId: string) => {
-    play('moneyLoss');
-    dispatch({ type: 'UNMORTGAGE_PROPERTY', propertyId });
+  const handleSellProperty = (propertyId: string) => {
+    dispatch({ type: 'SELL_PROPERTY', propertyId });
   };
 
   const handleProposeTrade = (offer: import('../../game/types').TradeOffer) => {
@@ -196,7 +190,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
   const showAuctionDialog = state.turnPhase === 'auction' && !!state.auction;
   const showJailDialog = state.turnPhase === 'roll' && currentPlayer.inJail;
   const showBuildDialog = state.turnPhase === 'build';
-  const showMortgageDialog = state.turnPhase === 'mortgage';
+  const showSellDialog = state.turnPhase === 'sell';
   const showTradeDialog = state.turnPhase === 'trade' && !!state.trade;
   const showBankruptDialog = state.turnPhase === 'bankrupt';
   const canSubAction =
@@ -289,9 +283,9 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
             <Button
               size="small"
               variant="secondary"
-              onClick={() => dispatch({ type: 'OPEN_MORTGAGE_DIALOG' })}
+              onClick={() => dispatch({ type: 'OPEN_SELL_DIALOG' })}
             >
-              🏦 ていとう
+              🏷️ 売りだし
             </Button>
             {otherActivePlayers.length > 0 && (
               <Button
@@ -354,14 +348,13 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
         />
       )}
 
-      {showMortgageDialog && (
-        <MortgageDialog
+      {showSellDialog && (
+        <SellDialog
           currentPlayer={currentPlayer}
           board={state.board}
           propertyStates={state.propertyStates}
-          onMortgage={handleMortgage}
-          onUnmortgage={handleUnmortgage}
-          onClose={() => dispatch({ type: 'CLOSE_MORTGAGE_DIALOG' })}
+          onSell={handleSellProperty}
+          onClose={() => dispatch({ type: 'CLOSE_SELL_DIALOG' })}
         />
       )}
 

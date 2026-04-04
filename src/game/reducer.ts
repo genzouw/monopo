@@ -554,6 +554,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         currentBidderId: null,
         passedPlayerIds: [],
         activePlayerIndex: state.currentPlayerIndex,
+        sellerId: null,
       };
 
       return {
@@ -604,29 +605,42 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
           const winner = state.players.find(
             (p) => p.id === auction.currentBidderId,
           )!;
+          const space = BOARD_SPACES.find((s) => s.id === auction.propertyId)!;
           const newPropertyStates: Record<string, PropertyState> = {
             ...state.propertyStates,
             [auction.propertyId]: {
               ...state.propertyStates[auction.propertyId],
               ownerId: winner.id,
+              isMortgaged: false,
             },
           };
-          const newPlayers = state.players.map((p) =>
-            p.id === winner.id
-              ? {
-                  ...p,
-                  money: p.money - auction.currentBid,
-                  properties: [...p.properties, auction.propertyId],
-                }
-              : p,
-          );
+          const newPlayers = state.players.map((p) => {
+            if (p.id === winner.id) {
+              return {
+                ...p,
+                money: p.money - auction.currentBid,
+                properties: [...p.properties, auction.propertyId],
+              };
+            }
+            // 売却オークションの場合、売り手にお金を渡し物件を除去
+            if (auction.sellerId && p.id === auction.sellerId) {
+              return {
+                ...p,
+                money: p.money + auction.currentBid,
+                properties: p.properties.filter(
+                  (id) => id !== auction.propertyId,
+                ),
+              };
+            }
+            return p;
+          });
           return {
             ...state,
             players: newPlayers,
             propertyStates: newPropertyStates,
             auction: null,
             turnPhase: 'endTurn',
-            message: `${winner.name}が$${auction.currentBid}で${auction.propertyId}を落札したよ！`,
+            message: `${winner.name}が$${auction.currentBid}で${space.name}を落札したよ！`,
           };
         } else {
           // 誰も入札しなかった
@@ -634,7 +648,9 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
             ...state,
             auction: null,
             turnPhase: 'endTurn',
-            message: `だれも入札しなかったよ。競売おわり！`,
+            message: auction.sellerId
+              ? 'だれも買わなかったよ。売れなかった！'
+              : 'だれも入札しなかったよ。競売おわり！',
           };
         }
       }
@@ -780,66 +796,36 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       };
     }
 
-    // ── MORTGAGE_PROPERTY ──
-    case 'MORTGAGE_PROPERTY': {
+    // ── SELL_PROPERTY (オークション形式で売り出し) ──
+    case 'SELL_PROPERTY': {
       const player = state.players[state.currentPlayerIndex];
       const space = state.board.find((s) => s.id === action.propertyId);
-      if (!space?.mortgageValue) return state;
+      if (!space) return state;
 
       const propState = state.propertyStates[action.propertyId];
-      if (
-        !propState ||
-        propState.ownerId !== player.id ||
-        propState.isMortgaged
-      )
-        return state;
+      if (!propState || propState.ownerId !== player.id) return state;
+      // 家が建っている物件は売れない（先に家を売る必要がある）
+      if (propState.houses > 0) return state;
 
-      const newPropertyStates: Record<string, PropertyState> = {
-        ...state.propertyStates,
-        [action.propertyId]: { ...propState, isMortgaged: true },
+      // 売り手以外でオークション開始
+      const firstBidderIndex = nextActivePlayer(
+        state.players,
+        state.currentPlayerIndex,
+      );
+      const auction: AuctionState = {
+        propertyId: space.id,
+        currentBid: 0,
+        currentBidderId: null,
+        passedPlayerIds: [player.id], // 売り手は入札に参加しない
+        activePlayerIndex: firstBidderIndex,
+        sellerId: player.id,
       };
-
-      const newState = updateCurrentPlayer(state, {
-        money: player.money + space.mortgageValue,
-      });
 
       return {
-        ...newState,
-        propertyStates: newPropertyStates,
-        message: `${space.name}をていとうにいれたよ。$${space.mortgageValue}もらったよ`,
-      };
-    }
-
-    // ── UNMORTGAGE_PROPERTY ──
-    case 'UNMORTGAGE_PROPERTY': {
-      const player = state.players[state.currentPlayerIndex];
-      const space = state.board.find((s) => s.id === action.propertyId);
-      if (!space?.mortgageValue) return state;
-
-      const propState = state.propertyStates[action.propertyId];
-      if (
-        !propState ||
-        propState.ownerId !== player.id ||
-        !propState.isMortgaged
-      )
-        return state;
-
-      const unmortgageCost = Math.floor(space.mortgageValue * 1.1);
-      if (player.money < unmortgageCost) return state;
-
-      const newPropertyStates: Record<string, PropertyState> = {
-        ...state.propertyStates,
-        [action.propertyId]: { ...propState, isMortgaged: false },
-      };
-
-      const newState = updateCurrentPlayer(state, {
-        money: player.money - unmortgageCost,
-      });
-
-      return {
-        ...newState,
-        propertyStates: newPropertyStates,
-        message: `${space.name}のていとうをはずしたよ。$${unmortgageCost}はらったよ`,
+        ...state,
+        auction,
+        turnPhase: 'auction',
+        message: `${player.name}が${space.name}を売りだしたよ！いくらで買う？`,
       };
     }
 
@@ -851,11 +837,11 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       return { ...state, turnPhase: 'endTurn' };
     }
 
-    // ── OPEN/CLOSE_MORTGAGE_DIALOG ──
-    case 'OPEN_MORTGAGE_DIALOG': {
-      return { ...state, turnPhase: 'mortgage' };
+    // ── OPEN/CLOSE_SELL_DIALOG ──
+    case 'OPEN_SELL_DIALOG': {
+      return { ...state, turnPhase: 'sell' };
     }
-    case 'CLOSE_MORTGAGE_DIALOG': {
+    case 'CLOSE_SELL_DIALOG': {
       return { ...state, turnPhase: 'endTurn' };
     }
 

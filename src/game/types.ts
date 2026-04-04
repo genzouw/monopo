@@ -81,6 +81,7 @@ export type AuctionState = {
   currentBidderId: string | null;
   passedPlayerIds: string[];
   activePlayerIndex: number;
+  sellerId: string | null; // 売却オークションの場合、売り手のID
 };
 
 // ── 取引状態 ──
@@ -105,7 +106,7 @@ export type TurnPhase =
   | 'trade'
   | 'tradeConfirm'
   | 'build'
-  | 'mortgage'
+  | 'sell'
   | 'bankrupt'
   | 'endTurn';
 

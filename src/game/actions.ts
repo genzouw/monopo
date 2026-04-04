@@ -15,10 +15,9 @@ export type GameAction =
   | { type: 'SELL_HOUSE'; propertyId: string }
   | { type: 'OPEN_BUILD_DIALOG' }
   | { type: 'CLOSE_BUILD_DIALOG' }
-  | { type: 'MORTGAGE_PROPERTY'; propertyId: string }
-  | { type: 'UNMORTGAGE_PROPERTY'; propertyId: string }
-  | { type: 'OPEN_MORTGAGE_DIALOG' }
-  | { type: 'CLOSE_MORTGAGE_DIALOG' }
+  | { type: 'SELL_PROPERTY'; propertyId: string }
+  | { type: 'OPEN_SELL_DIALOG' }
+  | { type: 'CLOSE_SELL_DIALOG' }
   | { type: 'OPEN_TRADE_DIALOG'; targetPlayerId: string }
   | { type: 'CLOSE_TRADE_DIALOG' }
   | { type: 'PROPOSE_TRADE'; offer: TradeOffer }
