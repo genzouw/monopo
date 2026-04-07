@@ -1,50 +1,48 @@
-import { useState } from 'react';
-import { TOKENS } from '../../game/types';
-import type { GameState } from '../../game/types';
-import Button from '../common/Button';
-import styles from './Setup.module.css';
+import { useState } from 'react'
+import { TOKENS } from '../../game/types'
+import type { GameState } from '../../game/types'
+import Button from '../common/Button'
+import styles from './Setup.module.css'
 
 type SetupProps = {
-  onStart: (names: string[], tokens: string[]) => void;
-  onResume?: () => void;
-  savedGame?: GameState | null;
-};
+  onStart: (names: string[], tokens: string[]) => void
+  onResume?: () => void
+  savedGame?: GameState | null
+}
 const DEFAULT_NAMES = [
   'プレイヤー1',
   'プレイヤー2',
   'プレイヤー3',
   'プレイヤー4',
-];
+]
 
 export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
-  const [playerCount, setPlayerCount] = useState(2);
-  const [names, setNames] = useState(DEFAULT_NAMES);
+  const [playerCount, setPlayerCount] = useState(2)
+  const [names, setNames] = useState(DEFAULT_NAMES)
   const [selectedTokens, setSelectedTokens] = useState<string[]>([
     TOKENS[0],
     TOKENS[1],
     TOKENS[2],
     TOKENS[3],
-  ]);
+  ])
 
   const handleNameChange = (index: number, name: string) => {
-    const newNames = [...names];
-    newNames[index] = name;
-    setNames(newNames);
-  };
+    const newNames = [...names]
+    newNames[index] = name
+    setNames(newNames)
+  }
 
   const handleTokenChange = (playerIndex: number, token: string) => {
-    const newTokens = [...selectedTokens];
+    const newTokens = [...selectedTokens]
     const existingIndex = newTokens.findIndex(
       (t, i) => t === token && i !== playerIndex,
-    );
-    if (existingIndex !== -1) newTokens[existingIndex] = newTokens[playerIndex];
-    newTokens[playerIndex] = token;
-    setSelectedTokens(newTokens);
-  };
+    )
+    if (existingIndex !== -1) newTokens[existingIndex] = newTokens[playerIndex]
+    newTokens[playerIndex] = token
+    setSelectedTokens(newTokens)
+  }
 
-  const canStart = names
-    .slice(0, playerCount)
-    .every((n) => n.trim().length > 0);
+  const canStart = names.slice(0, playerCount).every((n) => n.trim().length > 0)
 
   return (
     <div className={styles.setup}>
@@ -108,9 +106,9 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
               onClick={() => {
                 const currentIdx = TOKENS.indexOf(
                   selectedTokens[i] as (typeof TOKENS)[number],
-                );
-                const nextToken = TOKENS[(currentIdx + 1) % TOKENS.length];
-                handleTokenChange(i, nextToken);
+                )
+                const nextToken = TOKENS[(currentIdx + 1) % TOKENS.length]
+                handleTokenChange(i, nextToken)
               }}
             >
               {selectedTokens[i]}
@@ -141,5 +139,5 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
         ゲームスタート！
       </Button>
     </div>
-  );
+  )
 }

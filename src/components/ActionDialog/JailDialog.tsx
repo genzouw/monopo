@@ -1,13 +1,13 @@
-import type { Player } from '../../game/types';
-import Dialog from '../common/Dialog';
-import Button from '../common/Button';
+import type { Player } from '../../game/types'
+import Dialog from '../common/Dialog'
+import Button from '../common/Button'
 
 type JailDialogProps = {
-  currentPlayer: Player;
-  onPayFine: () => void;
-  onUseCard: () => void;
-  onRollForJail: () => void;
-};
+  currentPlayer: Player
+  onPayFine: () => void
+  onUseCard: () => void
+  onRollForJail: () => void
+}
 
 export default function JailDialog({
   currentPlayer,
@@ -15,8 +15,8 @@ export default function JailDialog({
   onUseCard,
   onRollForJail,
 }: JailDialogProps) {
-  const canPayFine = currentPlayer.money >= 50;
-  const hasCards = currentPlayer.getOutOfJailCards > 0;
+  const canPayFine = currentPlayer.money >= 50
+  const hasCards = currentPlayer.getOutOfJailCards > 0
   return (
     <Dialog
       title="🔒 刑務所にいるよ"
@@ -59,5 +59,5 @@ export default function JailDialog({
         )}
       </div>
     </Dialog>
-  );
+  )
 }

@@ -1,17 +1,17 @@
-import type { BoardSpace, Player, PropertyState } from '../../game/types';
-import { canMortgage, canUnmortgage } from '../../game/rules';
-import Dialog from '../common/Dialog';
-import Button from '../common/Button';
-import styles from './ActionDialog.module.css';
+import type { BoardSpace, Player, PropertyState } from '../../game/types'
+import { canMortgage, canUnmortgage } from '../../game/rules'
+import Dialog from '../common/Dialog'
+import Button from '../common/Button'
+import styles from './ActionDialog.module.css'
 
 type MortgageDialogProps = {
-  currentPlayer: Player;
-  board: BoardSpace[];
-  propertyStates: Record<string, PropertyState>;
-  onMortgage: (propertyId: string) => void;
-  onUnmortgage: (propertyId: string) => void;
-  onClose: () => void;
-};
+  currentPlayer: Player
+  board: BoardSpace[]
+  propertyStates: Record<string, PropertyState>
+  onMortgage: (propertyId: string) => void
+  onUnmortgage: (propertyId: string) => void
+  onClose: () => void
+}
 
 export default function MortgageDialog({
   currentPlayer,
@@ -23,7 +23,7 @@ export default function MortgageDialog({
 }: MortgageDialogProps) {
   const ownedProperties = currentPlayer.properties
     .map((id) => board.find((s) => s.id === id))
-    .filter((s): s is BoardSpace => !!s && !!s.mortgageValue);
+    .filter((s): s is BoardSpace => !!s && !!s.mortgageValue)
 
   return (
     <Dialog
@@ -47,22 +47,22 @@ export default function MortgageDialog({
           </div>
         )}
         {ownedProperties.map((space) => {
-          const propState = propertyStates[space.id];
-          const isMortgaged = propState?.isMortgaged ?? false;
+          const propState = propertyStates[space.id]
+          const isMortgaged = propState?.isMortgaged ?? false
           const canDoMortgage = canMortgage(
             space.id,
             currentPlayer.id,
             propertyStates,
             board,
-          );
+          )
           const canDoUnmortgage = canUnmortgage(
             space.id,
             currentPlayer.id,
             currentPlayer,
             propertyStates,
             board,
-          );
-          const unmortgageCost = Math.floor((space.mortgageValue ?? 0) * 1.1);
+          )
+          const unmortgageCost = Math.floor((space.mortgageValue ?? 0) * 1.1)
           return (
             <div key={space.id} className={styles.buildItem}>
               <div>
@@ -95,9 +95,9 @@ export default function MortgageDialog({
                 </Button>
               )}
             </div>
-          );
+          )
         })}
       </div>
     </Dialog>
-  );
+  )
 }

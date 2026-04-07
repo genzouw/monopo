@@ -1,4 +1,4 @@
-import type { TradeOffer, GameState } from './types';
+import type { TradeOffer, GameState } from './types'
 
 export type GameAction =
   | { type: 'START_GAME'; playerNames: string[]; playerTokens: string[] }
@@ -30,4 +30,4 @@ export type GameAction =
   | { type: 'DECLINE_FORCE_BUY' }
   | { type: 'DECLARE_BANKRUPTCY'; creditorId: string | null }
   | { type: 'END_TURN' }
-  | { type: 'PAY_TAX' };
+  | { type: 'PAY_TAX' }

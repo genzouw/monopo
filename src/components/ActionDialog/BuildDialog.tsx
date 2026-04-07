@@ -3,11 +3,11 @@ import type {
   ColorGroup,
   Player,
   PropertyState,
-} from '../../game/types';
-import { canBuildHouse, canSellHouse } from '../../game/rules';
-import Dialog from '../common/Dialog';
-import Button from '../common/Button';
-import styles from './ActionDialog.module.css';
+} from '../../game/types'
+import { canBuildHouse, canSellHouse } from '../../game/rules'
+import Dialog from '../common/Dialog'
+import Button from '../common/Button'
+import styles from './ActionDialog.module.css'
 
 const COLOR_MAP: Record<ColorGroup, string> = {
   brown: 'var(--color-brown)',
@@ -19,7 +19,7 @@ const COLOR_MAP: Record<ColorGroup, string> = {
   green: 'var(--color-green)',
   blue: 'var(--color-blue)',
   railroad: '#555',
-};
+}
 
 const COLOR_ORDER: ColorGroup[] = [
   'brown',
@@ -30,18 +30,18 @@ const COLOR_ORDER: ColorGroup[] = [
   'yellow',
   'green',
   'blue',
-];
+]
 
 type BuildDialogProps = {
-  currentPlayer: Player;
-  board: BoardSpace[];
-  propertyStates: Record<string, PropertyState>;
-  onBuild: (propertyId: string) => void;
-  onSell: (propertyId: string) => void;
-  onClose: () => void;
-};
+  currentPlayer: Player
+  board: BoardSpace[]
+  propertyStates: Record<string, PropertyState>
+  onBuild: (propertyId: string) => void
+  onSell: (propertyId: string) => void
+  onClose: () => void
+}
 
-const HOUSE_LABELS = ['なし', '🏠', '🏠🏠', '🏠🏠🏠', '🏠🏠🏠🏠', '🏨'];
+const HOUSE_LABELS = ['なし', '🏠', '🏠🏠', '🏠🏠🏠', '🏠🏠🏠🏠', '🏨']
 
 export default function BuildDialog({
   currentPlayer,
@@ -57,10 +57,10 @@ export default function BuildDialog({
       (s): s is BoardSpace => !!s && s.type === 'property' && !!s.houseCost,
     )
     .sort((a, b) => {
-      const ai = COLOR_ORDER.indexOf(a.color as ColorGroup);
-      const bi = COLOR_ORDER.indexOf(b.color as ColorGroup);
-      return ai - bi;
-    });
+      const ai = COLOR_ORDER.indexOf(a.color as ColorGroup)
+      const bi = COLOR_ORDER.indexOf(b.color as ColorGroup)
+      return ai - bi
+    })
 
   return (
     <Dialog
@@ -84,21 +84,21 @@ export default function BuildDialog({
           </div>
         )}
         {ownedProperties.map((space) => {
-          const propState = propertyStates[space.id];
-          const houses = propState?.houses ?? 0;
+          const propState = propertyStates[space.id]
+          const houses = propState?.houses ?? 0
           const canBuild = canBuildHouse(
             space.id,
             currentPlayer.id,
             propertyStates,
             board,
-          );
+          )
           const canSell = canSellHouse(
             space.id,
             currentPlayer.id,
             propertyStates,
             board,
-          );
-          const canAffordBuild = currentPlayer.money >= (space.houseCost ?? 0);
+          )
+          const canAffordBuild = currentPlayer.money >= (space.houseCost ?? 0)
           return (
             <div key={space.id} className={styles.buildItem}>
               {space.color && (
@@ -142,9 +142,9 @@ export default function BuildDialog({
                 </Button>
               </div>
             </div>
-          );
+          )
         })}
       </div>
     </Dialog>
-  );
+  )
 }

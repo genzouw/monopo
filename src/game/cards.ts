@@ -1,4 +1,4 @@
-import type { Card } from './types';
+import type { Card } from './types'
 
 export const CHANCE_CARDS: Card[] = [
   {
@@ -97,7 +97,7 @@ export const CHANCE_CARDS: Card[] = [
     text: 'たてものの投資がうまくいったよ！$150もらえる！',
     action: { type: 'money', amount: 150 },
   },
-];
+]
 
 export const COMMUNITY_CHEST_CARDS: Card[] = [
   {
@@ -196,13 +196,13 @@ export const COMMUNITY_CHEST_CARDS: Card[] = [
     text: 'おじいちゃんからおこづかい！$100もらえるよ！',
     action: { type: 'money', amount: 100 },
   },
-];
+]
 
 export function shuffleCards(cards: Card[]): Card[] {
-  const shuffled = [...cards];
+  const shuffled = [...cards]
   for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
   }
-  return shuffled;
+  return shuffled
 }

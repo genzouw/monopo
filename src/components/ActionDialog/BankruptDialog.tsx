@@ -1,10 +1,10 @@
-import Dialog from '../common/Dialog';
-import Button from '../common/Button';
+import Dialog from '../common/Dialog'
+import Button from '../common/Button'
 
 type BankruptDialogProps = {
-  playerName: string;
-  onConfirm: () => void;
-};
+  playerName: string
+  onConfirm: () => void
+}
 
 export default function BankruptDialog({
   playerName,
@@ -33,5 +33,5 @@ export default function BankruptDialog({
         </div>
       </div>
     </Dialog>
-  );
+  )
 }

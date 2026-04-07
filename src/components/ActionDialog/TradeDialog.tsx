@@ -1,14 +1,14 @@
-import { useState } from 'react';
+import { useState } from 'react'
 import type {
   BoardSpace,
   ColorGroup,
   Player,
   PropertyState,
   TradeOffer,
-} from '../../game/types';
-import Dialog from '../common/Dialog';
-import Button from '../common/Button';
-import styles from './ActionDialog.module.css';
+} from '../../game/types'
+import Dialog from '../common/Dialog'
+import Button from '../common/Button'
+import styles from './ActionDialog.module.css'
 
 const COLOR_MAP: Record<ColorGroup, string> = {
   brown: 'var(--color-brown)',
@@ -20,16 +20,16 @@ const COLOR_MAP: Record<ColorGroup, string> = {
   green: 'var(--color-green)',
   blue: 'var(--color-blue)',
   railroad: '#555',
-};
+}
 
 type TradeDialogProps = {
-  currentPlayer: Player;
-  targetPlayer: Player;
-  board: BoardSpace[];
-  propertyStates: Record<string, PropertyState>;
-  onPropose: (offer: TradeOffer) => void;
-  onClose: () => void;
-};
+  currentPlayer: Player
+  targetPlayer: Player
+  board: BoardSpace[]
+  propertyStates: Record<string, PropertyState>
+  onPropose: (offer: TradeOffer) => void
+  onClose: () => void
+}
 
 export default function TradeDialog({
   currentPlayer,
@@ -39,34 +39,34 @@ export default function TradeDialog({
   onPropose,
   onClose,
 }: TradeDialogProps) {
-  const [offerProperties, setOfferProperties] = useState<string[]>([]);
-  const [requestProperties, setRequestProperties] = useState<string[]>([]);
-  const [offerMoney, setOfferMoney] = useState(0);
-  const [requestMoney, setRequestMoney] = useState(0);
+  const [offerProperties, setOfferProperties] = useState<string[]>([])
+  const [requestProperties, setRequestProperties] = useState<string[]>([])
+  const [offerMoney, setOfferMoney] = useState(0)
+  const [requestMoney, setRequestMoney] = useState(0)
 
   const myProperties = currentPlayer.properties
     .map((id) => board.find((s) => s.id === id))
     .filter(
       (s): s is BoardSpace => !!s && (propertyStates[s.id]?.houses ?? 0) === 0,
-    );
+    )
 
   const theirProperties = targetPlayer.properties
     .map((id) => board.find((s) => s.id === id))
     .filter(
       (s): s is BoardSpace => !!s && (propertyStates[s.id]?.houses ?? 0) === 0,
-    );
+    )
 
   const toggleOffer = (id: string) => {
     setOfferProperties((prev) =>
       prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id],
-    );
-  };
+    )
+  }
 
   const toggleRequest = (id: string) => {
     setRequestProperties((prev) =>
       prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id],
-    );
-  };
+    )
+  }
 
   const handlePropose = () => {
     onPropose({
@@ -78,8 +78,8 @@ export default function TradeDialog({
       requestProperties,
       requestMoney,
       requestJailCards: 0,
-    });
-  };
+    })
+  }
 
   return (
     <Dialog
@@ -180,5 +180,5 @@ export default function TradeDialog({
         </div>
       </div>
     </Dialog>
-  );
+  )
 }

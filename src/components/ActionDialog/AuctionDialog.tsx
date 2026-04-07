@@ -1,16 +1,16 @@
-import type { AuctionState, Player } from '../../game/types';
-import { BOARD_SPACES } from '../../game/board';
-import Dialog from '../common/Dialog';
-import Button from '../common/Button';
-import styles from './ActionDialog.module.css';
+import type { AuctionState, Player } from '../../game/types'
+import { BOARD_SPACES } from '../../game/board'
+import Dialog from '../common/Dialog'
+import Button from '../common/Button'
+import styles from './ActionDialog.module.css'
 
 type AuctionDialogProps = {
-  auction: AuctionState;
-  players: Player[];
-  currentPlayer: Player;
-  onBid: (amount: number) => void;
-  onPass: () => void;
-};
+  auction: AuctionState
+  players: Player[]
+  currentPlayer: Player
+  onBid: (amount: number) => void
+  onPass: () => void
+}
 
 export default function AuctionDialog({
   auction,
@@ -18,11 +18,11 @@ export default function AuctionDialog({
   onBid,
   onPass,
 }: AuctionDialogProps) {
-  const space = BOARD_SPACES.find((s) => s.id === auction.propertyId);
+  const space = BOARD_SPACES.find((s) => s.id === auction.propertyId)
   const currentBidder = auction.currentBidderId
     ? players.find((p) => p.id === auction.currentBidderId)
-    : null;
-  const activePlayer = players[auction.activePlayerIndex];
+    : null
+  const activePlayer = players[auction.activePlayerIndex]
 
   return (
     <Dialog title="オークション！">
@@ -77,5 +77,5 @@ export default function AuctionDialog({
         </Button>
       </div>
     </Dialog>
-  );
+  )
 }
