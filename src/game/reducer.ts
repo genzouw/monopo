@@ -898,6 +898,9 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       // 家が建っている物件は売れない（先に家を売る必要がある）
       if (propState.houses > 0) return state;
 
+      // 開始価格 = 物件価格の半額を10の位で四捨五入
+      const startingBid = Math.round((space.price ?? 0) / 2 / 10) * 10;
+
       // 売り手以外でオークション開始
       const firstBidderIndex = nextActivePlayer(
         state.players,
@@ -905,7 +908,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       );
       const auction: AuctionState = {
         propertyId: space.id,
-        currentBid: 0,
+        currentBid: startingBid,
         currentBidderId: null,
         passedPlayerIds: [player.id], // 売り手は入札に参加しない
         activePlayerIndex: firstBidderIndex,
@@ -916,7 +919,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         ...state,
         auction,
         turnPhase: 'auction',
-        message: `${player.name}が${space.name}を売りだしたよ！いくらで買う？`,
+        message: `${player.name}が${space.name}を$${startingBid}で売りだしたよ！いくらで買う？`,
       };
     }
 
