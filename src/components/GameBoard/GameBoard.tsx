@@ -18,7 +18,7 @@ import SellDialog from '../ActionDialog/SellDialog'
 import TradeDialog from '../ActionDialog/TradeDialog'
 import BankruptDialog from '../ActionDialog/BankruptDialog'
 import ForceBuyDialog from '../ActionDialog/ForceBuyDialog'
-import { useSound } from '../../sound/SoundContext'
+import { useSound } from '../../sound/useSound'
 import styles from './GameBoard.module.css'
 
 type GameBoardProps = {

@@ -12,7 +12,7 @@ type SoundContextType = {
   toggleMute: () => void
   play: (sound: keyof typeof SoundEffects) => void
 }
-const SoundContext = createContext<SoundContextType>({
+export const SoundContext = createContext<SoundContextType>({
   muted: false,
   toggleMute: () => {},
   play: () => {},
@@ -44,7 +44,4 @@ export function SoundProvider({ children }: { children: ReactNode }) {
       {children}
     </SoundContext.Provider>
   )
-}
-export function useSound() {
-  return useContext(SoundContext)
 }
