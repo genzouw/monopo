@@ -56,39 +56,39 @@ src/
 
 ```typescript
 type GameState = {
-  phase: 'setup' | 'playing' | 'finished';
-  players: Player[];
-  currentPlayerIndex: number;
-  board: BoardSpace[];
-  cards: { chance: Card[]; communityChest: Card[] };
-  dice: { values: [number, number]; doubles: number };
-  turnPhase: 'roll' | 'moving' | 'landed' | 'action' | 'endTurn';
-};
+  phase: 'setup' | 'playing' | 'finished'
+  players: Player[]
+  currentPlayerIndex: number
+  board: BoardSpace[]
+  cards: { chance: Card[]; communityChest: Card[] }
+  dice: { values: [number, number]; doubles: number }
+  turnPhase: 'roll' | 'moving' | 'landed' | 'action' | 'endTurn'
+}
 ```
 
 ### プレイヤー
 
 ```typescript
 type Player = {
-  id: string;
-  name: string;
-  token: string; // 絵文字 🚗🎩👞🐕
-  money: number; // 初期$1500
-  position: number; // 0-39
-  properties: string[]; // 所有物件ID
-  inJail: boolean;
-  jailTurns: number;
-  getOutOfJailCards: number;
-  isBankrupt: boolean;
-};
+  id: string
+  name: string
+  token: string // 絵文字 🚗🎩👞🐕
+  money: number // 初期$1500
+  position: number // 0-39
+  properties: string[] // 所有物件ID
+  inJail: boolean
+  jailTurns: number
+  getOutOfJailCards: number
+  isBankrupt: boolean
+}
 ```
 
 ### ボードマス
 
 ```typescript
 type BoardSpace = {
-  id: string;
-  position: number; // 0-39
+  id: string
+  position: number // 0-39
   type:
     | 'property'
     | 'railroad'
@@ -96,25 +96,25 @@ type BoardSpace = {
     | 'tax'
     | 'chance'
     | 'communityChest'
-    | 'corner';
-  name: string;
-  color?: string; // 物件カラーグループ
-  price?: number;
-  rent?: number[]; // [基本, 1軒, 2軒, 3軒, 4軒, ホテル]
-  houseCost?: number;
-  owner?: string; // プレイヤーID
-  houses: number; // 0-4 (5=ホテル)
-  isMortgaged: boolean;
-};
+    | 'corner'
+  name: string
+  color?: string // 物件カラーグループ
+  price?: number
+  rent?: number[] // [基本, 1軒, 2軒, 3軒, 4軒, ホテル]
+  houseCost?: number
+  owner?: string // プレイヤーID
+  houses: number // 0-4 (5=ホテル)
+  isMortgaged: boolean
+}
 ```
 
 ### カード
 
 ```typescript
 type Card = {
-  id: string;
-  type: 'chance' | 'communityChest';
-  text: string; // カードに表示するテキスト（子ども向けのやさしい日本語）
+  id: string
+  type: 'chance' | 'communityChest'
+  text: string // カードに表示するテキスト（子ども向けのやさしい日本語）
   action:
     | { type: 'move'; position: number } // 指定マスへ移動
     | { type: 'moveRelative'; spaces: number } // 相対移動
@@ -123,8 +123,8 @@ type Card = {
     | { type: 'jail' } // 刑務所へ行く
     | { type: 'jailFree' } // 刑務所から出られるカードを手に入れる
     | { type: 'repair'; perHouse: number; perHotel: number } // 家/ホテルごとに支払い
-    | { type: 'moveNearest'; spaceType: 'railroad' | 'utility' }; // 最寄りの鉄道/公共事業へ
-};
+    | { type: 'moveNearest'; spaceType: 'railroad' | 'utility' } // 最寄りの鉄道/公共事業へ
+}
 ```
 
 ### 競売（オークション）フロー

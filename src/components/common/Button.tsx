@@ -1,10 +1,10 @@
-import type { ButtonHTMLAttributes } from 'react';
-import styles from './common.module.css';
+import type { ButtonHTMLAttributes } from 'react'
+import styles from './common.module.css'
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
-  size?: 'small' | 'medium' | 'large';
-};
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost'
+  size?: 'small' | 'medium' | 'large'
+}
 
 export default function Button({
   variant = 'primary',
@@ -20,10 +20,10 @@ export default function Button({
     className,
   ]
     .filter(Boolean)
-    .join(' ');
+    .join(' ')
   return (
     <button className={classes} {...props}>
       {children}
     </button>
-  );
+  )
 }

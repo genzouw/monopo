@@ -1,12 +1,12 @@
-import type { Player } from '../../game/types';
-import styles from './PlayerPanel.module.css';
+import type { Player } from '../../game/types'
+import styles from './PlayerPanel.module.css'
 
 type PlayerPanelProps = {
-  currentPlayer: Player;
-  allPlayers: Player[];
-  currentPlayerIndex: number;
-  onPlayerClick?: (playerId: string) => void;
-};
+  currentPlayer: Player
+  allPlayers: Player[]
+  currentPlayerIndex: number
+  onPlayerClick?: (playerId: string) => void
+}
 
 export default function PlayerPanel({
   currentPlayer,
@@ -41,5 +41,5 @@ export default function PlayerPanel({
         ))}
       </div>
     </>
-  );
+  )
 }

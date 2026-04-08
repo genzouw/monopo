@@ -3,10 +3,10 @@ import type {
   ColorGroup,
   Player,
   PropertyState,
-} from '../../game/types';
-import Dialog from '../common/Dialog';
-import Button from '../common/Button';
-import styles from './ActionDialog.module.css';
+} from '../../game/types'
+import Dialog from '../common/Dialog'
+import Button from '../common/Button'
+import styles from './ActionDialog.module.css'
 
 const COLOR_MAP: Record<ColorGroup, string> = {
   brown: 'var(--color-brown)',
@@ -18,7 +18,7 @@ const COLOR_MAP: Record<ColorGroup, string> = {
   green: 'var(--color-green)',
   blue: 'var(--color-blue)',
   railroad: '#555',
-};
+}
 
 const COLOR_ORDER: ColorGroup[] = [
   'brown',
@@ -30,17 +30,17 @@ const COLOR_ORDER: ColorGroup[] = [
   'green',
   'blue',
   'railroad',
-];
+]
 
 type SellDialogProps = {
-  currentPlayer: Player;
-  board: BoardSpace[];
-  propertyStates: Record<string, PropertyState>;
-  onSell: (propertyId: string) => void;
-  onSellHouse: (propertyId: string) => void;
-  onClose: () => void;
-  forced?: boolean;
-};
+  currentPlayer: Player
+  board: BoardSpace[]
+  propertyStates: Record<string, PropertyState>
+  onSell: (propertyId: string) => void
+  onSellHouse: (propertyId: string) => void
+  onClose: () => void
+  forced?: boolean
+}
 
 export default function SellDialog({
   currentPlayer,
@@ -55,14 +55,14 @@ export default function SellDialog({
     .map((id) => board.find((s) => s.id === id))
     .filter((s): s is BoardSpace => !!s)
     .sort((a, b) => {
-      const ai = a.color ? COLOR_ORDER.indexOf(a.color) : COLOR_ORDER.length;
-      const bi = b.color ? COLOR_ORDER.indexOf(b.color) : COLOR_ORDER.length;
-      return ai - bi;
-    });
+      const ai = a.color ? COLOR_ORDER.indexOf(a.color) : COLOR_ORDER.length
+      const bi = b.color ? COLOR_ORDER.indexOf(b.color) : COLOR_ORDER.length
+      return ai - bi
+    })
 
   const title = forced
     ? '⚠️ お金がたりないよ！物件を売ろう！'
-    : '🏷️ 物件を売りだす';
+    : '🏷️ 物件を売りだす'
 
   return (
     <Dialog
@@ -100,12 +100,12 @@ export default function SellDialog({
           </div>
         )}
         {ownedProperties.map((space) => {
-          const propState = propertyStates[space.id];
-          const houses = propState?.houses ?? 0;
-          const hasHouses = houses > 0;
+          const propState = propertyStates[space.id]
+          const houses = propState?.houses ?? 0
+          const hasHouses = houses > 0
           const houseLabel =
-            houses === 5 ? '🏨' : houses > 0 ? `🏠×${houses}` : '';
-          const sellPrice = Math.floor((space.houseCost ?? 0) / 2);
+            houses === 5 ? '🏨' : houses > 0 ? `🏠×${houses}` : ''
+          const sellPrice = Math.floor((space.houseCost ?? 0) / 2)
           return (
             <div key={space.id} className={styles.buildItem}>
               {space.color && (
@@ -148,9 +148,9 @@ export default function SellDialog({
                 )}
               </div>
             </div>
-          );
+          )
         })}
       </div>
     </Dialog>
-  );
+  )
 }

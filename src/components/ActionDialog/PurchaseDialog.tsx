@@ -1,14 +1,14 @@
-import type { BoardSpace, Player } from '../../game/types';
-import Dialog from '../common/Dialog';
-import Button from '../common/Button';
-import styles from './ActionDialog.module.css';
+import type { BoardSpace, Player } from '../../game/types'
+import Dialog from '../common/Dialog'
+import Button from '../common/Button'
+import styles from './ActionDialog.module.css'
 
 type PurchaseDialogProps = {
-  space: BoardSpace;
-  currentPlayer: Player;
-  onBuy: () => void;
-  onDecline: () => void;
-};
+  space: BoardSpace
+  currentPlayer: Player
+  onBuy: () => void
+  onDecline: () => void
+}
 
 export default function PurchaseDialog({
   space,
@@ -16,7 +16,7 @@ export default function PurchaseDialog({
   onBuy,
   onDecline,
 }: PurchaseDialogProps) {
-  const canAfford = currentPlayer.money >= (space.price ?? 0);
+  const canAfford = currentPlayer.money >= (space.price ?? 0)
   return (
     <Dialog
       title="かいますか？"
@@ -46,5 +46,5 @@ export default function PurchaseDialog({
         )}
       </div>
     </Dialog>
-  );
+  )
 }
