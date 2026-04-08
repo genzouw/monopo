@@ -443,7 +443,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
   // 通常時の所持金マイナスチェック
   return checkNegativeMoney(result)
-  return result
 }
 
 function gameReducerInner(state: GameState, action: GameAction): GameState {
