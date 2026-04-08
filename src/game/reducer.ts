@@ -1175,13 +1175,11 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
 
       // お金を債権者に渡す
       if (creditorId) {
-        const creditor = newPlayers.find((p) => p.id === creditorId)!
         newPlayers = newPlayers.map((p) => {
           if (p.id === creditorId)
             return { ...p, money: p.money + player.money }
           return p
         })
-        void creditor // suppress unused warning
       }
 
       newPlayers = newPlayers.map((p) => {
