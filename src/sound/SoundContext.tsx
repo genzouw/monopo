@@ -1,22 +1,8 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  type ReactNode,
-} from 'react'
+import { useState, useCallback, type ReactNode } from 'react'
 import { SoundEffects, initAudio } from './sounds'
+import { SoundContext } from './soundContextDef'
 
-type SoundContextType = {
-  muted: boolean
-  toggleMute: () => void
-  play: (sound: keyof typeof SoundEffects) => void
-}
-export const SoundContext = createContext<SoundContextType>({
-  muted: false,
-  toggleMute: () => {},
-  play: () => {},
-})
+export { SoundContext } from './soundContextDef'
 
 export function SoundProvider({ children }: { children: ReactNode }) {
   const [muted, setMuted] = useState(false)
