@@ -20,10 +20,10 @@ const COLOR_MAP: Record<ColorGroup, string> = {
 
 /** プレイヤーごとの所有マス背景色（薄い色） */
 const OWNER_BG: Record<string, string> = {
-  p1: 'rgba(255, 107, 107, 0.25)',
-  p2: 'rgba(78, 205, 196, 0.25)',
-  p3: 'rgba(255, 230, 109, 0.35)',
-  p4: 'rgba(155, 89, 182, 0.25)',
+  'player-0': 'rgba(255, 107, 107, 0.25)',
+  'player-1': 'rgba(78, 205, 196, 0.25)',
+  'player-2': 'rgba(255, 230, 109, 0.35)',
+  'player-3': 'rgba(155, 89, 182, 0.25)',
 }
 
 /** マスタイプに応じたアイコン */
