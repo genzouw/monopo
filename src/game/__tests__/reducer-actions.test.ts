@@ -531,9 +531,9 @@ describe('DRAW_CARD + DISMISS_CARD (applyCardEffect)', () => {
     })
     state = gameReducer(state, { type: 'DRAW_CARD' })
     const next = gameReducer(state, { type: 'DISMISS_CARD' })
-    // position 7 から最寄り鉄道 = 15 (kings-cross-rr 想定、board.ts に依存)
-    expect(next.players[0].position).toBeGreaterThan(7)
-    expect(state.board[next.players[0].position].type).toBe('railroad')
+    // position 7 から最寄り鉄道 = 15 (pennsylvania-rr / みなみ鉄道)
+    expect(next.players[0].position).toBe(15)
+    expect(next.board[next.players[0].position].type).toBe('railroad')
   })
 
   it('communityChest からも引ける', () => {
