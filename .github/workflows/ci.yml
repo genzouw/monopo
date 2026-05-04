@@ -1,8 +1,17 @@
 name: CI
 
 on:
+  push:
+    branches: [main]
   pull_request:
-    branches: [main, master]
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   lint:
@@ -39,7 +48,7 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: tsc -b --noEmit
+      - run: npm run typecheck
 
   build:
     name: Build
@@ -54,7 +63,7 @@ jobs:
       - run: npm run build
 
   test:
-    name: Test
+    name: Test (with coverage)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -63,4 +72,11 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npm run test
+      - run: npm run test:coverage
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
