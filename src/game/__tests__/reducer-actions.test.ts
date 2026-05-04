@@ -562,7 +562,7 @@ describe('DRAW_CARD + DISMISS_CARD (applyCardEffect)', () => {
 // ── ROLL_FOR_JAIL ──
 
 describe('ROLL_FOR_JAIL', () => {
-  it('ゾロ目で脱出して移動する', () => {
+  it('ゾロ目で脱出（位置は moving フェーズで FINISH_MOVING に委譲）', () => {
     let state = startedGame()
     state = withCurrentPlayer(state, {
       inJail: true,
@@ -573,24 +573,34 @@ describe('ROLL_FOR_JAIL', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0) // 常に1が出る → ゾロ目
     const next = gameReducer(state, { type: 'ROLL_FOR_JAIL' })
     expect(next.players[0].inJail).toBe(false)
-    expect(next.players[0].position).toBe(12) // 10 + 1+1
+    expect(next.players[0].jailTurns).toBe(0)
+    // ROLL_FOR_JAIL ではまだ移動しない（アニメーション後に FINISH_MOVING で進む）
+    expect(next.players[0].position).toBe(10)
+    expect(next.turnPhase).toBe('moving')
+    expect(next.dice.values).toEqual([1, 1])
     vi.restoreAllMocks()
   })
 
-  it('2回休んで脱出', () => {
+  it('3回目の試行でゾロ目が出なければ$50払って強制出獄', () => {
     let state = startedGame()
+    const moneyBefore = state.players[0].money
     state = withCurrentPlayer(state, {
       inJail: true,
-      jailTurns: 1, // +1 で 2 → 自動脱出
+      jailTurns: 2, // +1 で 3 → 強制出獄
       position: 10,
     })
     vi.spyOn(Math, 'random').mockReturnValueOnce(0).mockReturnValueOnce(0.5) // 1, 4
     const next = gameReducer(state, { type: 'ROLL_FOR_JAIL' })
     expect(next.players[0].inJail).toBe(false)
+    expect(next.players[0].jailTurns).toBe(0)
+    expect(next.players[0].money).toBe(moneyBefore - 50)
+    // 移動はアニメーション後の FINISH_MOVING で行うため、ここではまだ進まない
+    expect(next.players[0].position).toBe(10)
+    expect(next.turnPhase).toBe('moving')
     vi.restoreAllMocks()
   })
 
-  it('ゾロ目でなく jailTurns < 2 ならまた1回休む', () => {
+  it('1回目の失敗ならまた1回休む（jailTurns: 0 → 1）', () => {
     let state = startedGame()
     state = withCurrentPlayer(state, {
       inJail: true,
@@ -601,6 +611,21 @@ describe('ROLL_FOR_JAIL', () => {
     const next = gameReducer(state, { type: 'ROLL_FOR_JAIL' })
     expect(next.players[0].inJail).toBe(true)
     expect(next.players[0].jailTurns).toBe(1)
+    expect(next.turnPhase).toBe('endTurn')
+    vi.restoreAllMocks()
+  })
+
+  it('2回目の失敗でもまだ刑務所に残る（jailTurns: 1 → 2）', () => {
+    let state = startedGame()
+    state = withCurrentPlayer(state, {
+      inJail: true,
+      jailTurns: 1,
+      position: 10,
+    })
+    vi.spyOn(Math, 'random').mockReturnValueOnce(0).mockReturnValueOnce(0.5) // 1, 4
+    const next = gameReducer(state, { type: 'ROLL_FOR_JAIL' })
+    expect(next.players[0].inJail).toBe(true)
+    expect(next.players[0].jailTurns).toBe(2)
     expect(next.turnPhase).toBe('endTurn')
     vi.restoreAllMocks()
   })

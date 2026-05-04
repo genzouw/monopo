@@ -1093,48 +1093,38 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       const isDoubles = d1 === d2
 
       if (isDoubles) {
-        // ゾロ目で脱出
-        const steps = d1 + d2
-        const newPos = (player.position + steps) % 40
-        const passedGo = newPos < player.position
-        let newState = updateCurrentPlayer(state, {
-          position: newPos,
+        // ゾロ目で脱出 → 通常の移動アニメーションで進める
+        const newState = updateCurrentPlayer(state, {
           inJail: false,
           jailTurns: 0,
-          money: passedGo ? player.money + 200 : player.money,
         })
-        newState = {
+        return {
           ...newState,
           dice: { values: [d1, d2], doubles: 0, rolled: true },
-          turnPhase: 'landed',
-          message: `ゾロ目がでたよ！刑務所をぬけだしたよ！`,
+          turnPhase: 'moving',
+          message: `ゾロ目がでたよ！${d1}と${d2}！刑務所をぬけだしたよ！`,
         }
-        return handleLanding(newState)
       }
 
       // ゾロ目でない
       const newJailTurns = player.jailTurns + 1
 
-      // 2回休んだら自動的に脱出（出目の分だけ進む）
-      if (newJailTurns >= 2) {
-        const steps = d1 + d2
-        const newPos = (player.position + steps) % 40
-        const passedGo = newPos < player.position
-        let newState = updateCurrentPlayer(state, {
-          position: newPos,
+      // 3回目の試行も失敗 → $50払って強制出獄、出目の分だけ進む
+      if (newJailTurns >= 3) {
+        const newState = updateCurrentPlayer(state, {
+          money: player.money - 50,
           inJail: false,
           jailTurns: 0,
-          money: passedGo ? player.money + 200 : player.money,
         })
-        newState = {
+        return {
           ...newState,
           dice: { values: [d1, d2], doubles: 0, rolled: true },
-          turnPhase: 'landed',
-          message: `2かい休んだので刑務所をでたよ！`,
+          turnPhase: 'moving',
+          message: `3かいゾロ目がでなかったから$50はらって刑務所をでたよ！`,
         }
-        return handleLanding(newState)
       }
 
+      // 1〜2回目の失敗 → 刑務所続行
       const newState = updateCurrentPlayer(state, {
         jailTurns: newJailTurns,
       })
