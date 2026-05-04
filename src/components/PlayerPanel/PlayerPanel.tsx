@@ -20,9 +20,6 @@ export default function PlayerPanel({
         <span className={styles.token}>{currentPlayer.token}</span>
         <div className={styles.info}>
           <div className={styles.name}>{currentPlayer.name}のばん</div>
-          <div className={styles.money}>
-            💰 ${currentPlayer.money.toLocaleString()}
-          </div>
         </div>
         {currentPlayer.inJail && <span className={styles.jailBadge}>🔒</span>}
       </div>
