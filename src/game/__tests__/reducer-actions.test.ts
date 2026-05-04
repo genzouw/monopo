@@ -111,42 +111,42 @@ describe('FINISH_MOVING - handleLanding 各種マス', () => {
 
   it('自分の物件にとまると endTurn になる', () => {
     let state = startedGame()
-    state = withPropertyOwner(state, 'mediterranean', 'player-0')
+    state = withPropertyOwner(state, 'baltic', 'player-0')
     state = withCurrentPlayer(state, { position: 0 })
     state = {
       ...state,
-      dice: { values: [1, 0] as [number, number], doubles: 0, rolled: true },
+      dice: { values: [1, 2], doubles: 0, rolled: true },
       turnPhase: 'moving',
     }
     const next = gameReducer(state, { type: 'FINISH_MOVING' })
-    expect(next.players[0].position).toBe(1)
+    expect(next.players[0].position).toBe(3)
     expect(next.turnPhase).toBe('endTurn')
   })
 
   it('他のプレイヤーの物件にとまると家賃を払う', () => {
     let state = startedGame()
-    // mediterranean (price=60, base rent=2) を player-1 が所有（カラーグループ未制覇）
-    state = withPropertyOwner(state, 'mediterranean', 'player-1')
+    // baltic (price=60, base rent=4) を player-1 が所有（カラーグループ未制覇）
+    state = withPropertyOwner(state, 'baltic', 'player-1')
     state = withCurrentPlayer(state, { position: 0 })
     state = {
       ...state,
-      dice: { values: [1, 0] as [number, number], doubles: 0, rolled: true },
+      dice: { values: [1, 2], doubles: 0, rolled: true },
       turnPhase: 'moving',
     }
     const next = gameReducer(state, { type: 'FINISH_MOVING' })
-    expect(next.players[0].money).toBe(1498) // -2 (rent)
-    expect(next.players[1].money).toBe(1502) // +2 (rent)
+    expect(next.players[0].money).toBe(1496) // -4 (rent)
+    expect(next.players[1].money).toBe(1504) // +4 (rent)
   })
 
   it('抵当に入った物件にとまっても家賃は払わない', () => {
     let state = startedGame()
-    state = withPropertyOwner(state, 'mediterranean', 'player-1', {
+    state = withPropertyOwner(state, 'baltic', 'player-1', {
       isMortgaged: true,
     })
     state = withCurrentPlayer(state, { position: 0 })
     state = {
       ...state,
-      dice: { values: [1, 0] as [number, number], doubles: 0, rolled: true },
+      dice: { values: [1, 2], doubles: 0, rolled: true },
       turnPhase: 'moving',
     }
     const next = gameReducer(state, { type: 'FINISH_MOVING' })
@@ -156,12 +156,12 @@ describe('FINISH_MOVING - handleLanding 各種マス', () => {
 
   it('5倍買い可能な額のとき forceBuy フェーズに入る', () => {
     let state = startedGame()
-    // mediterranean (price=60, 5倍=300) を player-1 が所有、player-0 は十分なお金あり
-    state = withPropertyOwner(state, 'mediterranean', 'player-1')
+    // baltic (price=60, 5倍=300) を player-1 が所有、player-0 は十分なお金あり
+    state = withPropertyOwner(state, 'baltic', 'player-1')
     state = withCurrentPlayer(state, { position: 0, money: 1000 })
     state = {
       ...state,
-      dice: { values: [1, 0] as [number, number], doubles: 0, rolled: true },
+      dice: { values: [1, 2], doubles: 0, rolled: true },
       turnPhase: 'moving',
     }
     const next = gameReducer(state, { type: 'FINISH_MOVING' })
