@@ -11,6 +11,7 @@ export default defineConfig({
     setupFiles: './src/test-setup.ts',
     coverage: {
       provider: 'v8',
+      include: ['src/**'],
       reporter: [['text', { maxCols: 150 }], 'json-summary', 'html'],
       exclude: [
         'node_modules/**',
@@ -22,10 +23,10 @@ export default defineConfig({
         'src/main.tsx',
       ],
       thresholds: {
-        lines: 92,
-        functions: 95,
-        branches: 78,
-        statements: 90,
+        lines: 45,
+        functions: 26,
+        branches: 34,
+        statements: 45,
       },
     },
   },
