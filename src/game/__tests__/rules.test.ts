@@ -8,6 +8,7 @@ import {
   calculateTotalAssets,
   canMortgage,
   canSellHouse,
+  canUnmortgage,
 } from '../rules'
 
 function makePlayer(overrides: Partial<Player> = {}): Player {
@@ -273,5 +274,48 @@ describe('canSellHouse', () => {
     expect(canSellHouse('mediterranean', 'p1', states, BOARD_SPACES)).toBe(
       false,
     )
+  })
+})
+
+describe('canUnmortgage', () => {
+  it('抵当に入っていてお金が足りれば解除できる', () => {
+    // mediterranean は mortgageValue=30, 解除費用=floor(30 * 1.1)=33
+    const states = makePropertyStates({
+      mediterranean: { ownerId: 'p1', houses: 0, isMortgaged: true },
+    })
+    const player = makePlayer({ money: 100 })
+    expect(
+      canUnmortgage('mediterranean', 'p1', player, states, BOARD_SPACES),
+    ).toBe(true)
+  })
+
+  it('お金が足りなければ解除できない', () => {
+    const states = makePropertyStates({
+      mediterranean: { ownerId: 'p1', houses: 0, isMortgaged: true },
+    })
+    const player = makePlayer({ money: 10 })
+    expect(
+      canUnmortgage('mediterranean', 'p1', player, states, BOARD_SPACES),
+    ).toBe(false)
+  })
+
+  it('抵当に入っていなければ解除できない', () => {
+    const states = makePropertyStates({
+      mediterranean: { ownerId: 'p1', houses: 0, isMortgaged: false },
+    })
+    const player = makePlayer({ money: 1500 })
+    expect(
+      canUnmortgage('mediterranean', 'p1', player, states, BOARD_SPACES),
+    ).toBe(false)
+  })
+
+  it('オーナーが違えば解除できない', () => {
+    const states = makePropertyStates({
+      mediterranean: { ownerId: 'p2', houses: 0, isMortgaged: true },
+    })
+    const player = makePlayer({ id: 'p1', money: 1500 })
+    expect(
+      canUnmortgage('mediterranean', 'p1', player, states, BOARD_SPACES),
+    ).toBe(false)
   })
 })
