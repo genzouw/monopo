@@ -38,10 +38,6 @@ updates:
           - '@testing-library/*'
           - 'jsdom'
           - '@types/jsdom'
-      typescript:
-        patterns:
-          - 'typescript'
-          - '@types/*'
       react:
         patterns:
           - 'react'
@@ -53,6 +49,10 @@ updates:
           - 'vite'
           - '@vitejs/*'
           - 'vite-plugin-*'
+      typescript:
+        patterns:
+          - 'typescript'
+          - '@types/*'
     allow:
       - dependency-type: 'all'
 
