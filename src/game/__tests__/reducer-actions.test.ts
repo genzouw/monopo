@@ -181,6 +181,16 @@ describe('DECLINE_PURCHASE', () => {
     expect(next.auction).not.toBeNull()
     expect(next.auction?.propertyId).toBe('mediterranean')
   })
+
+  it('開始価格は物件のオーナーなしの購入価格になる', () => {
+    let state = startedGame()
+    state = withCurrentPlayer(state, { position: 1 })
+    state = { ...state, turnPhase: 'action' }
+    const next = gameReducer(state, { type: 'DECLINE_PURCHASE' })
+    // mediterranean.price = 60
+    expect(next.auction?.currentBid).toBe(60)
+    expect(next.auction?.currentBidderId).toBeNull()
+  })
 })
 
 // ── PLACE_BID / PASS_AUCTION ──
@@ -193,8 +203,9 @@ describe('オークション (PLACE_BID / PASS_AUCTION)', () => {
       { ...state, turnPhase: 'action' },
       { type: 'DECLINE_PURCHASE' },
     )
-    const next = gameReducer(state, { type: 'PLACE_BID', amount: 50 })
-    expect(next.auction?.currentBid).toBe(50)
+    // mediterranean.price=60 が開始価格なので、それを超える額で入札
+    const next = gameReducer(state, { type: 'PLACE_BID', amount: 70 })
+    expect(next.auction?.currentBid).toBe(70)
     expect(next.auction?.currentBidderId).toBe('player-0')
   })
 
@@ -208,6 +219,19 @@ describe('オークション (PLACE_BID / PASS_AUCTION)', () => {
     state = gameReducer(state, { type: 'PLACE_BID', amount: 100 })
     const next = gameReducer(state, { type: 'PLACE_BID', amount: 50 })
     expect(next.auction?.currentBid).toBe(100)
+  })
+
+  it('PLACE_BID で開始価格以下は拒否される', () => {
+    let state = startedGame()
+    state = withCurrentPlayer(state, { position: 1 })
+    state = gameReducer(
+      { ...state, turnPhase: 'action' },
+      { type: 'DECLINE_PURCHASE' },
+    )
+    // 開始価格は60なので、60以下の入札は拒否される
+    const next = gameReducer(state, { type: 'PLACE_BID', amount: 60 })
+    expect(next.auction?.currentBid).toBe(60)
+    expect(next.auction?.currentBidderId).toBeNull()
   })
 
   it('全員パスで誰も買わなかった場合', () => {
@@ -230,10 +254,10 @@ describe('オークション (PLACE_BID / PASS_AUCTION)', () => {
       { ...state, turnPhase: 'action' },
       { type: 'DECLINE_PURCHASE' },
     )
-    state = gameReducer(state, { type: 'PLACE_BID', amount: 30 })
+    state = gameReducer(state, { type: 'PLACE_BID', amount: 100 })
     const next = gameReducer(state, { type: 'PASS_AUCTION' })
     expect(next.auction).toBeNull()
-    expect(next.players[0].money).toBe(1470) // -30
+    expect(next.players[0].money).toBe(1400) // -100
     expect(next.players[0].properties).toContain('mediterranean')
     expect(next.propertyStates['mediterranean'].ownerId).toBe('player-0')
   })
@@ -781,6 +805,8 @@ describe('SELL_PROPERTY', () => {
     })
     expect(next.turnPhase).toBe('auction')
     expect(next.auction?.sellerId).toBe('player-0')
+    // 開始価格は物件のオーナーなしの購入価格（mediterranean.price=60）
+    expect(next.auction?.currentBid).toBe(60)
   })
 
   it('家がある物件は売れない', () => {
