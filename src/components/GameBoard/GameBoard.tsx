@@ -3,6 +3,7 @@ import type { Dispatch } from 'react'
 import type { GameState } from '../../game/types'
 import type { GameAction } from '../../game/actions'
 import { BOARD_SPACES } from '../../game/board'
+import { MAX_JAIL_TURNS } from '../../game/reducer'
 import { calculateTotalAssets } from '../../game/rules'
 import PlayerPanel from '../PlayerPanel/PlayerPanel'
 import MiniMap from '../Board/MiniMap'
@@ -36,10 +37,11 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
   const [showSpaceDetail, setShowSpaceDetail] = useState<number | null>(null)
   const { muted, toggleMute, play } = useSound()
   const movingRef = useRef(false)
-  const jailRollRef = useRef(false)
   // Refs to capture current values for the animation callback
   const positionRef = useRef(0)
   const diceRef = useRef<[number, number]>([1, 1])
+  const turnPhaseRef = useRef(state.turnPhase)
+  turnPhaseRef.current = state.turnPhase
 
   const currentPlayer = state.players[state.currentPlayerIndex]
 
@@ -65,9 +67,9 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
   const handleRollComplete = () => {
     setIsRolling(false)
 
-    // ROLL_FOR_JAIL の場合はreducer側で移動処理済みなのでアニメーション不要
-    if (jailRollRef.current) {
-      jailRollRef.current = false
+    // 移動が必要なフェーズのみアニメーション実行
+    // （刑務所内ロールで脱出失敗 → endTurn の場合はスキップ）
+    if (turnPhaseRef.current !== 'moving') {
       return
     }
 
@@ -147,7 +149,8 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
   }
 
   const handleRollForJail = () => {
-    jailRollRef.current = true
+    // 脱出時のアニメーションのため、現在位置をキャプチャ
+    positionRef.current = currentPlayer.position
     play('diceRoll')
     setIsRolling(true)
     dispatch({ type: 'ROLL_FOR_JAIL' })
@@ -815,7 +818,8 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                   <div
                     style={{ padding: '4px 0', color: 'var(--color-danger)' }}
                   >
-                    🔒 刑務所にいるよ（{detailPlayer.jailTurns}/3ターン）
+                    🔒 刑務所にいるよ（{detailPlayer.jailTurns}/{MAX_JAIL_TURNS}
+                    ターン）
                   </div>
                 )}
                 {detailPlayer.getOutOfJailCards > 0 && (
