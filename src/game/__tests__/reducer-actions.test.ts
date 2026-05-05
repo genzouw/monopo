@@ -221,15 +221,28 @@ describe('オークション (PLACE_BID / PASS_AUCTION)', () => {
     expect(next.auction?.currentBid).toBe(100)
   })
 
-  it('PLACE_BID で開始価格以下は拒否される', () => {
+  it('PLACE_BID で開始価格と同額の入札は受け入れられる（初回入札）', () => {
     let state = startedGame()
     state = withCurrentPlayer(state, { position: 1 })
     state = gameReducer(
       { ...state, turnPhase: 'action' },
       { type: 'DECLINE_PURCHASE' },
     )
-    // 開始価格は60なので、60以下の入札は拒否される
+    // 開始価格は60なので、60と同額の入札は受け入れられる
     const next = gameReducer(state, { type: 'PLACE_BID', amount: 60 })
+    expect(next.auction?.currentBid).toBe(60)
+    expect(next.auction?.currentBidderId).toBe('player-0')
+  })
+
+  it('PLACE_BID で開始価格未満の入札は拒否される', () => {
+    let state = startedGame()
+    state = withCurrentPlayer(state, { position: 1 })
+    state = gameReducer(
+      { ...state, turnPhase: 'action' },
+      { type: 'DECLINE_PURCHASE' },
+    )
+    // 開始価格は60なので、60未満の入札は拒否される
+    const next = gameReducer(state, { type: 'PLACE_BID', amount: 59 })
     expect(next.auction?.currentBid).toBe(60)
     expect(next.auction?.currentBidderId).toBeNull()
   })

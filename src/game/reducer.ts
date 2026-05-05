@@ -614,7 +614,12 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       const auction = state.auction
       const activeBidder = state.players[auction.activePlayerIndex]
 
-      if (action.amount <= auction.currentBid) return state
+      // 初回入札時は開始価格と同額を許容、2回目以降は現在のビッドより大きい必要がある
+      const minBid =
+        auction.currentBidderId === null
+          ? auction.currentBid
+          : auction.currentBid + 1
+      if (action.amount < minBid) return state
 
       const newAuction: AuctionState = {
         ...auction,
