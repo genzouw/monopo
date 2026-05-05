@@ -17,10 +17,6 @@
   font-size: 18px;
   font-weight: 700;
 }
-.money {
-  font-size: 16px;
-  font-weight: 600;
-}
 .allPlayers {
   display: flex;
   gap: 8px;
