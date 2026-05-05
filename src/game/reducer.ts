@@ -20,6 +20,9 @@ import {
 /** 刑務所内でのゾロ目挑戦の最大試行回数（これ以上失敗すると強制出獄） */
 export const MAX_JAIL_TURNS = 3
 
+/** 刑務所から出るための罰金額（PAY_JAIL_FINE / 強制出獄時に支払う） */
+export const JAIL_FINE = 50
+
 // ── ヘルパー関数 ──
 
 export function rollDice(): [number, number] {
@@ -1062,7 +1065,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     case 'PAY_JAIL_FINE': {
       const player = state.players[state.currentPlayerIndex]
       const newState = updateCurrentPlayer(state, {
-        money: player.money - 50,
+        money: player.money - JAIL_FINE,
         inJail: false,
         jailTurns: 0,
       })
@@ -1070,7 +1073,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         ...newState,
         turnPhase: 'roll',
         dice: { ...state.dice, rolled: false },
-        message: `$50はらって刑務所をでたよ！サイコロをふろう！`,
+        message: `$${JAIL_FINE}はらって刑務所をでたよ！サイコロをふろう！`,
       }
     }
 
@@ -1114,10 +1117,10 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       // ゾロ目でない
       const newJailTurns = player.jailTurns + 1
 
-      // 最大試行回数に達したら → $50払って強制出獄、出目の分だけ進む
+      // 最大試行回数に達したら → 罰金を払って強制出獄、出目の分だけ進む
       if (newJailTurns >= MAX_JAIL_TURNS) {
         const newState = updateCurrentPlayer(state, {
-          money: player.money - 50,
+          money: player.money - JAIL_FINE,
           inJail: false,
           jailTurns: 0,
         })
@@ -1125,7 +1128,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
           ...newState,
           dice: { values: [d1, d2], doubles: 0, rolled: true },
           turnPhase: 'moving',
-          message: `3かいゾロ目がでなかったから$50はらって刑務所をでたよ！`,
+          message: `${MAX_JAIL_TURNS}かいゾロ目がでなかったから$${JAIL_FINE}はらって刑務所をでたよ！`,
         }
       }
 
