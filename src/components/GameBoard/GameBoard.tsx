@@ -44,8 +44,11 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
 
   useEffect(() => {
     turnPhaseRef.current = state.turnPhase
+  }, [state.turnPhase])
+
+  useEffect(() => {
     diceRef.current = state.dice.values
-  })
+  }, [state.dice.values])
 
   const currentPlayer = state.players[state.currentPlayerIndex]
 
