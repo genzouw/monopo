@@ -10,34 +10,39 @@ type DiceProps = {
 }
 
 export default function Dice({ values, rolling, onRollComplete }: DiceProps) {
-  const [displayValues, setDisplayValues] = useState(values)
-  const [isAnimating, setIsAnimating] = useState(false)
+  const [randomValues, setRandomValues] = useState<[number, number] | null>(
+    null,
+  )
   const callbackRef = useRef(onRollComplete)
-  callbackRef.current = onRollComplete
 
   useEffect(() => {
-    if (rolling) {
-      setIsAnimating(true)
-      let count = 0
-      const interval = setInterval(() => {
-        setDisplayValues([
+    callbackRef.current = onRollComplete
+  }, [onRollComplete])
+
+  useEffect(() => {
+    if (!rolling) return
+    let count = 0
+    const interval = setInterval(() => {
+      count++
+      if (count >= 8) {
+        clearInterval(interval)
+        setRandomValues(null)
+        callbackRef.current?.()
+      } else {
+        setRandomValues([
           Math.floor(Math.random() * 6) + 1,
           Math.floor(Math.random() * 6) + 1,
         ])
-        count++
-        if (count >= 8) {
-          clearInterval(interval)
-          setDisplayValues(values)
-          setIsAnimating(false)
-          callbackRef.current?.()
-        }
-      }, 100)
-      return () => clearInterval(interval)
-    } else {
-      setDisplayValues(values)
+      }
+    }, 100)
+    return () => {
+      clearInterval(interval)
+      setRandomValues(null)
     }
-  }, [rolling, values])
+  }, [rolling])
 
+  const isAnimating = rolling || randomValues !== null
+  const displayValues = randomValues ?? values
   const isDoubles = values[0] === values[1]
   return (
     <div>

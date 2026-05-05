@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo } from 'react'
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
 import type { Dispatch } from 'react'
 import type { GameState } from '../../game/types'
 import type { GameAction } from '../../game/actions'
@@ -41,7 +41,14 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
   const positionRef = useRef(0)
   const diceRef = useRef<[number, number]>([1, 1])
   const turnPhaseRef = useRef(state.turnPhase)
-  turnPhaseRef.current = state.turnPhase
+
+  useEffect(() => {
+    turnPhaseRef.current = state.turnPhase
+  }, [state.turnPhase])
+
+  useEffect(() => {
+    diceRef.current = state.dice.values
+  }, [state.dice.values])
 
   const currentPlayer = state.players[state.currentPlayerIndex]
 
@@ -97,9 +104,6 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
       }
     }, 300)
   }, [play, dispatch])
-
-  // Keep diceRef in sync
-  diceRef.current = state.dice.values
 
   const handleBuy = () => {
     play('purchase')
