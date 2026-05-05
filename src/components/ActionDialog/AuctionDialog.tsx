@@ -32,7 +32,7 @@ export default function AuctionDialog({
         <div className={styles.bidder}>
           {currentBidder
             ? `${currentBidder.token} ${currentBidder.name}がリード中`
-            : 'まだだれもビッドしていないよ'}
+            : `開始価格 $${auction.currentBid}（だれかビッドしてね！）`}
         </div>
         <div
           className={styles.bidder}

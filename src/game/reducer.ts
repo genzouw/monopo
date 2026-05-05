@@ -590,9 +590,10 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       const space = BOARD_SPACES.find((s) => s.position === player.position)
       if (!space) return state
 
+      const startingBid = space.price ?? 0
       const auction: AuctionState = {
         propertyId: space.id,
-        currentBid: 0,
+        currentBid: startingBid,
         currentBidderId: null,
         passedPlayerIds: [],
         activePlayerIndex: state.currentPlayerIndex,
@@ -603,7 +604,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         ...state,
         auction,
         turnPhase: 'auction',
-        message: `${space.name}のオークションをはじめるよ！`,
+        message: `${space.name}のオークションをはじめるよ！開始価格は$${startingBid}！`,
       }
     }
 
@@ -613,7 +614,12 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       const auction = state.auction
       const activeBidder = state.players[auction.activePlayerIndex]
 
-      if (action.amount <= auction.currentBid) return state
+      // 初回入札時は開始価格と同額を許容、2回目以降は現在のビッドより大きい必要がある
+      const minBid =
+        auction.currentBidderId === null
+          ? auction.currentBid
+          : auction.currentBid + 1
+      if (action.amount < minBid) return state
 
       const newAuction: AuctionState = {
         ...auction,
@@ -905,8 +911,8 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       // 家が建っている物件は売れない（先に家を売る必要がある）
       if (propState.houses > 0) return state
 
-      // 開始価格 = 物件価格の半額を10の位で四捨五入
-      const startingBid = Math.round((space.price ?? 0) / 2 / 10) * 10
+      // 開始価格はオーナーなしの状態の購入価格（最低価格）
+      const startingBid = space.price ?? 0
 
       // 売り手以外でオークション開始
       const firstBidderIndex = nextActivePlayer(
