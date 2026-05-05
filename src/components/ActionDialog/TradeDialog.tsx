@@ -9,6 +9,7 @@ import type {
 import Dialog from '../common/Dialog'
 import Button from '../common/Button'
 import styles from './ActionDialog.module.css'
+import { clamp } from './tradeDialog.utils'
 
 const COLOR_MAP: Record<ColorGroup, string> = {
   brown: 'var(--color-brown)',
@@ -21,9 +22,6 @@ const COLOR_MAP: Record<ColorGroup, string> = {
   blue: 'var(--color-blue)',
   railroad: '#555',
 }
-
-const clamp = (val: number, max: number) =>
-  Math.max(0, Math.min(Math.floor(val), max))
 
 type TradeDialogProps = {
   currentPlayer: Player
