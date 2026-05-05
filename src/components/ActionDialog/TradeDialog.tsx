@@ -133,9 +133,10 @@ export default function TradeDialog({
             max={currentPlayer.money}
             value={offerMoney}
             onChange={(e) => {
-              const val = Number(e.target.value)
+              const val = Math.floor(Number(e.target.value))
               if (isNaN(val)) setOfferMoney(0)
-              else setOfferMoney(Math.max(0, Math.min(val, currentPlayer.money)))
+              else
+                setOfferMoney(Math.max(0, Math.min(val, currentPlayer.money)))
             }}
           />
         </div>
@@ -182,7 +183,8 @@ export default function TradeDialog({
             onChange={(e) => {
               const val = Number(e.target.value)
               if (isNaN(val)) setRequestMoney(0)
-              else setRequestMoney(Math.max(0, Math.min(val, targetPlayer.money)))
+              else
+                setRequestMoney(Math.max(0, Math.min(val, targetPlayer.money)))
             }}
           />
         </div>
