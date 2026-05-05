@@ -71,7 +71,7 @@
   grid-template-rows: repeat(11, 1fr);
   gap: 1px;
   aspect-ratio: 1;
-  background: #e0e0e0;
+  background: #bdbdbd;
   border-radius: var(--radius-sm);
   overflow: hidden;
   width: min(100cqi, 100cqb);
