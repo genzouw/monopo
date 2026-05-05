@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, memo } from 'react'
 import type { BoardSpace, Player, PropertyState } from '../../game/types'
 import SpaceCard from './SpaceCard'
 import styles from './Board.module.css'
@@ -10,7 +10,7 @@ type FocusViewProps = {
   currentPosition: number
 }
 
-export default function FocusView({
+const FocusView = memo(function FocusView({
   board,
   propertyStates,
   players,
@@ -55,4 +55,6 @@ export default function FocusView({
       })}
     </div>
   )
-}
+})
+
+export default FocusView

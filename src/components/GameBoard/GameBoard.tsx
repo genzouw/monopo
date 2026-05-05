@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import type { Dispatch } from 'react'
 import type { GameState } from '../../game/types'
 import type { GameAction } from '../../game/actions'
@@ -224,13 +224,22 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
         )
       : state.players
 
+  // ⚡ Bolt: Use useCallback to memoize handlers, preventing unnecessary re-renders of heavy pure UI components (MiniMap, PlayerPanel) during animation state updates.
+  const handlePlayerClick = useCallback((id: string) => {
+    setShowPlayerDetail(id)
+  }, [])
+
+  const handleSpaceClick = useCallback((pos: number) => {
+    setShowSpaceDetail(pos)
+  }, [])
+
   return (
     <div className={styles.gameBoard}>
       <PlayerPanel
         currentPlayer={currentPlayer}
         allPlayers={state.players}
         currentPlayerIndex={state.currentPlayerIndex}
-        onPlayerClick={(id) => setShowPlayerDetail(id)}
+        onPlayerClick={handlePlayerClick}
       />
 
       <div className={styles.boardSection}>
@@ -238,7 +247,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           board={state.board}
           propertyStates={state.propertyStates}
           players={displayPlayers}
-          onSpaceClick={(pos) => setShowSpaceDetail(pos)}
+          onSpaceClick={handleSpaceClick}
         >
           {state.dice.rolled ? (
             <Dice
