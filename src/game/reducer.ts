@@ -646,8 +646,14 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         (p) => !p.isBankrupt && !newPassedIds.includes(p.id),
       )
 
-      // 全員がパスした or 1人しか残っていない
-      if (activePlayers.length <= 1) {
+      // 終了判定:
+      //   入札者あり → 残りが入札者だけ (1人以下) になったら終了
+      //   入札者なし → 全員がパスする (0人) まで終了させない（次の人に回す）
+      const auctionEnded = auction.currentBidderId
+        ? activePlayers.length <= 1
+        : activePlayers.length === 0
+
+      if (auctionEnded) {
         // 落札者がいれば物件を渡す
         if (auction.currentBidderId) {
           const winner = state.players.find(
@@ -690,16 +696,50 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
             turnPhase: 'endTurn',
             message: `${winner.name}が$${auction.currentBid}で${space.name}を落札したよ！`,
           }
-        } else {
-          // 誰も入札しなかった
+        }
+
+        // 誰も入札しなかった
+        // 売却オークション (SELL_PROPERTY 由来) の場合は、売却者に開始価格を入金し
+        // 物件は空白地化する
+        if (auction.sellerId) {
+          const space = BOARD_SPACES.find((s) => s.id === auction.propertyId)!
+          const newPlayers = state.players.map((p) => {
+            if (p.id === auction.sellerId) {
+              return {
+                ...p,
+                money: p.money + auction.currentBid,
+                properties: p.properties.filter(
+                  (id) => id !== auction.propertyId,
+                ),
+              }
+            }
+            return p
+          })
+          const newPropertyStates: Record<string, PropertyState> = {
+            ...state.propertyStates,
+            [auction.propertyId]: {
+              ...state.propertyStates[auction.propertyId],
+              ownerId: null,
+              isMortgaged: false,
+              houses: 0,
+            },
+          }
           return {
             ...state,
+            players: newPlayers,
+            propertyStates: newPropertyStates,
             auction: null,
             turnPhase: 'endTurn',
-            message: auction.sellerId
-              ? 'だれも買わなかったよ。売れなかった！'
-              : 'だれも入札しなかったよ。競売おわり！',
+            message: `だれも買わなかったよ。${space.name}は$${auction.currentBid}で空き地になったよ！`,
           }
+        }
+
+        // 通常オークション (DECLINE_PURCHASE 由来) で誰も入札しなかった場合
+        return {
+          ...state,
+          auction: null,
+          turnPhase: 'endTurn',
+          message: 'だれも入札しなかったよ。競売おわり！',
         }
       }
 

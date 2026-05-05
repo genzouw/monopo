@@ -247,7 +247,43 @@ describe('オークション (PLACE_BID / PASS_AUCTION)', () => {
     expect(next.auction?.currentBidderId).toBeNull()
   })
 
-  it('全員パスで誰も買わなかった場合', () => {
+  it('最初のプレイヤーがパスしても次のプレイヤーにビッドのターンが回る', () => {
+    let state = startedGame()
+    state = withCurrentPlayer(state, { position: 1 })
+    state = gameReducer(
+      { ...state, turnPhase: 'action' },
+      { type: 'DECLINE_PURCHASE' },
+    )
+    // 最初のビッダー (player-0) がパス → 終了せず player-1 のターンに移る
+    const next = gameReducer(state, { type: 'PASS_AUCTION' })
+    expect(next.auction).not.toBeNull()
+    expect(next.turnPhase).toBe('auction')
+    expect(next.auction?.activePlayerIndex).toBe(1)
+    expect(next.auction?.passedPlayerIds).toEqual(['player-0'])
+  })
+
+  it('3人プレイで入札者なしのまま全員がパスするまで終了しない', () => {
+    let state = startedGame(3)
+    state = withCurrentPlayer(state, { position: 1 })
+    state = gameReducer(
+      { ...state, turnPhase: 'action' },
+      { type: 'DECLINE_PURCHASE' },
+    )
+    // player-0 がパス → 続行、player-1 のターン
+    state = gameReducer(state, { type: 'PASS_AUCTION' })
+    expect(state.auction).not.toBeNull()
+    expect(state.auction?.activePlayerIndex).toBe(1)
+    // player-1 がパス → 続行、player-2 のターン
+    state = gameReducer(state, { type: 'PASS_AUCTION' })
+    expect(state.auction).not.toBeNull()
+    expect(state.auction?.activePlayerIndex).toBe(2)
+    // player-2 がパス → 全員パス → 終了
+    const next = gameReducer(state, { type: 'PASS_AUCTION' })
+    expect(next.auction).toBeNull()
+    expect(next.turnPhase).toBe('endTurn')
+  })
+
+  it('全員パスで誰も買わなかった場合（DECLINE_PURCHASE 由来は空白地のまま）', () => {
     let state = startedGame()
     state = withCurrentPlayer(state, { position: 1 })
     state = gameReducer(
@@ -258,6 +294,10 @@ describe('オークション (PLACE_BID / PASS_AUCTION)', () => {
     const next = gameReducer(state, { type: 'PASS_AUCTION' })
     expect(next.auction).toBeNull()
     expect(next.turnPhase).toBe('endTurn')
+    // 物件は空白地のまま、所持金変動なし
+    expect(next.propertyStates['mediterranean'].ownerId).toBeNull()
+    expect(next.players[0].money).toBe(1500)
+    expect(next.players[1].money).toBe(1500)
   })
 
   it('入札者が居て他がパスすれば落札される', () => {
@@ -836,6 +876,57 @@ describe('SELL_PROPERTY', () => {
       propertyId: 'mediterranean',
     })
     expect(next).toEqual(state)
+  })
+
+  it('売却オークションで誰も入札せず終了 → 売却者に開始価格が入金され空白地になる', () => {
+    let state = startedGame()
+    state = withPropertyOwner(state, 'mediterranean', 'player-0')
+    state = {
+      ...state,
+      players: state.players.map((p) =>
+        p.id === 'player-0' ? { ...p, properties: ['mediterranean'] } : p,
+      ),
+    }
+    state = gameReducer(state, {
+      type: 'SELL_PROPERTY',
+      propertyId: 'mediterranean',
+    })
+    // player-1 がパス → 全員パス → 終了
+    const next = gameReducer(state, { type: 'PASS_AUCTION' })
+    expect(next.auction).toBeNull()
+    expect(next.turnPhase).toBe('endTurn')
+    // 物件は空白地化
+    expect(next.propertyStates['mediterranean'].ownerId).toBeNull()
+    // 売却者 (player-0) は startingBid (=60) を受け取り、物件を失う
+    expect(next.players[0].money).toBe(1560)
+    expect(next.players[0].properties).not.toContain('mediterranean')
+    // 他プレイヤーの所持金は変わらない
+    expect(next.players[1].money).toBe(1500)
+  })
+
+  it('3人プレイの売却オークションで全員パス → 売却者に開始価格が入金される', () => {
+    let state = startedGame(3)
+    state = withPropertyOwner(state, 'mediterranean', 'player-0')
+    state = {
+      ...state,
+      players: state.players.map((p) =>
+        p.id === 'player-0' ? { ...p, properties: ['mediterranean'] } : p,
+      ),
+    }
+    state = gameReducer(state, {
+      type: 'SELL_PROPERTY',
+      propertyId: 'mediterranean',
+    })
+    // player-1 がパス → 続行、player-2 へ
+    state = gameReducer(state, { type: 'PASS_AUCTION' })
+    expect(state.auction).not.toBeNull()
+    expect(state.auction?.activePlayerIndex).toBe(2)
+    // player-2 がパス → 全員パス → 終了
+    const next = gameReducer(state, { type: 'PASS_AUCTION' })
+    expect(next.auction).toBeNull()
+    expect(next.propertyStates['mediterranean'].ownerId).toBeNull()
+    expect(next.players[0].money).toBe(1560)
+    expect(next.players[0].properties).not.toContain('mediterranean')
   })
 })
 
