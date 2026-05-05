@@ -22,6 +22,9 @@ const COLOR_MAP: Record<ColorGroup, string> = {
   railroad: '#555',
 }
 
+const clamp = (val: number, max: number) =>
+  Math.max(0, Math.min(Math.floor(val), max))
+
 type TradeDialogProps = {
   currentPlayer: Player
   targetPlayer: Player
@@ -80,9 +83,6 @@ export default function TradeDialog({
       requestJailCards: 0,
     })
   }
-
-  const clamp = (val: number, max: number) =>
-    Math.max(0, Math.min(Math.floor(val), max))
 
   return (
     <Dialog
