@@ -181,7 +181,7 @@ export default function TradeDialog({
             max={targetPlayer.money}
             value={requestMoney}
             onChange={(e) => {
-              const val = Number(e.target.value)
+              const val = Math.floor(Number(e.target.value))
               if (isNaN(val)) setRequestMoney(0)
               else
                 setRequestMoney(Math.max(0, Math.min(val, targetPlayer.money)))
