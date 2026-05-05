@@ -3,6 +3,7 @@ import type { Dispatch } from 'react'
 import type { GameState } from '../../game/types'
 import type { GameAction } from '../../game/actions'
 import { BOARD_SPACES } from '../../game/board'
+import { MAX_JAIL_TURNS } from '../../game/reducer'
 import { calculateTotalAssets } from '../../game/rules'
 import PlayerPanel from '../PlayerPanel/PlayerPanel'
 import MiniMap from '../Board/MiniMap'
@@ -817,7 +818,8 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                   <div
                     style={{ padding: '4px 0', color: 'var(--color-danger)' }}
                   >
-                    🔒 刑務所にいるよ（{detailPlayer.jailTurns}/3ターン）
+                    🔒 刑務所にいるよ（{detailPlayer.jailTurns}/{MAX_JAIL_TURNS}
+                    ターン）
                   </div>
                 )}
                 {detailPlayer.getOutOfJailCards > 0 && (

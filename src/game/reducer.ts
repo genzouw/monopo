@@ -15,6 +15,11 @@ import {
   findNearestSpace,
 } from './rules'
 
+// ── 定数 ──
+
+/** 刑務所内でのゾロ目挑戦の最大試行回数（これ以上失敗すると強制出獄） */
+export const MAX_JAIL_TURNS = 3
+
 // ── ヘルパー関数 ──
 
 export function rollDice(): [number, number] {
@@ -1109,8 +1114,8 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       // ゾロ目でない
       const newJailTurns = player.jailTurns + 1
 
-      // 3回目の試行も失敗 → $50払って強制出獄、出目の分だけ進む
-      if (newJailTurns >= 3) {
+      // 最大試行回数に達したら → $50払って強制出獄、出目の分だけ進む
+      if (newJailTurns >= MAX_JAIL_TURNS) {
         const newState = updateCurrentPlayer(state, {
           money: player.money - 50,
           inJail: false,
