@@ -110,6 +110,8 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
                 const nextToken = TOKENS[(currentIdx + 1) % TOKENS.length]
                 handleTokenChange(i, nextToken)
               }}
+              aria-label={`${names[i] || `プレイヤー${i + 1}`}のコマを変更する（現在のコマ: ${selectedTokens[i]}）`}
+              title={`${names[i] || `プレイヤー${i + 1}`}のコマを変更する`}
             >
               {selectedTokens[i]}
             </button>
