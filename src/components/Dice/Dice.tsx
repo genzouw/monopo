@@ -35,7 +35,10 @@ export default function Dice({ values, rolling, onRollComplete }: DiceProps) {
         ])
       }
     }, 100)
-    return () => clearInterval(interval)
+    return () => {
+      clearInterval(interval)
+      setRandomValues(null)
+    }
   }, [rolling])
 
   const isAnimating = rolling || randomValues !== null
