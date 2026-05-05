@@ -17,7 +17,7 @@ export default function Dice({ values, rolling, onRollComplete }: DiceProps) {
 
   useEffect(() => {
     callbackRef.current = onRollComplete
-  })
+  }, [onRollComplete])
 
   useEffect(() => {
     if (!rolling) return
