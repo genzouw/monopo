@@ -71,11 +71,10 @@
   grid-template-rows: repeat(11, 1fr);
   gap: 1px;
   aspect-ratio: 1;
-  background: #bdbdbd;
+  background: var(--color-grid-border);
   border-radius: var(--radius-sm);
   overflow: hidden;
   width: min(100cqi, 100cqb);
-  aspect-ratio: 1;
   container-type: inline-size;
 }
 .miniSpace {
