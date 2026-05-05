@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback, useMemo } from 'react'
 import type { Dispatch } from 'react'
 import type { GameState } from '../../game/types'
 import type { GameAction } from '../../game/actions'
@@ -64,7 +64,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
     dispatch({ type: 'ROLL_DICE' })
   }
 
-  const handleRollComplete = () => {
+  const handleRollComplete = useCallback(() => {
     setIsRolling(false)
 
     // 移動が必要なフェーズのみアニメーション実行
@@ -96,7 +96,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
         }, 200)
       }
     }, 300)
-  }
+  }, [play, dispatch])
 
   // Keep diceRef in sync
   diceRef.current = state.dice.values
@@ -215,14 +215,40 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
     : null
 
   // Players with animating position override for minimap
-  const displayPlayers =
-    animatingPosition !== null
-      ? state.players.map((p, i) =>
-          i === state.currentPlayerIndex
-            ? { ...p, position: animatingPosition }
-            : p,
-        )
-      : state.players
+  // ⚡ Bolt: useMemo to keep array reference stable across renders, so MiniMap's React.memo can short-circuit when neither players nor animatingPosition changed.
+  const displayPlayers = useMemo(
+    () =>
+      animatingPosition !== null
+        ? state.players.map((p, i) =>
+            i === state.currentPlayerIndex
+              ? { ...p, position: animatingPosition }
+              : p,
+          )
+        : state.players,
+    [animatingPosition, state.players, state.currentPlayerIndex],
+  )
+
+  // ⚡ Bolt: Use useCallback to memoize handlers, preventing unnecessary re-renders of heavy pure UI components (MiniMap, PlayerPanel) during animation state updates.
+  const handlePlayerClick = useCallback((id: string) => {
+    setShowPlayerDetail(id)
+  }, [])
+
+  const handleSpaceClick = useCallback((pos: number) => {
+    setShowSpaceDetail(pos)
+  }, [])
+
+  // ⚡ Bolt: useMemo to keep the children element reference stable, so MiniMap's React.memo isn't bypassed by a fresh JSX object on every render.
+  const diceElement = useMemo(
+    () =>
+      state.dice.rolled ? (
+        <Dice
+          values={state.dice.values}
+          rolling={isRolling}
+          onRollComplete={handleRollComplete}
+        />
+      ) : undefined,
+    [state.dice.rolled, state.dice.values, isRolling, handleRollComplete],
+  )
 
   return (
     <div className={styles.gameBoard}>
@@ -230,7 +256,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
         currentPlayer={currentPlayer}
         allPlayers={state.players}
         currentPlayerIndex={state.currentPlayerIndex}
-        onPlayerClick={(id) => setShowPlayerDetail(id)}
+        onPlayerClick={handlePlayerClick}
       />
 
       <div className={styles.boardSection}>
@@ -238,15 +264,9 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           board={state.board}
           propertyStates={state.propertyStates}
           players={displayPlayers}
-          onSpaceClick={(pos) => setShowSpaceDetail(pos)}
+          onSpaceClick={handleSpaceClick}
         >
-          {state.dice.rolled ? (
-            <Dice
-              values={state.dice.values}
-              rolling={isRolling}
-              onRollComplete={handleRollComplete}
-            />
-          ) : undefined}
+          {diceElement}
         </MiniMap>
       </div>
 

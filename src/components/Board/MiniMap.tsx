@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import type {
   BoardSpace,
   Player,
@@ -79,7 +80,7 @@ function isHorizontalEdge(position: number): boolean {
   return position <= 10 || (position > 20 && position <= 30)
 }
 
-export default function MiniMap({
+const MiniMap = memo(function MiniMap({
   board,
   propertyStates,
   players,
@@ -159,4 +160,6 @@ export default function MiniMap({
       </div>
     </div>
   )
-}
+})
+
+export default MiniMap

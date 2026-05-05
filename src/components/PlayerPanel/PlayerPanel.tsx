@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import type { Player } from '../../game/types'
 import styles from './PlayerPanel.module.css'
 
@@ -8,7 +9,7 @@ type PlayerPanelProps = {
   onPlayerClick?: (playerId: string) => void
 }
 
-export default function PlayerPanel({
+const PlayerPanel = memo(function PlayerPanel({
   currentPlayer,
   allPlayers,
   currentPlayerIndex,
@@ -39,4 +40,6 @@ export default function PlayerPanel({
       </div>
     </>
   )
-}
+})
+
+export default PlayerPanel
