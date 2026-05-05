@@ -89,8 +89,8 @@
   overflow: hidden;
 }
 .miniSpaceIcon {
-  font-size: clamp(14px, 4cqi, 32px);
-  opacity: 0.7;
+  font-size: clamp(12px, 3.2cqi, 24px);
+  opacity: 0.6;
   position: absolute;
   pointer-events: none;
   z-index: 0;
