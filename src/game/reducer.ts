@@ -13,6 +13,7 @@ import {
   canBuildHouse,
   canSellHouse,
   findNearestSpace,
+  validateTradeOffer,
 } from './rules'
 
 // ── 定数 ──
@@ -1017,6 +1018,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
 
     // ── PROPOSE_TRADE ──
     case 'PROPOSE_TRADE': {
+      if (!validateTradeOffer(state, action.offer).isValid) return state
       return {
         ...state,
         trade: action.offer,
@@ -1028,6 +1030,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     // ── ACCEPT_TRADE ──
     case 'ACCEPT_TRADE': {
       if (!state.trade) return state
+      if (!validateTradeOffer(state, state.trade).isValid) return state
       const offer = state.trade
       const fromPlayer = state.players.find((p) => p.id === offer.fromPlayerId)!
       const toPlayer = state.players.find((p) => p.id === offer.toPlayerId)!

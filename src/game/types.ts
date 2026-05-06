@@ -101,6 +101,21 @@ export type TradeOffer = {
   requestJailCards: number
 }
 
+// ── 取引検証結果 ──
+export type TradeInvalidReason =
+  | 'PLAYER_NOT_FOUND'
+  | 'PLAYER_BANKRUPT'
+  | 'NOT_INTEGER'
+  | 'NEGATIVE_VALUE'
+  | 'INSUFFICIENT_FUNDS'
+  | 'INSUFFICIENT_JAIL_CARDS'
+  | 'NOT_PROPERTY_OWNER'
+  | 'PROPERTY_HAS_HOUSES'
+
+export type TradeValidationResult =
+  | { isValid: true }
+  | { isValid: false; reason: TradeInvalidReason }
+
 // ── ターンフェーズ ──
 export type TurnPhase =
   | 'roll'

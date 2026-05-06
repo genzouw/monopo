@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import type { Player, PropertyState } from '../types'
+import type { GameState, Player, PropertyState, TradeOffer } from '../types'
 import { BOARD_SPACES } from '../board'
+import { createInitialGameState, gameReducer } from '../reducer'
 import {
   calculateRent,
   canBuildHouse,
@@ -9,6 +10,7 @@ import {
   canMortgage,
   canSellHouse,
   canUnmortgage,
+  validateTradeOffer,
 } from '../rules'
 
 function makePlayer(overrides: Partial<Player> = {}): Player {
@@ -317,5 +319,188 @@ describe('canUnmortgage', () => {
     expect(
       canUnmortgage('mediterranean', 'p1', player, states, BOARD_SPACES),
     ).toBe(false)
+  })
+})
+
+describe('validateTradeOffer', () => {
+  function startedGame(): GameState {
+    const initial = createInitialGameState()
+    return gameReducer(initial, {
+      type: 'START_GAME',
+      playerNames: ['プレイヤー1', 'プレイヤー2'],
+      playerTokens: ['🚗', '🎩'],
+    })
+  }
+
+  function makeOffer(overrides: Partial<TradeOffer> = {}): TradeOffer {
+    return {
+      fromPlayerId: 'player-0',
+      toPlayerId: 'player-1',
+      offerProperties: [],
+      offerMoney: 0,
+      offerJailCards: 0,
+      requestProperties: [],
+      requestMoney: 0,
+      requestJailCards: 0,
+      ...overrides,
+    }
+  }
+
+  it('正常なオファーは isValid: true を返す', () => {
+    const state = startedGame()
+    const result = validateTradeOffer(state, makeOffer({ offerMoney: 100 }))
+    expect(result.isValid).toBe(true)
+  })
+
+  it('存在しないプレイヤーIDは PLAYER_NOT_FOUND', () => {
+    const state = startedGame()
+    const result = validateTradeOffer(
+      state,
+      makeOffer({ toPlayerId: 'unknown' }),
+    )
+    expect(result).toEqual({ isValid: false, reason: 'PLAYER_NOT_FOUND' })
+  })
+
+  it('破産プレイヤーは PLAYER_BANKRUPT', () => {
+    const base = startedGame()
+    const state: GameState = {
+      ...base,
+      players: base.players.map((p, i) =>
+        i === 0 ? { ...p, isBankrupt: true } : p,
+      ),
+    }
+    const result = validateTradeOffer(state, makeOffer())
+    expect(result).toEqual({ isValid: false, reason: 'PLAYER_BANKRUPT' })
+  })
+
+  it('小数の金額は NOT_INTEGER', () => {
+    const state = startedGame()
+    const result = validateTradeOffer(state, makeOffer({ offerMoney: 10.5 }))
+    expect(result).toEqual({ isValid: false, reason: 'NOT_INTEGER' })
+  })
+
+  it('小数の刑務所カード枚数は NOT_INTEGER', () => {
+    const state = startedGame()
+    const result = validateTradeOffer(state, makeOffer({ offerJailCards: 1.5 }))
+    expect(result).toEqual({ isValid: false, reason: 'NOT_INTEGER' })
+  })
+
+  it('NaN の金額は NOT_INTEGER', () => {
+    const state = startedGame()
+    const result = validateTradeOffer(state, makeOffer({ offerMoney: NaN }))
+    expect(result).toEqual({ isValid: false, reason: 'NOT_INTEGER' })
+  })
+
+  it('負の金額は NEGATIVE_VALUE', () => {
+    const state = startedGame()
+    const result = validateTradeOffer(state, makeOffer({ offerMoney: -1 }))
+    expect(result).toEqual({ isValid: false, reason: 'NEGATIVE_VALUE' })
+  })
+
+  it('負の刑務所カード枚数は NEGATIVE_VALUE', () => {
+    const state = startedGame()
+    const result = validateTradeOffer(
+      state,
+      makeOffer({ requestJailCards: -1 }),
+    )
+    expect(result).toEqual({ isValid: false, reason: 'NEGATIVE_VALUE' })
+  })
+
+  it('提示者の所持金超過は INSUFFICIENT_FUNDS', () => {
+    const state = startedGame()
+    const fromMoney = state.players[0].money
+    const result = validateTradeOffer(
+      state,
+      makeOffer({ offerMoney: fromMoney + 1 }),
+    )
+    expect(result).toEqual({ isValid: false, reason: 'INSUFFICIENT_FUNDS' })
+  })
+
+  it('受け手の所持金超過は INSUFFICIENT_FUNDS', () => {
+    const state = startedGame()
+    const toMoney = state.players[1].money
+    const result = validateTradeOffer(
+      state,
+      makeOffer({ requestMoney: toMoney + 1 }),
+    )
+    expect(result).toEqual({ isValid: false, reason: 'INSUFFICIENT_FUNDS' })
+  })
+
+  it('刑務所カード枚数不足は INSUFFICIENT_JAIL_CARDS', () => {
+    const state = startedGame()
+    const result = validateTradeOffer(state, makeOffer({ offerJailCards: 1 }))
+    expect(result).toEqual({
+      isValid: false,
+      reason: 'INSUFFICIENT_JAIL_CARDS',
+    })
+  })
+
+  it('提示者が所有していない物件は NOT_PROPERTY_OWNER', () => {
+    const state = startedGame()
+    const result = validateTradeOffer(
+      state,
+      makeOffer({ offerProperties: ['mediterranean'] }),
+    )
+    expect(result).toEqual({ isValid: false, reason: 'NOT_PROPERTY_OWNER' })
+  })
+
+  it('受け手が所有していない物件は NOT_PROPERTY_OWNER', () => {
+    const state = startedGame()
+    const result = validateTradeOffer(
+      state,
+      makeOffer({ requestProperties: ['baltic'] }),
+    )
+    expect(result).toEqual({ isValid: false, reason: 'NOT_PROPERTY_OWNER' })
+  })
+
+  it('家が建っている物件は PROPERTY_HAS_HOUSES', () => {
+    const base = startedGame()
+    const state: GameState = {
+      ...base,
+      players: base.players.map((p, i) =>
+        i === 0 ? { ...p, properties: ['mediterranean'] } : p,
+      ),
+      propertyStates: {
+        ...base.propertyStates,
+        mediterranean: {
+          ownerId: 'player-0',
+          houses: 1,
+          isMortgaged: false,
+        },
+      },
+    }
+    const result = validateTradeOffer(
+      state,
+      makeOffer({ offerProperties: ['mediterranean'] }),
+    )
+    expect(result).toEqual({ isValid: false, reason: 'PROPERTY_HAS_HOUSES' })
+  })
+
+  it('同じカラーグループの他物件に家がある場合も PROPERTY_HAS_HOUSES', () => {
+    const base = startedGame()
+    const state: GameState = {
+      ...base,
+      players: base.players.map((p, i) =>
+        i === 0 ? { ...p, properties: ['mediterranean', 'baltic'] } : p,
+      ),
+      propertyStates: {
+        ...base.propertyStates,
+        mediterranean: {
+          ownerId: 'player-0',
+          houses: 0,
+          isMortgaged: false,
+        },
+        baltic: {
+          ownerId: 'player-0',
+          houses: 1,
+          isMortgaged: false,
+        },
+      },
+    }
+    const result = validateTradeOffer(
+      state,
+      makeOffer({ offerProperties: ['mediterranean'] }),
+    )
+    expect(result).toEqual({ isValid: false, reason: 'PROPERTY_HAS_HOUSES' })
   })
 })

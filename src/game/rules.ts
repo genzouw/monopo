@@ -1,4 +1,11 @@
-import type { BoardSpace, Player, PropertyState } from './types'
+import type {
+  BoardSpace,
+  GameState,
+  Player,
+  PropertyState,
+  TradeOffer,
+  TradeValidationResult,
+} from './types'
 
 export function getColorGroup(
   propertyId: string,
@@ -133,6 +140,72 @@ export function calculateTotalAssets(
       total += Math.floor(((space.houseCost ?? 0) * state.houses) / 2)
   }
   return total
+}
+
+export function validateTradeOffer(
+  state: GameState,
+  offer: TradeOffer,
+): TradeValidationResult {
+  const fromPlayer = state.players.find((p) => p.id === offer.fromPlayerId)
+  const toPlayer = state.players.find((p) => p.id === offer.toPlayerId)
+  if (!fromPlayer || !toPlayer) {
+    return { isValid: false, reason: 'PLAYER_NOT_FOUND' }
+  }
+  if (fromPlayer.isBankrupt || toPlayer.isBankrupt) {
+    return { isValid: false, reason: 'PLAYER_BANKRUPT' }
+  }
+
+  const numericFields = [
+    offer.offerMoney,
+    offer.requestMoney,
+    offer.offerJailCards,
+    offer.requestJailCards,
+  ]
+  if (numericFields.some((n) => !Number.isInteger(n))) {
+    return { isValid: false, reason: 'NOT_INTEGER' }
+  }
+  if (numericFields.some((n) => n < 0)) {
+    return { isValid: false, reason: 'NEGATIVE_VALUE' }
+  }
+
+  if (
+    offer.offerMoney > fromPlayer.money ||
+    offer.requestMoney > toPlayer.money
+  ) {
+    return { isValid: false, reason: 'INSUFFICIENT_FUNDS' }
+  }
+  if (
+    offer.offerJailCards > fromPlayer.getOutOfJailCards ||
+    offer.requestJailCards > toPlayer.getOutOfJailCards
+  ) {
+    return { isValid: false, reason: 'INSUFFICIENT_JAIL_CARDS' }
+  }
+
+  if (
+    !offer.offerProperties.every((id) => fromPlayer.properties.includes(id))
+  ) {
+    return { isValid: false, reason: 'NOT_PROPERTY_OWNER' }
+  }
+  if (
+    !offer.requestProperties.every((id) => toPlayer.properties.includes(id))
+  ) {
+    return { isValid: false, reason: 'NOT_PROPERTY_OWNER' }
+  }
+
+  const tradedProperties = [
+    ...offer.offerProperties,
+    ...offer.requestProperties,
+  ]
+  if (
+    tradedProperties.some((id) => {
+      const group = getColorGroup(id, state.board)
+      return group.some((gid) => (state.propertyStates[gid]?.houses ?? 0) > 0)
+    })
+  ) {
+    return { isValid: false, reason: 'PROPERTY_HAS_HOUSES' }
+  }
+
+  return { isValid: true }
 }
 
 export function canSellHouse(
