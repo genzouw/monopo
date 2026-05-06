@@ -21,7 +21,7 @@ const PlayerPanel = memo(function PlayerPanel({
           key={player.id}
           className={`${styles.playerChip} ${idx === currentPlayerIndex ? styles.playerChipActive : ''} ${player.isBankrupt ? styles.playerChipBankrupt : ''}`}
           onClick={() => onPlayerClick?.(player.id)}
-          style={{ cursor: 'pointer', background: getOwnerBg(player.id) }}
+          style={{ background: getOwnerBg(player.id) }}
         >
           <span>{player.token}</span>
           <span>${player.money.toLocaleString()}</span>

@@ -15,6 +15,7 @@
   font-weight: 600;
   white-space: nowrap;
   box-shadow: var(--shadow);
+  cursor: pointer;
 }
 .playerChipActive {
   border: 2px solid var(--color-primary);
