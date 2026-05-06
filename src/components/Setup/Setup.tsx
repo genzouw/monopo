@@ -19,14 +19,15 @@ const DEFAULT_NAMES = [
 const DEFAULT_TOKENS: string[] = [TOKENS[0], TOKENS[1], TOKENS[2], TOKENS[3]]
 
 export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
+  const [initialConfig] = useState(() => loadSetupConfig())
   const [playerCount, setPlayerCount] = useState(
-    () => loadSetupConfig()?.playerCount ?? 2,
+    initialConfig?.playerCount ?? 2,
   )
   const [names, setNames] = useState<string[]>(
-    () => loadSetupConfig()?.names ?? DEFAULT_NAMES,
+    initialConfig?.names ?? DEFAULT_NAMES,
   )
   const [selectedTokens, setSelectedTokens] = useState<string[]>(
-    () => loadSetupConfig()?.tokens ?? DEFAULT_TOKENS,
+    initialConfig?.tokens ?? DEFAULT_TOKENS,
   )
 
   useEffect(() => {
