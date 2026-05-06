@@ -197,7 +197,10 @@ export function validateTradeOffer(
     ...offer.requestProperties,
   ]
   if (
-    tradedProperties.some((id) => (state.propertyStates[id]?.houses ?? 0) > 0)
+    tradedProperties.some((id) => {
+      const group = getColorGroup(id, state.board)
+      return group.some((gid) => (state.propertyStates[gid]?.houses ?? 0) > 0)
+    })
   ) {
     return { isValid: false, reason: 'PROPERTY_HAS_HOUSES' }
   }

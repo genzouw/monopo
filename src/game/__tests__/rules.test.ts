@@ -475,4 +475,32 @@ describe('validateTradeOffer', () => {
     )
     expect(result).toEqual({ isValid: false, reason: 'PROPERTY_HAS_HOUSES' })
   })
+
+  it('同じカラーグループの他物件に家がある場合も PROPERTY_HAS_HOUSES', () => {
+    const base = startedGame()
+    const state: GameState = {
+      ...base,
+      players: base.players.map((p, i) =>
+        i === 0 ? { ...p, properties: ['mediterranean', 'baltic'] } : p,
+      ),
+      propertyStates: {
+        ...base.propertyStates,
+        mediterranean: {
+          ownerId: 'player-0',
+          houses: 0,
+          isMortgaged: false,
+        },
+        baltic: {
+          ownerId: 'player-0',
+          houses: 1,
+          isMortgaged: false,
+        },
+      },
+    }
+    const result = validateTradeOffer(
+      state,
+      makeOffer({ offerProperties: ['mediterranean'] }),
+    )
+    expect(result).toEqual({ isValid: false, reason: 'PROPERTY_HAS_HOUSES' })
+  })
 })
