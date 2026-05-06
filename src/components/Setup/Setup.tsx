@@ -1,6 +1,7 @@
-import { useState } from 'react'
-import { TOKENS } from '../../game/types'
+import { useState, useEffect } from 'react'
+import { TOKENS, MIN_PLAYERS, MAX_PLAYERS } from '../../game/types'
 import type { GameState } from '../../game/types'
+import { loadSetupConfig, saveSetupConfig } from '../../game/storage'
 import Button from '../common/Button'
 import styles from './Setup.module.css'
 
@@ -15,16 +16,23 @@ const DEFAULT_NAMES = [
   'プレイヤー3',
   'プレイヤー4',
 ]
+const DEFAULT_TOKENS: string[] = [TOKENS[0], TOKENS[1], TOKENS[2], TOKENS[3]]
 
 export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
-  const [playerCount, setPlayerCount] = useState(2)
-  const [names, setNames] = useState(DEFAULT_NAMES)
-  const [selectedTokens, setSelectedTokens] = useState<string[]>([
-    TOKENS[0],
-    TOKENS[1],
-    TOKENS[2],
-    TOKENS[3],
-  ])
+  const [initialConfig] = useState(() => loadSetupConfig())
+  const [playerCount, setPlayerCount] = useState(
+    initialConfig?.playerCount ?? MIN_PLAYERS,
+  )
+  const [names, setNames] = useState<string[]>(
+    initialConfig?.names ?? DEFAULT_NAMES,
+  )
+  const [selectedTokens, setSelectedTokens] = useState<string[]>(
+    initialConfig?.tokens ?? DEFAULT_TOKENS,
+  )
+
+  useEffect(() => {
+    saveSetupConfig({ playerCount, names, tokens: selectedTokens })
+  }, [playerCount, names, selectedTokens])
 
   const handleNameChange = (index: number, name: string) => {
     const newNames = [...names]
@@ -80,7 +88,7 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
         <button
           className={styles.countButton}
           onClick={() => setPlayerCount((c) => c - 1)}
-          disabled={playerCount <= 2}
+          disabled={playerCount <= MIN_PLAYERS}
         >
           −
         </button>
@@ -88,7 +96,7 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
         <button
           className={styles.countButton}
           onClick={() => setPlayerCount((c) => c + 1)}
-          disabled={playerCount >= 4}
+          disabled={playerCount >= MAX_PLAYERS}
         >
           ＋
         </button>

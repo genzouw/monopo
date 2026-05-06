@@ -1,6 +1,10 @@
 // ── プレイヤートークン ──
 export const TOKENS = ['🚗', '🎩', '👞', '🐕', '🚀', '🌟'] as const
 
+// ── プレイヤー数の範囲 ──
+export const MIN_PLAYERS = 2
+export const MAX_PLAYERS = 4
+
 // ── 物件カラーグループ ──
 export type ColorGroup =
   | 'brown'
