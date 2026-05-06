@@ -1,5 +1,5 @@
 import type { GameState } from './types'
-import { TOKENS } from './types'
+import { TOKENS, MIN_PLAYERS, MAX_PLAYERS } from './types'
 
 const STORAGE_KEY = 'monopoly-save'
 const SETUP_KEY = 'monopoly-setup'
@@ -55,12 +55,12 @@ export function loadSetupConfig(): SetupConfig | null {
     const config = JSON.parse(saved) as Partial<SetupConfig>
     if (
       typeof config.playerCount !== 'number' ||
-      config.playerCount < 2 ||
-      config.playerCount > 4 ||
+      config.playerCount < MIN_PLAYERS ||
+      config.playerCount > MAX_PLAYERS ||
       !Array.isArray(config.names) ||
       !Array.isArray(config.tokens) ||
-      config.names.length !== 4 ||
-      config.tokens.length !== 4 ||
+      config.names.length !== MAX_PLAYERS ||
+      config.tokens.length !== MAX_PLAYERS ||
       !config.names.every((n) => typeof n === 'string') ||
       !config.tokens.every(
         (t) =>

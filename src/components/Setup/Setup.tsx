@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { TOKENS } from '../../game/types'
+import { TOKENS, MIN_PLAYERS, MAX_PLAYERS } from '../../game/types'
 import type { GameState } from '../../game/types'
 import { loadSetupConfig, saveSetupConfig } from '../../game/storage'
 import Button from '../common/Button'
@@ -21,7 +21,7 @@ const DEFAULT_TOKENS: string[] = [TOKENS[0], TOKENS[1], TOKENS[2], TOKENS[3]]
 export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
   const [initialConfig] = useState(() => loadSetupConfig())
   const [playerCount, setPlayerCount] = useState(
-    initialConfig?.playerCount ?? 2,
+    initialConfig?.playerCount ?? MIN_PLAYERS,
   )
   const [names, setNames] = useState<string[]>(
     initialConfig?.names ?? DEFAULT_NAMES,
@@ -88,7 +88,7 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
         <button
           className={styles.countButton}
           onClick={() => setPlayerCount((c) => c - 1)}
-          disabled={playerCount <= 2}
+          disabled={playerCount <= MIN_PLAYERS}
         >
           −
         </button>
@@ -96,7 +96,7 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
         <button
           className={styles.countButton}
           onClick={() => setPlayerCount((c) => c + 1)}
-          disabled={playerCount >= 4}
+          disabled={playerCount >= MAX_PLAYERS}
         >
           ＋
         </button>
