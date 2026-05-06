@@ -28,20 +28,32 @@
   gap: 8px;
   align-items: center;
 }
+.subActionsRow {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 32px;
+  gap: 8px;
+}
 .subActions {
+  flex: 1;
   display: flex;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: center;
+  min-width: 0;
+}
+.subActionButton {
+  padding-left: 10px;
+  padding-right: 10px;
 }
 .muteButton {
-  position: fixed;
-  top: 8px;
-  right: 8px;
+  flex-shrink: 0;
   background: none;
   border: none;
   font-size: 20px;
   cursor: pointer;
-  z-index: 50;
   opacity: 0.6;
+  padding: 4px;
+  margin-left: auto;
 }

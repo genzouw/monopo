@@ -256,13 +256,6 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
 
   return (
     <div className={styles.gameBoard}>
-      <PlayerPanel
-        currentPlayer={currentPlayer}
-        allPlayers={state.players}
-        currentPlayerIndex={state.currentPlayerIndex}
-        onPlayerClick={handlePlayerClick}
-      />
-
       <div className={styles.boardSection}>
         <MiniMap
           board={state.board}
@@ -275,6 +268,12 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
       </div>
 
       {state.message && <div className={styles.message}>{state.message}</div>}
+
+      <PlayerPanel
+        allPlayers={state.players}
+        currentPlayerIndex={state.currentPlayerIndex}
+        onPlayerClick={handlePlayerClick}
+      />
 
       <div className={styles.actions}>
         {state.turnPhase === 'roll' && !currentPlayer.inJail && (
@@ -301,43 +300,48 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           </Button>
         )}
 
-        {canSubAction && (
-          <div className={styles.subActions}>
-            <Button
-              size="small"
-              variant="secondary"
-              onClick={() => dispatch({ type: 'OPEN_BUILD_DIALOG' })}
-            >
-              🏠 いえをたてる
-            </Button>
-            <Button
-              size="small"
-              variant="secondary"
-              onClick={() => dispatch({ type: 'OPEN_SELL_DIALOG' })}
-            >
-              🏷️ 売りだし
-            </Button>
-            {otherActivePlayers.length > 0 && (
+        <div className={styles.subActionsRow}>
+          {canSubAction && (
+            <div className={styles.subActions}>
               <Button
                 size="small"
                 variant="secondary"
-                onClick={() => setShowTradeSelect(true)}
+                className={styles.subActionButton}
+                onClick={() => dispatch({ type: 'OPEN_BUILD_DIALOG' })}
               >
-                🤝 こうかん
+                🏠 いえをたてる
               </Button>
-            )}
-          </div>
-        )}
+              <Button
+                size="small"
+                variant="secondary"
+                className={styles.subActionButton}
+                onClick={() => dispatch({ type: 'OPEN_SELL_DIALOG' })}
+              >
+                🏷️ 売りだし
+              </Button>
+              {otherActivePlayers.length > 0 && (
+                <Button
+                  size="small"
+                  variant="secondary"
+                  className={styles.subActionButton}
+                  onClick={() => setShowTradeSelect(true)}
+                >
+                  🤝 こうかん
+                </Button>
+              )}
+            </div>
+          )}
+          <button
+            type="button"
+            className={styles.muteButton}
+            onClick={toggleMute}
+            aria-label={muted ? 'サウンドをオンにする' : 'サウンドをオフにする'}
+            title={muted ? 'サウンドをオンにする' : 'サウンドをオフにする'}
+          >
+            {muted ? '🔇' : '🔊'}
+          </button>
+        </div>
       </div>
-
-      <button
-        className={styles.muteButton}
-        onClick={toggleMute}
-        aria-label={muted ? 'サウンドをオンにする' : 'サウンドをオフにする'}
-        title={muted ? 'サウンドをオンにする' : 'サウンドをオフにする'}
-      >
-        {muted ? '🔇' : '🔊'}
-      </button>
 
       {/* Dialogs */}
       {showPurchaseDialog && currentSpace && (
