@@ -93,7 +93,7 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
         >
           −
         </button>
-        <span aria-live="polite">{playerCount}人であそぶ</span>
+        <span role="status">{playerCount}人であそぶ</span>
         <button
           className={styles.countButton}
           onClick={() => setPlayerCount((c) => c + 1)}
