@@ -9,6 +9,7 @@ import type {
 import Dialog from '../common/Dialog'
 import Button from '../common/Button'
 import styles from './ActionDialog.module.css'
+import { clamp } from './tradeDialog.utils'
 
 const COLOR_MAP: Record<ColorGroup, string> = {
   brown: 'var(--color-brown)',
@@ -117,28 +118,54 @@ export default function TradeDialog({
             </button>
           ))}
         </div>
-        <div
-          style={{
-            marginTop: 8,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-          }}
-        >
-          <span style={{ fontSize: 14 }}>おかね: $</span>
+        <div className={styles.moneyInputRow}>
+          <span className={styles.moneyInputLabel}>おかね: $</span>
           <input
             className={styles.moneyInput}
             type="number"
+            inputMode="numeric"
             min={0}
             max={currentPlayer.money}
-            value={offerMoney}
+            value={offerMoney === 0 ? '' : offerMoney}
+            placeholder="0"
             onChange={(e) => {
-              const val = Math.floor(Number(e.target.value))
-              if (isNaN(val)) setOfferMoney(0)
-              else
-                setOfferMoney(Math.max(0, Math.min(val, currentPlayer.money)))
+              const raw = e.target.value
+              if (raw === '') {
+                setOfferMoney(0)
+                return
+              }
+              const val = Number(raw)
+              if (isNaN(val)) return
+              setOfferMoney(clamp(val, currentPlayer.money))
             }}
           />
+          <div className={styles.moneyQuickButtons}>
+            <button
+              type="button"
+              className={styles.moneyQuickButton}
+              onClick={() =>
+                setOfferMoney((prev) => clamp(prev + 10, currentPlayer.money))
+              }
+            >
+              +$10
+            </button>
+            <button
+              type="button"
+              className={styles.moneyQuickButton}
+              onClick={() =>
+                setOfferMoney((prev) => clamp(prev + 100, currentPlayer.money))
+              }
+            >
+              +$100
+            </button>
+            <button
+              type="button"
+              className={styles.moneyQuickButtonClear}
+              onClick={() => setOfferMoney(0)}
+            >
+              クリア
+            </button>
+          </div>
         </div>
       </div>
       <div className={styles.tradeSection}>
@@ -165,28 +192,54 @@ export default function TradeDialog({
             </button>
           ))}
         </div>
-        <div
-          style={{
-            marginTop: 8,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-          }}
-        >
-          <span style={{ fontSize: 14 }}>おかね: $</span>
+        <div className={styles.moneyInputRow}>
+          <span className={styles.moneyInputLabel}>おかね: $</span>
           <input
             className={styles.moneyInput}
             type="number"
+            inputMode="numeric"
             min={0}
             max={targetPlayer.money}
-            value={requestMoney}
+            value={requestMoney === 0 ? '' : requestMoney}
+            placeholder="0"
             onChange={(e) => {
-              const val = Math.floor(Number(e.target.value))
-              if (isNaN(val)) setRequestMoney(0)
-              else
-                setRequestMoney(Math.max(0, Math.min(val, targetPlayer.money)))
+              const raw = e.target.value
+              if (raw === '') {
+                setRequestMoney(0)
+                return
+              }
+              const val = Number(raw)
+              if (isNaN(val)) return
+              setRequestMoney(clamp(val, targetPlayer.money))
             }}
           />
+          <div className={styles.moneyQuickButtons}>
+            <button
+              type="button"
+              className={styles.moneyQuickButton}
+              onClick={() =>
+                setRequestMoney((prev) => clamp(prev + 10, targetPlayer.money))
+              }
+            >
+              +$10
+            </button>
+            <button
+              type="button"
+              className={styles.moneyQuickButton}
+              onClick={() =>
+                setRequestMoney((prev) => clamp(prev + 100, targetPlayer.money))
+              }
+            >
+              +$100
+            </button>
+            <button
+              type="button"
+              className={styles.moneyQuickButtonClear}
+              onClick={() => setRequestMoney(0)}
+            >
+              クリア
+            </button>
+          </div>
         </div>
       </div>
     </Dialog>

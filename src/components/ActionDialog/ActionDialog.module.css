@@ -117,3 +117,40 @@
   font-size: 16px;
   text-align: center;
 }
+.moneyInputRow {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.moneyInputLabel {
+  font-size: 14px;
+}
+.moneyQuickButtons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.moneyQuickButton,
+.moneyQuickButtonClear {
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.moneyQuickButton:active,
+.moneyQuickButtonClear:active {
+  transform: scale(0.96);
+}
+.moneyQuickButton {
+  border: 2px solid var(--color-secondary);
+  color: var(--color-secondary);
+}
+.moneyQuickButtonClear {
+  border: 2px solid #e0e0e0;
+  color: var(--color-text-light);
+}
