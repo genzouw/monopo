@@ -61,7 +61,10 @@ const areEqual = (
   if (prevProps.playersHere.length !== nextProps.playersHere.length)
     return false
   for (let i = 0; i < prevProps.playersHere.length; i++) {
-    if (prevProps.playersHere[i].id !== nextProps.playersHere[i].id)
+    if (
+      prevProps.playersHere[i].id !== nextProps.playersHere[i].id ||
+      prevProps.playersHere[i].token !== nextProps.playersHere[i].token
+    )
       return false
   }
 
