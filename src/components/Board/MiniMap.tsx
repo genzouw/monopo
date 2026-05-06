@@ -5,6 +5,7 @@ import type {
   PropertyState,
   ColorGroup,
 } from '../../game/types'
+import { getOwnerBg } from '../common/playerColors'
 import styles from './Board.module.css'
 
 const COLOR_MAP: Record<ColorGroup, string> = {
@@ -17,14 +18,6 @@ const COLOR_MAP: Record<ColorGroup, string> = {
   green: 'var(--color-green)',
   blue: 'var(--color-blue)',
   railroad: '#555',
-}
-
-/** プレイヤーごとの所有マス背景色（薄い色） */
-const OWNER_BG: Record<string, string> = {
-  'player-0': 'rgba(255, 107, 107, 0.25)',
-  'player-1': 'rgba(78, 205, 196, 0.25)',
-  'player-2': 'rgba(255, 230, 109, 0.35)',
-  'player-3': 'rgba(155, 89, 182, 0.25)',
 }
 
 /** マスタイプに応じたアイコン */
@@ -99,9 +92,7 @@ const MiniMap = memo(function MiniMap({
           const propState = propertyStates[space.id]
           const icon = getSpaceIcon(space)
           const ownerId = propState?.ownerId
-          const ownerBg = ownerId
-            ? (OWNER_BG[ownerId] ?? 'rgba(150,150,150,0.2)')
-            : undefined
+          const ownerBg = ownerId ? getOwnerBg(ownerId) : undefined
 
           return (
             <div
