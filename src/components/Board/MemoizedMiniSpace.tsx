@@ -77,8 +77,7 @@ const areEqual = (
     if (!prevPropState || !nextPropState) return false
     if (
       prevPropState.ownerId !== nextPropState.ownerId ||
-      prevPropState.houses !== nextPropState.houses ||
-      prevPropState.isMortgaged !== nextPropState.isMortgaged
+      prevPropState.houses !== nextPropState.houses
     ) {
       return false
     }
