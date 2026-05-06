@@ -110,9 +110,9 @@ export const MemoizedMiniSpace = memo(function MemoizedMiniSpace({
         background:
           ownerBg ??
           (space.position === 0
-            ? '#e8f5e9'
+            ? 'var(--color-go-square)'
             : space.type === 'chance'
-              ? '#fff3e0'
+              ? 'var(--color-chance-square)'
               : 'var(--color-white)'),
       }}
       onClick={() => onSpaceClick(space.position)}
