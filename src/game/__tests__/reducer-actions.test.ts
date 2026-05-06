@@ -803,6 +803,97 @@ describe('トレード (OPEN/PROPOSE/ACCEPT/REJECT/CLOSE)', () => {
     const next = gameReducer(state, { type: 'REJECT_TRADE' })
     expect(next.trade).toBeNull()
   })
+
+  it('PROPOSE_TRADE で負の金額のオファーは state を変えない', () => {
+    const state = startedGame()
+    const offer = {
+      fromPlayerId: 'player-0',
+      toPlayerId: 'player-1',
+      offerProperties: [],
+      offerMoney: -100,
+      offerJailCards: 0,
+      requestProperties: [],
+      requestMoney: 0,
+      requestJailCards: 0,
+    }
+    const next = gameReducer(state, { type: 'PROPOSE_TRADE', offer })
+    expect(next).toBe(state)
+  })
+
+  it('PROPOSE_TRADE で所持金超過のオファーは state を変えない', () => {
+    const state = startedGame()
+    const offer = {
+      fromPlayerId: 'player-0',
+      toPlayerId: 'player-1',
+      offerProperties: [],
+      offerMoney: state.players[0].money + 1,
+      offerJailCards: 0,
+      requestProperties: [],
+      requestMoney: 0,
+      requestJailCards: 0,
+    }
+    const next = gameReducer(state, { type: 'PROPOSE_TRADE', offer })
+    expect(next).toBe(state)
+  })
+
+  it('PROPOSE_TRADE で非整数のオファーは state を変えない', () => {
+    const state = startedGame()
+    const offer = {
+      fromPlayerId: 'player-0',
+      toPlayerId: 'player-1',
+      offerProperties: [],
+      offerMoney: 10.5,
+      offerJailCards: 0,
+      requestProperties: [],
+      requestMoney: 0,
+      requestJailCards: 0,
+    }
+    const next = gameReducer(state, { type: 'PROPOSE_TRADE', offer })
+    expect(next).toBe(state)
+  })
+
+  it('PROPOSE_TRADE で他人の物件オファーは state を変えない', () => {
+    const state = startedGame()
+    const offer = {
+      fromPlayerId: 'player-0',
+      toPlayerId: 'player-1',
+      offerProperties: ['mediterranean'],
+      offerMoney: 0,
+      offerJailCards: 0,
+      requestProperties: [],
+      requestMoney: 0,
+      requestJailCards: 0,
+    }
+    const next = gameReducer(state, { type: 'PROPOSE_TRADE', offer })
+    expect(next).toBe(state)
+  })
+
+  it('ACCEPT_TRADE で提案後に提示者の所持金が減ると state を変えない', () => {
+    let state = startedGame()
+    const offerMoney = 1000
+    const offer = {
+      fromPlayerId: 'player-0',
+      toPlayerId: 'player-1',
+      offerProperties: [],
+      offerMoney,
+      offerJailCards: 0,
+      requestProperties: [],
+      requestMoney: 0,
+      requestJailCards: 0,
+    }
+    state = gameReducer(state, { type: 'PROPOSE_TRADE', offer })
+    // 提案後にプレイヤー0の所持金がオファー金額未満になるように改ざん
+    state = {
+      ...state,
+      players: state.players.map((p) =>
+        p.id === 'player-0' ? { ...p, money: offerMoney - 1 } : p,
+      ),
+    }
+    const before = state
+    const next = gameReducer(state, { type: 'ACCEPT_TRADE' })
+    expect(next).toBe(before)
+    expect(next.players[0].money).toBe(offerMoney - 1)
+  })
 })
 
 // ── ダイアログ開閉 ──
