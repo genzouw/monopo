@@ -129,7 +129,11 @@ const MiniMap = memo(function MiniMap({
                   }}
                 />
               )}
-              {icon && <span className={styles.miniSpaceIcon}>{icon}</span>}
+              {icon && (
+                <span className={styles.miniSpaceIcon} aria-hidden="true">
+                  {icon}
+                </span>
+              )}
               {ownerId && (
                 <span className={styles.miniOwnerToken}>
                   {players.find((p) => p.id === ownerId)?.token}
