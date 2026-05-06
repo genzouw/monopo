@@ -1,11 +1,14 @@
 import { memo } from 'react'
-import type { BoardSpace, Player, PropertyState } from '../../game/types'
+import type {
+  BoardSpace,
+  ColorGroup,
+  Player,
+  PropertyState,
+} from '../../game/types'
 import { getOwnerBg } from '../common/playerColors'
 import styles from './Board.module.css'
 
 // Re-use logic from MiniMap.tsx
-type ColorGroup = import('../../game/types').ColorGroup
-
 const COLOR_MAP: Record<ColorGroup, string> = {
   brown: 'var(--color-brown)',
   lightblue: 'var(--color-lightblue)',
