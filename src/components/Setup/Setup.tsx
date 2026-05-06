@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { TOKENS } from '../../game/types'
 import type { GameState } from '../../game/types'
+import { loadSetupConfig, saveSetupConfig } from '../../game/storage'
 import Button from '../common/Button'
 import styles from './Setup.module.css'
 
@@ -15,16 +16,22 @@ const DEFAULT_NAMES = [
   'プレイヤー3',
   'プレイヤー4',
 ]
+const DEFAULT_TOKENS: string[] = [TOKENS[0], TOKENS[1], TOKENS[2], TOKENS[3]]
 
 export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
-  const [playerCount, setPlayerCount] = useState(2)
-  const [names, setNames] = useState(DEFAULT_NAMES)
-  const [selectedTokens, setSelectedTokens] = useState<string[]>([
-    TOKENS[0],
-    TOKENS[1],
-    TOKENS[2],
-    TOKENS[3],
-  ])
+  const [playerCount, setPlayerCount] = useState(
+    () => loadSetupConfig()?.playerCount ?? 2,
+  )
+  const [names, setNames] = useState<string[]>(
+    () => loadSetupConfig()?.names ?? DEFAULT_NAMES,
+  )
+  const [selectedTokens, setSelectedTokens] = useState<string[]>(
+    () => loadSetupConfig()?.tokens ?? DEFAULT_TOKENS,
+  )
+
+  useEffect(() => {
+    saveSetupConfig({ playerCount, names, tokens: selectedTokens })
+  }, [playerCount, names, selectedTokens])
 
   const handleNameChange = (index: number, name: string) => {
     const newNames = [...names]
