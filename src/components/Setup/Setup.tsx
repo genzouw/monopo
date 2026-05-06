@@ -89,14 +89,16 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
           className={styles.countButton}
           onClick={() => setPlayerCount((c) => c - 1)}
           disabled={playerCount <= MIN_PLAYERS}
+          aria-label="プレイヤーを減らす"
         >
           −
         </button>
-        <span>{playerCount}人であそぶ</span>
+        <span aria-live="polite">{playerCount}人であそぶ</span>
         <button
           className={styles.countButton}
           onClick={() => setPlayerCount((c) => c + 1)}
           disabled={playerCount >= MAX_PLAYERS}
+          aria-label="プレイヤーを増やす"
         >
           ＋
         </button>
@@ -128,6 +130,7 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
               value={names[i]}
               onChange={(e) => handleNameChange(i, e.target.value)}
               placeholder={`プレイヤー${i + 1}のなまえ`}
+              aria-label={`プレイヤー${i + 1}のなまえ`}
             />
           </div>
         ))}
