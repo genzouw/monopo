@@ -22,6 +22,11 @@
   --color-yellow: #ffd700;
   --color-green: #008000;
   --color-blue: #0000ff;
+  --color-railroad: #555;
+
+  /* マスの背景色 */
+  --color-go-square: #e8f5e9;
+  --color-chance-square: #fff3e0;
 
   /* サイズ */
   --radius: 12px;
