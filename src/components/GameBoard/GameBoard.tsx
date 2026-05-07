@@ -269,7 +269,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
 
       <div
         className={`${styles.message} ${state.message ? '' : styles.messageEmpty}`}
-        aria-live="polite"
+        role="status"
       >
         {state.message || ' '}
       </div>
