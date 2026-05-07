@@ -202,6 +202,33 @@ describe('saveSetupConfig / loadSetupConfig', () => {
     expect(loadSetupConfig()).toBeNull()
   })
 
+  it('namesの長さが20文字を超えていればnullを返す', () => {
+    localStorage.setItem(
+      SETUP_KEY,
+      JSON.stringify({
+        ...validConfig,
+        names: ['A', 'B', 'C', 'A'.repeat(21)],
+      }),
+    )
+    expect(loadSetupConfig()).toBeNull()
+  })
+
+  it('絵文字（サロゲートペア）はコードポイント基準で文字数判定する', () => {
+    // 絵文字20文字（UTF-16コードユニットでは40だが、コードポイントでは20）はOK
+    const ok = '🎩'.repeat(20)
+    saveSetupConfig({ ...validConfig, names: [ok, 'B', 'C', 'D'] })
+    expect(loadSetupConfig()).not.toBeNull()
+    // 絵文字21文字（コードポイント21）はNG
+    localStorage.setItem(
+      SETUP_KEY,
+      JSON.stringify({
+        ...validConfig,
+        names: ['🎩'.repeat(21), 'B', 'C', 'D'],
+      }),
+    )
+    expect(loadSetupConfig()).toBeNull()
+  })
+
   it('tokensに未知の値が含まれていればnullを返す', () => {
     localStorage.setItem(
       SETUP_KEY,

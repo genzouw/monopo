@@ -5,6 +5,9 @@ export const TOKENS = ['🚗', '🎩', '👞', '🐕', '🚀', '🌟'] as const
 export const MIN_PLAYERS = 2
 export const MAX_PLAYERS = 4
 
+// ── プレイヤー名の最大文字数（コードポイント基準） ──
+export const MAX_NAME_LENGTH = 20
+
 // ── 物件カラーグループ ──
 export type ColorGroup =
   | 'brown'
