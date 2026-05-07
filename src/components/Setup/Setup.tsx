@@ -36,7 +36,8 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
 
   const handleNameChange = (index: number, name: string) => {
     const newNames = [...names]
-    newNames[index] = name
+    // Security enhancement: enforce max length on names to prevent potential DoS or memory issues
+    newNames[index] = name.slice(0, 20)
     setNames(newNames)
   }
 
@@ -131,6 +132,7 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
               onChange={(e) => handleNameChange(i, e.target.value)}
               placeholder={`プレイヤー${i + 1}のなまえ`}
               aria-label={`プレイヤー${i + 1}のなまえ`}
+              maxLength={20}
             />
           </div>
         ))}

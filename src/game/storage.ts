@@ -61,7 +61,7 @@ export function loadSetupConfig(): SetupConfig | null {
       !Array.isArray(config.tokens) ||
       config.names.length !== MAX_PLAYERS ||
       config.tokens.length !== MAX_PLAYERS ||
-      !config.names.every((n) => typeof n === 'string') ||
+      !config.names.every((n) => typeof n === 'string' && n.length <= 20) ||
       !config.tokens.every(
         (t) =>
           typeof t === 'string' && (TOKENS as readonly string[]).includes(t),
