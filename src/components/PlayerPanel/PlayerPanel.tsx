@@ -19,13 +19,27 @@ const PlayerPanel = memo(function PlayerPanel({
       {allPlayers.map((player, idx) => (
         <div
           key={player.id}
+          role="button"
+          tabIndex={0}
+          aria-label={`${player.token} ${player.name} 所持金 ${player.money}ドル ${player.inJail ? '刑務所に入っています' : ''} ${player.isBankrupt ? '破産しています' : ''}`}
+          aria-current={idx === currentPlayerIndex ? 'true' : 'false'}
           className={`${styles.playerChip} ${idx === currentPlayerIndex ? styles.playerChipActive : ''} ${player.isBankrupt ? styles.playerChipBankrupt : ''}`}
           onClick={() => onPlayerClick?.(player.id)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              onPlayerClick?.(player.id)
+            }
+          }}
           style={{ background: getOwnerBg(player.id) }}
         >
-          <span>{player.token}</span>
-          <span>${player.money.toLocaleString()}</span>
-          {player.inJail && <span className={styles.jailBadge}>🔒</span>}
+          <span aria-hidden="true">{player.token}</span>
+          <span aria-hidden="true">${player.money.toLocaleString()}</span>
+          {player.inJail && (
+            <span className={styles.jailBadge} aria-hidden="true">
+              🔒
+            </span>
+          )}
         </div>
       ))}
     </div>
