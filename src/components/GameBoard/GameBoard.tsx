@@ -267,7 +267,12 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
         </MiniMap>
       </div>
 
-      {state.message && <div className={styles.message}>{state.message}</div>}
+      <div
+        className={`${styles.message} ${state.message ? '' : styles.messageEmpty}`}
+        aria-live="polite"
+      >
+        {state.message || ' '}
+      </div>
 
       <PlayerPanel
         allPlayers={state.players}
@@ -276,29 +281,31 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
       />
 
       <div className={styles.actions}>
-        {state.turnPhase === 'roll' && !currentPlayer.inJail && (
-          <Button size="large" onClick={handleRoll} disabled={isRolling}>
-            🎲 さいころをふる！
-          </Button>
-        )}
+        <div className={styles.primaryAction}>
+          {state.turnPhase === 'roll' && !currentPlayer.inJail && (
+            <Button size="large" onClick={handleRoll} disabled={isRolling}>
+              🎲 さいころをふる！
+            </Button>
+          )}
 
-        {showDrawCard && (
-          <Button size="large" onClick={handleDrawCard}>
-            カードをひく！
-          </Button>
-        )}
+          {showDrawCard && (
+            <Button size="large" onClick={handleDrawCard}>
+              カードをひく！
+            </Button>
+          )}
 
-        {showPayTax && (
-          <Button size="large" variant="danger" onClick={handlePayTax}>
-            💸 ぜいきんをはらう（${currentSpace?.price}）
-          </Button>
-        )}
+          {showPayTax && (
+            <Button size="large" variant="danger" onClick={handlePayTax}>
+              💸 ぜいきんをはらう（${currentSpace?.price}）
+            </Button>
+          )}
 
-        {state.turnPhase === 'endTurn' && (
-          <Button size="large" onClick={handleEndTurn}>
-            つぎのひとへ →
-          </Button>
-        )}
+          {state.turnPhase === 'endTurn' && (
+            <Button size="large" onClick={handleEndTurn}>
+              つぎのひとへ →
+            </Button>
+          )}
+        </div>
 
         <div className={styles.subActionsRow}>
           {canSubAction && (
