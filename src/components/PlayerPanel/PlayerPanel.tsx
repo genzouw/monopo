@@ -17,20 +17,21 @@ const PlayerPanel = memo(function PlayerPanel({
   return (
     <div className={styles.allPlayers}>
       {allPlayers.map((player, idx) => (
-        <div
+        <button
           key={player.id}
-          role="button"
-          tabIndex={0}
-          aria-label={`${player.token} ${player.name} 所持金 ${player.money}ドル ${player.inJail ? '刑務所に入っています' : ''} ${player.isBankrupt ? '破産しています' : ''}`}
+          type="button"
+          aria-label={[
+            player.token,
+            player.name,
+            `所持金 ${player.money.toLocaleString()}ドル`,
+            player.inJail && '刑務所に入っています',
+            player.isBankrupt && '破産しています',
+          ]
+            .filter(Boolean)
+            .join(' ')}
           aria-current={idx === currentPlayerIndex ? 'true' : 'false'}
           className={`${styles.playerChip} ${idx === currentPlayerIndex ? styles.playerChipActive : ''} ${player.isBankrupt ? styles.playerChipBankrupt : ''}`}
           onClick={() => onPlayerClick?.(player.id)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault()
-              onPlayerClick?.(player.id)
-            }
-          }}
           style={{ background: getOwnerBg(player.id) }}
         >
           <span aria-hidden="true">{player.token}</span>
@@ -40,7 +41,7 @@ const PlayerPanel = memo(function PlayerPanel({
               🔒
             </span>
           )}
-        </div>
+        </button>
       ))}
     </div>
   )

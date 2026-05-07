@@ -10,7 +10,9 @@
   gap: 6px;
   padding: 6px 12px;
   background: var(--color-white);
+  border: none;
   border-radius: 20px;
+  font: inherit;
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
