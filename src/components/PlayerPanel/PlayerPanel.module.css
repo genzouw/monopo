@@ -10,12 +10,19 @@
   gap: 6px;
   padding: 6px 12px;
   background: var(--color-white);
+  border: none;
   border-radius: 20px;
+  font: inherit;
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
   box-shadow: var(--shadow);
   cursor: pointer;
+  outline: none;
+}
+.playerChip:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 .playerChipActive {
   border: 2px solid var(--color-primary);
