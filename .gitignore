@@ -24,3 +24,7 @@ coverage
 *.sln
 *.sw?
 .superpowers/
+
+# Jules (AI agent) workspace
+.jules/
+.Jules/
