@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react'
-import { TOKENS, MIN_PLAYERS, MAX_PLAYERS } from '../../game/types'
+import {
+  TOKENS,
+  MIN_PLAYERS,
+  MAX_PLAYERS,
+  MAX_NAME_LENGTH,
+} from '../../game/types'
 import type { GameState } from '../../game/types'
 import { loadSetupConfig, saveSetupConfig } from '../../game/storage'
 import Button from '../common/Button'
@@ -36,8 +41,9 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
 
   const handleNameChange = (index: number, name: string) => {
     const newNames = [...names]
-    // Security enhancement: enforce max length on names to prevent potential DoS or memory issues
-    newNames[index] = name.slice(0, 20)
+    // Security enhancement: enforce max length on names to prevent potential DoS or memory issues.
+    // Use code-point-based truncation so emoji/surrogate-pair chars match the input's maxLength behavior.
+    newNames[index] = [...name].slice(0, MAX_NAME_LENGTH).join('')
     setNames(newNames)
   }
 
@@ -132,7 +138,7 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
               onChange={(e) => handleNameChange(i, e.target.value)}
               placeholder={`プレイヤー${i + 1}のなまえ`}
               aria-label={`プレイヤー${i + 1}のなまえ`}
-              maxLength={20}
+              maxLength={MAX_NAME_LENGTH}
             />
           </div>
         ))}
