@@ -1,13 +1,27 @@
+import { useId } from 'react'
 import type { ReactNode } from 'react'
 import styles from './common.module.css'
 
 type DialogProps = { title: string; children: ReactNode; actions?: ReactNode }
 
 export default function Dialog({ title, children, actions }: DialogProps) {
+  const titleId = useId()
   return (
     <div className={styles.overlay}>
-      <div className={styles.dialog}>
-        <div className={styles.dialogTitle}>{title}</div>
+      <div
+        className={styles.dialog}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+      >
+        <div
+          id={titleId}
+          className={styles.dialogTitle}
+          role="heading"
+          aria-level={2}
+        >
+          {title}
+        </div>
         {children}
         {actions && <div className={styles.dialogActions}>{actions}</div>}
       </div>
