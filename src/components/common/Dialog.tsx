@@ -14,7 +14,12 @@ export default function Dialog({ title, children, actions }: DialogProps) {
         aria-modal="true"
         aria-labelledby={titleId}
       >
-        <div id={titleId} className={styles.dialogTitle}>
+        <div
+          id={titleId}
+          className={styles.dialogTitle}
+          role="heading"
+          aria-level={2}
+        >
           {title}
         </div>
         {children}
