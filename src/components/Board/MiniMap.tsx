@@ -29,16 +29,16 @@ const MiniMap = memo(function MiniMap({
   // ⚡ Bolt: group players by position once (O(N)) to avoid O(N*M) nested filtering over 40 spaces.
   const playersByPosition = useMemo(() => {
     const grouped: Record<number, Player[]> = {}
+    for (const space of board) {
+      grouped[space.position] = []
+    }
     for (const p of players) {
-      if (!p.isBankrupt) {
-        if (!grouped[p.position]) {
-          grouped[p.position] = []
-        }
+      if (!p.isBankrupt && grouped[p.position]) {
         grouped[p.position].push(p)
       }
     }
     return grouped
-  }, [players])
+  }, [players, board])
 
   return (
     <div className={styles.miniMap}>
