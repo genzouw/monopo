@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useId } from 'react'
 import type {
   BoardSpace,
   ColorGroup,
@@ -40,6 +40,8 @@ export default function TradeDialog({
   onPropose,
   onClose,
 }: TradeDialogProps) {
+  const offerMoneyId = useId()
+  const requestMoneyId = useId()
   const [offerProperties, setOfferProperties] = useState<string[]>([])
   const [requestProperties, setRequestProperties] = useState<string[]>([])
   const [offerMoney, setOfferMoney] = useState(0)
@@ -97,30 +99,37 @@ export default function TradeDialog({
       <div className={styles.tradeSection}>
         <div className={styles.tradeSectionTitle}>わたすもの</div>
         <div className={styles.tradePropertyList}>
-          {myProperties.map((space) => (
-            <button
-              key={space.id}
-              className={`${styles.tradePropertyChip} ${offerProperties.includes(space.id) ? styles.tradePropertyChipSelected : ''}`}
-              onClick={() => toggleOffer(space.id)}
-            >
-              {space.color && (
-                <span
-                  className={styles.tradePropertyColor}
-                  style={{ background: COLOR_MAP[space.color] }}
-                />
-              )}
-              <span>{space.name}</span>
-              {space.price != null && (
-                <span className={styles.tradePropertyPrice}>
-                  ${space.price}
-                </span>
-              )}
-            </button>
-          ))}
+          {myProperties.map((space) => {
+            const isSelected = offerProperties.includes(space.id)
+            return (
+              <button
+                key={space.id}
+                className={`${styles.tradePropertyChip} ${isSelected ? styles.tradePropertyChipSelected : ''}`}
+                onClick={() => toggleOffer(space.id)}
+                aria-pressed={isSelected}
+              >
+                {space.color && (
+                  <span
+                    className={styles.tradePropertyColor}
+                    style={{ background: COLOR_MAP[space.color] }}
+                  />
+                )}
+                <span>{space.name}</span>
+                {space.price != null && (
+                  <span className={styles.tradePropertyPrice}>
+                    ${space.price}
+                  </span>
+                )}
+              </button>
+            )
+          })}
         </div>
         <div className={styles.moneyInputRow}>
-          <span className={styles.moneyInputLabel}>おかね: $</span>
+          <label htmlFor={offerMoneyId} className={styles.moneyInputLabel}>
+            おかね: $
+          </label>
           <input
+            id={offerMoneyId}
             className={styles.moneyInput}
             type="number"
             inputMode="numeric"
@@ -171,30 +180,37 @@ export default function TradeDialog({
       <div className={styles.tradeSection}>
         <div className={styles.tradeSectionTitle}>もらうもの</div>
         <div className={styles.tradePropertyList}>
-          {theirProperties.map((space) => (
-            <button
-              key={space.id}
-              className={`${styles.tradePropertyChip} ${requestProperties.includes(space.id) ? styles.tradePropertyChipSelected : ''}`}
-              onClick={() => toggleRequest(space.id)}
-            >
-              {space.color && (
-                <span
-                  className={styles.tradePropertyColor}
-                  style={{ background: COLOR_MAP[space.color] }}
-                />
-              )}
-              <span>{space.name}</span>
-              {space.price != null && (
-                <span className={styles.tradePropertyPrice}>
-                  ${space.price}
-                </span>
-              )}
-            </button>
-          ))}
+          {theirProperties.map((space) => {
+            const isSelected = requestProperties.includes(space.id)
+            return (
+              <button
+                key={space.id}
+                className={`${styles.tradePropertyChip} ${isSelected ? styles.tradePropertyChipSelected : ''}`}
+                onClick={() => toggleRequest(space.id)}
+                aria-pressed={isSelected}
+              >
+                {space.color && (
+                  <span
+                    className={styles.tradePropertyColor}
+                    style={{ background: COLOR_MAP[space.color] }}
+                  />
+                )}
+                <span>{space.name}</span>
+                {space.price != null && (
+                  <span className={styles.tradePropertyPrice}>
+                    ${space.price}
+                  </span>
+                )}
+              </button>
+            )
+          })}
         </div>
         <div className={styles.moneyInputRow}>
-          <span className={styles.moneyInputLabel}>おかね: $</span>
+          <label htmlFor={requestMoneyId} className={styles.moneyInputLabel}>
+            おかね: $
+          </label>
           <input
+            id={requestMoneyId}
             className={styles.moneyInput}
             type="number"
             inputMode="numeric"
