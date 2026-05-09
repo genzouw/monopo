@@ -194,6 +194,7 @@ export default function TradeDialog({
                   <span
                     className={styles.tradePropertyColor}
                     style={{ background: COLOR_MAP[space.color] }}
+                    aria-hidden="true"
                   />
                 )}
                 <span>{space.name}</span>
