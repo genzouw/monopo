@@ -10,7 +10,7 @@
   - <https://github.com/genzouw/monopo/security/advisories/new>
   - GitHub の "Private vulnerability reporting" 機能を使い、メンテナーと非公開でやり取りできます。
 - **Email**
-  - `genzouw@gmail.com`
+  - [genzouw@gmail.com](mailto:genzouw@gmail.com)
 
 報告には可能な範囲で以下をお知らせください。
 
