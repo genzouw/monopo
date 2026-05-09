@@ -45,7 +45,7 @@ const MiniMap = memo(function MiniMap({
       <div className={styles.miniMapBoard}>
         {board.map((space) => {
           const { row, col } = getGridPosition(space.position)
-          const playersHere = playersByPosition[space.position] || []
+          const playersHere = playersByPosition[space.position]
           const propState = propertyStates[space.id]
 
           return (
