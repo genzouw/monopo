@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { memo, useMemo } from 'react'
 import type { BoardSpace, Player, PropertyState } from '../../game/types'
 import styles from './Board.module.css'
 
@@ -26,15 +26,26 @@ const MiniMap = memo(function MiniMap({
   onSpaceClick,
   children,
 }: MiniMapProps) {
-  const activePlayers = players.filter((p) => !p.isBankrupt)
+  // ⚡ Bolt: group players by position once (O(N)) to avoid O(N*M) nested filtering over 40 spaces.
+  const playersByPosition = useMemo(() => {
+    const grouped: Record<number, Player[]> = {}
+    for (const space of board) {
+      grouped[space.position] = []
+    }
+    for (const p of players) {
+      if (!p.isBankrupt && grouped[p.position]) {
+        grouped[p.position].push(p)
+      }
+    }
+    return grouped
+  }, [players, board])
+
   return (
     <div className={styles.miniMap}>
       <div className={styles.miniMapBoard}>
         {board.map((space) => {
           const { row, col } = getGridPosition(space.position)
-          const playersHere = activePlayers.filter(
-            (p) => p.position === space.position,
-          )
+          const playersHere = playersByPosition[space.position]
           const propState = propertyStates[space.id]
 
           return (
