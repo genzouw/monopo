@@ -71,3 +71,7 @@ export default defineConfig([
   },
 ])
 ```
+
+## License
+
+This project is licensed under the [MIT License](./LICENSE).
