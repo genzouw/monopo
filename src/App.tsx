@@ -4,6 +4,7 @@ import { saveGame, loadGame, clearSave } from './game/storage'
 import type { GameState } from './game/types'
 import Setup from './components/Setup/Setup'
 import GameBoard from './components/GameBoard/GameBoard'
+import Button from './components/common/Button'
 import styles from './App.module.css'
 
 export default function App() {
@@ -71,21 +72,9 @@ export default function App() {
           <div style={{ fontSize: 18, color: 'var(--color-text-light)' }}>
             おめでとう！
           </div>
-          <button
-            onClick={() => window.location.reload()}
-            style={{
-              padding: '16px 32px',
-              fontSize: 18,
-              fontWeight: 700,
-              background: 'var(--color-primary)',
-              color: 'white',
-              border: 'none',
-              borderRadius: 16,
-              cursor: 'pointer',
-            }}
-          >
+          <Button size="large" onClick={() => window.location.reload()}>
             もういちどあそぶ
-          </button>
+          </Button>
         </div>
       </div>
     )
