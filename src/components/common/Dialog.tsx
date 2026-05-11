@@ -1,18 +1,46 @@
-import { useId } from 'react'
+import { useEffect, useId } from 'react'
 import type { ReactNode } from 'react'
+import { useFocusTrap } from '../../hooks/useFocusTrap'
 import styles from './common.module.css'
 
-type DialogProps = { title: string; children: ReactNode; actions?: ReactNode }
+type DialogProps = {
+  title: string
+  children: ReactNode
+  actions?: ReactNode
+  /** 指定時のみ Escape でクローズ可能。業務的に強制遷移が必要な Dialog（破産・オークション等）では意図的に未指定にする。 */
+  onClose?: () => void
+}
 
-export default function Dialog({ title, children, actions }: DialogProps) {
+export default function Dialog({
+  title,
+  children,
+  actions,
+  onClose,
+}: DialogProps) {
   const titleId = useId()
+  const containerRef = useFocusTrap<HTMLDivElement>()
+
+  useEffect(() => {
+    if (!onClose) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        onClose()
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
+
   return (
     <div className={styles.overlay}>
       <div
+        ref={containerRef}
         className={styles.dialog}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
+        tabIndex={-1}
       >
         <div
           id={titleId}
