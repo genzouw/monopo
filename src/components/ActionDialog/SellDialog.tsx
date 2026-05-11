@@ -67,6 +67,7 @@ export default function SellDialog({
   return (
     <Dialog
       title={title}
+      onClose={forced ? undefined : onClose}
       actions={
         forced ? (
           <div

@@ -20,6 +20,7 @@ export default function PurchaseDialog({
   return (
     <Dialog
       title="かいますか？"
+      onClose={onDecline}
       actions={
         <>
           <Button onClick={onBuy} disabled={!canAfford}>

@@ -30,6 +30,7 @@ export default function ForceBuyDialog({
   return (
     <Dialog
       title="5ばいがいする？"
+      onClose={onDecline}
       actions={
         <>
           <Button onClick={onBuy}>${cost.toLocaleString()}で買いとる！</Button>
