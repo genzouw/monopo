@@ -31,13 +31,14 @@
   border: none;
   background: var(--color-secondary);
   color: var(--color-white);
+  font: inherit;
   font-size: 24px;
   font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  outline: none;
+  touch-action: manipulation;
 }
 .countButton:focus-visible {
   outline: 2px solid var(--color-primary);
