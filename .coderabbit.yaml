@@ -33,7 +33,11 @@ reviews:
     - '!coverage/**'
     - '!node_modules/**'
     - '!pnpm-lock.yaml'
+    - '!package-lock.json'
+    - '!yarn.lock'
     - '!**/*.min.js'
+    - '!**/*.min.css'
+    - '!**/*.map'
     - '!**/*.snap'
 
   abort_on_close: true
