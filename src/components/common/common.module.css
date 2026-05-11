@@ -13,6 +13,11 @@
     transform 0.1s,
     box-shadow 0.1s;
   touch-action: manipulation;
+  outline: none;
+}
+.button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 .button:active {
   transform: scale(0.96);
