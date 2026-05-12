@@ -100,6 +100,18 @@ export const MemoizedMiniSpace = memo(function MemoizedMiniSpace({
   const icon = getSpaceIcon(space)
   const ownerId = propState?.ownerId
   const ownerBg = ownerId ? getOwnerBg(ownerId) : undefined
+  const ownerName = ownerId
+    ? allPlayers.find((p) => p.id === ownerId)?.name
+    : undefined
+  const houses = propState?.houses ?? 0
+  const ariaLabel = [
+    space.name,
+    ownerName && `所有者: ${ownerName}`,
+    houses > 0 && (houses === 5 ? 'ホテル' : `家${houses}軒`),
+    playersHere.length > 0 && `プレイヤー${playersHere.length}人滞在中`,
+  ]
+    .filter(Boolean)
+    .join(' ')
 
   return (
     <button
@@ -117,7 +129,7 @@ export const MemoizedMiniSpace = memo(function MemoizedMiniSpace({
               : 'var(--color-white)'),
       }}
       onClick={() => onSpaceClick(space.position)}
-      aria-label={space.name}
+      aria-label={ariaLabel}
     >
       {space.color && (
         <div
