@@ -83,8 +83,19 @@ const areEqual = (
     }
   }
 
-  // space, row, col, allPlayers, onSpaceClick are assumed stable
-  // allPlayers is only used for `allPlayers.find` for token, which only matters if ownerId changes
+  const prevOwnerId = prevPropState?.ownerId
+  const nextOwnerId = nextPropState?.ownerId
+  if (prevOwnerId && nextOwnerId && prevOwnerId === nextOwnerId) {
+    const prevOwner = prevProps.allPlayers.find((p) => p.id === prevOwnerId)
+    const nextOwner = nextProps.allPlayers.find((p) => p.id === nextOwnerId)
+    if (
+      prevOwner?.name !== nextOwner?.name ||
+      prevOwner?.token !== nextOwner?.token
+    ) {
+      return false
+    }
+  }
+
   return true
 }
 
