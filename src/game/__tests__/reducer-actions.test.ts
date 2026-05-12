@@ -1,3 +1,4 @@
+import * as randomModule from '../random'
 import { describe, it, expect, vi } from 'vitest'
 import { createInitialGameState, gameReducer } from '../reducer'
 import type { GameState, Card } from '../types'
@@ -647,7 +648,7 @@ describe('ROLL_FOR_JAIL', () => {
       position: 10,
     })
     // startedGame 後にモック設定（shuffleCards にモックを消費させない）
-    vi.spyOn(Math, 'random').mockReturnValue(0) // 常に1が出る → ゾロ目
+    vi.spyOn(randomModule, 'getSecureRandomInt').mockReturnValue(1) // 常に1が出る → ゾロ目
     const next = gameReducer(state, { type: 'ROLL_FOR_JAIL' })
     expect(next.players[0].inJail).toBe(false)
     expect(next.players[0].jailTurns).toBe(0)
@@ -666,7 +667,9 @@ describe('ROLL_FOR_JAIL', () => {
       jailTurns: 2, // +1 で 3 → 強制出獄
       position: 10,
     })
-    vi.spyOn(Math, 'random').mockReturnValueOnce(0).mockReturnValueOnce(0.5) // 1, 4
+    vi.spyOn(randomModule, 'getSecureRandomInt')
+      .mockReturnValueOnce(1)
+      .mockReturnValueOnce(4) // 1, 4
     const next = gameReducer(state, { type: 'ROLL_FOR_JAIL' })
     expect(next.players[0].inJail).toBe(false)
     expect(next.players[0].jailTurns).toBe(0)
@@ -684,7 +687,9 @@ describe('ROLL_FOR_JAIL', () => {
       jailTurns: 0,
       position: 10,
     })
-    vi.spyOn(Math, 'random').mockReturnValueOnce(0).mockReturnValueOnce(0.5) // 1, 4
+    vi.spyOn(randomModule, 'getSecureRandomInt')
+      .mockReturnValueOnce(1)
+      .mockReturnValueOnce(4) // 1, 4
     const next = gameReducer(state, { type: 'ROLL_FOR_JAIL' })
     expect(next.players[0].inJail).toBe(true)
     expect(next.players[0].jailTurns).toBe(1)
@@ -699,7 +704,9 @@ describe('ROLL_FOR_JAIL', () => {
       jailTurns: 1,
       position: 10,
     })
-    vi.spyOn(Math, 'random').mockReturnValueOnce(0).mockReturnValueOnce(0.5) // 1, 4
+    vi.spyOn(randomModule, 'getSecureRandomInt')
+      .mockReturnValueOnce(1)
+      .mockReturnValueOnce(4) // 1, 4
     const next = gameReducer(state, { type: 'ROLL_FOR_JAIL' })
     expect(next.players[0].inJail).toBe(true)
     expect(next.players[0].jailTurns).toBe(2)

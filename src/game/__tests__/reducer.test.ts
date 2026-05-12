@@ -1,3 +1,4 @@
+import * as randomModule from '../random'
 import { describe, it, expect, vi } from 'vitest'
 import { createInitialGameState, gameReducer, rollDice } from '../reducer'
 import type { GameState } from '../types'
@@ -98,7 +99,7 @@ describe('ROLL_DICE', () => {
 
   it('3連続ゾロ目で刑務所に行く', () => {
     // rollDice をモックして常にゾロ目を返す
-    vi.spyOn(Math, 'random').mockReturnValue(0) // 常に1が出る
+    vi.spyOn(randomModule, 'getSecureRandomInt').mockReturnValue(1) // 常に1が出る
     let state = startedGame()
 
     // 1回目ゾロ目
