@@ -15,6 +15,7 @@ import {
   findNearestSpace,
   validateTradeOffer,
 } from './rules'
+import { getSecureRandomInt } from './random'
 
 // ── 定数 ──
 
@@ -27,7 +28,7 @@ export const JAIL_FINE = 50
 // ── ヘルパー関数 ──
 
 export function rollDice(): [number, number] {
-  return [Math.floor(Math.random() * 6) + 1, Math.floor(Math.random() * 6) + 1]
+  return [getSecureRandomInt(1, 6), getSecureRandomInt(1, 6)]
 }
 
 function nextActivePlayer(players: Player[], currentIndex: number): number {

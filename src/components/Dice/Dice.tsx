@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import styles from './Dice.module.css'
+import { getSecureRandomInt } from '../../game/random'
 
 const DICE_FACES = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅']
 
@@ -29,10 +30,7 @@ export default function Dice({ values, rolling, onRollComplete }: DiceProps) {
         setRandomValues(null)
         callbackRef.current?.()
       } else {
-        setRandomValues([
-          Math.floor(Math.random() * 6) + 1,
-          Math.floor(Math.random() * 6) + 1,
-        ])
+        setRandomValues([getSecureRandomInt(1, 6), getSecureRandomInt(1, 6)])
       }
     }, 100)
     return () => {
