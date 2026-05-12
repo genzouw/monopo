@@ -20,7 +20,9 @@ export default function Dialog({
   const titleId = useId()
   const containerRef = useFocusTrap<HTMLDivElement>()
   const onCloseRef = useRef(onClose)
-  onCloseRef.current = onClose
+  useEffect(() => {
+    onCloseRef.current = onClose
+  })
 
   const closeEnabled = !!onClose
   useEffect(() => {
