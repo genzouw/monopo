@@ -9,5 +9,15 @@ export function getSecureRandom(): number {
 }
 
 export function getSecureRandomInt(min: number, max: number): number {
-  return Math.floor(getSecureRandom() * (max - min + 1)) + min
+  const range = max - min + 1
+  const limit = Math.floor((0xffffffff + 1) / range) * range
+  const buf = new Uint32Array(1)
+
+  let x: number
+  do {
+    crypto.getRandomValues(buf)
+    x = buf[0]
+  } while (x >= limit)
+
+  return min + (x % range)
 }
