@@ -87,6 +87,7 @@ export default function TradeDialog({
   return (
     <Dialog
       title={`${targetPlayer.token} ${targetPlayer.name}とこうかん`}
+      onClose={onClose}
       actions={
         <>
           <Button onClick={handlePropose}>ていあんする！</Button>

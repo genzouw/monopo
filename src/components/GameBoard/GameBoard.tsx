@@ -575,6 +575,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           return (
             <Dialog
               title={space.name}
+              onClose={() => setShowSpaceDetail(null)}
               actions={
                 <Button
                   variant="ghost"
@@ -800,6 +801,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           return (
             <Dialog
               title={`${detailPlayer.token} ${detailPlayer.name}`}
+              onClose={() => setShowPlayerDetail(null)}
               actions={
                 <Button
                   variant="ghost"
@@ -931,6 +933,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
       {showTradeSelect && (
         <Dialog
           title="だれとこうかんする？"
+          onClose={() => setShowTradeSelect(false)}
           actions={
             <Button
               variant="secondary"

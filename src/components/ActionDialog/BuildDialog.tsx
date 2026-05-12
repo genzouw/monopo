@@ -65,6 +65,7 @@ export default function BuildDialog({
   return (
     <Dialog
       title="いえをたてる・うる"
+      onClose={onClose}
       actions={
         <Button variant="secondary" onClick={onClose}>
           とじる

@@ -28,6 +28,7 @@ export default function MortgageDialog({
   return (
     <Dialog
       title="ていとう"
+      onClose={onClose}
       actions={
         <Button variant="secondary" onClick={onClose}>
           とじる
