@@ -83,8 +83,19 @@ const areEqual = (
     }
   }
 
-  // space, row, col, allPlayers, onSpaceClick are assumed stable
-  // allPlayers is only used for `allPlayers.find` for token, which only matters if ownerId changes
+  const prevOwnerId = prevPropState?.ownerId
+  const nextOwnerId = nextPropState?.ownerId
+  if (prevOwnerId && nextOwnerId && prevOwnerId === nextOwnerId) {
+    const prevOwner = prevProps.allPlayers.find((p) => p.id === prevOwnerId)
+    const nextOwner = nextProps.allPlayers.find((p) => p.id === nextOwnerId)
+    if (
+      prevOwner?.name !== nextOwner?.name ||
+      prevOwner?.token !== nextOwner?.token
+    ) {
+      return false
+    }
+  }
+
   return true
 }
 
@@ -100,9 +111,22 @@ export const MemoizedMiniSpace = memo(function MemoizedMiniSpace({
   const icon = getSpaceIcon(space)
   const ownerId = propState?.ownerId
   const ownerBg = ownerId ? getOwnerBg(ownerId) : undefined
+  const ownerName = ownerId
+    ? allPlayers.find((p) => p.id === ownerId)?.name
+    : undefined
+  const houses = propState?.houses ?? 0
+  const ariaLabel = [
+    space.name,
+    ownerName && `所有者: ${ownerName}`,
+    houses > 0 && (houses === 5 ? 'ホテル' : `家${houses}軒`),
+    playersHere.length > 0 && `プレイヤー${playersHere.length}人滞在中`,
+  ]
+    .filter(Boolean)
+    .join(' ')
 
   return (
-    <div
+    <button
+      type="button"
       className={styles.miniSpace}
       style={{
         gridRow: row,
@@ -116,6 +140,7 @@ export const MemoizedMiniSpace = memo(function MemoizedMiniSpace({
               : 'var(--color-white)'),
       }}
       onClick={() => onSpaceClick(space.position)}
+      aria-label={ariaLabel}
     >
       {space.color && (
         <div
@@ -150,6 +175,6 @@ export const MemoizedMiniSpace = memo(function MemoizedMiniSpace({
           {p.token}
         </span>
       ))}
-    </div>
+    </button>
   )
 }, areEqual)
