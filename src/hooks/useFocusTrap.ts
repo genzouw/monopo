@@ -36,7 +36,12 @@ export function useFocusTrap<T extends HTMLElement>() {
       const first = current[0]
       const last = current[current.length - 1]
       const active = document.activeElement
-      if (e.shiftKey && (active === first || !container.contains(active))) {
+      if (
+        e.shiftKey &&
+        (active === first ||
+          active === container ||
+          !container.contains(active))
+      ) {
         e.preventDefault()
         last.focus({ preventScroll: true })
       } else if (
@@ -48,9 +53,9 @@ export function useFocusTrap<T extends HTMLElement>() {
       }
     }
 
-    container.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('keydown', handleKeyDown)
     return () => {
-      container.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('keydown', handleKeyDown)
       previouslyFocused?.focus({ preventScroll: true })
     }
   }, [])
