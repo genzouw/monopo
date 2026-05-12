@@ -2,10 +2,10 @@ import { useEffect, useRef } from 'react'
 
 const FOCUSABLE_SELECTOR = [
   'a[href]:not([hidden])',
-  'button:not([disabled]):not([hidden])',
-  'input:not([disabled]):not([hidden])',
-  'select:not([disabled]):not([hidden])',
-  'textarea:not([disabled]):not([hidden])',
+  'button:not([disabled]):not([hidden]):not([tabindex="-1"])',
+  'input:not([disabled]):not([hidden]):not([tabindex="-1"])',
+  'select:not([disabled]):not([hidden]):not([tabindex="-1"])',
+  'textarea:not([disabled]):not([hidden]):not([tabindex="-1"])',
   '[tabindex]:not([tabindex="-1"]):not([hidden])',
 ].join(',')
 
