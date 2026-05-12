@@ -102,7 +102,8 @@ export const MemoizedMiniSpace = memo(function MemoizedMiniSpace({
   const ownerBg = ownerId ? getOwnerBg(ownerId) : undefined
 
   return (
-    <div
+    <button
+      type="button"
       className={styles.miniSpace}
       style={{
         gridRow: row,
@@ -116,6 +117,7 @@ export const MemoizedMiniSpace = memo(function MemoizedMiniSpace({
               : 'var(--color-white)'),
       }}
       onClick={() => onSpaceClick(space.position)}
+      aria-label={space.name}
     >
       {space.color && (
         <div
@@ -150,6 +152,6 @@ export const MemoizedMiniSpace = memo(function MemoizedMiniSpace({
           {p.token}
         </span>
       ))}
-    </div>
+    </button>
   )
 }, areEqual)

@@ -86,6 +86,15 @@
   cursor: pointer;
   font-size: 6px;
   overflow: hidden;
+  border: none;
+  outline: none;
+  padding: 0;
+  font-family: inherit;
+}
+.miniSpace:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+  z-index: 10;
 }
 .miniSpaceIcon {
   font-size: clamp(12px, 3.2cqi, 24px);
