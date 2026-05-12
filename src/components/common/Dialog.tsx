@@ -1,4 +1,4 @@
-import { useEffect, useId } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import type { ReactNode } from 'react'
 import { useFocusTrap } from '../../hooks/useFocusTrap'
 import styles from './common.module.css'
@@ -19,18 +19,21 @@ export default function Dialog({
 }: DialogProps) {
   const titleId = useId()
   const containerRef = useFocusTrap<HTMLDivElement>()
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
 
+  const closeEnabled = !!onClose
   useEffect(() => {
-    if (!onClose) return
+    if (!closeEnabled) return
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault()
-        onClose()
+        onCloseRef.current?.()
       }
     }
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [onClose])
+  }, [closeEnabled])
 
   return (
     <div className={styles.overlay}>
