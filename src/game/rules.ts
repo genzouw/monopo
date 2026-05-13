@@ -7,13 +7,46 @@ import type {
   TradeValidationResult,
 } from './types'
 
+// ⚡ Bolt: Cache board lookups to prevent O(N) array scans during frequent operations
+type BoardCache = {
+  byId: Map<string, BoardSpace>
+  byColor: Map<string, string[]>
+}
+const boardCacheMap = new WeakMap<BoardSpace[], BoardCache>()
+
+function getBoardCache(board: BoardSpace[]): BoardCache {
+  let cache = boardCacheMap.get(board)
+  if (!cache) {
+    const byId = new Map<string, BoardSpace>()
+    const byColor = new Map<string, string[]>()
+
+    for (const space of board) {
+      byId.set(space.id, space)
+      if (space.color) {
+        if (!byColor.has(space.color)) byColor.set(space.color, [])
+        byColor.get(space.color)!.push(space.id)
+      }
+    }
+    cache = { byId, byColor }
+    boardCacheMap.set(board, cache)
+  }
+  return cache
+}
+
+export function getSpaceById(
+  propertyId: string,
+  board: BoardSpace[],
+): BoardSpace | undefined {
+  return getBoardCache(board).byId.get(propertyId)
+}
+
 export function getColorGroup(
   propertyId: string,
   board: BoardSpace[],
 ): string[] {
-  const space = board.find((s) => s.id === propertyId)
+  const space = getSpaceById(propertyId, board)
   if (!space?.color) return []
-  return board.filter((s) => s.color === space.color).map((s) => s.id)
+  return getBoardCache(board).byColor.get(space.color) || []
 }
 
 export function ownsFullColorGroup(
@@ -35,7 +68,7 @@ export function calculateRent(
 ): number {
   const state = propertyStates[propertyId]
   if (!state?.ownerId || state.isMortgaged) return 0
-  const space = board.find((s) => s.id === propertyId)!
+  const space = getSpaceById(propertyId, board)!
   if (space.type === 'railroad') {
     const ownedRailroads = board
       .filter((s) => s.type === 'railroad')
@@ -109,7 +142,7 @@ export function canUnmortgage(
   const state = propertyStates[propertyId]
   if (!state || state.ownerId !== playerId) return false
   if (!state.isMortgaged) return false
-  const space = board.find((s) => s.id === propertyId)!
+  const space = getSpaceById(propertyId, board)!
   const unmortgageCost = Math.floor((space.mortgageValue ?? 0) * 1.1)
   return player.money >= unmortgageCost
 }
@@ -132,9 +165,10 @@ export function calculateTotalAssets(
   board: BoardSpace[],
 ): number {
   let total = player.money
+  const cache = getBoardCache(board)
   for (const propId of player.properties) {
     const state = propertyStates[propId]
-    const space = board.find((s) => s.id === propId)!
+    const space = cache.byId.get(propId)!
     if (!state?.isMortgaged) total += space.mortgageValue ?? 0
     if (state && state.houses > 0)
       total += Math.floor(((space.houseCost ?? 0) * state.houses) / 2)
