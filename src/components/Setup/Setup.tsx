@@ -61,7 +61,7 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
 
   return (
     <div className={styles.setup}>
-      <div className={styles.title}>🎲 モノポリ</div>
+      <div className={styles.title}>🎲 モノポ</div>
       <div className={styles.subtitle}>いっしょにあそぼう！</div>
       {onResume && savedGame && (
         <div

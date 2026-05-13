@@ -9,8 +9,10 @@ import {
 import type { GameState } from '../types'
 import { TOKENS } from '../types'
 
-const STORAGE_KEY = 'monopoly-save'
-const SETUP_KEY = 'monopoly-setup'
+const STORAGE_KEY = 'monopo-save'
+const SETUP_KEY = 'monopo-setup'
+const LEGACY_STORAGE_KEY = 'monopoly-save'
+const LEGACY_SETUP_KEY = 'monopoly-setup'
 
 const createPlayingState = (): GameState =>
   ({
@@ -101,12 +103,56 @@ describe('saveGame / loadGame', () => {
   })
 })
 
+describe('legacy key migration', () => {
+  it('旧キー(monopoly-save)のデータを読み込んで新キーに移行する', () => {
+    const legacyState = createPlayingState()
+    localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(legacyState))
+    const loaded = loadGame()
+    expect(loaded).not.toBeNull()
+    expect(loaded?.players[0].name).toBe('たろう')
+    expect(localStorage.getItem(STORAGE_KEY)).not.toBeNull()
+    expect(localStorage.getItem(LEGACY_STORAGE_KEY)).toBeNull()
+  })
+
+  it('新キーが存在する場合は旧キーを参照しない', () => {
+    const newState = createPlayingState()
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(newState))
+    localStorage.setItem(
+      LEGACY_STORAGE_KEY,
+      JSON.stringify({
+        ...newState,
+        players: [{ ...newState.players[0], name: 'old' }],
+      }),
+    )
+    expect(loadGame()?.players[0].name).toBe('たろう')
+    expect(localStorage.getItem(LEGACY_STORAGE_KEY)).not.toBeNull()
+  })
+
+  it('旧キー(monopoly-setup)のSetupConfigを読み込んで新キーに移行する', () => {
+    const legacyConfig = {
+      playerCount: 3,
+      names: ['A', 'B', 'C', 'D'],
+      tokens: [TOKENS[0], TOKENS[1], TOKENS[2], TOKENS[3]],
+    }
+    localStorage.setItem(LEGACY_SETUP_KEY, JSON.stringify(legacyConfig))
+    expect(loadSetupConfig()).toEqual(legacyConfig)
+    expect(localStorage.getItem(SETUP_KEY)).not.toBeNull()
+    expect(localStorage.getItem(LEGACY_SETUP_KEY)).toBeNull()
+  })
+})
+
 describe('clearSave', () => {
   it('保存データを削除する', () => {
     saveGame(createPlayingState())
     expect(localStorage.getItem(STORAGE_KEY)).not.toBeNull()
     clearSave()
     expect(localStorage.getItem(STORAGE_KEY)).toBeNull()
+  })
+
+  it('旧キーの保存データも削除する', () => {
+    localStorage.setItem(LEGACY_STORAGE_KEY, 'something')
+    clearSave()
+    expect(localStorage.getItem(LEGACY_STORAGE_KEY)).toBeNull()
   })
 
   it('removeItem例外を握りつぶす', () => {
