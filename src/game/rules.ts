@@ -48,9 +48,10 @@ export function getColorGroup(
   propertyId: string,
   board: BoardSpace[],
 ): string[] {
-  const space = getSpaceById(propertyId, board)
+  const cache = getBoardCache(board)
+  const space = cache.byId.get(propertyId)
   if (!space?.color) return []
-  return getBoardCache(board).byColor.get(space.color) || []
+  return cache.byColor.get(space.color) ?? []
 }
 
 export function ownsFullColorGroup(
