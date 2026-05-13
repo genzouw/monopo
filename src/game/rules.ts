@@ -51,7 +51,8 @@ export function getColorGroup(
   const cache = getBoardCache(board)
   const space = cache.byId.get(propertyId)
   if (!space?.color) return []
-  return cache.byColor.get(space.color) ?? []
+  const ids = cache.byColor.get(space.color)
+  return ids ? [...ids] : []
 }
 
 export function ownsFullColorGroup(
