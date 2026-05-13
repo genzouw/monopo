@@ -3,6 +3,22 @@ import { TOKENS, MIN_PLAYERS, MAX_PLAYERS, MAX_NAME_LENGTH } from './types'
 
 const STORAGE_KEY = 'monopo-save'
 const SETUP_KEY = 'monopo-setup'
+const LEGACY_STORAGE_KEY = 'monopoly-save'
+const LEGACY_SETUP_KEY = 'monopoly-setup'
+
+function readWithLegacyFallback(key: string, legacyKey: string): string | null {
+  const current = localStorage.getItem(key)
+  if (current !== null) return current
+  const legacy = localStorage.getItem(legacyKey)
+  if (legacy === null) return null
+  try {
+    localStorage.setItem(key, legacy)
+    localStorage.removeItem(legacyKey)
+  } catch {
+    // migration write failed - return legacy value anyway
+  }
+  return legacy
+}
 
 export type SetupConfig = {
   playerCount: number
@@ -21,7 +37,7 @@ export function saveGame(state: GameState): void {
 
 export function loadGame(): GameState | null {
   try {
-    const saved = localStorage.getItem(STORAGE_KEY)
+    const saved = readWithLegacyFallback(STORAGE_KEY, LEGACY_STORAGE_KEY)
     if (!saved) return null
     const state = JSON.parse(saved) as GameState
     // Basic validation
@@ -35,6 +51,7 @@ export function loadGame(): GameState | null {
 export function clearSave(): void {
   try {
     localStorage.removeItem(STORAGE_KEY)
+    localStorage.removeItem(LEGACY_STORAGE_KEY)
   } catch {
     // silently fail
   }
@@ -50,7 +67,7 @@ export function saveSetupConfig(config: SetupConfig): void {
 
 export function loadSetupConfig(): SetupConfig | null {
   try {
-    const saved = localStorage.getItem(SETUP_KEY)
+    const saved = readWithLegacyFallback(SETUP_KEY, LEGACY_SETUP_KEY)
     if (!saved) return null
     const config = JSON.parse(saved) as Partial<SetupConfig>
     if (
