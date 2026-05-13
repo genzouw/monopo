@@ -1,14 +1,14 @@
-# モノポリ Web アプリ 実装計画
+# モノポ Web アプリ 実装計画
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** スマートフォン1台で家族（小学生含む）が交代で遊べるモノポリWebアプリを構築する
+**Goal:** スマートフォン1台で家族（小学生含む）が交代で遊べるモノポWebアプリを構築する
 
 **Architecture:** React 19 + TypeScript、Vite、useReducerによる状態管理。`game/`に純粋なゲームロジック、`components/`にUI。CSS Modulesでスタイリング。Howler.jsでサウンド。
 
 **Tech Stack:** Vite, React 19, TypeScript, CSS Modules, Howler.js, Vitest
 
-**Spec:** `docs/superpowers/specs/2026-04-04-monopoly-web-app-design.md`
+**Spec:** `docs/superpowers/specs/2026-04-04-monopo-web-app-design.md`
 
 ---
 
@@ -189,7 +189,7 @@ import styles from './App.module.css'
 export default function App() {
   return (
     <div className={styles.app}>
-      <h1>モノポリ</h1>
+      <h1>モノポ</h1>
     </div>
   )
 }
@@ -218,7 +218,7 @@ export default function App() {
 - [ ] **Step 7: 動作確認**
 
 Run: `npm run dev`
-ブラウザで「モノポリ」と表示されることを確認。
+ブラウザで「モノポ」と表示されることを確認。
 
 - [ ] **Step 8: コミット**
 
@@ -3255,7 +3255,7 @@ export default function Setup({ onStart }: SetupProps) {
 
   return (
     <div className={styles.setup}>
-      <div className={styles.title}>🎲 モノポリ</div>
+      <div className={styles.title}>🎲 モノポ</div>
       <div className={styles.subtitle}>いっしょにあそぼう！</div>
 
       <div className={styles.playerCount}>
@@ -3994,7 +3994,7 @@ type MiniMapProps = {
   onSpaceClick: (position: number) => void
 }
 
-/** ボード位置 → CSSグリッドの(row, col)。モノポリボードの外周を時計回りに配置。 */
+/** ボード位置 → CSSグリッドの(row, col)。モノポボードの外周を時計回りに配置。 */
 function getGridPosition(position: number): { row: number; col: number } {
   if (position <= 10) {
     // 下辺: 左から右 (row=11, col=11-position)

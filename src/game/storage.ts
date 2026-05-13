@@ -1,8 +1,8 @@
 import type { GameState } from './types'
 import { TOKENS, MIN_PLAYERS, MAX_PLAYERS, MAX_NAME_LENGTH } from './types'
 
-const STORAGE_KEY = 'monopoly-save'
-const SETUP_KEY = 'monopoly-setup'
+const STORAGE_KEY = 'monopo-save'
+const SETUP_KEY = 'monopo-setup'
 
 export type SetupConfig = {
   playerCount: number
