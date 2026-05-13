@@ -2,7 +2,7 @@
 # https://docs.coderabbit.ai/reference/configuration
 
 language: ja-JP
-tone_instructions: 'すべての投稿、コメント、レビューは必ず日本語で行ってください。セキュリティ、パフォーマンス、可読性、設計の妥当性など、幅広い観点から厳格にコードを評価してください。'
+tone_instructions: 'すべての投稿、コメント、レビューは必ず日本語で行ってください。セキュリティ、パフォーマンス、可読性、設計の妥当性に加え、命名規則、マジックナンバー、将来のリファクタリングを見据えた設計改善など、細部まで厳格に評価し、具体的な改善案を提案してください。'
 early_access: false
 enable_free_tier: true
 
