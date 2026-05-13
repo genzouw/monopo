@@ -114,12 +114,7 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
         {Array.from({ length: playerCount }).map((_, i) => (
           <div key={i} className={styles.playerRow}>
             <button
-              style={{
-                fontSize: 28,
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-              }}
+              className={styles.tokenButton}
               onClick={() => {
                 const currentIdx = TOKENS.indexOf(
                   selectedTokens[i] as (typeof TOKENS)[number],
