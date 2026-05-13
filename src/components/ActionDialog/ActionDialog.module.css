@@ -93,6 +93,11 @@
   border-radius: 16px;
   font-size: 13px;
   cursor: pointer;
+  outline: none;
+}
+.tradePropertyChip:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 .tradePropertyColor {
   display: inline-block;
@@ -141,6 +146,12 @@
   font-weight: 700;
   cursor: pointer;
   touch-action: manipulation;
+  outline: none;
+}
+.moneyQuickButton:focus-visible,
+.moneyQuickButtonClear:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 .moneyQuickButton:active,
 .moneyQuickButtonClear:active {

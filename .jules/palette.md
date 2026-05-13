@@ -1,3 +1,6 @@
 ## 2026-05-12 - Ensure Keyboard Accessibility on Game Board Spaces
 **Learning:** Found an accessibility issue where interactable game board spaces (`div` elements acting as buttons) could not be focused via keyboard navigation because they lacked `focus-visible` styles and a focusable `button` element container.
 **Action:** Always replace interactive `div` elements with `<button>` tags and ensure appropriate focus management through CSS modules when converting custom clickable elements to accessible actions.
+## 2026-05-13 - Ensure Focus Indication on Custom Interactive Elements
+**Learning:** Found that several custom interactive elements utilizing native `<button>` tags (such as token selectors, trade chips, quick money buttons, and mute toggles) were missing explicit `:focus-visible` styles. Because custom styles (like `background: none` and `border: none`) often strip default browser focus rings, users navigating via keyboard lacked visual cues.
+**Action:** Whenever applying custom styles to native interactive elements (especially buttons lacking default borders), always define explicit `:focus-visible` styles with appropriate `outline` and `outline-offset` to preserve clear keyboard accessibility. Use `outline: none;` on the base class to prevent double outlines in some browsers while ensuring `:focus-visible` handles the accessible ring.
