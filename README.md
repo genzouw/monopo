@@ -1,77 +1,64 @@
-# React + TypeScript + Vite
+# monopo (モノポ)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + TypeScript + Vite で構築された Web ベースのボードゲームアプリケーション「monopo（モノポ）」です。
 
-Currently, two official plugins are available:
+## 特徴 (Features)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- ブラウザ上で遊べる本格的なボードゲーム体験
+- 複数人でのローカルプレイに対応
+- ゲームの状態の自動保存と再開機能
+- React + Vite による高速な動作と快適な開発体験
 
-## React Compiler
+## 技術スタック (Tech Stack)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Frontend:** React 19, TypeScript
+- **Build Tool:** Vite
+- **Styling:** CSS Modules
+- **State Management:** React `useReducer`
+- **Testing:** Vitest, Testing Library
+- **Package Manager:** pnpm
 
-## Expanding the ESLint configuration
+## 動作要件 (Requirements)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **Node.js**: v24 (LTS) 以上
+- **パッケージマネージャー**: pnpm (npm や yarn の使用は避けてください)
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## セットアップ (Setup Instructions)
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+リポジトリをクローンし、依存関係をインストールして開発サーバーを起動する手順は以下の通りです。
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+# リポジトリのクローン
+git clone <repository-url>
+cd <repository-name>
+
+# 依存関係のインストール (必ず pnpm を使用してください)
+pnpm install
+
+# 開発サーバーの起動
+pnpm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+ブラウザで `http://localhost:5173` にアクセスしてゲームをプレイできます。
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## コマンド一覧 (Available Commands)
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- `pnpm run dev`: 開発サーバーを起動します
+- `pnpm run build`: プロダクション用にビルドします
+- `pnpm run preview`: ビルドされたプロダクション環境をローカルでプレビューします
+- `pnpm run test`: Vitest を使用してテストを実行します
+- `pnpm run test:coverage`: テストのカバレッジを計測します
+- `pnpm run lint`: ESLint を使用してコードの静的解析を行います
+- `pnpm run format`: Prettier を使用してコードのフォーマットを行います
+- `pnpm run typecheck`: TypeScript の型チェックを実行します
 
-## License
+## 貢献について (Contributing)
 
-This project is licensed under the [MIT License](./LICENSE).
+コントリビューションは大歓迎です！
+プロジェクトの環境構築方法、テストの実行、コーディング規約、プルリクエストの作成方法については [CONTRIBUTING.md](./CONTRIBUTING.md) をご確認ください。
+
+**注意:** 商標上の理由により、プロジェクト全体（UIテキスト、ドキュメント、ファイル名など）で必ず「monopo（モノポ）」という名称を使用してください。
+
+## ライセンス (License)
+
+このプロジェクトは [MIT License](./LICENSE) のもとで公開されています。
