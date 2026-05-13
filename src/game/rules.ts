@@ -11,6 +11,7 @@ import type {
 type BoardCache = {
   byId: Map<string, BoardSpace>
   byColor: Map<string, string[]>
+  byType: Map<string, string[]>
 }
 const boardCacheMap = new WeakMap<BoardSpace[], BoardCache>()
 
@@ -19,6 +20,7 @@ function getBoardCache(board: BoardSpace[]): BoardCache {
   if (!cache) {
     const byId = new Map<string, BoardSpace>()
     const byColor = new Map<string, string[]>()
+    const byType = new Map<string, string[]>()
 
     for (const space of board) {
       byId.set(space.id, space)
@@ -26,8 +28,10 @@ function getBoardCache(board: BoardSpace[]): BoardCache {
         if (!byColor.has(space.color)) byColor.set(space.color, [])
         byColor.get(space.color)!.push(space.id)
       }
+      if (!byType.has(space.type)) byType.set(space.type, [])
+      byType.get(space.type)!.push(space.id)
     }
-    cache = { byId, byColor }
+    cache = { byId, byColor, byType }
     boardCacheMap.set(board, cache)
   }
   return cache
@@ -68,25 +72,24 @@ export function calculateRent(
 ): number {
   const state = propertyStates[propertyId]
   if (!state?.ownerId || state.isMortgaged) return 0
-  const space = getSpaceById(propertyId, board)!
+  const cache = getBoardCache(board)
+  const space = cache.byId.get(propertyId)!
   if (space.type === 'railroad') {
-    const ownedRailroads = board
-      .filter((s) => s.type === 'railroad')
-      .filter(
-        (s) =>
-          propertyStates[s.id]?.ownerId === state.ownerId &&
-          !propertyStates[s.id]?.isMortgaged,
-      ).length
+    const railroadIds = cache.byType.get('railroad') ?? []
+    const ownedRailroads = railroadIds.filter(
+      (id) =>
+        propertyStates[id]?.ownerId === state.ownerId &&
+        !propertyStates[id]?.isMortgaged,
+    ).length
     return space.rent![ownedRailroads - 1]
   }
   if (space.type === 'utility') {
-    const ownedUtilities = board
-      .filter((s) => s.type === 'utility')
-      .filter(
-        (s) =>
-          propertyStates[s.id]?.ownerId === state.ownerId &&
-          !propertyStates[s.id]?.isMortgaged,
-      ).length
+    const utilityIds = cache.byType.get('utility') ?? []
+    const ownedUtilities = utilityIds.filter(
+      (id) =>
+        propertyStates[id]?.ownerId === state.ownerId &&
+        !propertyStates[id]?.isMortgaged,
+    ).length
     const diceTotal = diceValues[0] + diceValues[1]
     return diceTotal * (ownedUtilities === 1 ? 4 : 10)
   }
