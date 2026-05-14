@@ -8,13 +8,6 @@ indent_style = space
 indent_size = 2
 trim_trailing_whitespace = true
 
-[*.go]
-indent_style = tab
-indent_size = 4
-
-[*.{php,py,java}]
-indent_size = 4
-
 [*.md]
 trim_trailing_whitespace = false
 
