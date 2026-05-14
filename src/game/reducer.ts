@@ -563,7 +563,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     // ── BUY_PROPERTY ──
     case 'BUY_PROPERTY': {
       const player = state.players[state.currentPlayerIndex]
-      const space = BOARD_SPACES[player.position]
+      const space = state.board[player.position]
       if (!space || !space.price) return state
 
       const newPropertyStates: Record<string, PropertyState> = {
@@ -590,7 +590,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     // ── DECLINE_PURCHASE ──
     case 'DECLINE_PURCHASE': {
       const player = state.players[state.currentPlayerIndex]
-      const space = BOARD_SPACES[player.position]
+      const space = state.board[player.position]
       if (!space) return state
 
       const startingBid = space.price ?? 0
@@ -705,7 +705,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         // 売却オークション (SELL_PROPERTY 由来) の場合は、売却者に開始価格を入金し
         // 物件は空白地化する
         if (auction.sellerId) {
-          const space = getSpaceById(auction.propertyId, BOARD_SPACES)!
+          const space = getSpaceById(auction.propertyId, state.board)!
           const newPlayers = state.players.map((p) => {
             if (p.id === auction.sellerId) {
               return {
@@ -765,7 +765,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     // ── DRAW_CARD ──
     case 'DRAW_CARD': {
       const player = state.players[state.currentPlayerIndex]
-      const space = BOARD_SPACES[player.position]
+      const space = state.board[player.position]
       if (!space) return state
 
       const isChance = space.type === 'chance'
@@ -799,7 +799,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     // ── PAY_TAX ──
     case 'PAY_TAX': {
       const player = state.players[state.currentPlayerIndex]
-      const space = BOARD_SPACES[player.position]
+      const space = state.board[player.position]
       if (!space || !space.price) return state
 
       const newState = updateCurrentPlayer(state, {
@@ -890,7 +890,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     // ── FORCE_BUY (5倍買い) ──
     case 'FORCE_BUY': {
       const player = state.players[state.currentPlayerIndex]
-      const space = BOARD_SPACES[player.position]!
+      const space = state.board[player.position]!
       const propState = state.propertyStates[space.id]
       if (!propState?.ownerId || propState.ownerId === player.id) return state
 
