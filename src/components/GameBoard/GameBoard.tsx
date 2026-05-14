@@ -2,9 +2,8 @@ import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
 import type { Dispatch } from 'react'
 import type { GameState } from '../../game/types'
 import type { GameAction } from '../../game/actions'
-import { BOARD_SPACES } from '../../game/board'
 import { MAX_JAIL_TURNS } from '../../game/reducer'
-import { calculateTotalAssets } from '../../game/rules'
+import { calculateTotalAssets, getSpaceById } from '../../game/rules'
 import PlayerPanel from '../PlayerPanel/PlayerPanel'
 import MiniMap from '../Board/MiniMap'
 import Dice from '../Dice/Dice'
@@ -52,9 +51,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
 
   const currentPlayer = state.players[state.currentPlayerIndex]
 
-  const currentSpace = state.board.find(
-    (s) => s.position === currentPlayer.position,
-  )
+  const currentSpace = state.board[currentPlayer.position]
   const isPurchasable =
     currentSpace &&
     (currentSpace.type === 'property' ||
@@ -426,10 +423,10 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           const to = state.players.find((p) => p.id === state.trade!.toPlayerId)
           const offer = state.trade!
           const offerSpaces = offer.offerProperties.map(
-            (id) => BOARD_SPACES.find((s) => s.id === id)!,
+            (id) => getSpaceById(id, state.board)!,
           )
           const requestSpaces = offer.requestProperties.map(
-            (id) => BOARD_SPACES.find((s) => s.id === id)!,
+            (id) => getSpaceById(id, state.board)!,
           )
           return (
             <Dialog
@@ -532,7 +529,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
       {/* Space detail dialog */}
       {showSpaceDetail !== null &&
         (() => {
-          const space = BOARD_SPACES[showSpaceDetail]
+          const space = state.board[showSpaceDetail]
           if (!space) return null
           const ps = state.propertyStates[space.id]
           const owner = ps?.ownerId
@@ -770,7 +767,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           const totalAssets = calculateTotalAssets(
             detailPlayer,
             state.propertyStates,
-            BOARD_SPACES,
+            state.board,
           )
           const colorOrder = [
             'brown',
@@ -784,7 +781,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           ]
           const ownedProps = detailPlayer.properties
             .map((id) => ({
-              space: BOARD_SPACES.find((s) => s.id === id)!,
+              space: getSpaceById(id, state.board)!,
               state: state.propertyStates[id],
             }))
             .sort((a, b) => {
@@ -797,7 +794,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
               return ai !== bi ? ai - bi : a.space.position - b.space.position
             })
           const currentSpaceName =
-            BOARD_SPACES[detailPlayer.position]?.name ?? ''
+            state.board[detailPlayer.position]?.name ?? ''
           return (
             <Dialog
               title={`${detailPlayer.token} ${detailPlayer.name}`}

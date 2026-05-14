@@ -1,0 +1,4 @@
+# 2024-06-25 - Prevent O(N) array scans during React renders with direct index access and getSpaceById cache
+
+**Learning:** The `BOARD_SPACES` array is strictly ordered by position (0-39). Finding spaces by position using `.find(s => s.position === position)` creates an O(N) lookup that runs frequently during renders and game logic updates. Similarly, looking up spaces by ID via `.find(s => s.id === id)` requires full array traversal, despite a `getBoardCache` (`getSpaceById`) mechanism already existing in `src/game/rules.ts` that provides O(1) performance via a `WeakMap`.
+**Action:** Always use direct index access (e.g., `BOARD_SPACES[position]`) when looking up spaces by their position. When looking up by ID, always use `getSpaceById(id, BOARD_SPACES)` to leverage the existing `WeakMap` cache.
