@@ -424,10 +424,10 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           const to = state.players.find((p) => p.id === state.trade!.toPlayerId)
           const offer = state.trade!
           const offerSpaces = offer.offerProperties.map(
-            (id) => getSpaceById(id, BOARD_SPACES)!,
+            (id) => getSpaceById(id, state.board)!,
           )
           const requestSpaces = offer.requestProperties.map(
-            (id) => getSpaceById(id, BOARD_SPACES)!,
+            (id) => getSpaceById(id, state.board)!,
           )
           return (
             <Dialog
