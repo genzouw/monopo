@@ -134,7 +134,7 @@ function sendToJail(state: GameState): GameState {
 
 function handleLanding(state: GameState): GameState {
   const player = state.players[state.currentPlayerIndex]
-  const space = BOARD_SPACES[player.position]!
+  const space = state.board[player.position]
 
   switch (space.type) {
     case 'corner': {
