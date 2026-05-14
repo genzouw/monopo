@@ -33,6 +33,7 @@ const PlayerPanel = memo(function PlayerPanel({
           className={`${styles.playerChip} ${idx === currentPlayerIndex ? styles.playerChipActive : ''} ${player.isBankrupt ? styles.playerChipBankrupt : ''}`}
           onClick={() => onPlayerClick?.(player.id)}
           style={{ background: getOwnerBg(player.id) }}
+          title={`${player.name}の詳細を見る`}
         >
           <span aria-hidden="true">{player.token}</span>
           <span aria-hidden="true">${player.money.toLocaleString()}</span>

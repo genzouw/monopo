@@ -108,6 +108,7 @@ export default function TradeDialog({
                 className={`${styles.tradePropertyChip} ${isSelected ? styles.tradePropertyChipSelected : ''}`}
                 onClick={() => toggleOffer(space.id)}
                 aria-pressed={isSelected}
+                title={isSelected ? '選択を解除する' : '選択する'}
               >
                 {space.color && (
                   <span
@@ -190,6 +191,7 @@ export default function TradeDialog({
                 className={`${styles.tradePropertyChip} ${isSelected ? styles.tradePropertyChipSelected : ''}`}
                 onClick={() => toggleRequest(space.id)}
                 aria-pressed={isSelected}
+                title={isSelected ? '選択を解除する' : '選択する'}
               >
                 {space.color && (
                   <span
