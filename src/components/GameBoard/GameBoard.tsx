@@ -2,7 +2,6 @@ import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
 import type { Dispatch } from 'react'
 import type { GameState } from '../../game/types'
 import type { GameAction } from '../../game/actions'
-import { BOARD_SPACES } from '../../game/board'
 import { MAX_JAIL_TURNS } from '../../game/reducer'
 import { calculateTotalAssets, getSpaceById } from '../../game/rules'
 import PlayerPanel from '../PlayerPanel/PlayerPanel'
@@ -530,7 +529,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
       {/* Space detail dialog */}
       {showSpaceDetail !== null &&
         (() => {
-          const space = BOARD_SPACES[showSpaceDetail]
+          const space = state.board[showSpaceDetail]
           if (!space) return null
           const ps = state.propertyStates[space.id]
           const owner = ps?.ownerId
@@ -768,7 +767,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           const totalAssets = calculateTotalAssets(
             detailPlayer,
             state.propertyStates,
-            BOARD_SPACES,
+            state.board,
           )
           const colorOrder = [
             'brown',
@@ -782,7 +781,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           ]
           const ownedProps = detailPlayer.properties
             .map((id) => ({
-              space: getSpaceById(id, BOARD_SPACES)!,
+              space: getSpaceById(id, state.board)!,
               state: state.propertyStates[id],
             }))
             .sort((a, b) => {
@@ -795,7 +794,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
               return ai !== bi ? ai - bi : a.space.position - b.space.position
             })
           const currentSpaceName =
-            BOARD_SPACES[detailPlayer.position]?.name ?? ''
+            state.board[detailPlayer.position]?.name ?? ''
           return (
             <Dialog
               title={`${detailPlayer.token} ${detailPlayer.name}`}
