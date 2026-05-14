@@ -662,7 +662,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
           const winner = state.players.find(
             (p) => p.id === auction.currentBidderId,
           )!
-          const space = getSpaceById(auction.propertyId, BOARD_SPACES)!
+          const space = getSpaceById(auction.propertyId, state.board)!
           const newPropertyStates: Record<string, PropertyState> = {
             ...state.propertyStates,
             [auction.propertyId]: {
