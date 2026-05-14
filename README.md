@@ -61,4 +61,4 @@ pnpm run dev
 
 ## ライセンス (License)
 
-このプロジェクトは [MIT License](./LICENSE) のもとで公開されています。
+このプロジェクトは [MIT License](./LICENSE.md) のもとで公開されています。
