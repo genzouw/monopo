@@ -4,7 +4,7 @@ import type { GameState } from '../../game/types'
 import type { GameAction } from '../../game/actions'
 import { BOARD_SPACES } from '../../game/board'
 import { MAX_JAIL_TURNS } from '../../game/reducer'
-import { calculateTotalAssets } from '../../game/rules'
+import { calculateTotalAssets, getSpaceById } from '../../game/rules'
 import PlayerPanel from '../PlayerPanel/PlayerPanel'
 import MiniMap from '../Board/MiniMap'
 import Dice from '../Dice/Dice'
@@ -52,9 +52,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
 
   const currentPlayer = state.players[state.currentPlayerIndex]
 
-  const currentSpace = state.board.find(
-    (s) => s.position === currentPlayer.position,
-  )
+  const currentSpace = state.board[currentPlayer.position]
   const isPurchasable =
     currentSpace &&
     (currentSpace.type === 'property' ||
@@ -426,10 +424,10 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           const to = state.players.find((p) => p.id === state.trade!.toPlayerId)
           const offer = state.trade!
           const offerSpaces = offer.offerProperties.map(
-            (id) => BOARD_SPACES.find((s) => s.id === id)!,
+            (id) => getSpaceById(id, BOARD_SPACES)!,
           )
           const requestSpaces = offer.requestProperties.map(
-            (id) => BOARD_SPACES.find((s) => s.id === id)!,
+            (id) => getSpaceById(id, BOARD_SPACES)!,
           )
           return (
             <Dialog
@@ -784,7 +782,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           ]
           const ownedProps = detailPlayer.properties
             .map((id) => ({
-              space: BOARD_SPACES.find((s) => s.id === id)!,
+              space: getSpaceById(id, BOARD_SPACES)!,
               state: state.propertyStates[id],
             }))
             .sort((a, b) => {

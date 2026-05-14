@@ -1,5 +1,6 @@
 import type { AuctionState, Player } from '../../game/types'
 import { BOARD_SPACES } from '../../game/board'
+import { getSpaceById } from '../../game/rules'
 import Dialog from '../common/Dialog'
 import Button from '../common/Button'
 import styles from './ActionDialog.module.css'
@@ -18,7 +19,7 @@ export default function AuctionDialog({
   onBid,
   onPass,
 }: AuctionDialogProps) {
-  const space = BOARD_SPACES.find((s) => s.id === auction.propertyId)
+  const space = getSpaceById(auction.propertyId, BOARD_SPACES)
   const currentBidder = auction.currentBidderId
     ? players.find((p) => p.id === auction.currentBidderId)
     : null
