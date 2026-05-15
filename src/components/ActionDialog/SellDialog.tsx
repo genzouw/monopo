@@ -4,6 +4,7 @@ import type {
   Player,
   PropertyState,
 } from '../../game/types'
+import { getSpaceById } from '../../game/rules'
 import Dialog from '../common/Dialog'
 import Button from '../common/Button'
 import styles from './ActionDialog.module.css'
@@ -52,7 +53,7 @@ export default function SellDialog({
   forced = false,
 }: SellDialogProps) {
   const ownedProperties = currentPlayer.properties
-    .map((id) => board.find((s) => s.id === id))
+    .map((id: string) => getSpaceById(id, board))
     .filter((s): s is BoardSpace => !!s)
     .sort((a, b) => {
       const ai = a.color ? COLOR_ORDER.indexOf(a.color) : COLOR_ORDER.length
