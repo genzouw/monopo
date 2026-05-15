@@ -24,8 +24,10 @@ const COLOR_MAP: Record<ColorGroup, string> = {
   railroad: '#555',
 }
 
-const PROPERTY_CHIP_TITLE_SELECTED = '選択を解除する'
-const PROPERTY_CHIP_TITLE_UNSELECTED = '選択する'
+const getPropertyChipLabel = (space: BoardSpace): string => {
+  const priceStr = space.price != null ? `（$${space.price}）` : ''
+  return `${space.name}${priceStr}`
+}
 
 type TradeDialogProps = {
   currentPlayer: Player
@@ -106,17 +108,15 @@ export default function TradeDialog({
         <div className={styles.tradePropertyList}>
           {myProperties.map((space) => {
             const isSelected = offerProperties.includes(space.id)
+            const label = getPropertyChipLabel(space)
             return (
               <button
                 key={space.id}
                 className={`${styles.tradePropertyChip} ${isSelected ? styles.tradePropertyChipSelected : ''}`}
                 onClick={() => toggleOffer(space.id)}
                 aria-pressed={isSelected}
-                title={
-                  isSelected
-                    ? PROPERTY_CHIP_TITLE_SELECTED
-                    : PROPERTY_CHIP_TITLE_UNSELECTED
-                }
+                title={label}
+                aria-label={label}
               >
                 {space.color && (
                   <span
@@ -193,17 +193,15 @@ export default function TradeDialog({
         <div className={styles.tradePropertyList}>
           {theirProperties.map((space) => {
             const isSelected = requestProperties.includes(space.id)
+            const label = getPropertyChipLabel(space)
             return (
               <button
                 key={space.id}
                 className={`${styles.tradePropertyChip} ${isSelected ? styles.tradePropertyChipSelected : ''}`}
                 onClick={() => toggleRequest(space.id)}
                 aria-pressed={isSelected}
-                title={
-                  isSelected
-                    ? PROPERTY_CHIP_TITLE_SELECTED
-                    : PROPERTY_CHIP_TITLE_UNSELECTED
-                }
+                title={label}
+                aria-label={label}
               >
                 {space.color && (
                   <span
