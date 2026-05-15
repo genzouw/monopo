@@ -21,7 +21,7 @@ React + TypeScript + Vite で構築された Web ベースのボードゲーム�
 ## 動作要件 (Requirements)
 
 - **Node.js**: v22 (LTS) 以上を推奨
-- **パッケージマネージャー**: bun (npm や yarn の使用は避けてください)
+- **パッケージマネージャー**: bun v1.2 以上 (npm や yarn の使用は避けてください)
 
 ## セットアップ (Setup Instructions)
 
