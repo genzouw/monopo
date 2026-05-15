@@ -1,5 +1,5 @@
 import type { BoardSpace, Player, PropertyState } from '../../game/types'
-import { canMortgage, canUnmortgage } from '../../game/rules'
+import { canMortgage, canUnmortgage, getSpaceById } from '../../game/rules'
 import Dialog from '../common/Dialog'
 import Button from '../common/Button'
 import styles from './ActionDialog.module.css'
@@ -22,7 +22,7 @@ export default function MortgageDialog({
   onClose,
 }: MortgageDialogProps) {
   const ownedProperties = currentPlayer.properties
-    .map((id) => board.find((s) => s.id === id))
+    .map((id: string) => getSpaceById(id, board))
     .filter((s): s is BoardSpace => !!s && !!s.mortgageValue)
 
   return (
