@@ -12,7 +12,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**'],
-      reporter: [['text', { maxCols: 150 }], 'json-summary', 'html'],
+      reporter: [['text', { maxCols: 150 }], 'json-summary', 'html', 'lcov'],
       exclude: [
         'node_modules/**',
         'dist/**',
