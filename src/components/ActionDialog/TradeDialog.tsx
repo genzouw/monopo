@@ -10,6 +10,7 @@ import Dialog from '../common/Dialog'
 import Button from '../common/Button'
 import styles from './ActionDialog.module.css'
 import { clamp } from './tradeDialog.utils'
+import { getSpaceById } from '../../game/rules'
 
 const COLOR_MAP: Record<ColorGroup, string> = {
   brown: 'var(--color-brown)',
@@ -51,13 +52,13 @@ export default function TradeDialog({
   const [requestMoney, setRequestMoney] = useState(0)
 
   const myProperties = currentPlayer.properties
-    .map((id) => board.find((s) => s.id === id))
+    .map((id) => getSpaceById(id, board))
     .filter(
       (s): s is BoardSpace => !!s && (propertyStates[s.id]?.houses ?? 0) === 0,
     )
 
   const theirProperties = targetPlayer.properties
-    .map((id) => board.find((s) => s.id === id))
+    .map((id) => getSpaceById(id, board))
     .filter(
       (s): s is BoardSpace => !!s && (propertyStates[s.id]?.houses ?? 0) === 0,
     )

@@ -4,7 +4,7 @@ import type {
   Player,
   PropertyState,
 } from '../../game/types'
-import { canBuildHouse, canSellHouse } from '../../game/rules'
+import { canBuildHouse, canSellHouse, getSpaceById } from '../../game/rules'
 import Dialog from '../common/Dialog'
 import Button from '../common/Button'
 import styles from './ActionDialog.module.css'
@@ -52,7 +52,7 @@ export default function BuildDialog({
   onClose,
 }: BuildDialogProps) {
   const ownedProperties = currentPlayer.properties
-    .map((id) => board.find((s) => s.id === id))
+    .map((id) => getSpaceById(id, board))
     .filter(
       (s): s is BoardSpace => !!s && s.type === 'property' && !!s.houseCost,
     )
