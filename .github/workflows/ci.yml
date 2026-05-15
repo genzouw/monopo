@@ -91,6 +91,6 @@ jobs:
         with:
           bun-version: 1.2.14
       - run: bun install --frozen-lockfile --ignore-scripts
-      # Dependabot で moderate 以下は自動 PR されるため、CI では high/critical のみブロックする。
-      - run: bun audit --audit-level=high
+      # NOTE: `bun audit` は bun 1.2.21 以降で追加されたため、pin している 1.2.14 では未対応。
+      # 脆弱性チェックは当面 Dependabot に委ね、bun-version を引き上げる際に audit を再追加する。
       - run: bun pm untrusted
