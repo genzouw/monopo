@@ -16,12 +16,13 @@ React + TypeScript + Vite で構築された Web ベースのボードゲーム�
 - **Styling:** CSS Modules
 - **State Management:** React `useReducer`
 - **Testing:** Vitest, Testing Library
-- **Package Manager:** pnpm
+- **Package Manager:** bun
 
 ## 動作要件 (Requirements)
 
 - **Node.js**: v22 (LTS) 以上を推奨
-- **パッケージマネージャー**: pnpm (npm や yarn の使用は避けてください)
+- **パッケージマネージャー**: bun v1.2 以上 (`npm` / `yarn` / `pnpm` の使用は避けてください)
+- **セキュリティスキャン**: `bun audit` は現在 `bun.lock` テキスト形式に十分対応していないため、CVE スキャンは Dependabot に委ねています
 
 ## セットアップ (Setup Instructions)
 
@@ -32,25 +33,25 @@ React + TypeScript + Vite で構築された Web ベースのボードゲーム�
 git clone <repository-url>
 cd <repository-name>
 
-# 依存関係のインストール (必ず pnpm を使用してください)
-pnpm install
+# 依存関係のインストール (必ず bun を使用してください)
+bun install
 
 # 開発サーバーの起動
-pnpm run dev
+bun run dev
 ```
 
 ブラウザで `http://localhost:5173` にアクセスしてゲームをプレイできます。
 
 ## コマンド一覧 (Available Commands)
 
-- `pnpm run dev`: 開発サーバーを起動します
-- `pnpm run build`: プロダクション用にビルドします
-- `pnpm run preview`: ビルドされたプロダクション環境をローカルでプレビューします
-- `pnpm run test`: Vitest を使用してテストを実行します
-- `pnpm run test:coverage`: テストのカバレッジを計測します
-- `pnpm run lint`: ESLint を使用してコードの静的解析を行います
-- `pnpm run format`: Prettier を使用してコードのフォーマットを行います
-- `pnpm run typecheck`: TypeScript の型チェックを実行します
+- `bun run dev`: 開発サーバーを起動します
+- `bun run build`: プロダクション用にビルドします
+- `bun run preview`: ビルドされたプロダクション環境をローカルでプレビューします
+- `bun run test`: Vitest を使用してテストを実行します
+- `bun run test:coverage`: テストのカバレッジを計測します
+- `bun run lint`: ESLint を使用してコードの静的解析を行います
+- `bun run format`: Prettier を使用してコードのフォーマットを行います
+- `bun run typecheck`: TypeScript の型チェックを実行します
 
 ## 貢献について (Contributing)
 

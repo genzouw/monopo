@@ -7,14 +7,14 @@ monopo (モノポ) プロジェクトへのご関心、ありがとうござい�
 
 ## 開発環境のセットアップ
 
-本プロジェクトはパッケージマネージャーとして **必ず `pnpm` を使用してください**。`npm` や `yarn` は使用しないでください。また、Node.js は v22 (LTS) 以上を推奨します。
+本プロジェクトはパッケージマネージャーとして **必ず `bun` を使用してください**。`npm` / `yarn` / `pnpm` は使用しないでください。また、Bun は v1.2 以上、Node.js は v22 (LTS) 以上を推奨します。なお、`bun audit` は現在 `bun.lock` テキスト形式に十分対応していないため、CVE スキャンは当面 Dependabot に委ねています。
 
 ```bash
 # 依存関係のインストール
-pnpm install
+bun install
 
 # 開発サーバーの起動
-pnpm run dev
+bun run dev
 ```
 
 ## コーディング規約とプロジェクトルール
@@ -36,16 +36,16 @@ pnpm run dev
 
 ```bash
 # コードのフォーマット
-pnpm run format
+bun run format
 
 # 静的解析 (Lint)
-pnpm run lint
+bun run lint
 
 # TypeScriptの型チェック
-pnpm run typecheck
+bun run typecheck
 
 # テストの実行
-pnpm run test
+bun run test
 ```
 
 すべてのチェックとテストが通過することを確認してからコミットを行ってください。
