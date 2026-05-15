@@ -24,6 +24,11 @@ const COLOR_MAP: Record<ColorGroup, string> = {
   railroad: '#555',
 }
 
+const getPropertyChipLabel = (space: BoardSpace): string => {
+  const priceStr = space.price != null ? `（$${space.price}）` : ''
+  return `${space.name}${priceStr}`
+}
+
 type TradeDialogProps = {
   currentPlayer: Player
   targetPlayer: Player
@@ -103,10 +108,7 @@ export default function TradeDialog({
         <div className={styles.tradePropertyList}>
           {myProperties.map((space) => {
             const isSelected = offerProperties.includes(space.id)
-            const priceStr = space.price != null ? `（$${space.price}）` : ''
-            const label = isSelected
-              ? `${space.name}${priceStr}の選択を解除する`
-              : `${space.name}${priceStr}を選択する`
+            const label = getPropertyChipLabel(space)
             return (
               <button
                 key={space.id}
@@ -191,10 +193,7 @@ export default function TradeDialog({
         <div className={styles.tradePropertyList}>
           {theirProperties.map((space) => {
             const isSelected = requestProperties.includes(space.id)
-            const priceStr = space.price != null ? `（$${space.price}）` : ''
-            const label = isSelected
-              ? `${space.name}${priceStr}の選択を解除する`
-              : `${space.name}${priceStr}を選択する`
+            const label = getPropertyChipLabel(space)
             return (
               <button
                 key={space.id}
