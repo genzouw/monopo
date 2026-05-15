@@ -23,9 +23,6 @@ const COLOR_MAP: Record<ColorGroup, string> = {
   railroad: '#555',
 }
 
-const PROPERTY_CHIP_TITLE_SELECTED = '選択を解除する'
-const PROPERTY_CHIP_TITLE_UNSELECTED = '選択する'
-
 type TradeDialogProps = {
   currentPlayer: Player
   targetPlayer: Player
@@ -111,11 +108,8 @@ export default function TradeDialog({
                 className={`${styles.tradePropertyChip} ${isSelected ? styles.tradePropertyChipSelected : ''}`}
                 onClick={() => toggleOffer(space.id)}
                 aria-pressed={isSelected}
-                title={
-                  isSelected
-                    ? PROPERTY_CHIP_TITLE_SELECTED
-                    : PROPERTY_CHIP_TITLE_UNSELECTED
-                }
+                title={`${space.name}を${isSelected ? '選択解除する' : '選択する'}`}
+                aria-label={`${space.name}を${isSelected ? '選択解除する' : '選択する'}`}
               >
                 {space.color && (
                   <span
@@ -198,11 +192,8 @@ export default function TradeDialog({
                 className={`${styles.tradePropertyChip} ${isSelected ? styles.tradePropertyChipSelected : ''}`}
                 onClick={() => toggleRequest(space.id)}
                 aria-pressed={isSelected}
-                title={
-                  isSelected
-                    ? PROPERTY_CHIP_TITLE_SELECTED
-                    : PROPERTY_CHIP_TITLE_UNSELECTED
-                }
+                title={`${space.name}を${isSelected ? '選択解除する' : '選択する'}`}
+                aria-label={`${space.name}を${isSelected ? '選択解除する' : '選択する'}`}
               >
                 {space.color && (
                   <span
