@@ -102,14 +102,18 @@ export default function TradeDialog({
         <div className={styles.tradePropertyList}>
           {myProperties.map((space) => {
             const isSelected = offerProperties.includes(space.id)
+            const priceStr = space.price != null ? `（$${space.price}）` : ''
+            const label = isSelected
+              ? `${space.name}${priceStr}の選択を解除する`
+              : `${space.name}${priceStr}を選択する`
             return (
               <button
                 key={space.id}
                 className={`${styles.tradePropertyChip} ${isSelected ? styles.tradePropertyChipSelected : ''}`}
                 onClick={() => toggleOffer(space.id)}
                 aria-pressed={isSelected}
-                title={`${space.name}を${isSelected ? '選択解除する' : '選択する'}`}
-                aria-label={`${space.name}を${isSelected ? '選択解除する' : '選択する'}`}
+                title={label}
+                aria-label={label}
               >
                 {space.color && (
                   <span
@@ -186,14 +190,18 @@ export default function TradeDialog({
         <div className={styles.tradePropertyList}>
           {theirProperties.map((space) => {
             const isSelected = requestProperties.includes(space.id)
+            const priceStr = space.price != null ? `（$${space.price}）` : ''
+            const label = isSelected
+              ? `${space.name}${priceStr}の選択を解除する`
+              : `${space.name}${priceStr}を選択する`
             return (
               <button
                 key={space.id}
                 className={`${styles.tradePropertyChip} ${isSelected ? styles.tradePropertyChipSelected : ''}`}
                 onClick={() => toggleRequest(space.id)}
                 aria-pressed={isSelected}
-                title={`${space.name}を${isSelected ? '選択解除する' : '選択する'}`}
-                aria-label={`${space.name}を${isSelected ? '選択解除する' : '選択する'}`}
+                title={label}
+                aria-label={label}
               >
                 {space.color && (
                   <span
