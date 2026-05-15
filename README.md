@@ -22,6 +22,7 @@ React + TypeScript + Vite で構築された Web ベースのボードゲーム�
 
 - **Node.js**: v22 (LTS) 以上を推奨
 - **パッケージマネージャー**: bun v1.2 以上 (`npm` / `yarn` / `pnpm` の使用は避けてください)
+- **セキュリティスキャン**: `bun audit` は現在 `bun.lock` テキスト形式に十分対応していないため、CVE スキャンは Dependabot に委ねています
 
 ## セットアップ (Setup Instructions)
 
