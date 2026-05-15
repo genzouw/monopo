@@ -22,9 +22,7 @@ export default function MortgageDialog({
   onClose,
 }: MortgageDialogProps) {
   const ownedProperties = currentPlayer.properties
-    .map(function (id: string) {
-      return getSpaceById(id, board)
-    })
+    .map((id: string) => getSpaceById(id, board))
     .filter((s): s is BoardSpace => !!s && !!s.mortgageValue)
 
   return (
