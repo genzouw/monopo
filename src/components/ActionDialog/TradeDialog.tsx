@@ -52,13 +52,17 @@ export default function TradeDialog({
   const [requestMoney, setRequestMoney] = useState(0)
 
   const myProperties = currentPlayer.properties
-    .map((id) => getSpaceById(id, board))
+    .map(function (id: string) {
+      return getSpaceById(id, board)
+    })
     .filter(
       (s): s is BoardSpace => !!s && (propertyStates[s.id]?.houses ?? 0) === 0,
     )
 
   const theirProperties = targetPlayer.properties
-    .map((id) => getSpaceById(id, board))
+    .map(function (id: string) {
+      return getSpaceById(id, board)
+    })
     .filter(
       (s): s is BoardSpace => !!s && (propertyStates[s.id]?.houses ?? 0) === 0,
     )

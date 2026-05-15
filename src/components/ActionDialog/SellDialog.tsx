@@ -53,7 +53,9 @@ export default function SellDialog({
   forced = false,
 }: SellDialogProps) {
   const ownedProperties = currentPlayer.properties
-    .map((id) => getSpaceById(id, board))
+    .map(function (id: string) {
+      return getSpaceById(id, board)
+    })
     .filter((s): s is BoardSpace => !!s)
     .sort((a, b) => {
       const ai = a.color ? COLOR_ORDER.indexOf(a.color) : COLOR_ORDER.length

@@ -52,7 +52,9 @@ export default function BuildDialog({
   onClose,
 }: BuildDialogProps) {
   const ownedProperties = currentPlayer.properties
-    .map((id) => getSpaceById(id, board))
+    .map(function (id: string) {
+      return getSpaceById(id, board)
+    })
     .filter(
       (s): s is BoardSpace => !!s && s.type === 'property' && !!s.houseCost,
     )
