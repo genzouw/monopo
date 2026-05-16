@@ -15,3 +15,9 @@
 **Learning:** Found that some interactive elements (like player chips and toggleable property chips) had descriptive `aria-label`s for screen readers but lacked visual tooltips (`title` attributes) for sighted users, making their interactivity or function less obvious.
 
 **Action:** When adding or reviewing interactive elements, ensure they provide visual feedback (like `title` tooltips) in addition to screen-reader accessibility (`aria-label`) to clarify their purpose to all users.
+
+## 2026-05-16 - Make the reason a disabled button is disabled accessible to everyone
+
+**Learning:** Found that the "Game Start!" button was disabled without explaining why when a player's name was missing, leaving users without clear direction on how to proceed. A `title` tooltip alone does not solve this: most browsers suppress hover events on `disabled` buttons, screen-reader handling of `title` is inconsistent, and touch users have no way to see it.
+
+**Action:** Whenever a button is disabled, render the reason as a visible helper text near the button and reference it from the button via `aria-describedby`. `title` may be added as a supplementary hint, but never as the sole channel. Also reinforce the disabled state visually (e.g. lower `opacity` and `cursor: not-allowed`).
