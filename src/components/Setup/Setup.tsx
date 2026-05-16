@@ -22,6 +22,7 @@ const DEFAULT_NAMES = [
   'プレイヤー4',
 ]
 const DEFAULT_TOKENS: string[] = [TOKENS[0], TOKENS[1], TOKENS[2], TOKENS[3]]
+const START_GUIDE_MSG = 'すべてのプレイヤーのなまえを入力してね'
 
 export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
   const [initialConfig] = useState(() => loadSetupConfig())
@@ -151,7 +152,7 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
           )
         }
         disabled={!canStart}
-        title={!canStart ? 'すべてのプレイヤーのなまえを入力してね' : undefined}
+        title={!canStart ? START_GUIDE_MSG : undefined}
       >
         ゲームスタート！
       </Button>
