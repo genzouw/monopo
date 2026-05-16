@@ -95,3 +95,13 @@
 .startButton {
   margin-top: 16px;
 }
+.startButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.startHint {
+  font-size: 14px;
+  color: var(--color-text-light);
+  text-align: center;
+  margin-top: 8px;
+}
