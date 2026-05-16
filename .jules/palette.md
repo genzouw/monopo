@@ -16,8 +16,8 @@
 
 **Action:** When adding or reviewing interactive elements, ensure they provide visual feedback (like `title` tooltips) in addition to screen-reader accessibility (`aria-label`) to clarify their purpose to all users.
 
-## 2026-05-16 - Add tooltip to disabled start button
+## 2026-05-16 - Make the reason a disabled button is disabled accessible to everyone
 
-**Learning:** Found that the "Game Start!" button was disabled without explaining why when a player's name was missing, leaving users without clear direction on how to proceed.
+**Learning:** Found that the "Game Start!" button was disabled without explaining why when a player's name was missing, leaving users without clear direction on how to proceed. A `title` tooltip alone does not solve this: most browsers suppress hover events on `disabled` buttons, screen-reader handling of `title` is inconsistent, and touch users have no way to see it.
 
-**Action:** Whenever a button is disabled, ensure there is a clear visual cue (like a `title` tooltip) explaining why it's disabled and what the user needs to do to enable it.
+**Action:** Whenever a button is disabled, render the reason as a visible helper text near the button and reference it from the button via `aria-describedby`. `title` may be added as a supplementary hint, but never as the sole channel. Also reinforce the disabled state visually (e.g. lower `opacity` and `cursor: not-allowed`).
