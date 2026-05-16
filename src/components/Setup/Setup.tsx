@@ -151,6 +151,7 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
           )
         }
         disabled={!canStart}
+        title={!canStart ? 'すべてのプレイヤーのなまえを入力してね' : undefined}
       >
         ゲームスタート！
       </Button>
