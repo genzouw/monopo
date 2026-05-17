@@ -52,6 +52,11 @@ export default function AuctionDialog({
           disabled={
             !activePlayer || activePlayer.money < auction.currentBid + 10
           }
+          aria-describedby={
+            activePlayer && activePlayer.money < auction.currentBid + 10
+              ? 'auction-no-money-hint'
+              : undefined
+          }
         >
           +$10
         </Button>
@@ -60,6 +65,11 @@ export default function AuctionDialog({
           onClick={() => onBid(50)}
           disabled={
             !activePlayer || activePlayer.money < auction.currentBid + 50
+          }
+          aria-describedby={
+            activePlayer && activePlayer.money < auction.currentBid + 50
+              ? 'auction-no-money-hint'
+              : undefined
           }
         >
           +$50
@@ -70,6 +80,11 @@ export default function AuctionDialog({
           disabled={
             !activePlayer || activePlayer.money < auction.currentBid + 100
           }
+          aria-describedby={
+            activePlayer && activePlayer.money < auction.currentBid + 100
+              ? 'auction-no-money-hint'
+              : undefined
+          }
         >
           +$100
         </Button>
@@ -77,6 +92,21 @@ export default function AuctionDialog({
           パス
         </Button>
       </div>
+      {activePlayer && activePlayer.money < auction.currentBid + 100 && (
+        <div
+          id="auction-no-money-hint"
+          style={{
+            color: 'var(--color-danger)',
+            fontSize: 13,
+            marginTop: 12,
+            textAlign: 'center',
+          }}
+          role="status"
+          aria-live="polite"
+        >
+          おかねがたりないよ
+        </div>
+      )}
     </Dialog>
   )
 }
