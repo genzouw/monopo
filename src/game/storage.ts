@@ -46,7 +46,9 @@ export function loadGame(): GameState | null {
       typeof state !== 'object' ||
       state.phase !== 'playing' ||
       !Array.isArray(state.players) ||
-      state.players.length === 0
+      state.players.length < MIN_PLAYERS ||
+      state.players.length > MAX_PLAYERS ||
+      !state.players.every((p) => p !== null && typeof p === 'object')
     ) {
       return null
     }
