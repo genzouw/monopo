@@ -99,6 +99,42 @@ describe('saveGame / loadGame', () => {
     expect(loadGame()).toBeNull()
   })
 
+  it('playersが配列でなければnullを返す', () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ ...createPlayingState(), players: 'not-an-array' }),
+    )
+    expect(loadGame()).toBeNull()
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ ...createPlayingState(), players: {} }),
+    )
+    expect(loadGame()).toBeNull()
+  })
+
+  it('playersがMIN_PLAYERS未満ならnullを返す', () => {
+    const base = createPlayingState()
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ ...base, players: [base.players[0]] }),
+    )
+    expect(loadGame()).toBeNull()
+  })
+
+  it('playersにnullや非オブジェクトが含まれていればnullを返す', () => {
+    const base = createPlayingState()
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ ...base, players: [base.players[0], null] }),
+    )
+    expect(loadGame()).toBeNull()
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ ...base, players: [base.players[0], 'string'] }),
+    )
+    expect(loadGame()).toBeNull()
+  })
+
   it('壊れたJSONはnullを返す', () => {
     localStorage.setItem(STORAGE_KEY, '{ invalid json')
     expect(loadGame()).toBeNull()
