@@ -40,8 +40,18 @@ export function loadGame(): GameState | null {
     const saved = readWithLegacyFallback(STORAGE_KEY, LEGACY_STORAGE_KEY)
     if (!saved) return null
     const state = JSON.parse(saved) as GameState
-    // Basic validation
-    if (state.phase !== 'playing' || !state.players?.length) return null
+    // Security Enhancement: Validate structure to prevent prototype pollution or crashes from malformed data
+    if (
+      !state ||
+      typeof state !== 'object' ||
+      state.phase !== 'playing' ||
+      !Array.isArray(state.players) ||
+      state.players.length < MIN_PLAYERS ||
+      state.players.length > MAX_PLAYERS ||
+      !state.players.every((p) => p !== null && typeof p === 'object')
+    ) {
+      return null
+    }
     return state
   } catch {
     return null
