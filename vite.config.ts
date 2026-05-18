@@ -12,7 +12,7 @@ export default defineConfig(({ command }) => ({
           transformIndexHtml(html: string): string {
             // CSP meta tag blocks Vite's React Fast Refresh inline script in dev mode
             return html.replace(
-              /<meta\s[^>]*http-equiv="Content-Security-Policy"[^>]*\/>/s,
+              /<meta[^>]*http-equiv="Content-Security-Policy"[^>]*>/gi,
               '',
             )
           },
