@@ -35,6 +35,12 @@ const COLOR_MAP: Record<ColorGroup, string> = {
   railroad: '#555',
 }
 
+/**
+ * Formats a property's name and price for display as a chip label.
+ *
+ * @param space - The board space representing the property.
+ * @returns The formatted string label, e.g. "Property Name（$100）".
+ */
 const getPropertyChipLabel = (space: BoardSpace): string => {
   const priceStr = space.price != null ? `（$${space.price}）` : ''
   return `${space.name}${priceStr}`
@@ -49,6 +55,13 @@ type TradeDialogProps = {
   onClose: () => void
 }
 
+/**
+ * A dialog component that allows the current player to propose a trade
+ * of properties and money with a target player.
+ *
+ * @param props - The properties passed to the component.
+ * @returns The rendered TradeDialog component.
+ */
 export default function TradeDialog({
   currentPlayer,
   targetPlayer,
@@ -59,6 +72,7 @@ export default function TradeDialog({
 }: TradeDialogProps) {
   const offerMoneyId = useId()
   const requestMoneyId = useId()
+  const tradeEmptyHintId = useId()
   const [offerProperties, setOfferProperties] = useState<string[]>([])
   const [requestProperties, setRequestProperties] = useState<string[]>([])
   const [offerMoney, setOfferMoney] = useState(0)
@@ -117,7 +131,7 @@ export default function TradeDialog({
             <Button
               onClick={handlePropose}
               disabled={isTradeEmpty}
-              aria-describedby={isTradeEmpty ? 'trade-empty-hint' : undefined}
+              aria-describedby={isTradeEmpty ? tradeEmptyHintId : undefined}
             >
               {LABELS.propose}
             </Button>
@@ -127,7 +141,7 @@ export default function TradeDialog({
           </div>
           {isTradeEmpty && (
             <div
-              id="trade-empty-hint"
+              id={tradeEmptyHintId}
               className={styles.tradeEmptyHint}
               role="status"
             >
