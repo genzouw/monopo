@@ -30,6 +30,18 @@ const createPlayingState = (): GameState =>
         getOutOfJailCards: 0,
         isBankrupt: false,
       },
+      {
+        id: 'p2',
+        name: 'はなこ',
+        token: '🎩',
+        money: 1500,
+        position: 0,
+        properties: [],
+        inJail: false,
+        jailTurns: 0,
+        getOutOfJailCards: 0,
+        isBankrupt: false,
+      },
     ],
     currentPlayerIndex: 0,
     board: [],
@@ -83,6 +95,42 @@ describe('saveGame / loadGame', () => {
     localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({ ...createPlayingState(), players: [] }),
+    )
+    expect(loadGame()).toBeNull()
+  })
+
+  it('playersが配列でなければnullを返す', () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ ...createPlayingState(), players: 'not-an-array' }),
+    )
+    expect(loadGame()).toBeNull()
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ ...createPlayingState(), players: {} }),
+    )
+    expect(loadGame()).toBeNull()
+  })
+
+  it('playersがMIN_PLAYERS未満ならnullを返す', () => {
+    const base = createPlayingState()
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ ...base, players: [base.players[0]] }),
+    )
+    expect(loadGame()).toBeNull()
+  })
+
+  it('playersにnullや非オブジェクトが含まれていればnullを返す', () => {
+    const base = createPlayingState()
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ ...base, players: [base.players[0], null] }),
+    )
+    expect(loadGame()).toBeNull()
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ ...base, players: [base.players[0], 'string'] }),
     )
     expect(loadGame()).toBeNull()
   })
