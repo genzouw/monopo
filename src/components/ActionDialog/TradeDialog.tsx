@@ -12,6 +12,17 @@ import styles from './ActionDialog.module.css'
 import { clamp } from './tradeDialog.utils'
 import { getSpaceById } from '../../game/rules'
 
+const LABELS = {
+  propose: 'ていあんする！',
+  cancel: 'やめる',
+  emptyHint: 'こうかんするものをえらんでね',
+  offerSection: 'わたすもの',
+  requestSection: 'もらうもの',
+  noOfferProperties: 'わたせる土地がないよ',
+  noRequestProperties: 'もらえる土地がないよ',
+  moneyLabel: 'おかね: $',
+} as const
+
 const COLOR_MAP: Record<ColorGroup, string> = {
   brown: 'var(--color-brown)',
   lightblue: 'var(--color-lightblue)',
@@ -108,10 +119,10 @@ export default function TradeDialog({
               disabled={isTradeEmpty}
               aria-describedby={isTradeEmpty ? 'trade-empty-hint' : undefined}
             >
-              ていあんする！
+              {LABELS.propose}
             </Button>
             <Button variant="secondary" onClick={onClose}>
-              やめる
+              {LABELS.cancel}
             </Button>
           </div>
           {isTradeEmpty && (
@@ -120,18 +131,18 @@ export default function TradeDialog({
               className={styles.tradeEmptyHint}
               role="status"
             >
-              こうかんするものをえらんでね
+              {LABELS.emptyHint}
             </div>
           )}
         </div>
       }
     >
       <div className={styles.tradeSection}>
-        <div className={styles.tradeSectionTitle}>わたすもの</div>
+        <div className={styles.tradeSectionTitle}>{LABELS.offerSection}</div>
         <div className={styles.tradePropertyList}>
           {myProperties.length === 0 && (
             <div className={styles.tradeEmptyProperties}>
-              わたせる土地がないよ
+              {LABELS.noOfferProperties}
             </div>
           )}
           {myProperties.map((space) => {
@@ -165,7 +176,7 @@ export default function TradeDialog({
         </div>
         <div className={styles.moneyInputRow}>
           <label htmlFor={offerMoneyId} className={styles.moneyInputLabel}>
-            おかね: $
+            {LABELS.moneyLabel}
           </label>
           <input
             id={offerMoneyId}
@@ -217,11 +228,11 @@ export default function TradeDialog({
         </div>
       </div>
       <div className={styles.tradeSection}>
-        <div className={styles.tradeSectionTitle}>もらうもの</div>
+        <div className={styles.tradeSectionTitle}>{LABELS.requestSection}</div>
         <div className={styles.tradePropertyList}>
           {theirProperties.length === 0 && (
             <div className={styles.tradeEmptyProperties}>
-              もらえる土地がないよ
+              {LABELS.noRequestProperties}
             </div>
           )}
           {theirProperties.map((space) => {
@@ -255,7 +266,7 @@ export default function TradeDialog({
         </div>
         <div className={styles.moneyInputRow}>
           <label htmlFor={requestMoneyId} className={styles.moneyInputLabel}>
-            おかね: $
+            {LABELS.moneyLabel}
           </label>
           <input
             id={requestMoneyId}
