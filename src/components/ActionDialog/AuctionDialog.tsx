@@ -6,6 +6,7 @@ import Button from '../common/Button'
 import styles from './ActionDialog.module.css'
 
 const MAX_BID_INCREMENT = 100
+const NO_MONEY_HINT_TEXT = 'おかねがたりないよ'
 
 type AuctionDialogProps = {
   auction: AuctionState
@@ -103,7 +104,7 @@ export default function AuctionDialog({
             className={styles.noMoneyHint}
             role="status"
           >
-            おかねがたりないよ
+            {NO_MONEY_HINT_TEXT}
           </div>
         )}
     </Dialog>
