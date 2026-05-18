@@ -171,3 +171,24 @@
   border: 2px solid #e0e0e0;
   color: var(--color-text-light);
 }
+.tradeActionArea {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+.tradeActionButtons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+.tradeEmptyHint {
+  color: var(--color-danger);
+  font-size: 13px;
+}
+.tradeEmptyProperties {
+  font-size: 13px;
+  color: var(--color-text-light);
+  padding: 4px 8px;
+}

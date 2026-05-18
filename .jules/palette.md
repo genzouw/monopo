@@ -26,3 +26,7 @@
 
 **Learning:** Found that the Auction Dialog bid buttons were disabled when a player had insufficient funds, but there was no immediate feedback explaining *why* they couldn't click the button. Sighted users might be confused about game rules or UI state. Previously, I incorrectly thought adding a `title` tooltip would fix this, but that violates our standards (since most browsers suppress hover events on disabled buttons, and screen reader/touch behavior is inconsistent).
 **Action:** When a button is conditionally disabled due to a specific rule or state (like insufficient funds), render the reason as visible helper text nearby and link it via `aria-describedby` so all users—whether visual, touch, or screen-reader reliant—can understand the UI state.
+
+## 2026-05-18 - Add empty states to dynamic lists and disable empty submissions
+**Learning:** Found that the TradeDialog could be submitted without any items selected, and that empty property lists rendered as confusing blank spaces. Users might think the UI is broken or accidentally submit useless empty trades.
+**Action:** Always provide explicit, friendly empty states for dynamic lists (e.g., "わたせる土地がないよ") to reassure users. Additionally, disable submission buttons when the action is a no-op (like an empty trade) and use `aria-describedby` with visible helper text to explain why the button is disabled.
