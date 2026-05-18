@@ -2,9 +2,23 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   base: '/monopo/',
-  plugins: [react()],
+  plugins: [
+    react(),
+    command === 'serve'
+      ? {
+          name: 'strip-csp-in-dev',
+          transformIndexHtml(html: string): string {
+            // CSP meta tag blocks Vite's React Fast Refresh inline script in dev mode
+            return html.replace(
+              /<meta\s[^>]*http-equiv="Content-Security-Policy"[^>]*\/>/s,
+              '',
+            )
+          },
+        }
+      : null,
+  ],
   test: {
     globals: true,
     environment: 'jsdom',
@@ -30,4 +44,4 @@ export default defineConfig({
       },
     },
   },
-})
+}))
