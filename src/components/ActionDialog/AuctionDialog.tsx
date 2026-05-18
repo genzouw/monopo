@@ -5,6 +5,9 @@ import Dialog from '../common/Dialog'
 import Button from '../common/Button'
 import styles from './ActionDialog.module.css'
 
+const MAX_BID_INCREMENT = 100
+const NO_MONEY_HINT_TEXT = 'おかねがたりないよ'
+
 type AuctionDialogProps = {
   auction: AuctionState
   players: Player[]
@@ -52,6 +55,11 @@ export default function AuctionDialog({
           disabled={
             !activePlayer || activePlayer.money < auction.currentBid + 10
           }
+          aria-describedby={
+            activePlayer && activePlayer.money < auction.currentBid + 10
+              ? 'auction-no-money-hint'
+              : undefined
+          }
         >
           +$10
         </Button>
@@ -61,22 +69,44 @@ export default function AuctionDialog({
           disabled={
             !activePlayer || activePlayer.money < auction.currentBid + 50
           }
+          aria-describedby={
+            activePlayer && activePlayer.money < auction.currentBid + 50
+              ? 'auction-no-money-hint'
+              : undefined
+          }
         >
           +$50
         </Button>
         <Button
           size="small"
-          onClick={() => onBid(100)}
+          onClick={() => onBid(MAX_BID_INCREMENT)}
           disabled={
-            !activePlayer || activePlayer.money < auction.currentBid + 100
+            !activePlayer ||
+            activePlayer.money < auction.currentBid + MAX_BID_INCREMENT
+          }
+          aria-describedby={
+            activePlayer &&
+            activePlayer.money < auction.currentBid + MAX_BID_INCREMENT
+              ? 'auction-no-money-hint'
+              : undefined
           }
         >
-          +$100
+          +${MAX_BID_INCREMENT}
         </Button>
         <Button size="small" variant="secondary" onClick={onPass}>
           パス
         </Button>
       </div>
+      {activePlayer &&
+        activePlayer.money < auction.currentBid + MAX_BID_INCREMENT && (
+          <div
+            id="auction-no-money-hint"
+            className={styles.noMoneyHint}
+            role="status"
+          >
+            {NO_MONEY_HINT_TEXT}
+          </div>
+        )}
     </Dialog>
   )
 }

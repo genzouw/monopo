@@ -21,3 +21,8 @@
 **Learning:** Found that the "Game Start!" button was disabled without explaining why when a player's name was missing, leaving users without clear direction on how to proceed. A `title` tooltip alone does not solve this: most browsers suppress hover events on `disabled` buttons, screen-reader handling of `title` is inconsistent, and touch users have no way to see it.
 
 **Action:** Whenever a button is disabled, render the reason as a visible helper text near the button and reference it from the button via `aria-describedby`. `title` may be added as a supplementary hint, but never as the sole channel. Also reinforce the disabled state visually (e.g. lower `opacity` and `cursor: not-allowed`).
+
+## 2026-05-17 - Ensure disabled reasons are accessible to everyone, not just mouse users
+
+**Learning:** Found that the Auction Dialog bid buttons were disabled when a player had insufficient funds, but there was no immediate feedback explaining *why* they couldn't click the button. Sighted users might be confused about game rules or UI state. Previously, I incorrectly thought adding a `title` tooltip would fix this, but that violates our standards (since most browsers suppress hover events on disabled buttons, and screen reader/touch behavior is inconsistent).
+**Action:** When a button is conditionally disabled due to a specific rule or state (like insufficient funds), render the reason as visible helper text nearby and link it via `aria-describedby` so all users—whether visual, touch, or screen-reader reliant—can understand the UI state.
