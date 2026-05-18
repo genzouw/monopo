@@ -101,16 +101,8 @@ export default function TradeDialog({
       title={`${targetPlayer.token} ${targetPlayer.name}とこうかん`}
       onClose={onClose}
       actions={
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 8,
-            width: '100%',
-          }}
-        >
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+        <div className={styles.tradeActionArea}>
+          <div className={styles.tradeActionButtons}>
             <Button
               onClick={handlePropose}
               disabled={isTradeEmpty}
@@ -125,7 +117,7 @@ export default function TradeDialog({
           {isTradeEmpty && (
             <div
               id="trade-empty-hint"
-              style={{ color: 'var(--color-danger)', fontSize: 13 }}
+              className={styles.tradeEmptyHint}
               role="status"
             >
               こうかんするものをえらんでね
@@ -138,13 +130,7 @@ export default function TradeDialog({
         <div className={styles.tradeSectionTitle}>わたすもの</div>
         <div className={styles.tradePropertyList}>
           {myProperties.length === 0 && (
-            <div
-              style={{
-                fontSize: 13,
-                color: 'var(--color-text-light)',
-                padding: '4px 8px',
-              }}
-            >
+            <div className={styles.tradeEmptyProperties}>
               わたせる土地がないよ
             </div>
           )}
@@ -234,13 +220,7 @@ export default function TradeDialog({
         <div className={styles.tradeSectionTitle}>もらうもの</div>
         <div className={styles.tradePropertyList}>
           {theirProperties.length === 0 && (
-            <div
-              style={{
-                fontSize: 13,
-                color: 'var(--color-text-light)',
-                padding: '4px 8px',
-              }}
-            >
+            <div className={styles.tradeEmptyProperties}>
               もらえる土地がないよ
             </div>
           )}
