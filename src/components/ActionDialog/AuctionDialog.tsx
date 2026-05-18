@@ -102,7 +102,6 @@ export default function AuctionDialog({
             textAlign: 'center',
           }}
           role="status"
-          aria-live="polite"
         >
           おかねがたりないよ
         </div>
