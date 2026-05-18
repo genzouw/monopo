@@ -5,6 +5,8 @@ import Dialog from '../common/Dialog'
 import Button from '../common/Button'
 import styles from './ActionDialog.module.css'
 
+const MAX_BID_INCREMENT = 100
+
 type AuctionDialogProps = {
   auction: AuctionState
   players: Player[]
@@ -76,31 +78,34 @@ export default function AuctionDialog({
         </Button>
         <Button
           size="small"
-          onClick={() => onBid(100)}
+          onClick={() => onBid(MAX_BID_INCREMENT)}
           disabled={
-            !activePlayer || activePlayer.money < auction.currentBid + 100
+            !activePlayer ||
+            activePlayer.money < auction.currentBid + MAX_BID_INCREMENT
           }
           aria-describedby={
-            activePlayer && activePlayer.money < auction.currentBid + 100
+            activePlayer &&
+            activePlayer.money < auction.currentBid + MAX_BID_INCREMENT
               ? 'auction-no-money-hint'
               : undefined
           }
         >
-          +$100
+          +${MAX_BID_INCREMENT}
         </Button>
         <Button size="small" variant="secondary" onClick={onPass}>
           パス
         </Button>
       </div>
-      {activePlayer && activePlayer.money < auction.currentBid + 100 && (
-        <div
-          id="auction-no-money-hint"
-          className={styles.noMoneyHint}
-          role="status"
-        >
-          おかねがたりないよ
-        </div>
-      )}
+      {activePlayer &&
+        activePlayer.money < auction.currentBid + MAX_BID_INCREMENT && (
+          <div
+            id="auction-no-money-hint"
+            className={styles.noMoneyHint}
+            role="status"
+          >
+            おかねがたりないよ
+          </div>
+        )}
     </Dialog>
   )
 }
