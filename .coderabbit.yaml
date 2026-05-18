@@ -1,4 +1,5 @@
 language: 'ja'
 reviews:
   poem: false
+  # ソロ運用でブランチ保護の承認必須要件を満たすため、全コメント resolve 時に CodeRabbit が approve に遷移するよう有効化
   request_changes_workflow: true
