@@ -95,12 +95,7 @@ export default function AuctionDialog({
       {activePlayer && activePlayer.money < auction.currentBid + 100 && (
         <div
           id="auction-no-money-hint"
-          style={{
-            color: 'var(--color-danger)',
-            fontSize: 13,
-            marginTop: 12,
-            textAlign: 'center',
-          }}
+          className={styles.noMoneyHint}
           role="status"
         >
           おかねがたりないよ
