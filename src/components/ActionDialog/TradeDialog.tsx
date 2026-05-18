@@ -72,6 +72,7 @@ export default function TradeDialog({
 }: TradeDialogProps) {
   const offerMoneyId = useId()
   const requestMoneyId = useId()
+  const tradeEmptyHintId = useId()
   const [offerProperties, setOfferProperties] = useState<string[]>([])
   const [requestProperties, setRequestProperties] = useState<string[]>([])
   const [offerMoney, setOfferMoney] = useState(0)
@@ -130,7 +131,7 @@ export default function TradeDialog({
             <Button
               onClick={handlePropose}
               disabled={isTradeEmpty}
-              aria-describedby={isTradeEmpty ? 'trade-empty-hint' : undefined}
+              aria-describedby={isTradeEmpty ? tradeEmptyHintId : undefined}
             >
               {LABELS.propose}
             </Button>
@@ -140,7 +141,7 @@ export default function TradeDialog({
           </div>
           {isTradeEmpty && (
             <div
-              id="trade-empty-hint"
+              id={tradeEmptyHintId}
               className={styles.tradeEmptyHint}
               role="status"
             >
