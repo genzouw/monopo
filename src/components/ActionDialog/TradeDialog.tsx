@@ -77,6 +77,12 @@ export default function TradeDialog({
     )
   }
 
+  const isTradeEmpty =
+    offerProperties.length === 0 &&
+    requestProperties.length === 0 &&
+    offerMoney === 0 &&
+    requestMoney === 0
+
   const handlePropose = () => {
     onPropose({
       fromPlayerId: currentPlayer.id,
@@ -95,17 +101,53 @@ export default function TradeDialog({
       title={`${targetPlayer.token} ${targetPlayer.name}とこうかん`}
       onClose={onClose}
       actions={
-        <>
-          <Button onClick={handlePropose}>ていあんする！</Button>
-          <Button variant="secondary" onClick={onClose}>
-            やめる
-          </Button>
-        </>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 8,
+            width: '100%',
+          }}
+        >
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+            <Button
+              onClick={handlePropose}
+              disabled={isTradeEmpty}
+              aria-describedby={isTradeEmpty ? 'trade-empty-hint' : undefined}
+            >
+              ていあんする！
+            </Button>
+            <Button variant="secondary" onClick={onClose}>
+              やめる
+            </Button>
+          </div>
+          {isTradeEmpty && (
+            <div
+              id="trade-empty-hint"
+              style={{ color: 'var(--color-danger)', fontSize: 13 }}
+              role="status"
+            >
+              こうかんするものをえらんでね
+            </div>
+          )}
+        </div>
       }
     >
       <div className={styles.tradeSection}>
         <div className={styles.tradeSectionTitle}>わたすもの</div>
         <div className={styles.tradePropertyList}>
+          {myProperties.length === 0 && (
+            <div
+              style={{
+                fontSize: 13,
+                color: 'var(--color-text-light)',
+                padding: '4px 8px',
+              }}
+            >
+              わたせる土地がないよ
+            </div>
+          )}
           {myProperties.map((space) => {
             const isSelected = offerProperties.includes(space.id)
             const label = getPropertyChipLabel(space)
@@ -191,6 +233,17 @@ export default function TradeDialog({
       <div className={styles.tradeSection}>
         <div className={styles.tradeSectionTitle}>もらうもの</div>
         <div className={styles.tradePropertyList}>
+          {theirProperties.length === 0 && (
+            <div
+              style={{
+                fontSize: 13,
+                color: 'var(--color-text-light)',
+                padding: '4px 8px',
+              }}
+            >
+              もらえる土地がないよ
+            </div>
+          )}
           {theirProperties.map((space) => {
             const isSelected = requestProperties.includes(space.id)
             const label = getPropertyChipLabel(space)
