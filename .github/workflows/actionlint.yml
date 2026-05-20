@@ -1,0 +1,43 @@
+name: actionlint
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/**'
+      - '.github/actionlint*'
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/**'
+      - '.github/actionlint*'
+
+concurrency:
+  group: actionlint-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  actionlint:
+    name: actionlint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+
+      - name: Download actionlint
+        id: actionlint
+        run: |
+          set -euo pipefail
+          VERSION=1.7.7
+          TARBALL="actionlint_${VERSION}_linux_amd64.tar.gz"
+          curl -fsSL -o "/tmp/${TARBALL}" "https://github.com/rhysd/actionlint/releases/download/v${VERSION}/${TARBALL}"
+          curl -fsSL -o /tmp/checksums.txt "https://github.com/rhysd/actionlint/releases/download/v${VERSION}/actionlint_${VERSION}_checksums.txt"
+          cd /tmp && grep "${TARBALL}" checksums.txt | sha256sum -c -
+          tar -xzf "/tmp/${TARBALL}" -C /tmp actionlint
+          echo "executable=/tmp/actionlint" >> "$GITHUB_OUTPUT"
+
+      - name: Run actionlint
+        run: |
+          "${{ steps.actionlint.outputs.executable }}" -color
