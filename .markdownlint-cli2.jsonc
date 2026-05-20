@@ -17,8 +17,8 @@
     "MD036": false,
     // bare URL を許可 (GitHub flavored Markdown で自動リンク化される)
     "MD034": false,
-    // テーブル列スタイル: 重要度が低いため無効化
-    "MD060": false,
+    // テーブルパイプスタイル: 重要度が低いため無効化
+    "MD055": false,
     // blockquote 内の空行: 引用節を見やすくするため許可
     "MD028": false,
   },
