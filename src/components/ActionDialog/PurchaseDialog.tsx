@@ -23,7 +23,11 @@ export default function PurchaseDialog({
       onClose={onDecline}
       actions={
         <>
-          <Button onClick={onBuy} disabled={!canAfford}>
+          <Button
+            onClick={onBuy}
+            disabled={!canAfford}
+            aria-describedby={!canAfford ? 'purchase-no-money-hint' : undefined}
+          >
             ${space.price}で買う！
           </Button>
           <Button variant="secondary" onClick={onDecline}>
@@ -40,6 +44,8 @@ export default function PurchaseDialog({
         </div>
         {!canAfford && (
           <div
+            id="purchase-no-money-hint"
+            role="status"
             style={{ color: 'var(--color-danger)', fontSize: 13, marginTop: 4 }}
           >
             おかねがたりないよ

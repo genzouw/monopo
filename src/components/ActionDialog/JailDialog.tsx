@@ -22,7 +22,11 @@ export default function JailDialog({
       title="🔒 刑務所にいるよ"
       actions={
         <>
-          <Button onClick={onPayFine} disabled={!canPayFine}>
+          <Button
+            onClick={onPayFine}
+            disabled={!canPayFine}
+            aria-describedby={!canPayFine ? 'jail-no-money-hint' : undefined}
+          >
             $50はらって出る
           </Button>
           {hasCards && (
@@ -41,6 +45,8 @@ export default function JailDialog({
         <div>どうやってでる？</div>
         {!canPayFine && (
           <div
+            id="jail-no-money-hint"
+            role="status"
             style={{ color: 'var(--color-danger)', fontSize: 13, marginTop: 4 }}
           >
             おかねがたりないよ（$50ひつよう）
