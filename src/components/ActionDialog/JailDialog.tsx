@@ -1,6 +1,9 @@
+import { useId } from 'react'
 import type { Player } from '../../game/types'
 import Dialog from '../common/Dialog'
 import Button from '../common/Button'
+
+const JAIL_FINE = 50
 
 type JailDialogProps = {
   currentPlayer: Player
@@ -15,7 +18,8 @@ export default function JailDialog({
   onUseCard,
   onRollForJail,
 }: JailDialogProps) {
-  const canPayFine = currentPlayer.money >= 50
+  const noMoneyHintId = useId()
+  const canPayFine = currentPlayer.money >= JAIL_FINE
   const hasCards = currentPlayer.getOutOfJailCards > 0
   return (
     <Dialog
@@ -25,9 +29,9 @@ export default function JailDialog({
           <Button
             onClick={onPayFine}
             disabled={!canPayFine}
-            aria-describedby={!canPayFine ? 'jail-no-money-hint' : undefined}
+            aria-describedby={!canPayFine ? noMoneyHintId : undefined}
           >
-            $50はらって出る
+            ${JAIL_FINE}はらって出る
           </Button>
           {hasCards && (
             <Button variant="secondary" onClick={onUseCard}>
@@ -45,11 +49,11 @@ export default function JailDialog({
         <div>どうやってでる？</div>
         {!canPayFine && (
           <div
-            id="jail-no-money-hint"
+            id={noMoneyHintId}
             role="status"
             style={{ color: 'var(--color-danger)', fontSize: 13, marginTop: 4 }}
           >
-            おかねがたりないよ（$50ひつよう）
+            おかねがたりないよ（${JAIL_FINE}ひつよう）
           </div>
         )}
         {hasCards && (
