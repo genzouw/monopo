@@ -23,13 +23,5 @@
     "MD028": false,
   },
   "globs": ["**/*.md"],
-  "ignores": [
-    "node_modules/**",
-    "**/node_modules/**",
-    ".claude/**",
-    "dist/**",
-    "**/dist/**",
-    "build/**",
-    "**/build/**",
-  ],
+  "ignores": ["**/node_modules/**", ".claude/**", "**/dist/**", "**/build/**"],
 }
