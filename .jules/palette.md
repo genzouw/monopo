@@ -30,3 +30,7 @@
 ## 2026-05-18 - Add empty states to dynamic lists and disable empty submissions
 **Learning:** Found that the TradeDialog could be submitted without any items selected, and that empty property lists rendered as confusing blank spaces. Users might think the UI is broken or accidentally submit useless empty trades.
 **Action:** Always provide explicit, friendly empty states for dynamic lists (e.g., "わたせる土地がないよ") to reassure users. Additionally, disable submission buttons when the action is a no-op (like an empty trade) and use `aria-describedby` with visible helper text to explain why the button is disabled.
+
+## 2026-05-19 - Explicitly link visual helper text to disabled buttons
+**Learning:** Found that visible error messages explaining why a button is disabled (e.g. insufficient funds) were not programmatically associated with the button itself. Screen reader users would not understand why the action is blocked when focusing the button.
+**Action:** When providing visible helper text explaining a disabled state, always use `aria-describedby` on the button to link to the helper text's `id`, ensuring the reason is accessible to screen readers. Use `useId()` from React to generate unique IDs for the helper text elements, ensuring uniqueness when a component is rendered in multiple instances.
