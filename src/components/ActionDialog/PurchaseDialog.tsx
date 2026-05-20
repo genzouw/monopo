@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import type { BoardSpace, Player } from '../../game/types'
 import Dialog from '../common/Dialog'
 import Button from '../common/Button'
@@ -16,6 +17,7 @@ export default function PurchaseDialog({
   onBuy,
   onDecline,
 }: PurchaseDialogProps) {
+  const noMoneyHintId = useId()
   const canAfford = currentPlayer.money >= (space.price ?? 0)
   return (
     <Dialog
@@ -26,7 +28,7 @@ export default function PurchaseDialog({
           <Button
             onClick={onBuy}
             disabled={!canAfford}
-            aria-describedby={!canAfford ? 'purchase-no-money-hint' : undefined}
+            aria-describedby={!canAfford ? noMoneyHintId : undefined}
           >
             ${space.price}で買う！
           </Button>
@@ -44,7 +46,7 @@ export default function PurchaseDialog({
         </div>
         {!canAfford && (
           <div
-            id="purchase-no-money-hint"
+            id={noMoneyHintId}
             role="status"
             style={{ color: 'var(--color-danger)', fontSize: 13, marginTop: 4 }}
           >
