@@ -1,0 +1,27 @@
+npx lint-staged
+
+# Run gitleaks local check if installed to prevent committing secrets
+if command -v gitleaks &> /dev/null; then
+  echo "🔒 Running local gitleaks check..."
+  gitleaks protect --staged --verbose
+else
+  echo "⚠️ gitleaks is not installed locally. Skipping local secret scan. (Highly recommended: brew install gitleaks)"
+fi
+
+# Run typecheck for changed workspaces
+changed_backend=$(git diff --cached --name-only -- 'backend/src/')
+changed_frontend=$(git diff --cached --name-only -- 'frontend/src/')
+
+if [ -n "$changed_backend" ]; then
+  echo "🔍 Running backend typecheck..."
+  npm run typecheck --prefix backend
+  echo "🧪 Running backend tests..."
+  npm run test --prefix backend
+fi
+
+if [ -n "$changed_frontend" ]; then
+  echo "🔍 Running frontend typecheck..."
+  npm run typecheck --prefix frontend
+  echo "🧪 Running frontend tests..."
+  npm run test --prefix frontend
+fi

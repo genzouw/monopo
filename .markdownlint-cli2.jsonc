@@ -9,19 +9,28 @@
     "MD033": false,
     // 単一の H1 を強制: 既存ドキュメントが満たさないものがあるため無効化
     "MD025": false,
-    // 重複ヘッダ: docs で「概要」が複数出るので緩める
+    // 重複ヘッダ: docs/ROADMAP.md などで「概要」が複数出るので緩める
     "MD024": { "siblings_only": true },
     // 最初の行が H1 でなくてもよい (PR テンプレなど)
     "MD041": false,
-    // 強調を見出しに使ってよい
+    // 強調を見出しに使ってよい (README の Phase X 表記など)
     "MD036": false,
     // bare URL を許可 (GitHub flavored Markdown で自動リンク化される)
     "MD034": false,
-    // テーブルパイプスタイル: 重要度が低いため無効化
-    "MD055": false,
+    // テーブル列スタイル: 重要度が低く既存表が多いので無効化
+    "MD060": false,
     // blockquote 内の空行: 引用節を見やすくするため許可
     "MD028": false,
   },
   "globs": ["**/*.md"],
-  "ignores": ["**/node_modules/**", ".claude/**", "**/dist/**", "**/build/**"],
+  "ignores": [
+    "node_modules/**",
+    "**/node_modules/**",
+    ".wrangler/**",
+    ".claude/**",
+    "backup/**",
+    "backend/dist/**",
+    "frontend/dist/**",
+    "docs/superpowers/**",
+  ],
 }

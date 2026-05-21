@@ -1,0 +1,58 @@
+name: Trivy Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # 毎週月曜 04:00 JST (= 日曜 19:00 UTC) に再スキャンして新規 CVE を拾う
+    - cron: '0 19 * * 0'
+
+concurrency:
+  group: trivy-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  fs-scan:
+    name: Trivy filesystem scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+        with:
+          persist-credentials: false
+
+      - name: Install Trivy
+        env:
+          TRIVY_VERSION: v0.70.0
+        run: |
+          ARCH=Linux-64bit
+          BASE_URL="https://github.com/aquasecurity/trivy/releases/download/${TRIVY_VERSION}"
+          TARBALL="trivy_${TRIVY_VERSION#v}_${ARCH}.tar.gz"
+          curl -sSfL -o "${TARBALL}" "${BASE_URL}/${TARBALL}"
+          curl -sSfL -o trivy_checksums.txt "${BASE_URL}/trivy_${TRIVY_VERSION#v}_checksums.txt"
+          grep "${TARBALL}" trivy_checksums.txt | sha256sum -c -
+          tar -xzf "${TARBALL}" trivy
+          sudo install -m 0755 trivy /usr/local/bin/trivy
+
+      - name: Run Trivy (vulnerabilities + misconfig)
+        run: |
+          trivy fs \
+            --format sarif \
+            --output trivy-fs.sarif \
+            --severity CRITICAL,HIGH \
+            --ignore-unfixed \
+            --scanners vuln,misconfig,secret \
+            --exit-code 0 \
+            .
+
+      - name: Upload SARIF to GitHub Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@78ed0c7291d93e40c51b085850dc669a4c3ab73b # v3
+        with:
+          sarif_file: 'trivy-fs.sarif'
+          category: trivy-fs

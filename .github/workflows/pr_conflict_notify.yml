@@ -1,0 +1,220 @@
+name: PR Conflict Notification
+
+on:
+  # main ブランチへの push 時に全 PR をチェック
+  push:
+    branches:
+      - main
+  # 定期実行 (毎日 09:00 JST = 00:00 UTC)
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  check-conflicts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR conflicts and notify authors
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            console.log(`🔍 Checking for conflicting PRs in ${owner}/${repo}...`);
+
+            const pullRequests = await github.paginate(github.rest.pulls.list, {
+              owner,
+              repo,
+              state: 'open',
+              per_page: 100,
+            });
+
+            console.log(`📋 Found ${pullRequests.length} open PRs`);
+
+            if (pullRequests.length === 0) {
+              console.log('✅ No open PRs found');
+              return;
+            }
+
+            const conflictedPRs = [];
+            const mergeableByPrNumber = new Map();
+
+            for (const pr of pullRequests) {
+              console.log(`\n🔎 Checking PR #${pr.number}: ${pr.title}`);
+
+              const { data: prDetail } = await github.rest.pulls.get({
+                owner,
+                repo,
+                pull_number: pr.number,
+              });
+
+              // mergeable が null の場合は計算中なのでリトライ
+              let mergeable = prDetail.mergeable;
+              const maxRetries = 3;
+              const retryDelays = [3000, 5000, 10000];
+
+              for (let retry = 0; retry < maxRetries && mergeable === null; retry++) {
+                console.log(`⏳ Mergeable status is being calculated for PR #${pr.number}, waiting... (retry ${retry + 1}/${maxRetries})`);
+                await new Promise(resolve => setTimeout(resolve, retryDelays[retry]));
+
+                const { data: prDetailRetry } = await github.rest.pulls.get({
+                  owner,
+                  repo,
+                  pull_number: pr.number,
+                });
+                mergeable = prDetailRetry.mergeable;
+              }
+
+              mergeableByPrNumber.set(pr.number, mergeable);
+
+              if (mergeable === null) {
+                console.log(`⚠️ WARNING: Mergeable status is still null for PR #${pr.number} after ${maxRetries} retries. Manual check may be required.`);
+                continue;
+              }
+
+              console.log(`  - Mergeable: ${mergeable}`);
+              console.log(`  - Mergeable State: ${prDetail.mergeable_state}`);
+              console.log(`  - Author: @${pr.user.login}`);
+
+              if (mergeable === false) {
+                conflictedPRs.push({
+                  number: pr.number,
+                  title: pr.title,
+                  author: pr.user.login,
+                  url: pr.html_url,
+                });
+              }
+            }
+
+            console.log(`\n📊 Summary: ${conflictedPRs.length} PR(s) with conflicts`);
+
+            // コンフリクトが解消された PR の古いコメントを削除
+            // mergeable === true が確認できた PR のみを対象にする（null の PR は除外）
+            console.log('\n🧹 Checking for resolved conflicts...');
+            const nonConflictedPRNumbers = pullRequests
+              .filter(pr => mergeableByPrNumber.get(pr.number) === true)
+              .map(pr => pr.number);
+
+            const botCommentMarker = '<!-- pr-conflict-notify -->';
+
+            for (const prNumber of nonConflictedPRNumbers) {
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner,
+                repo,
+                issue_number: prNumber,
+                per_page: 100,
+              });
+
+              const existingComment = comments.find(
+                comment => comment.body && comment.body.includes(botCommentMarker)
+              );
+
+              if (existingComment) {
+                console.log(`  Deleting resolved conflict comment from PR #${prNumber}`);
+                try {
+                  await github.rest.issues.deleteComment({
+                    owner,
+                    repo,
+                    comment_id: existingComment.id,
+                  });
+                  console.log(`  ✅ Comment deleted from PR #${prNumber}`);
+                } catch (error) {
+                  if (error.status === 404) {
+                    console.log(`  ⚠️ Comment #${existingComment.id} was already deleted`);
+                  } else {
+                    throw error;
+                  }
+                }
+              }
+            }
+
+            if (conflictedPRs.length === 0) {
+              console.log('✅ No conflicting PRs found');
+              return;
+            }
+
+            for (const pr of conflictedPRs) {
+              console.log(`\n💬 Posting comment to PR #${pr.number}...`);
+
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner,
+                repo,
+                issue_number: pr.number,
+                per_page: 100,
+              });
+
+              const existingComment = comments.find(
+                comment => comment.body && comment.body.includes(botCommentMarker)
+              );
+
+              const commentBody = `${botCommentMarker}
+            ## ⚠️ コンフリクトが発生しています
+
+            @${pr.author} さん
+
+            このプルリクエストは \`main\` ブランチとコンフリクトが発生しています。
+            マージする前にコンフリクトを解消してください。
+
+            ### 解消方法
+
+            \`\`\`bash
+            # ローカルで main ブランチを最新化
+            git checkout main
+            git pull origin main
+
+            # 作業ブランチに戻って main をマージ
+            git checkout <your-branch>
+            git merge main
+
+            # コンフリクトを解消してコミット
+            git add .
+            git commit -m "fix: 🐛 main ブランチとのコンフリクトを解消"
+            git push
+            \`\`\`
+
+            ---
+            *このコメントは自動的に投稿されました。コンフリクトが解消されると、次回のチェック時にこのコメントは削除されます。*
+            `;
+
+              if (existingComment) {
+                console.log(`  Updating existing comment #${existingComment.id}`);
+                try {
+                  await github.rest.issues.updateComment({
+                    owner,
+                    repo,
+                    comment_id: existingComment.id,
+                    body: commentBody,
+                  });
+                } catch (error) {
+                  if (error.status === 404) {
+                    console.log(`  ⚠️ Comment #${existingComment.id} was already deleted, creating new comment instead`);
+                    await github.rest.issues.createComment({
+                      owner,
+                      repo,
+                      issue_number: pr.number,
+                      body: commentBody,
+                    });
+                  } else {
+                    throw error;
+                  }
+                }
+              } else {
+                console.log(`  Creating new comment`);
+                await github.rest.issues.createComment({
+                  owner,
+                  repo,
+                  issue_number: pr.number,
+                  body: commentBody,
+                });
+              }
+
+              console.log(`  ✅ Comment posted to PR #${pr.number}`);
+            }
+
+            console.log('\n🎉 PR conflict check completed!');

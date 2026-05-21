@@ -1,0 +1,52 @@
+name: Close stale PRs
+
+on:
+  schedule:
+    - cron: '0 1 * * *' # 毎日 10:00 JST
+  workflow_dispatch:
+
+permissions:
+  pull-requests: write
+  issues: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@b5d41d4e1d5dceea10e7104786b73624c18a190f # v10
+        with:
+          # PR のみを対象（Issue は除外）
+          days-before-issue-stale: -1
+          days-before-issue-close: -1
+
+          # PR 設定: 14 日無更新で stale、さらに 16 日無更新で close
+          days-before-pr-stale: 14
+          days-before-pr-close: 16
+
+          stale-pr-label: 'stale'
+
+          stale-pr-message: |
+            このPRは14日間更新がないため、`stale`ラベルが付与されました。
+
+            **対応が必要な場合:**
+            - PRを更新するか、コメントを追加してください
+            - `stale`ラベルを削除すると、カウンターがリセットされます
+
+            **対応が不要な場合:**
+            - このままにしておくと、16日間の無更新後に自動でクローズされます
+            - 必要に応じて、後から新しいPRとして再作成してください
+
+          close-pr-message: |
+            このPRは長期間更新がなかったため、自動でクローズされました。
+
+            作業を再開する場合は、`main` ブランチから新しいブランチを作成し、
+            新しいPRとして再作成することを推奨します。
+
+          # 除外設定: 作業中 / 保留中 / Dependabot は対象外
+          exempt-pr-labels: 'WIP,do-not-close,dependencies'
+          exempt-draft-pr: true
+
+          operations-per-run: 100
+          ascending: true
+          delete-branch: false
+          remove-stale-when-updated: true
