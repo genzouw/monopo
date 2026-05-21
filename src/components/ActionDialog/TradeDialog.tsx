@@ -1,16 +1,16 @@
-import { useState, useId } from 'react';
+import { useState, useId } from 'react'
 import type {
   BoardSpace,
   ColorGroup,
   Player,
   PropertyState,
   TradeOffer,
-} from '../../game/types';
-import Dialog from '../common/Dialog';
-import Button from '../common/Button';
-import styles from './ActionDialog.module.css';
-import { clamp } from './tradeDialog.utils';
-import { getSpaceById } from '../../game/rules';
+} from '../../game/types'
+import Dialog from '../common/Dialog'
+import Button from '../common/Button'
+import styles from './ActionDialog.module.css'
+import { clamp } from './tradeDialog.utils'
+import { getSpaceById } from '../../game/rules'
 
 const LABELS = {
   propose: 'ていあんする！',
@@ -21,7 +21,7 @@ const LABELS = {
   noOfferProperties: 'わたせる土地がないよ',
   noRequestProperties: 'もらえる土地がないよ',
   moneyLabel: 'おかね: $',
-} as const;
+} as const
 
 const COLOR_MAP: Record<ColorGroup, string> = {
   brown: 'var(--color-brown)',
@@ -33,7 +33,7 @@ const COLOR_MAP: Record<ColorGroup, string> = {
   green: 'var(--color-green)',
   blue: 'var(--color-blue)',
   railroad: '#555',
-};
+}
 
 /**
  * Formats a property's name and price for display as a chip label.
@@ -42,18 +42,18 @@ const COLOR_MAP: Record<ColorGroup, string> = {
  * @returns The formatted string label, e.g. "Property Name（$100）".
  */
 const getPropertyChipLabel = (space: BoardSpace): string => {
-  const priceStr = space.price != null ? `（$${space.price}）` : '';
-  return `${space.name}${priceStr}`;
-};
+  const priceStr = space.price != null ? `（$${space.price}）` : ''
+  return `${space.name}${priceStr}`
+}
 
 type TradeDialogProps = {
-  currentPlayer: Player;
-  targetPlayer: Player;
-  board: BoardSpace[];
-  propertyStates: Record<string, PropertyState>;
-  onPropose: (offer: TradeOffer) => void;
-  onClose: () => void;
-};
+  currentPlayer: Player
+  targetPlayer: Player
+  board: BoardSpace[]
+  propertyStates: Record<string, PropertyState>
+  onPropose: (offer: TradeOffer) => void
+  onClose: () => void
+}
 
 /**
  * A dialog component that allows the current player to propose a trade
@@ -70,43 +70,43 @@ export default function TradeDialog({
   onPropose,
   onClose,
 }: TradeDialogProps) {
-  const offerMoneyId = useId();
-  const requestMoneyId = useId();
-  const tradeEmptyHintId = useId();
-  const [offerProperties, setOfferProperties] = useState<string[]>([]);
-  const [requestProperties, setRequestProperties] = useState<string[]>([]);
-  const [offerMoney, setOfferMoney] = useState(0);
-  const [requestMoney, setRequestMoney] = useState(0);
+  const offerMoneyId = useId()
+  const requestMoneyId = useId()
+  const tradeEmptyHintId = useId()
+  const [offerProperties, setOfferProperties] = useState<string[]>([])
+  const [requestProperties, setRequestProperties] = useState<string[]>([])
+  const [offerMoney, setOfferMoney] = useState(0)
+  const [requestMoney, setRequestMoney] = useState(0)
 
   const myProperties = currentPlayer.properties
     .map((id: string) => getSpaceById(id, board))
     .filter(
       (s): s is BoardSpace => !!s && (propertyStates[s.id]?.houses ?? 0) === 0,
-    );
+    )
 
   const theirProperties = targetPlayer.properties
     .map((id: string) => getSpaceById(id, board))
     .filter(
       (s): s is BoardSpace => !!s && (propertyStates[s.id]?.houses ?? 0) === 0,
-    );
+    )
 
   const toggleOffer = (id: string) => {
     setOfferProperties((prev) =>
       prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id],
-    );
-  };
+    )
+  }
 
   const toggleRequest = (id: string) => {
     setRequestProperties((prev) =>
       prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id],
-    );
-  };
+    )
+  }
 
   const isTradeEmpty =
     offerProperties.length === 0 &&
     requestProperties.length === 0 &&
     offerMoney === 0 &&
-    requestMoney === 0;
+    requestMoney === 0
 
   const handlePropose = () => {
     onPropose({
@@ -118,8 +118,8 @@ export default function TradeDialog({
       requestProperties,
       requestMoney,
       requestJailCards: 0,
-    });
-  };
+    })
+  }
 
   return (
     <Dialog
@@ -160,8 +160,8 @@ export default function TradeDialog({
             </div>
           )}
           {myProperties.map((space) => {
-            const isSelected = offerProperties.includes(space.id);
-            const label = getPropertyChipLabel(space);
+            const isSelected = offerProperties.includes(space.id)
+            const label = getPropertyChipLabel(space)
             return (
               <button
                 key={space.id}
@@ -185,7 +185,7 @@ export default function TradeDialog({
                   </span>
                 )}
               </button>
-            );
+            )
           })}
         </div>
         <div className={styles.moneyInputRow}>
@@ -202,14 +202,14 @@ export default function TradeDialog({
             value={offerMoney === 0 ? '' : offerMoney}
             placeholder="0"
             onChange={(e) => {
-              const raw = e.target.value;
+              const raw = e.target.value
               if (raw === '') {
-                setOfferMoney(0);
-                return;
+                setOfferMoney(0)
+                return
               }
-              const val = Number(raw);
-              if (isNaN(val)) return;
-              setOfferMoney(clamp(val, currentPlayer.money));
+              const val = Number(raw)
+              if (isNaN(val)) return
+              setOfferMoney(clamp(val, currentPlayer.money))
             }}
           />
           <div className={styles.moneyQuickButtons}>
@@ -250,8 +250,8 @@ export default function TradeDialog({
             </div>
           )}
           {theirProperties.map((space) => {
-            const isSelected = requestProperties.includes(space.id);
-            const label = getPropertyChipLabel(space);
+            const isSelected = requestProperties.includes(space.id)
+            const label = getPropertyChipLabel(space)
             return (
               <button
                 key={space.id}
@@ -275,7 +275,7 @@ export default function TradeDialog({
                   </span>
                 )}
               </button>
-            );
+            )
           })}
         </div>
         <div className={styles.moneyInputRow}>
@@ -292,14 +292,14 @@ export default function TradeDialog({
             value={requestMoney === 0 ? '' : requestMoney}
             placeholder="0"
             onChange={(e) => {
-              const raw = e.target.value;
+              const raw = e.target.value
               if (raw === '') {
-                setRequestMoney(0);
-                return;
+                setRequestMoney(0)
+                return
               }
-              const val = Number(raw);
-              if (isNaN(val)) return;
-              setRequestMoney(clamp(val, targetPlayer.money));
+              const val = Number(raw)
+              if (isNaN(val)) return
+              setRequestMoney(clamp(val, targetPlayer.money))
             }}
           />
           <div className={styles.moneyQuickButtons}>
@@ -332,5 +332,5 @@ export default function TradeDialog({
         </div>
       </div>
     </Dialog>
-  );
+  )
 }

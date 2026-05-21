@@ -3,8 +3,8 @@ import type {
   Player,
   PropertyState,
   ColorGroup,
-} from '../../game/types';
-import styles from './Board.module.css';
+} from '../../game/types'
+import styles from './Board.module.css'
 
 const COLOR_MAP: Record<ColorGroup, string> = {
   brown: 'var(--color-brown)',
@@ -16,15 +16,15 @@ const COLOR_MAP: Record<ColorGroup, string> = {
   green: 'var(--color-green)',
   blue: 'var(--color-blue)',
   railroad: '#555',
-};
+}
 
 type SpaceCardProps = {
-  space: BoardSpace;
-  propertyState?: PropertyState;
-  players: Player[];
-  isCurrent: boolean;
-  owner?: Player;
-};
+  space: BoardSpace
+  propertyState?: PropertyState
+  players: Player[]
+  isCurrent: boolean
+  owner?: Player
+}
 
 export default function SpaceCard({
   space,
@@ -35,10 +35,10 @@ export default function SpaceCard({
 }: SpaceCardProps) {
   const playersHere = players.filter(
     (p) => p.position === space.position && !p.isBankrupt,
-  );
-  const houses = propertyState?.houses ?? 0;
+  )
+  const houses = propertyState?.houses ?? 0
   const houseDisplay =
-    houses === 5 ? '🏨' : houses > 0 ? '🏠'.repeat(houses) : '';
+    houses === 5 ? '🏨' : houses > 0 ? '🏠'.repeat(houses) : ''
   return (
     <div
       className={`${styles.spaceCard} ${isCurrent ? styles.spaceCardCurrent : ''}`}
@@ -70,5 +70,5 @@ export default function SpaceCard({
         <div className={styles.spacePrice}>💤 あずけ中</div>
       )}
     </div>
-  );
+  )
 }

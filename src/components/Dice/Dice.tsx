@@ -1,47 +1,47 @@
-import { useState, useEffect, useRef } from 'react';
-import styles from './Dice.module.css';
-import { getSecureRandomInt } from '../../game/random';
+import { useState, useEffect, useRef } from 'react'
+import styles from './Dice.module.css'
+import { getSecureRandomInt } from '../../game/random'
 
-const DICE_FACES = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+const DICE_FACES = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅']
 
 type DiceProps = {
-  values: [number, number];
-  rolling: boolean;
-  onRollComplete?: () => void;
-};
+  values: [number, number]
+  rolling: boolean
+  onRollComplete?: () => void
+}
 
 export default function Dice({ values, rolling, onRollComplete }: DiceProps) {
   const [randomValues, setRandomValues] = useState<[number, number] | null>(
     null,
-  );
-  const callbackRef = useRef(onRollComplete);
+  )
+  const callbackRef = useRef(onRollComplete)
 
   useEffect(() => {
-    callbackRef.current = onRollComplete;
-  }, [onRollComplete]);
+    callbackRef.current = onRollComplete
+  }, [onRollComplete])
 
   useEffect(() => {
-    if (!rolling) return;
-    let count = 0;
+    if (!rolling) return
+    let count = 0
     const interval = setInterval(() => {
-      count++;
+      count++
       if (count >= 8) {
-        clearInterval(interval);
-        setRandomValues(null);
-        callbackRef.current?.();
+        clearInterval(interval)
+        setRandomValues(null)
+        callbackRef.current?.()
       } else {
-        setRandomValues([getSecureRandomInt(1, 6), getSecureRandomInt(1, 6)]);
+        setRandomValues([getSecureRandomInt(1, 6), getSecureRandomInt(1, 6)])
       }
-    }, 100);
+    }, 100)
     return () => {
-      clearInterval(interval);
-      setRandomValues(null);
-    };
-  }, [rolling]);
+      clearInterval(interval)
+      setRandomValues(null)
+    }
+  }, [rolling])
 
-  const isAnimating = rolling || randomValues !== null;
-  const displayValues = randomValues ?? values;
-  const isDoubles = values[0] === values[1];
+  const isAnimating = rolling || randomValues !== null
+  const displayValues = randomValues ?? values
+  const isDoubles = values[0] === values[1]
   return (
     <div>
       <div className={styles.diceContainer}>
@@ -60,5 +60,5 @@ export default function Dice({ values, rolling, onRollComplete }: DiceProps) {
         <div className={styles.diceResult}>ゾロ目！</div>
       )}
     </div>
-  );
+  )
 }

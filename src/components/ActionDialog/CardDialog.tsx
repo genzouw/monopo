@@ -1,16 +1,16 @@
-import type { Card } from '../../game/types';
-import Dialog from '../common/Dialog';
-import Button from '../common/Button';
-import styles from './ActionDialog.module.css';
+import type { Card } from '../../game/types'
+import Dialog from '../common/Dialog'
+import Button from '../common/Button'
+import styles from './ActionDialog.module.css'
 
 type CardDialogProps = {
-  card: Card;
-  onDismiss: () => void;
-};
+  card: Card
+  onDismiss: () => void
+}
 
 export default function CardDialog({ card, onDismiss }: CardDialogProps) {
-  const emoji = card.type === 'chance' ? '❓' : '💝';
-  const title = card.type === 'chance' ? 'チャンスカード' : 'おたすけカード';
+  const emoji = card.type === 'chance' ? '❓' : '💝'
+  const title = card.type === 'chance' ? 'チャンスカード' : 'おたすけカード'
   return (
     <Dialog
       title={title}
@@ -21,5 +21,5 @@ export default function CardDialog({ card, onDismiss }: CardDialogProps) {
         <div>{card.text}</div>
       </div>
     </Dialog>
-  );
+  )
 }

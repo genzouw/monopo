@@ -11,8 +11,6 @@ on:
   workflow_dispatch:
 
 permissions:
-  # チェックアウト・PR情報取得用
-  contents: read
   # コンフリクト通知コメントの作成・更新・削除用
   pull-requests: write
 

@@ -1,35 +1,35 @@
-import type { GameState } from './types';
-import { TOKENS, MIN_PLAYERS, MAX_PLAYERS, MAX_NAME_LENGTH } from './types';
+import type { GameState } from './types'
+import { TOKENS, MIN_PLAYERS, MAX_PLAYERS, MAX_NAME_LENGTH } from './types'
 
-const STORAGE_KEY = 'monopo-save';
-const SETUP_KEY = 'monopo-setup';
-const LEGACY_STORAGE_KEY = 'monopoly-save';
-const LEGACY_SETUP_KEY = 'monopoly-setup';
+const STORAGE_KEY = 'monopo-save'
+const SETUP_KEY = 'monopo-setup'
+const LEGACY_STORAGE_KEY = 'monopoly-save'
+const LEGACY_SETUP_KEY = 'monopoly-setup'
 
 function readWithLegacyFallback(key: string, legacyKey: string): string | null {
-  const current = localStorage.getItem(key);
-  if (current !== null) return current;
-  const legacy = localStorage.getItem(legacyKey);
-  if (legacy === null) return null;
+  const current = localStorage.getItem(key)
+  if (current !== null) return current
+  const legacy = localStorage.getItem(legacyKey)
+  if (legacy === null) return null
   try {
-    localStorage.setItem(key, legacy);
-    localStorage.removeItem(legacyKey);
+    localStorage.setItem(key, legacy)
+    localStorage.removeItem(legacyKey)
   } catch {
     // migration write failed - return legacy value anyway
   }
-  return legacy;
+  return legacy
 }
 
 export type SetupConfig = {
-  playerCount: number;
-  names: string[];
-  tokens: string[];
-};
+  playerCount: number
+  names: string[]
+  tokens: string[]
+}
 
 export function saveGame(state: GameState): void {
-  if (state.phase !== 'playing') return;
+  if (state.phase !== 'playing') return
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
   } catch {
     // localStorage full or unavailable - silently fail
   }
@@ -37,9 +37,9 @@ export function saveGame(state: GameState): void {
 
 export function loadGame(): GameState | null {
   try {
-    const saved = readWithLegacyFallback(STORAGE_KEY, LEGACY_STORAGE_KEY);
-    if (!saved) return null;
-    const state = JSON.parse(saved) as GameState;
+    const saved = readWithLegacyFallback(STORAGE_KEY, LEGACY_STORAGE_KEY)
+    if (!saved) return null
+    const state = JSON.parse(saved) as GameState
     // Security Enhancement: Validate structure to prevent prototype pollution or crashes from malformed data
     if (
       !state ||
@@ -50,18 +50,18 @@ export function loadGame(): GameState | null {
       state.players.length > MAX_PLAYERS ||
       !state.players.every((p) => p !== null && typeof p === 'object')
     ) {
-      return null;
+      return null
     }
-    return state;
+    return state
   } catch {
-    return null;
+    return null
   }
 }
 
 export function clearSave(): void {
   try {
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(LEGACY_STORAGE_KEY);
+    localStorage.removeItem(STORAGE_KEY)
+    localStorage.removeItem(LEGACY_STORAGE_KEY)
   } catch {
     // silently fail
   }
@@ -69,7 +69,7 @@ export function clearSave(): void {
 
 export function saveSetupConfig(config: SetupConfig): void {
   try {
-    localStorage.setItem(SETUP_KEY, JSON.stringify(config));
+    localStorage.setItem(SETUP_KEY, JSON.stringify(config))
   } catch {
     // localStorage full or unavailable - silently fail
   }
@@ -77,9 +77,9 @@ export function saveSetupConfig(config: SetupConfig): void {
 
 export function loadSetupConfig(): SetupConfig | null {
   try {
-    const saved = readWithLegacyFallback(SETUP_KEY, LEGACY_SETUP_KEY);
-    if (!saved) return null;
-    const config = JSON.parse(saved) as Partial<SetupConfig>;
+    const saved = readWithLegacyFallback(SETUP_KEY, LEGACY_SETUP_KEY)
+    if (!saved) return null
+    const config = JSON.parse(saved) as Partial<SetupConfig>
     if (
       typeof config.playerCount !== 'number' ||
       config.playerCount < MIN_PLAYERS ||
@@ -96,14 +96,14 @@ export function loadSetupConfig(): SetupConfig | null {
           typeof t === 'string' && (TOKENS as readonly string[]).includes(t),
       )
     ) {
-      return null;
+      return null
     }
     return {
       playerCount: config.playerCount,
       names: config.names,
       tokens: config.tokens,
-    };
+    }
   } catch {
-    return null;
+    return null
   }
 }

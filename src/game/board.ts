@@ -1,4 +1,4 @@
-import type { BoardSpace, PropertyState } from './types';
+import type { BoardSpace, PropertyState } from './types'
 
 export const BOARD_SPACES: BoardSpace[] = [
   // ── 下辺（0-9） ──
@@ -342,18 +342,18 @@ export const BOARD_SPACES: BoardSpace[] = [
     houseCost: 200,
     mortgageValue: 200,
   },
-];
+]
 
 export function createPropertyStates(): Record<string, PropertyState> {
-  const states: Record<string, PropertyState> = {};
+  const states: Record<string, PropertyState> = {}
   for (const space of BOARD_SPACES) {
     if (
       space.type === 'property' ||
       space.type === 'railroad' ||
       space.type === 'utility'
     ) {
-      states[space.id] = { ownerId: null, houses: 0, isMortgaged: false };
+      states[space.id] = { ownerId: null, houses: 0, isMortgaged: false }
     }
   }
-  return states;
+  return states
 }

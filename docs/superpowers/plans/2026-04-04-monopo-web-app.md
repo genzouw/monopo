@@ -98,8 +98,8 @@ npm install -D @types/howler vitest @testing-library/react @testing-library/jest
 
 ```typescript
 /// <reference types="vitest/config" />
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
@@ -108,13 +108,13 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/test-setup.ts',
   },
-});
+})
 ```
 
 `src/test-setup.ts` を作成:
 
 ```typescript
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom'
 ```
 
 - [ ] **Step 4: グローバルスタイル作成**
@@ -184,14 +184,14 @@ body,
 `src/App.tsx`:
 
 ```tsx
-import styles from './App.module.css';
+import styles from './App.module.css'
 
 export default function App() {
   return (
     <div className={styles.app}>
       <h1>モノポ</h1>
     </div>
-  );
+  )
 }
 ```
 
@@ -241,32 +241,32 @@ git commit -m "feat: Vite + React + TypeScript プロジェクトセットアッ
 `src/game/__tests__/types.test.ts`:
 
 ```typescript
-import { describe, it, expect } from 'vitest';
-import { createInitialPlayer, TOKENS } from '../types';
+import { describe, it, expect } from 'vitest'
+import { createInitialPlayer, TOKENS } from '../types'
 
 describe('createInitialPlayer', () => {
   it('初期資金$1500でプレイヤーを作成する', () => {
-    const player = createInitialPlayer('p1', 'たろう', '🚗');
-    expect(player.money).toBe(1500);
-    expect(player.position).toBe(0);
-    expect(player.properties).toEqual([]);
-    expect(player.inJail).toBe(false);
-    expect(player.isBankrupt).toBe(false);
-  });
+    const player = createInitialPlayer('p1', 'たろう', '🚗')
+    expect(player.money).toBe(1500)
+    expect(player.position).toBe(0)
+    expect(player.properties).toEqual([])
+    expect(player.inJail).toBe(false)
+    expect(player.isBankrupt).toBe(false)
+  })
 
   it('名前とトークンが正しく設定される', () => {
-    const player = createInitialPlayer('p2', 'はなこ', '🎩');
-    expect(player.name).toBe('はなこ');
-    expect(player.token).toBe('🎩');
-    expect(player.id).toBe('p2');
-  });
-});
+    const player = createInitialPlayer('p2', 'はなこ', '🎩')
+    expect(player.name).toBe('はなこ')
+    expect(player.token).toBe('🎩')
+    expect(player.id).toBe('p2')
+  })
+})
 
 describe('TOKENS', () => {
   it('4つ以上のトークンが定義されている', () => {
-    expect(TOKENS.length).toBeGreaterThanOrEqual(4);
-  });
-});
+    expect(TOKENS.length).toBeGreaterThanOrEqual(4)
+  })
+})
 ```
 
 - [ ] **Step 2: テストが失敗することを確認**
@@ -280,7 +280,7 @@ Expected: FAIL — `createInitialPlayer` が未定義
 
 ```typescript
 // ── プレイヤートークン ──
-export const TOKENS = ['🚗', '🎩', '👞', '🐕', '🚀', '🌟'] as const;
+export const TOKENS = ['🚗', '🎩', '👞', '🐕', '🚀', '🌟'] as const
 
 // ── 物件カラーグループ ──
 export type ColorGroup =
@@ -291,7 +291,7 @@ export type ColorGroup =
   | 'red'
   | 'yellow'
   | 'green'
-  | 'blue';
+  | 'blue'
 
 // ── ボードマスの種別 ──
 export type SpaceType =
@@ -301,34 +301,34 @@ export type SpaceType =
   | 'tax'
   | 'chance'
   | 'communityChest'
-  | 'corner';
+  | 'corner'
 
 // ── ボードマス ──
 export type BoardSpace = {
-  id: string;
-  position: number;
-  type: SpaceType;
-  name: string;
-  color?: ColorGroup;
-  price?: number;
-  rent?: number[];
-  houseCost?: number;
-  mortgageValue?: number;
-};
+  id: string
+  position: number
+  type: SpaceType
+  name: string
+  color?: ColorGroup
+  price?: number
+  rent?: number[]
+  houseCost?: number
+  mortgageValue?: number
+}
 
 // ── プレイヤー ──
 export type Player = {
-  id: string;
-  name: string;
-  token: string;
-  money: number;
-  position: number;
-  properties: string[];
-  inJail: boolean;
-  jailTurns: number;
-  getOutOfJailCards: number;
-  isBankrupt: boolean;
-};
+  id: string
+  name: string
+  token: string
+  money: number
+  position: number
+  properties: string[]
+  inJail: boolean
+  jailTurns: number
+  getOutOfJailCards: number
+  isBankrupt: boolean
+}
 
 // ── カード ──
 export type CardAction =
@@ -339,42 +339,42 @@ export type CardAction =
   | { type: 'jail' }
   | { type: 'jailFree' }
   | { type: 'repair'; perHouse: number; perHotel: number }
-  | { type: 'moveNearest'; spaceType: 'railroad' | 'utility' };
+  | { type: 'moveNearest'; spaceType: 'railroad' | 'utility' }
 
 export type Card = {
-  id: string;
-  type: 'chance' | 'communityChest';
-  text: string;
-  action: CardAction;
-};
+  id: string
+  type: 'chance' | 'communityChest'
+  text: string
+  action: CardAction
+}
 
 // ── 物件の所有状態（ゲーム中に変化する部分） ──
 export type PropertyState = {
-  ownerId: string | null;
-  houses: number; // 0-4, 5=ホテル
-  isMortgaged: boolean;
-};
+  ownerId: string | null
+  houses: number // 0-4, 5=ホテル
+  isMortgaged: boolean
+}
 
 // ── 競売状態 ──
 export type AuctionState = {
-  propertyId: string;
-  currentBid: number;
-  currentBidderId: string | null;
-  passedPlayerIds: string[];
-  activePlayerIndex: number;
-};
+  propertyId: string
+  currentBid: number
+  currentBidderId: string | null
+  passedPlayerIds: string[]
+  activePlayerIndex: number
+}
 
 // ── 取引状態 ──
 export type TradeOffer = {
-  fromPlayerId: string;
-  toPlayerId: string;
-  offerProperties: string[];
-  offerMoney: number;
-  offerJailCards: number;
-  requestProperties: string[];
-  requestMoney: number;
-  requestJailCards: number;
-};
+  fromPlayerId: string
+  toPlayerId: string
+  offerProperties: string[]
+  offerMoney: number
+  offerJailCards: number
+  requestProperties: string[]
+  requestMoney: number
+  requestJailCards: number
+}
 
 // ── ターンフェーズ ──
 export type TurnPhase =
@@ -387,24 +387,24 @@ export type TurnPhase =
   | 'build'
   | 'mortgage'
   | 'bankrupt'
-  | 'endTurn';
+  | 'endTurn'
 
 // ── ゲーム状態 ──
 export type GameState = {
-  phase: 'setup' | 'playing' | 'finished';
-  players: Player[];
-  currentPlayerIndex: number;
-  board: BoardSpace[];
-  propertyStates: Record<string, PropertyState>;
-  cards: { chance: Card[]; communityChest: Card[] };
-  dice: { values: [number, number]; doubles: number; rolled: boolean };
-  turnPhase: TurnPhase;
-  auction: AuctionState | null;
-  trade: TradeOffer | null;
-  currentCard: Card | null;
-  message: string;
-  winnerId: string | null;
-};
+  phase: 'setup' | 'playing' | 'finished'
+  players: Player[]
+  currentPlayerIndex: number
+  board: BoardSpace[]
+  propertyStates: Record<string, PropertyState>
+  cards: { chance: Card[]; communityChest: Card[] }
+  dice: { values: [number, number]; doubles: number; rolled: boolean }
+  turnPhase: TurnPhase
+  auction: AuctionState | null
+  trade: TradeOffer | null
+  currentCard: Card | null
+  message: string
+  winnerId: string | null
+}
 
 // ── ファクトリ関数 ──
 export function createInitialPlayer(
@@ -423,7 +423,7 @@ export function createInitialPlayer(
     jailTurns: 0,
     getOutOfJailCards: 0,
     isBankrupt: false,
-  };
+  }
 }
 ```
 
@@ -453,73 +453,73 @@ git commit -m "feat: ゲームの型定義を追加"
 `src/game/__tests__/board.test.ts`:
 
 ```typescript
-import { describe, it, expect } from 'vitest';
-import { BOARD_SPACES, createPropertyStates } from '../board';
+import { describe, it, expect } from 'vitest'
+import { BOARD_SPACES, createPropertyStates } from '../board'
 
 describe('BOARD_SPACES', () => {
   it('40マスある', () => {
-    expect(BOARD_SPACES).toHaveLength(40);
-  });
+    expect(BOARD_SPACES).toHaveLength(40)
+  })
 
   it('position 0はGO', () => {
-    expect(BOARD_SPACES[0].name).toBe('GO');
-    expect(BOARD_SPACES[0].type).toBe('corner');
-  });
+    expect(BOARD_SPACES[0].name).toBe('GO')
+    expect(BOARD_SPACES[0].type).toBe('corner')
+  })
 
   it('position 10は刑務所', () => {
-    expect(BOARD_SPACES[10].name).toBe('刑務所');
-    expect(BOARD_SPACES[10].type).toBe('corner');
-  });
+    expect(BOARD_SPACES[10].name).toBe('刑務所')
+    expect(BOARD_SPACES[10].type).toBe('corner')
+  })
 
   it('position 20はFree Parking', () => {
-    expect(BOARD_SPACES[20].type).toBe('corner');
-  });
+    expect(BOARD_SPACES[20].type).toBe('corner')
+  })
 
   it('position 30はGo to Jail', () => {
-    expect(BOARD_SPACES[30].type).toBe('corner');
-  });
+    expect(BOARD_SPACES[30].type).toBe('corner')
+  })
 
   it('各マスのpositionがインデックスと一致する', () => {
     BOARD_SPACES.forEach((space, index) => {
-      expect(space.position).toBe(index);
-    });
-  });
+      expect(space.position).toBe(index)
+    })
+  })
 
   it('物件にはpriceとrentが設定されている', () => {
-    const properties = BOARD_SPACES.filter((s) => s.type === 'property');
+    const properties = BOARD_SPACES.filter((s) => s.type === 'property')
     properties.forEach((p) => {
-      expect(p.price).toBeGreaterThan(0);
-      expect(p.rent).toBeDefined();
-      expect(p.rent!.length).toBe(6);
-    });
-  });
+      expect(p.price).toBeGreaterThan(0)
+      expect(p.rent).toBeDefined()
+      expect(p.rent!.length).toBe(6)
+    })
+  })
 
   it('鉄道は4つある', () => {
-    const railroads = BOARD_SPACES.filter((s) => s.type === 'railroad');
-    expect(railroads).toHaveLength(4);
-  });
+    const railroads = BOARD_SPACES.filter((s) => s.type === 'railroad')
+    expect(railroads).toHaveLength(4)
+  })
 
   it('公共事業は2つある', () => {
-    const utilities = BOARD_SPACES.filter((s) => s.type === 'utility');
-    expect(utilities).toHaveLength(2);
-  });
-});
+    const utilities = BOARD_SPACES.filter((s) => s.type === 'utility')
+    expect(utilities).toHaveLength(2)
+  })
+})
 
 describe('createPropertyStates', () => {
   it('購入可能なマスの初期状態を生成する', () => {
-    const states = createPropertyStates();
+    const states = createPropertyStates()
     const purchasable = BOARD_SPACES.filter(
       (s) =>
         s.type === 'property' || s.type === 'railroad' || s.type === 'utility',
-    );
-    expect(Object.keys(states)).toHaveLength(purchasable.length);
+    )
+    expect(Object.keys(states)).toHaveLength(purchasable.length)
     Object.values(states).forEach((state) => {
-      expect(state.ownerId).toBeNull();
-      expect(state.houses).toBe(0);
-      expect(state.isMortgaged).toBe(false);
-    });
-  });
-});
+      expect(state.ownerId).toBeNull()
+      expect(state.houses).toBe(0)
+      expect(state.isMortgaged).toBe(false)
+    })
+  })
+})
 ```
 
 - [ ] **Step 2: テストが失敗することを確認**
@@ -532,7 +532,7 @@ Expected: FAIL
 `src/game/board.ts`:
 
 ```typescript
-import type { BoardSpace, PropertyState } from './types';
+import type { BoardSpace, PropertyState } from './types'
 
 export const BOARD_SPACES: BoardSpace[] = [
   // ── 下辺（0-9） ──
@@ -875,20 +875,20 @@ export const BOARD_SPACES: BoardSpace[] = [
     houseCost: 200,
     mortgageValue: 200,
   },
-];
+]
 
 export function createPropertyStates(): Record<string, PropertyState> {
-  const states: Record<string, PropertyState> = {};
+  const states: Record<string, PropertyState> = {}
   for (const space of BOARD_SPACES) {
     if (
       space.type === 'property' ||
       space.type === 'railroad' ||
       space.type === 'utility'
     ) {
-      states[space.id] = { ownerId: null, houses: 0, isMortgaged: false };
+      states[space.id] = { ownerId: null, houses: 0, isMortgaged: false }
     }
   }
-  return states;
+  return states
 }
 ```
 
@@ -918,52 +918,52 @@ git commit -m "feat: 40マスのボードデータを追加"
 `src/game/__tests__/cards.test.ts`:
 
 ```typescript
-import { describe, it, expect } from 'vitest';
-import { CHANCE_CARDS, COMMUNITY_CHEST_CARDS, shuffleCards } from '../cards';
+import { describe, it, expect } from 'vitest'
+import { CHANCE_CARDS, COMMUNITY_CHEST_CARDS, shuffleCards } from '../cards'
 
 describe('CHANCE_CARDS', () => {
   it('16枚ある', () => {
-    expect(CHANCE_CARDS).toHaveLength(16);
-  });
+    expect(CHANCE_CARDS).toHaveLength(16)
+  })
 
   it('すべてchanceタイプ', () => {
     CHANCE_CARDS.forEach((card) => {
-      expect(card.type).toBe('chance');
-    });
-  });
+      expect(card.type).toBe('chance')
+    })
+  })
 
   it('すべてテキストとアクションがある', () => {
     CHANCE_CARDS.forEach((card) => {
-      expect(card.text.length).toBeGreaterThan(0);
-      expect(card.action).toBeDefined();
-    });
-  });
-});
+      expect(card.text.length).toBeGreaterThan(0)
+      expect(card.action).toBeDefined()
+    })
+  })
+})
 
 describe('COMMUNITY_CHEST_CARDS', () => {
   it('16枚ある', () => {
-    expect(COMMUNITY_CHEST_CARDS).toHaveLength(16);
-  });
+    expect(COMMUNITY_CHEST_CARDS).toHaveLength(16)
+  })
 
   it('すべてcommunityChestタイプ', () => {
     COMMUNITY_CHEST_CARDS.forEach((card) => {
-      expect(card.type).toBe('communityChest');
-    });
-  });
-});
+      expect(card.type).toBe('communityChest')
+    })
+  })
+})
 
 describe('shuffleCards', () => {
   it('同じ枚数のカードを返す', () => {
-    const shuffled = shuffleCards(CHANCE_CARDS);
-    expect(shuffled).toHaveLength(CHANCE_CARDS.length);
-  });
+    const shuffled = shuffleCards(CHANCE_CARDS)
+    expect(shuffled).toHaveLength(CHANCE_CARDS.length)
+  })
 
   it('元の配列を変更しない', () => {
-    const original = [...CHANCE_CARDS];
-    shuffleCards(CHANCE_CARDS);
-    expect(CHANCE_CARDS).toEqual(original);
-  });
-});
+    const original = [...CHANCE_CARDS]
+    shuffleCards(CHANCE_CARDS)
+    expect(CHANCE_CARDS).toEqual(original)
+  })
+})
 ```
 
 - [ ] **Step 2: テストが失敗することを確認**
@@ -976,7 +976,7 @@ Expected: FAIL
 `src/game/cards.ts`:
 
 ```typescript
-import type { Card } from './types';
+import type { Card } from './types'
 
 export const CHANCE_CARDS: Card[] = [
   {
@@ -1075,7 +1075,7 @@ export const CHANCE_CARDS: Card[] = [
     text: 'たてものの投資がうまくいったよ！$150もらえる！',
     action: { type: 'money', amount: 150 },
   },
-];
+]
 
 export const COMMUNITY_CHEST_CARDS: Card[] = [
   {
@@ -1174,15 +1174,15 @@ export const COMMUNITY_CHEST_CARDS: Card[] = [
     text: 'いでんで$100もらえるよ！',
     action: { type: 'money', amount: 100 },
   },
-];
+]
 
 export function shuffleCards(cards: Card[]): Card[] {
-  const shuffled = [...cards];
+  const shuffled = [...cards]
   for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
   }
-  return shuffled;
+  return shuffled
 }
 ```
 
@@ -1212,7 +1212,7 @@ git commit -m "feat: Chance/Community Chestカードデータを追加"
 `src/game/__tests__/rules.test.ts`:
 
 ```typescript
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'vitest'
 import {
   calculateRent,
   canBuildHouse,
@@ -1222,9 +1222,9 @@ import {
   ownsFullColorGroup,
   calculateTotalAssets,
   findNearestSpace,
-} from '../rules';
-import { BOARD_SPACES } from '../board';
-import type { Player, PropertyState } from '../types';
+} from '../rules'
+import { BOARD_SPACES } from '../board'
+import type { Player, PropertyState } from '../types'
 
 function makePlayer(overrides: Partial<Player> = {}): Player {
   return {
@@ -1239,13 +1239,13 @@ function makePlayer(overrides: Partial<Player> = {}): Player {
     getOutOfJailCards: 0,
     isBankrupt: false,
     ...overrides,
-  };
+  }
 }
 
 function makePropertyStates(
   overrides: Record<string, Partial<PropertyState>> = {},
 ): Record<string, PropertyState> {
-  const states: Record<string, PropertyState> = {};
+  const states: Record<string, PropertyState> = {}
   for (const space of BOARD_SPACES) {
     if (
       space.type === 'property' ||
@@ -1257,170 +1257,162 @@ function makePropertyStates(
         houses: 0,
         isMortgaged: false,
         ...overrides[space.id],
-      };
+      }
     }
   }
-  return states;
+  return states
 }
 
 describe('calculateRent', () => {
   it('未所有の物件はレント0', () => {
-    const states = makePropertyStates();
-    expect(calculateRent('mediterranean', states, BOARD_SPACES, [1, 2])).toBe(
-      0,
-    );
-  });
+    const states = makePropertyStates()
+    expect(calculateRent('mediterranean', states, BOARD_SPACES, [1, 2])).toBe(0)
+  })
 
   it('家なしの物件の基本レント', () => {
     const states = makePropertyStates({
       mediterranean: { ownerId: 'p1', houses: 0, isMortgaged: false },
-    });
-    expect(calculateRent('mediterranean', states, BOARD_SPACES, [1, 2])).toBe(
-      2,
-    );
-  });
+    })
+    expect(calculateRent('mediterranean', states, BOARD_SPACES, [1, 2])).toBe(2)
+  })
 
   it('カラーグループ独占で基本レント2倍', () => {
     const states = makePropertyStates({
       mediterranean: { ownerId: 'p1', houses: 0, isMortgaged: false },
       baltic: { ownerId: 'p1', houses: 0, isMortgaged: false },
-    });
-    expect(calculateRent('mediterranean', states, BOARD_SPACES, [1, 2])).toBe(
-      4,
-    );
-  });
+    })
+    expect(calculateRent('mediterranean', states, BOARD_SPACES, [1, 2])).toBe(4)
+  })
 
   it('家ありのレント', () => {
     const states = makePropertyStates({
       mediterranean: { ownerId: 'p1', houses: 2, isMortgaged: false },
       baltic: { ownerId: 'p1', houses: 2, isMortgaged: false },
-    });
+    })
     expect(calculateRent('mediterranean', states, BOARD_SPACES, [1, 2])).toBe(
       30,
-    );
-  });
+    )
+  })
 
   it('抵当中はレント0', () => {
     const states = makePropertyStates({
       mediterranean: { ownerId: 'p1', houses: 0, isMortgaged: true },
-    });
-    expect(calculateRent('mediterranean', states, BOARD_SPACES, [1, 2])).toBe(
-      0,
-    );
-  });
+    })
+    expect(calculateRent('mediterranean', states, BOARD_SPACES, [1, 2])).toBe(0)
+  })
 
   it('鉄道1つ所有で$25', () => {
     const states = makePropertyStates({
       'reading-rr': { ownerId: 'p1', houses: 0, isMortgaged: false },
-    });
-    expect(calculateRent('reading-rr', states, BOARD_SPACES, [1, 2])).toBe(25);
-  });
+    })
+    expect(calculateRent('reading-rr', states, BOARD_SPACES, [1, 2])).toBe(25)
+  })
 
   it('鉄道2つ所有で$50', () => {
     const states = makePropertyStates({
       'reading-rr': { ownerId: 'p1', houses: 0, isMortgaged: false },
       'pennsylvania-rr': { ownerId: 'p1', houses: 0, isMortgaged: false },
-    });
-    expect(calculateRent('reading-rr', states, BOARD_SPACES, [1, 2])).toBe(50);
-  });
+    })
+    expect(calculateRent('reading-rr', states, BOARD_SPACES, [1, 2])).toBe(50)
+  })
 
   it('公共事業1つ所有でサイコロ×4', () => {
     const states = makePropertyStates({
       electric: { ownerId: 'p1', houses: 0, isMortgaged: false },
-    });
-    expect(calculateRent('electric', states, BOARD_SPACES, [3, 4])).toBe(28); // 7 * 4
-  });
+    })
+    expect(calculateRent('electric', states, BOARD_SPACES, [3, 4])).toBe(28) // 7 * 4
+  })
 
   it('公共事業2つ所有でサイコロ×10', () => {
     const states = makePropertyStates({
       electric: { ownerId: 'p1', houses: 0, isMortgaged: false },
       water: { ownerId: 'p1', houses: 0, isMortgaged: false },
-    });
-    expect(calculateRent('electric', states, BOARD_SPACES, [3, 4])).toBe(70); // 7 * 10
-  });
-});
+    })
+    expect(calculateRent('electric', states, BOARD_SPACES, [3, 4])).toBe(70) // 7 * 10
+  })
+})
 
 describe('canBuildHouse', () => {
   it('カラーグループ独占で建設可能', () => {
     const states = makePropertyStates({
       mediterranean: { ownerId: 'p1', houses: 0, isMortgaged: false },
       baltic: { ownerId: 'p1', houses: 0, isMortgaged: false },
-    });
+    })
     expect(canBuildHouse('mediterranean', 'p1', states, BOARD_SPACES)).toBe(
       true,
-    );
-  });
+    )
+  })
 
   it('独占していない場合は建設不可', () => {
     const states = makePropertyStates({
       mediterranean: { ownerId: 'p1', houses: 0, isMortgaged: false },
-    });
+    })
     expect(canBuildHouse('mediterranean', 'p1', states, BOARD_SPACES)).toBe(
       false,
-    );
-  });
+    )
+  })
 
   it('均等建設ルール: 差が1以上になる場合は建設不可', () => {
     const states = makePropertyStates({
       mediterranean: { ownerId: 'p1', houses: 1, isMortgaged: false },
       baltic: { ownerId: 'p1', houses: 0, isMortgaged: false },
-    });
+    })
     expect(canBuildHouse('mediterranean', 'p1', states, BOARD_SPACES)).toBe(
       false,
-    );
-  });
+    )
+  })
 
   it('ホテル（5）以上は建設不可', () => {
     const states = makePropertyStates({
       mediterranean: { ownerId: 'p1', houses: 5, isMortgaged: false },
       baltic: { ownerId: 'p1', houses: 5, isMortgaged: false },
-    });
+    })
     expect(canBuildHouse('mediterranean', 'p1', states, BOARD_SPACES)).toBe(
       false,
-    );
-  });
+    )
+  })
 
   it('グループ内に抵当物件があると建設不可', () => {
     const states = makePropertyStates({
       mediterranean: { ownerId: 'p1', houses: 0, isMortgaged: false },
       baltic: { ownerId: 'p1', houses: 0, isMortgaged: true },
-    });
+    })
     expect(canBuildHouse('mediterranean', 'p1', states, BOARD_SPACES)).toBe(
       false,
-    );
-  });
-});
+    )
+  })
+})
 
 describe('findNearestSpace', () => {
   it('position 7から最寄りの鉄道はposition 15', () => {
-    expect(findNearestSpace(7, 'railroad', BOARD_SPACES)).toBe(15);
-  });
+    expect(findNearestSpace(7, 'railroad', BOARD_SPACES)).toBe(15)
+  })
 
   it('position 36から最寄りの鉄道はposition 5（ラップアラウンド）', () => {
-    expect(findNearestSpace(36, 'railroad', BOARD_SPACES)).toBe(5);
-  });
-});
+    expect(findNearestSpace(36, 'railroad', BOARD_SPACES)).toBe(5)
+  })
+})
 
 describe('calculateTotalAssets', () => {
   it('現金のみのプレイヤー', () => {
-    const player = makePlayer({ money: 1500, properties: [] });
-    const states = makePropertyStates();
-    expect(calculateTotalAssets(player, states, BOARD_SPACES)).toBe(1500);
-  });
+    const player = makePlayer({ money: 1500, properties: [] })
+    const states = makePropertyStates()
+    expect(calculateTotalAssets(player, states, BOARD_SPACES)).toBe(1500)
+  })
 
   it('物件と家を含む資産計算', () => {
     const player = makePlayer({
       money: 1000,
       properties: ['mediterranean', 'baltic'],
-    });
+    })
     const states = makePropertyStates({
       mediterranean: { ownerId: 'p1', houses: 2, isMortgaged: false },
       baltic: { ownerId: 'p1', houses: 0, isMortgaged: false },
-    });
+    })
     // 1000 + 30(mediterranean抵当) + 30(baltic抵当) + 2*25(家の半額) = 1110
-    expect(calculateTotalAssets(player, states, BOARD_SPACES)).toBe(1110);
-  });
-});
+    expect(calculateTotalAssets(player, states, BOARD_SPACES)).toBe(1110)
+  })
+})
 ```
 
 - [ ] **Step 2: テストが失敗することを確認**
@@ -1433,16 +1425,16 @@ Expected: FAIL
 `src/game/rules.ts`:
 
 ```typescript
-import type { BoardSpace, Player, PropertyState, ColorGroup } from './types';
+import type { BoardSpace, Player, PropertyState, ColorGroup } from './types'
 
 /** 指定物件のカラーグループに属する全物件IDを返す */
 export function getColorGroup(
   propertyId: string,
   board: BoardSpace[],
 ): string[] {
-  const space = board.find((s) => s.id === propertyId);
-  if (!space?.color) return [];
-  return board.filter((s) => s.color === space.color).map((s) => s.id);
+  const space = board.find((s) => s.id === propertyId)
+  if (!space?.color) return []
+  return board.filter((s) => s.color === space.color).map((s) => s.id)
 }
 
 /** プレイヤーがカラーグループ全物件を所有しているか */
@@ -1452,9 +1444,9 @@ export function ownsFullColorGroup(
   propertyStates: Record<string, PropertyState>,
   board: BoardSpace[],
 ): boolean {
-  const group = getColorGroup(propertyId, board);
-  if (group.length === 0) return false;
-  return group.every((id) => propertyStates[id]?.ownerId === ownerId);
+  const group = getColorGroup(propertyId, board)
+  if (group.length === 0) return false
+  return group.every((id) => propertyStates[id]?.ownerId === ownerId)
 }
 
 /** レンタル料を計算する */
@@ -1464,10 +1456,10 @@ export function calculateRent(
   board: BoardSpace[],
   diceValues: [number, number],
 ): number {
-  const state = propertyStates[propertyId];
-  if (!state?.ownerId || state.isMortgaged) return 0;
+  const state = propertyStates[propertyId]
+  if (!state?.ownerId || state.isMortgaged) return 0
 
-  const space = board.find((s) => s.id === propertyId)!;
+  const space = board.find((s) => s.id === propertyId)!
 
   if (space.type === 'railroad') {
     const ownedRailroads = board
@@ -1476,8 +1468,8 @@ export function calculateRent(
         (s) =>
           propertyStates[s.id]?.ownerId === state.ownerId &&
           !propertyStates[s.id]?.isMortgaged,
-      ).length;
-    return space.rent![ownedRailroads - 1];
+      ).length
+    return space.rent![ownedRailroads - 1]
   }
 
   if (space.type === 'utility') {
@@ -1487,22 +1479,22 @@ export function calculateRent(
         (s) =>
           propertyStates[s.id]?.ownerId === state.ownerId &&
           !propertyStates[s.id]?.isMortgaged,
-      ).length;
-    const diceTotal = diceValues[0] + diceValues[1];
-    return diceTotal * (ownedUtilities === 1 ? 4 : 10);
+      ).length
+    const diceTotal = diceValues[0] + diceValues[1]
+    return diceTotal * (ownedUtilities === 1 ? 4 : 10)
   }
 
   // 通常の物件
   if (state.houses > 0) {
-    return space.rent![state.houses];
+    return space.rent![state.houses]
   }
 
   // 家なし：カラーグループ独占なら2倍
-  const baseRent = space.rent![0];
+  const baseRent = space.rent![0]
   if (ownsFullColorGroup(propertyId, state.ownerId, propertyStates, board)) {
-    return baseRent * 2;
+    return baseRent * 2
   }
-  return baseRent;
+  return baseRent
 }
 
 /** 家を建設可能か判定する */
@@ -1512,25 +1504,25 @@ export function canBuildHouse(
   propertyStates: Record<string, PropertyState>,
   board: BoardSpace[],
 ): boolean {
-  const state = propertyStates[propertyId];
-  if (!state || state.ownerId !== playerId) return false;
-  if (state.houses >= 5) return false;
-  if (state.isMortgaged) return false;
+  const state = propertyStates[propertyId]
+  if (!state || state.ownerId !== playerId) return false
+  if (state.houses >= 5) return false
+  if (state.isMortgaged) return false
 
   // カラーグループ独占チェック
   if (!ownsFullColorGroup(propertyId, playerId, propertyStates, board))
-    return false;
+    return false
 
   // グループ内に抵当物件がないかチェック
-  const group = getColorGroup(propertyId, board);
-  if (group.some((id) => propertyStates[id]?.isMortgaged)) return false;
+  const group = getColorGroup(propertyId, board)
+  if (group.some((id) => propertyStates[id]?.isMortgaged)) return false
 
   // 均等建設ルール: 自分が最小でない場合は建設不可
-  const currentHouses = state.houses;
+  const currentHouses = state.houses
   const minHouses = Math.min(
     ...group.map((id) => propertyStates[id]?.houses ?? 0),
-  );
-  return currentHouses <= minHouses;
+  )
+  return currentHouses <= minHouses
 }
 
 /** 抵当に入れられるか判定する */
@@ -1540,15 +1532,15 @@ export function canMortgage(
   propertyStates: Record<string, PropertyState>,
   board: BoardSpace[],
 ): boolean {
-  const state = propertyStates[propertyId];
-  if (!state || state.ownerId !== playerId) return false;
-  if (state.isMortgaged) return false;
+  const state = propertyStates[propertyId]
+  if (!state || state.ownerId !== playerId) return false
+  if (state.isMortgaged) return false
 
   // グループ内に家がある場合は抵当不可
-  const group = getColorGroup(propertyId, board);
-  if (group.some((id) => (propertyStates[id]?.houses ?? 0) > 0)) return false;
+  const group = getColorGroup(propertyId, board)
+  if (group.some((id) => (propertyStates[id]?.houses ?? 0) > 0)) return false
 
-  return true;
+  return true
 }
 
 /** 抵当を解除できるか判定する */
@@ -1559,13 +1551,13 @@ export function canUnmortgage(
   propertyStates: Record<string, PropertyState>,
   board: BoardSpace[],
 ): boolean {
-  const state = propertyStates[propertyId];
-  if (!state || state.ownerId !== playerId) return false;
-  if (!state.isMortgaged) return false;
+  const state = propertyStates[propertyId]
+  if (!state || state.ownerId !== playerId) return false
+  if (!state.isMortgaged) return false
 
-  const space = board.find((s) => s.id === propertyId)!;
-  const unmortgageCost = Math.floor((space.mortgageValue ?? 0) * 1.1);
-  return player.money >= unmortgageCost;
+  const space = board.find((s) => s.id === propertyId)!
+  const unmortgageCost = Math.floor((space.mortgageValue ?? 0) * 1.1)
+  return player.money >= unmortgageCost
 }
 
 /** 最寄りの鉄道/公共事業マスのpositionを返す */
@@ -1574,13 +1566,13 @@ export function findNearestSpace(
   spaceType: 'railroad' | 'utility',
   board: BoardSpace[],
 ): number {
-  const targets = board.filter((s) => s.type === spaceType);
+  const targets = board.filter((s) => s.type === spaceType)
   // 現在位置より先（時計回り）で最も近いものを探す
   for (const target of targets) {
-    if (target.position > currentPosition) return target.position;
+    if (target.position > currentPosition) return target.position
   }
   // 見つからなければラップアラウンド
-  return targets[0].position;
+  return targets[0].position
 }
 
 /** プレイヤーの総資産を計算する（破産判定用） */
@@ -1589,26 +1581,26 @@ export function calculateTotalAssets(
   propertyStates: Record<string, PropertyState>,
   board: BoardSpace[],
 ): number {
-  let total = player.money;
+  let total = player.money
 
   for (const propId of player.properties) {
-    const state = propertyStates[propId];
-    const space = board.find((s) => s.id === propId)!;
+    const state = propertyStates[propId]
+    const space = board.find((s) => s.id === propId)!
 
     if (state?.isMortgaged) {
       // 抵当済みの物件は価値0（すでに現金を受け取っている）
     } else {
       // 抵当価値
-      total += space.mortgageValue ?? 0;
+      total += space.mortgageValue ?? 0
     }
 
     // 家/ホテルの売却価値（半額）
     if (state && state.houses > 0) {
-      total += Math.floor(((space.houseCost ?? 0) * state.houses) / 2);
+      total += Math.floor(((space.houseCost ?? 0) * state.houses) / 2)
     }
   }
 
-  return total;
+  return total
 }
 
 /** 家を売却可能か判定（均等ルール） */
@@ -1618,17 +1610,17 @@ export function canSellHouse(
   propertyStates: Record<string, PropertyState>,
   board: BoardSpace[],
 ): boolean {
-  const state = propertyStates[propertyId];
-  if (!state || state.ownerId !== playerId) return false;
-  if (state.houses <= 0) return false;
+  const state = propertyStates[propertyId]
+  if (!state || state.ownerId !== playerId) return false
+  if (state.houses <= 0) return false
 
   // 均等売却ルール: 自分が最大でない場合は売却不可
-  const group = getColorGroup(propertyId, board);
-  const currentHouses = state.houses;
+  const group = getColorGroup(propertyId, board)
+  const currentHouses = state.houses
   const maxHouses = Math.max(
     ...group.map((id) => propertyStates[id]?.houses ?? 0),
-  );
-  return currentHouses >= maxHouses;
+  )
+  return currentHouses >= maxHouses
 }
 ```
 
@@ -1657,7 +1649,7 @@ git commit -m "feat: ルール判定ロジックを追加（レンタル計算�
 `src/game/actions.ts`:
 
 ```typescript
-import type { TradeOffer } from './types';
+import type { TradeOffer } from './types'
 
 export type GameAction =
   // ── セットアップ ──
@@ -1710,7 +1702,7 @@ export type GameAction =
   | { type: 'END_TURN' }
 
   // ── 税金 ──
-  | { type: 'PAY_TAX' };
+  | { type: 'PAY_TAX' }
 ```
 
 - [ ] **Step 2: コミット**
@@ -1734,83 +1726,83 @@ git commit -m "feat: ゲームアクション型定義を追加"
 `src/game/__tests__/reducer.test.ts`:
 
 ```typescript
-import { describe, it, expect } from 'vitest';
-import { gameReducer, createInitialGameState } from '../reducer';
-import type { GameState } from '../types';
+import { describe, it, expect } from 'vitest'
+import { gameReducer, createInitialGameState } from '../reducer'
+import type { GameState } from '../types'
 
 function startedGame(playerCount = 2): GameState {
-  const names = ['たろう', 'はなこ', 'じろう', 'さくら'].slice(0, playerCount);
-  const tokens = ['🚗', '🎩', '👞', '🐕'].slice(0, playerCount);
+  const names = ['たろう', 'はなこ', 'じろう', 'さくら'].slice(0, playerCount)
+  const tokens = ['🚗', '🎩', '👞', '🐕'].slice(0, playerCount)
   return gameReducer(createInitialGameState(), {
     type: 'START_GAME',
     playerNames: names,
     playerTokens: tokens,
-  });
+  })
 }
 
 describe('createInitialGameState', () => {
   it('setupフェーズで開始する', () => {
-    const state = createInitialGameState();
-    expect(state.phase).toBe('setup');
-    expect(state.players).toHaveLength(0);
-  });
-});
+    const state = createInitialGameState()
+    expect(state.phase).toBe('setup')
+    expect(state.players).toHaveLength(0)
+  })
+})
 
 describe('START_GAME', () => {
   it('プレイヤーを初期化しplayingフェーズに遷移する', () => {
-    const state = startedGame(3);
-    expect(state.phase).toBe('playing');
-    expect(state.players).toHaveLength(3);
-    expect(state.players[0].money).toBe(1500);
-    expect(state.turnPhase).toBe('roll');
-    expect(state.currentPlayerIndex).toBe(0);
-  });
-});
+    const state = startedGame(3)
+    expect(state.phase).toBe('playing')
+    expect(state.players).toHaveLength(3)
+    expect(state.players[0].money).toBe(1500)
+    expect(state.turnPhase).toBe('roll')
+    expect(state.currentPlayerIndex).toBe(0)
+  })
+})
 
 describe('ROLL_DICE', () => {
   it('サイコロを振ってmovingフェーズに遷移する', () => {
-    const state = startedGame();
-    const rolled = gameReducer(state, { type: 'ROLL_DICE' });
-    expect(rolled.dice.rolled).toBe(true);
-    expect(rolled.dice.values[0]).toBeGreaterThanOrEqual(1);
-    expect(rolled.dice.values[0]).toBeLessThanOrEqual(6);
-    expect(rolled.turnPhase).toBe('moving');
-  });
-});
+    const state = startedGame()
+    const rolled = gameReducer(state, { type: 'ROLL_DICE' })
+    expect(rolled.dice.rolled).toBe(true)
+    expect(rolled.dice.values[0]).toBeGreaterThanOrEqual(1)
+    expect(rolled.dice.values[0]).toBeLessThanOrEqual(6)
+    expect(rolled.turnPhase).toBe('moving')
+  })
+})
 
 describe('FINISH_MOVING', () => {
   it('プレイヤーの位置を更新しlandedフェーズに遷移する', () => {
-    let state = startedGame();
-    state = gameReducer(state, { type: 'ROLL_DICE' });
-    const diceTotal = state.dice.values[0] + state.dice.values[1];
-    state = gameReducer(state, { type: 'FINISH_MOVING' });
-    expect(state.players[0].position).toBe(diceTotal);
-    expect(state.turnPhase).toBe('landed');
-  });
+    let state = startedGame()
+    state = gameReducer(state, { type: 'ROLL_DICE' })
+    const diceTotal = state.dice.values[0] + state.dice.values[1]
+    state = gameReducer(state, { type: 'FINISH_MOVING' })
+    expect(state.players[0].position).toBe(diceTotal)
+    expect(state.turnPhase).toBe('landed')
+  })
 
   it('GOを通過すると$200もらえる', () => {
-    let state = startedGame();
+    let state = startedGame()
     state = {
       ...state,
       players: state.players.map((p, i) =>
         i === 0 ? { ...p, position: 38 } : p,
       ),
-    };
+    }
     // サイコロの目を固定するためにstateを直接操作
     state = {
       ...state,
       dice: { values: [3, 2], doubles: 0, rolled: true },
       turnPhase: 'moving' as const,
-    };
-    state = gameReducer(state, { type: 'FINISH_MOVING' });
-    expect(state.players[0].position).toBe(3);
-    expect(state.players[0].money).toBe(1700); // 1500 + 200
-  });
-});
+    }
+    state = gameReducer(state, { type: 'FINISH_MOVING' })
+    expect(state.players[0].position).toBe(3)
+    expect(state.players[0].money).toBe(1700) // 1500 + 200
+  })
+})
 
 describe('BUY_PROPERTY', () => {
   it('物件を購入する', () => {
-    let state = startedGame();
+    let state = startedGame()
     // position 1（ちちぶ通り、$60）に移動
     state = {
       ...state,
@@ -1818,56 +1810,56 @@ describe('BUY_PROPERTY', () => {
         i === 0 ? { ...p, position: 1 } : p,
       ),
       turnPhase: 'action' as const,
-    };
-    state = gameReducer(state, { type: 'BUY_PROPERTY' });
-    expect(state.players[0].money).toBe(1440); // 1500 - 60
-    expect(state.players[0].properties).toContain('mediterranean');
+    }
+    state = gameReducer(state, { type: 'BUY_PROPERTY' })
+    expect(state.players[0].money).toBe(1440) // 1500 - 60
+    expect(state.players[0].properties).toContain('mediterranean')
     expect(state.propertyStates['mediterranean'].ownerId).toBe(
       state.players[0].id,
-    );
-  });
-});
+    )
+  })
+})
 
 describe('END_TURN', () => {
   it('次のプレイヤーに切り替わる', () => {
-    let state = startedGame();
-    state = { ...state, turnPhase: 'endTurn' as const };
-    state = gameReducer(state, { type: 'END_TURN' });
-    expect(state.currentPlayerIndex).toBe(1);
-    expect(state.turnPhase).toBe('roll');
-  });
+    let state = startedGame()
+    state = { ...state, turnPhase: 'endTurn' as const }
+    state = gameReducer(state, { type: 'END_TURN' })
+    expect(state.currentPlayerIndex).toBe(1)
+    expect(state.turnPhase).toBe('roll')
+  })
 
   it('最後のプレイヤーの後は最初に戻る', () => {
-    let state = startedGame(2);
-    state = { ...state, currentPlayerIndex: 1, turnPhase: 'endTurn' as const };
-    state = gameReducer(state, { type: 'END_TURN' });
-    expect(state.currentPlayerIndex).toBe(0);
-  });
+    let state = startedGame(2)
+    state = { ...state, currentPlayerIndex: 1, turnPhase: 'endTurn' as const }
+    state = gameReducer(state, { type: 'END_TURN' })
+    expect(state.currentPlayerIndex).toBe(0)
+  })
 
   it('破産したプレイヤーはスキップされる', () => {
-    let state = startedGame(3);
+    let state = startedGame(3)
     state = {
       ...state,
       players: state.players.map((p, i) =>
         i === 1 ? { ...p, isBankrupt: true } : p,
       ),
       turnPhase: 'endTurn' as const,
-    };
-    state = gameReducer(state, { type: 'END_TURN' });
-    expect(state.currentPlayerIndex).toBe(2);
-  });
-});
+    }
+    state = gameReducer(state, { type: 'END_TURN' })
+    expect(state.currentPlayerIndex).toBe(2)
+  })
+})
 
 describe('Go to Jail', () => {
   it('position 30に止まると刑務所に行く', () => {
-    let state = startedGame();
+    let state = startedGame()
     state = {
       ...state,
       players: state.players.map((p, i) =>
         i === 0 ? { ...p, position: 30 } : p,
       ),
       turnPhase: 'landed' as const,
-    };
+    }
     // landedフェーズで自動処理されるのでFINISH_MOVINGをテスト
     // reducerはlandedでGoToJailを検出して処理する
     state = {
@@ -1877,13 +1869,13 @@ describe('Go to Jail', () => {
       players: state.players.map((p, i) =>
         i === 0 ? { ...p, position: 27 } : p,
       ),
-    };
-    state = gameReducer(state, { type: 'FINISH_MOVING' });
+    }
+    state = gameReducer(state, { type: 'FINISH_MOVING' })
     // position 27 + 10 = 37 ではなく、27+10=37でもなく、diceは[5,5]なので27+10=37
     // 実際にはFINISH_MOVINGでpositionが計算される
     // Go to Jail(30)に止まるケースは別途テスト
-  });
-});
+  })
+})
 ```
 
 - [ ] **Step 2: テストが失敗することを確認**
@@ -1896,18 +1888,18 @@ Expected: FAIL
 `src/game/reducer.ts`:
 
 ```typescript
-import type { GameState, Player, AuctionState, Card } from './types';
-import type { GameAction } from './actions';
-import { createInitialPlayer } from './types';
-import { BOARD_SPACES, createPropertyStates } from './board';
-import { CHANCE_CARDS, COMMUNITY_CHEST_CARDS, shuffleCards } from './cards';
+import type { GameState, Player, AuctionState, Card } from './types'
+import type { GameAction } from './actions'
+import { createInitialPlayer } from './types'
+import { BOARD_SPACES, createPropertyStates } from './board'
+import { CHANCE_CARDS, COMMUNITY_CHEST_CARDS, shuffleCards } from './cards'
 import {
   calculateRent,
   findNearestSpace,
   ownsFullColorGroup,
   canBuildHouse,
   canSellHouse,
-} from './rules';
+} from './rules'
 
 export function createInitialGameState(): GameState {
   return {
@@ -1927,75 +1919,75 @@ export function createInitialGameState(): GameState {
     currentCard: null,
     message: '',
     winnerId: null,
-  };
+  }
 }
 
 function rollDice(): [number, number] {
-  return [Math.floor(Math.random() * 6) + 1, Math.floor(Math.random() * 6) + 1];
+  return [Math.floor(Math.random() * 6) + 1, Math.floor(Math.random() * 6) + 1]
 }
 
 function nextActivePlayer(players: Player[], currentIndex: number): number {
-  const count = players.length;
-  let next = (currentIndex + 1) % count;
+  const count = players.length
+  let next = (currentIndex + 1) % count
   while (players[next].isBankrupt) {
-    next = (next + 1) % count;
-    if (next === currentIndex) break;
+    next = (next + 1) % count
+    if (next === currentIndex) break
   }
-  return next;
+  return next
 }
 
 function checkWinner(players: Player[]): string | null {
-  const active = players.filter((p) => !p.isBankrupt);
-  if (active.length === 1) return active[0].id;
-  return null;
+  const active = players.filter((p) => !p.isBankrupt)
+  if (active.length === 1) return active[0].id
+  return null
 }
 
 function drawCard(
   state: GameState,
   deckType: 'chance' | 'communityChest',
 ): { card: Card; deck: Card[] } {
-  const deck = [...state.cards[deckType]];
-  const card = deck.shift()!;
+  const deck = [...state.cards[deckType]]
+  const card = deck.shift()!
   // jailFreeカードは使われるまでデッキに戻さない
   if (card.action.type !== 'jailFree') {
-    deck.push(card);
+    deck.push(card)
   }
-  return { card, deck };
+  return { card, deck }
 }
 
 function applyCardEffect(state: GameState, card: Card): GameState {
-  const player = state.players[state.currentPlayerIndex];
-  let newState = { ...state };
+  const player = state.players[state.currentPlayerIndex]
+  let newState = { ...state }
 
   switch (card.action.type) {
     case 'move': {
       const passGo =
-        card.action.position < player.position && card.action.position !== 10;
-      const goBonus = passGo ? 200 : 0;
+        card.action.position < player.position && card.action.position !== 10
+      const goBonus = passGo ? 200 : 0
       newState = updateCurrentPlayer(newState, {
         position: card.action.position,
         money: player.money + goBonus,
-      });
-      break;
+      })
+      break
     }
     case 'moveRelative': {
-      const newPos = (player.position + card.action.spaces + 40) % 40;
-      newState = updateCurrentPlayer(newState, { position: newPos });
-      break;
+      const newPos = (player.position + card.action.spaces + 40) % 40
+      newState = updateCurrentPlayer(newState, { position: newPos })
+      break
     }
     case 'money': {
       newState = updateCurrentPlayer(newState, {
         money: player.money + card.action.amount,
-      });
-      break;
+      })
+      break
     }
     case 'moneyFromPlayers': {
-      const amount = card.action.amount;
+      const amount = card.action.amount
       const otherPlayers = newState.players.filter(
         (p) => p.id !== player.id && !p.isBankrupt,
-      );
-      const totalReceived = amount > 0 ? amount * otherPlayers.length : 0;
-      const totalPaid = amount < 0 ? Math.abs(amount) * otherPlayers.length : 0;
+      )
+      const totalReceived = amount > 0 ? amount * otherPlayers.length : 0
+      const totalPaid = amount < 0 ? Math.abs(amount) * otherPlayers.length : 0
       newState = {
         ...newState,
         players: newState.players.map((p) => {
@@ -2003,65 +1995,65 @@ function applyCardEffect(state: GameState, card: Card): GameState {
             return {
               ...p,
               money: p.money + (amount > 0 ? totalReceived : -totalPaid),
-            };
+            }
           }
           if (!p.isBankrupt) {
             return {
               ...p,
               money: p.money + (amount > 0 ? -amount : Math.abs(amount)),
-            };
+            }
           }
-          return p;
+          return p
         }),
-      };
-      break;
+      }
+      break
     }
     case 'jail': {
       newState = updateCurrentPlayer(newState, {
         position: 10,
         inJail: true,
-      });
-      newState = { ...newState, dice: { ...newState.dice, doubles: 0 } };
-      break;
+      })
+      newState = { ...newState, dice: { ...newState.dice, doubles: 0 } }
+      break
     }
     case 'jailFree': {
       newState = updateCurrentPlayer(newState, {
         getOutOfJailCards: player.getOutOfJailCards + 1,
-      });
-      break;
+      })
+      break
     }
     case 'repair': {
-      let cost = 0;
+      let cost = 0
       for (const propId of player.properties) {
-        const ps = newState.propertyStates[propId];
+        const ps = newState.propertyStates[propId]
         if (ps && ps.houses > 0) {
           if (ps.houses === 5) {
-            cost += card.action.perHotel;
+            cost += card.action.perHotel
           } else {
-            cost += card.action.perHouse * ps.houses;
+            cost += card.action.perHouse * ps.houses
           }
         }
       }
-      newState = updateCurrentPlayer(newState, { money: player.money - cost });
-      break;
+      newState = updateCurrentPlayer(newState, { money: player.money - cost })
+      break
     }
     case 'moveNearest': {
       const nearestPos = findNearestSpace(
         player.position,
         card.action.spaceType,
         BOARD_SPACES,
-      );
-      const passGo = nearestPos < player.position;
-      const goBonus = passGo ? 200 : 0;
+      )
+      const passGo = nearestPos < player.position
+      const goBonus = passGo ? 200 : 0
       newState = updateCurrentPlayer(newState, {
         position: nearestPos,
         money: player.money + goBonus,
-      });
-      break;
+      })
+      break
     }
   }
 
-  return newState;
+  return newState
 }
 
 function updateCurrentPlayer(
@@ -2073,12 +2065,12 @@ function updateCurrentPlayer(
     players: state.players.map((p, i) =>
       i === state.currentPlayerIndex ? { ...p, ...updates } : p,
     ),
-  };
+  }
 }
 
 function handleLanding(state: GameState): GameState {
-  const player = state.players[state.currentPlayerIndex];
-  const space = BOARD_SPACES[player.position];
+  const player = state.players[state.currentPlayerIndex]
+  const space = BOARD_SPACES[player.position]
 
   // Go to Jail
   if (space.id === 'go-to-jail') {
@@ -2087,7 +2079,7 @@ function handleLanding(state: GameState): GameState {
       dice: { ...state.dice, doubles: 0 },
       turnPhase: 'endTurn',
       message: `${player.name}は刑務所にいくことになったよ！`,
-    };
+    }
   }
 
   // 税金
@@ -2096,7 +2088,7 @@ function handleLanding(state: GameState): GameState {
       ...state,
       turnPhase: 'action',
       message: `${space.name}！$${space.price}はらってね`,
-    };
+    }
   }
 
   // Chance / Community Chest
@@ -2105,7 +2097,7 @@ function handleLanding(state: GameState): GameState {
       ...state,
       turnPhase: 'action',
       message: `${space.name}をひこう！`,
-    };
+    }
   }
 
   // 物件・鉄道・公共事業
@@ -2114,7 +2106,7 @@ function handleLanding(state: GameState): GameState {
     space.type === 'railroad' ||
     space.type === 'utility'
   ) {
-    const propState = state.propertyStates[space.id];
+    const propState = state.propertyStates[space.id]
 
     if (!propState?.ownerId) {
       // 未所有: 購入するか競売するか
@@ -2122,7 +2114,7 @@ function handleLanding(state: GameState): GameState {
         ...state,
         turnPhase: 'action',
         message: `${space.name}はだれのものでもないよ。$${space.price}で買う？`,
-      };
+      }
     }
 
     if (propState.ownerId === player.id) {
@@ -2131,7 +2123,7 @@ function handleLanding(state: GameState): GameState {
         ...state,
         turnPhase: 'endTurn',
         message: `${space.name}は自分の土地だよ！`,
-      };
+      }
     }
 
     // 他プレイヤーの物件: レンタル支払い
@@ -2140,7 +2132,7 @@ function handleLanding(state: GameState): GameState {
         ...state,
         turnPhase: 'endTurn',
         message: `${space.name}はお金をかりている状態だから、とまり賃はいらないよ！`,
-      };
+      }
     }
 
     const rent = calculateRent(
@@ -2148,8 +2140,8 @@ function handleLanding(state: GameState): GameState {
       state.propertyStates,
       BOARD_SPACES,
       state.dice.values,
-    );
-    const owner = state.players.find((p) => p.id === propState.ownerId)!;
+    )
+    const owner = state.players.find((p) => p.id === propState.ownerId)!
 
     if (player.money < rent) {
       // 支払い不能 → 破産処理へ
@@ -2157,27 +2149,27 @@ function handleLanding(state: GameState): GameState {
         ...state,
         turnPhase: 'bankrupt',
         message: `${space.name}のとまり賃$${rent}がはらえないよ…`,
-      };
+      }
     }
 
     return {
       ...state,
       players: state.players.map((p) => {
-        if (p.id === player.id) return { ...p, money: p.money - rent };
-        if (p.id === owner.id) return { ...p, money: p.money + rent };
-        return p;
+        if (p.id === player.id) return { ...p, money: p.money - rent }
+        if (p.id === owner.id) return { ...p, money: p.money + rent }
+        return p
       }),
       turnPhase: 'endTurn',
       message: `${owner.name}に$${rent}のとまり賃をはらったよ`,
-    };
+    }
   }
 
   // コーナー（GO, 刑務所訪問, Free Parking）
   if (space.id === 'go') {
-    return { ...state, turnPhase: 'endTurn', message: 'GOに止まったよ！' };
+    return { ...state, turnPhase: 'endTurn', message: 'GOに止まったよ！' }
   }
 
-  return { ...state, turnPhase: 'endTurn', message: '' };
+  return { ...state, turnPhase: 'endTurn', message: '' }
 }
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
@@ -2185,7 +2177,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'START_GAME': {
       const players = action.playerNames.map((name, i) =>
         createInitialPlayer(`p${i + 1}`, name, action.playerTokens[i]),
-      );
+      )
       return {
         ...state,
         phase: 'playing',
@@ -2198,18 +2190,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           communityChest: shuffleCards(COMMUNITY_CHEST_CARDS),
         },
         message: `${players[0].name}のばんだよ！サイコロをふろう！`,
-      };
+      }
     }
 
     case 'ROLL_DICE': {
-      if (state.turnPhase !== 'roll') return state;
+      if (state.turnPhase !== 'roll') return state
 
-      const player = state.players[state.currentPlayerIndex];
+      const player = state.players[state.currentPlayerIndex]
 
       // 刑務所にいる場合
       if (player.inJail) {
-        const values = rollDice();
-        const isDoubles = values[0] === values[1];
+        const values = rollDice()
+        const isDoubles = values[0] === values[1]
 
         if (isDoubles) {
           return {
@@ -2217,10 +2209,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             dice: { values, doubles: 0, rolled: true },
             turnPhase: 'moving',
             message: `ゾロ目！刑務所から出られるよ！`,
-          };
+          }
         }
 
-        const newJailTurns = player.jailTurns + 1;
+        const newJailTurns = player.jailTurns + 1
         if (newJailTurns >= 3) {
           // 3ターン目: 強制的に$50払って出る
           return {
@@ -2232,7 +2224,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             dice: { values, doubles: 0, rolled: true },
             turnPhase: 'moving',
             message: '$50はらって刑務所から出たよ！',
-          };
+          }
         }
 
         return {
@@ -2240,13 +2232,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           dice: { values, doubles: 0, rolled: true },
           turnPhase: 'endTurn',
           message: `ゾロ目じゃないから出られないよ…（${newJailTurns}/3ターン）`,
-        };
+        }
       }
 
       // 通常のサイコロ
-      const values = rollDice();
-      const isDoubles = values[0] === values[1];
-      const newDoublesCount = isDoubles ? state.dice.doubles + 1 : 0;
+      const values = rollDice()
+      const isDoubles = values[0] === values[1]
+      const newDoublesCount = isDoubles ? state.dice.doubles + 1 : 0
 
       // 3連続ゾロ目で刑務所行き
       if (newDoublesCount >= 3) {
@@ -2255,7 +2247,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           dice: { values, doubles: 0, rolled: true },
           turnPhase: 'endTurn',
           message: '3回れんぞくゾロ目！刑務所にいってね！',
-        };
+        }
       }
 
       return {
@@ -2263,18 +2255,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         dice: { values, doubles: newDoublesCount, rolled: true },
         turnPhase: 'moving',
         message: `${values[0]}と${values[1]}が出たよ！`,
-      };
+      }
     }
 
     case 'FINISH_MOVING': {
-      if (state.turnPhase !== 'moving') return state;
+      if (state.turnPhase !== 'moving') return state
 
-      const player = state.players[state.currentPlayerIndex];
-      const diceTotal = state.dice.values[0] + state.dice.values[1];
-      const oldPosition = player.position;
-      const newPosition = (oldPosition + diceTotal) % 40;
-      const passedGo = newPosition < oldPosition;
-      const goBonus = passedGo ? 200 : 0;
+      const player = state.players[state.currentPlayerIndex]
+      const diceTotal = state.dice.values[0] + state.dice.values[1]
+      const oldPosition = player.position
+      const newPosition = (oldPosition + diceTotal) % 40
+      const passedGo = newPosition < oldPosition
+      const goBonus = passedGo ? 200 : 0
 
       const movedState = updateCurrentPlayer(
         { ...state, turnPhase: 'landed' },
@@ -2282,22 +2274,22 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           position: newPosition,
           money: player.money + goBonus,
         },
-      );
+      )
 
       if (goBonus > 0) {
         return handleLanding({
           ...movedState,
           message: 'GOを通ったから$200もらえるよ！',
-        });
+        })
       }
 
-      return handleLanding(movedState);
+      return handleLanding(movedState)
     }
 
     case 'BUY_PROPERTY': {
-      const player = state.players[state.currentPlayerIndex];
-      const space = BOARD_SPACES[player.position];
-      if (!space.price || player.money < space.price) return state;
+      const player = state.players[state.currentPlayerIndex]
+      const space = BOARD_SPACES[player.position]
+      if (!space.price || player.money < space.price) return state
 
       return {
         ...state,
@@ -2316,12 +2308,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         },
         turnPhase: 'endTurn',
         message: `${space.name}を買ったよ！`,
-      };
+      }
     }
 
     case 'DECLINE_PURCHASE': {
-      const player = state.players[state.currentPlayerIndex];
-      const space = BOARD_SPACES[player.position];
+      const player = state.players[state.currentPlayerIndex]
+      const space = BOARD_SPACES[player.position]
 
       // 競売を開始
       const auction: AuctionState = {
@@ -2330,36 +2322,36 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         currentBidderId: null,
         passedPlayerIds: [],
         activePlayerIndex: state.currentPlayerIndex,
-      };
+      }
 
       return {
         ...state,
         turnPhase: 'auction',
         auction,
         message: `${space.name}をみんなでオークション！`,
-      };
+      }
     }
 
     case 'PLACE_BID': {
-      if (!state.auction) return state;
-      const player = state.players[state.auction.activePlayerIndex];
+      if (!state.auction) return state
+      const player = state.players[state.auction.activePlayerIndex]
 
-      const newBid = state.auction.currentBid + action.amount;
-      if (newBid > player.money) return state;
+      const newBid = state.auction.currentBid + action.amount
+      if (newBid > player.money) return state
 
       // 次のアクティブプレイヤーを探す
       let nextIdx = nextActivePlayer(
         state.players,
         state.auction.activePlayerIndex,
-      );
+      )
       // パスしたプレイヤーとbidした本人はスキップ
-      const passedIds = state.auction.passedPlayerIds;
+      const passedIds = state.auction.passedPlayerIds
       while (
         passedIds.includes(state.players[nextIdx].id) ||
         state.players[nextIdx].isBankrupt
       ) {
-        if (nextIdx === state.auction.activePlayerIndex) break;
-        nextIdx = nextActivePlayer(state.players, nextIdx);
+        if (nextIdx === state.auction.activePlayerIndex) break
+        nextIdx = nextActivePlayer(state.players, nextIdx)
       }
 
       return {
@@ -2371,16 +2363,16 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           activePlayerIndex: nextIdx,
         },
         message: `${player.name}が$${newBid}で入札したよ！`,
-      };
+      }
     }
 
     case 'PASS_AUCTION': {
-      if (!state.auction) return state;
-      const player = state.players[state.auction.activePlayerIndex];
-      const newPassedIds = [...state.auction.passedPlayerIds, player.id];
+      if (!state.auction) return state
+      const player = state.players[state.auction.activePlayerIndex]
+      const newPassedIds = [...state.auction.passedPlayerIds, player.id]
       const activePlayers = state.players.filter(
         (p) => !p.isBankrupt && !newPassedIds.includes(p.id),
-      );
+      )
 
       // 全員パスまたは入札者1人のみ残り
       if (
@@ -2389,10 +2381,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       ) {
         if (state.auction.currentBidderId) {
           // 落札
-          const winnerId = state.auction.currentBidderId;
+          const winnerId = state.auction.currentBidderId
           const space = BOARD_SPACES.find(
             (s) => s.id === state.auction!.propertyId,
-          )!;
+          )!
           return {
             ...state,
             players: state.players.map((p) =>
@@ -2414,7 +2406,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             auction: null,
             turnPhase: 'endTurn',
             message: `${state.players.find((p) => p.id === winnerId)!.name}が$${state.auction.currentBid}で落札したよ！`,
-          };
+          }
         } else {
           // 誰も入札しなかった
           return {
@@ -2422,7 +2414,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             auction: null,
             turnPhase: 'endTurn',
             message: 'だれも買わなかったよ',
-          };
+          }
         }
       }
 
@@ -2430,12 +2422,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       let nextIdx = nextActivePlayer(
         state.players,
         state.auction.activePlayerIndex,
-      );
+      )
       while (
         newPassedIds.includes(state.players[nextIdx].id) ||
         state.players[nextIdx].isBankrupt
       ) {
-        nextIdx = nextActivePlayer(state.players, nextIdx);
+        nextIdx = nextActivePlayer(state.players, nextIdx)
       }
 
       return {
@@ -2446,27 +2438,27 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           activePlayerIndex: nextIdx,
         },
         message: `${player.name}はパスしたよ`,
-      };
+      }
     }
 
     case 'DRAW_CARD': {
-      const player = state.players[state.currentPlayerIndex];
-      const space = BOARD_SPACES[player.position];
-      const deckType = space.type === 'chance' ? 'chance' : 'communityChest';
-      const { card, deck } = drawCard(state, deckType);
+      const player = state.players[state.currentPlayerIndex]
+      const space = BOARD_SPACES[player.position]
+      const deckType = space.type === 'chance' ? 'chance' : 'communityChest'
+      const { card, deck } = drawCard(state, deckType)
 
       return {
         ...state,
         cards: { ...state.cards, [deckType]: deck },
         currentCard: card,
         message: card.text,
-      };
+      }
     }
 
     case 'DISMISS_CARD': {
-      if (!state.currentCard) return state;
-      const card = state.currentCard;
-      let newState = applyCardEffect({ ...state, currentCard: null }, card);
+      if (!state.currentCard) return state
+      const card = state.currentCard
+      let newState = applyCardEffect({ ...state, currentCard: null }, card)
 
       // カード効果で移動した場合は着地処理
       if (
@@ -2475,40 +2467,40 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         card.action.type === 'moveNearest'
       ) {
         if (card.action.type !== 'jail') {
-          newState = handleLanding({ ...newState, turnPhase: 'landed' });
+          newState = handleLanding({ ...newState, turnPhase: 'landed' })
         }
       } else if (card.action.type === 'jail') {
-        newState = { ...newState, turnPhase: 'endTurn' };
+        newState = { ...newState, turnPhase: 'endTurn' }
       } else {
-        newState = { ...newState, turnPhase: 'endTurn' };
+        newState = { ...newState, turnPhase: 'endTurn' }
       }
 
-      return newState;
+      return newState
     }
 
     case 'PAY_TAX': {
-      const player = state.players[state.currentPlayerIndex];
-      const space = BOARD_SPACES[player.position];
-      const taxAmount = space.price ?? 0;
+      const player = state.players[state.currentPlayerIndex]
+      const space = BOARD_SPACES[player.position]
+      const taxAmount = space.price ?? 0
 
       if (player.money < taxAmount) {
         return {
           ...state,
           turnPhase: 'bankrupt',
           message: `ぜいきん$${taxAmount}がはらえないよ…`,
-        };
+        }
       }
 
       return {
         ...updateCurrentPlayer(state, { money: player.money - taxAmount }),
         turnPhase: 'endTurn',
         message: `$${taxAmount}のぜいきんをはらったよ`,
-      };
+      }
     }
 
     case 'PAY_JAIL_FINE': {
-      const player = state.players[state.currentPlayerIndex];
-      if (player.money < 50) return state;
+      const player = state.players[state.currentPlayerIndex]
+      if (player.money < 50) return state
 
       return {
         ...updateCurrentPlayer(state, {
@@ -2518,21 +2510,21 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         }),
         turnPhase: 'roll',
         message: '$50はらって刑務所から出たよ！サイコロをふろう！',
-      };
+      }
     }
 
     case 'USE_JAIL_CARD': {
-      const player = state.players[state.currentPlayerIndex];
-      if (player.getOutOfJailCards <= 0) return state;
+      const player = state.players[state.currentPlayerIndex]
+      if (player.getOutOfJailCards <= 0) return state
 
       // カードをデッキに戻す
       const cardType = CHANCE_CARDS.find((c) => c.action.type === 'jailFree')
         ? 'chance'
-        : 'communityChest';
+        : 'communityChest'
 
       const jailFreeCard = [...CHANCE_CARDS, ...COMMUNITY_CHEST_CARDS].find(
         (c) => c.action.type === 'jailFree',
-      )!;
+      )!
 
       return {
         ...updateCurrentPlayer(state, {
@@ -2546,12 +2538,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         },
         turnPhase: 'roll',
         message: 'カードをつかって刑務所から出たよ！サイコロをふろう！',
-      };
+      }
     }
 
     case 'BUILD_HOUSE': {
-      const player = state.players[state.currentPlayerIndex];
-      const space = BOARD_SPACES.find((s) => s.id === action.propertyId)!;
+      const player = state.players[state.currentPlayerIndex]
+      const space = BOARD_SPACES.find((s) => s.id === action.propertyId)!
       if (
         !canBuildHouse(
           action.propertyId,
@@ -2560,12 +2552,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           BOARD_SPACES,
         )
       )
-        return state;
-      if (player.money < (space.houseCost ?? 0)) return state;
+        return state
+      if (player.money < (space.houseCost ?? 0)) return state
 
-      const currentHouses = state.propertyStates[action.propertyId].houses;
+      const currentHouses = state.propertyStates[action.propertyId].houses
       const label =
-        currentHouses === 4 ? 'ホテル' : `家${currentHouses + 1}けん目`;
+        currentHouses === 4 ? 'ホテル' : `家${currentHouses + 1}けん目`
 
       return {
         ...state,
@@ -2582,12 +2574,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           },
         },
         message: `${space.name}に${label}をたてたよ！`,
-      };
+      }
     }
 
     case 'SELL_HOUSE': {
-      const player = state.players[state.currentPlayerIndex];
-      const space = BOARD_SPACES.find((s) => s.id === action.propertyId)!;
+      const player = state.players[state.currentPlayerIndex]
+      const space = BOARD_SPACES.find((s) => s.id === action.propertyId)!
       if (
         !canSellHouse(
           action.propertyId,
@@ -2596,10 +2588,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           BOARD_SPACES,
         )
       )
-        return state;
+        return state
 
-      const currentHouses = state.propertyStates[action.propertyId].houses;
-      const sellPrice = Math.floor((space.houseCost ?? 0) / 2);
+      const currentHouses = state.propertyStates[action.propertyId].houses
+      const sellPrice = Math.floor((space.houseCost ?? 0) / 2)
 
       return {
         ...state,
@@ -2616,13 +2608,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           },
         },
         message: `${space.name}の家を売ったよ（+$${sellPrice}）`,
-      };
+      }
     }
 
     case 'MORTGAGE_PROPERTY': {
-      const player = state.players[state.currentPlayerIndex];
-      const space = BOARD_SPACES.find((s) => s.id === action.propertyId)!;
-      const mortgageValue = space.mortgageValue ?? 0;
+      const player = state.players[state.currentPlayerIndex]
+      const space = BOARD_SPACES.find((s) => s.id === action.propertyId)!
+      const mortgageValue = space.mortgageValue ?? 0
 
       return {
         ...state,
@@ -2639,14 +2631,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           },
         },
         message: `${space.name}でお金をかりたよ（+$${mortgageValue}）`,
-      };
+      }
     }
 
     case 'UNMORTGAGE_PROPERTY': {
-      const player = state.players[state.currentPlayerIndex];
-      const space = BOARD_SPACES.find((s) => s.id === action.propertyId)!;
-      const unmortgageCost = Math.floor((space.mortgageValue ?? 0) * 1.1);
-      if (player.money < unmortgageCost) return state;
+      const player = state.players[state.currentPlayerIndex]
+      const space = BOARD_SPACES.find((s) => s.id === action.propertyId)!
+      const unmortgageCost = Math.floor((space.mortgageValue ?? 0) * 1.1)
+      if (player.money < unmortgageCost) return state
 
       return {
         ...state,
@@ -2663,20 +2655,20 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           },
         },
         message: `${space.name}のお金をかえしたよ（-$${unmortgageCost}）`,
-      };
+      }
     }
 
     case 'OPEN_BUILD_DIALOG':
-      return { ...state, turnPhase: 'build' };
+      return { ...state, turnPhase: 'build' }
 
     case 'CLOSE_BUILD_DIALOG':
-      return { ...state, turnPhase: 'endTurn' };
+      return { ...state, turnPhase: 'endTurn' }
 
     case 'OPEN_MORTGAGE_DIALOG':
-      return { ...state, turnPhase: 'mortgage' };
+      return { ...state, turnPhase: 'mortgage' }
 
     case 'CLOSE_MORTGAGE_DIALOG':
-      return { ...state, turnPhase: 'endTurn' };
+      return { ...state, turnPhase: 'endTurn' }
 
     case 'OPEN_TRADE_DIALOG': {
       return {
@@ -2692,21 +2684,21 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           requestMoney: 0,
           requestJailCards: 0,
         },
-      };
+      }
     }
 
     case 'CLOSE_TRADE_DIALOG':
-      return { ...state, turnPhase: 'endTurn', trade: null };
+      return { ...state, turnPhase: 'endTurn', trade: null }
 
     case 'PROPOSE_TRADE':
       return {
         ...state,
         trade: action.offer,
         message: '取引をていあんしたよ！',
-      };
+      }
 
     case 'ACCEPT_TRADE': {
-      if (!state.trade) return state;
+      if (!state.trade) return state
       const {
         fromPlayerId,
         toPlayerId,
@@ -2716,7 +2708,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         requestProperties,
         requestMoney,
         requestJailCards,
-      } = state.trade;
+      } = state.trade
 
       return {
         ...state,
@@ -2731,7 +2723,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
               ],
               getOutOfJailCards:
                 p.getOutOfJailCards - offerJailCards + requestJailCards,
-            };
+            }
           }
           if (p.id === toPlayerId) {
             return {
@@ -2743,24 +2735,24 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
               ],
               getOutOfJailCards:
                 p.getOutOfJailCards + offerJailCards - requestJailCards,
-            };
+            }
           }
-          return p;
+          return p
         }),
         propertyStates: (() => {
-          const newStates = { ...state.propertyStates };
+          const newStates = { ...state.propertyStates }
           for (const propId of offerProperties) {
-            newStates[propId] = { ...newStates[propId], ownerId: toPlayerId };
+            newStates[propId] = { ...newStates[propId], ownerId: toPlayerId }
           }
           for (const propId of requestProperties) {
-            newStates[propId] = { ...newStates[propId], ownerId: fromPlayerId };
+            newStates[propId] = { ...newStates[propId], ownerId: fromPlayerId }
           }
-          return newStates;
+          return newStates
         })(),
         trade: null,
         turnPhase: 'endTurn',
         message: '取引せいりつ！',
-      };
+      }
     }
 
     case 'REJECT_TRADE':
@@ -2769,12 +2761,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         trade: null,
         turnPhase: 'endTurn',
         message: '取引はことわられたよ',
-      };
+      }
 
     case 'DECLARE_BANKRUPTCY': {
-      const player = state.players[state.currentPlayerIndex];
+      const player = state.players[state.currentPlayerIndex]
 
-      let newState: GameState;
+      let newState: GameState
 
       if (action.creditorId) {
         // 他プレイヤーへの破産：全資産を移転
@@ -2782,28 +2774,28 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           ...state,
           players: state.players.map((p) => {
             if (p.id === player.id) {
-              return { ...p, isBankrupt: true, money: 0, properties: [] };
+              return { ...p, isBankrupt: true, money: 0, properties: [] }
             }
             if (p.id === action.creditorId) {
               return {
                 ...p,
                 money: p.money + player.money,
                 properties: [...p.properties, ...player.properties],
-              };
+              }
             }
-            return p;
+            return p
           }),
           propertyStates: (() => {
-            const newStates = { ...state.propertyStates };
+            const newStates = { ...state.propertyStates }
             for (const propId of player.properties) {
               newStates[propId] = {
                 ...newStates[propId],
                 ownerId: action.creditorId!,
-              };
+              }
             }
-            return newStates;
+            return newStates
           })(),
-        };
+        }
       } else {
         // 銀行への破産：全物件を競売（簡略化して物件をリリース）
         newState = {
@@ -2814,36 +2806,36 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
               : p,
           ),
           propertyStates: (() => {
-            const newStates = { ...state.propertyStates };
+            const newStates = { ...state.propertyStates }
             for (const propId of player.properties) {
               newStates[propId] = {
                 ownerId: null,
                 houses: 0,
                 isMortgaged: false,
-              };
+              }
             }
-            return newStates;
+            return newStates
           })(),
-        };
+        }
       }
 
-      const winner = checkWinner(newState.players);
+      const winner = checkWinner(newState.players)
       if (winner) {
-        const winnerPlayer = newState.players.find((p) => p.id === winner)!;
+        const winnerPlayer = newState.players.find((p) => p.id === winner)!
         return {
           ...newState,
           phase: 'finished',
           winnerId: winner,
           turnPhase: 'endTurn',
           message: `${winnerPlayer.name}のかち！おめでとう！🎉`,
-        };
+        }
       }
 
       return {
         ...newState,
         turnPhase: 'endTurn',
         message: `${player.name}はおかねがなくなった！`,
-      };
+      }
     }
 
     case 'END_TURN': {
@@ -2857,11 +2849,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           turnPhase: 'roll',
           dice: { ...state.dice, rolled: false },
           message: 'ゾロ目だからもういっかい！',
-        };
+        }
       }
 
-      const nextIdx = nextActivePlayer(state.players, state.currentPlayerIndex);
-      const nextPlayer = state.players[nextIdx];
+      const nextIdx = nextActivePlayer(state.players, state.currentPlayerIndex)
+      const nextPlayer = state.players[nextIdx]
 
       return {
         ...state,
@@ -2869,15 +2861,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         turnPhase: 'roll',
         dice: { values: [1, 1], doubles: 0, rolled: false },
         message: `${nextPlayer.name}のばんだよ！${nextPlayer.inJail ? '刑務所にいるよ…' : 'サイコロをふろう！'}`,
-      };
+      }
     }
 
     case 'ROLL_FOR_JAIL':
       // ROLL_DICEで処理済み（刑務所チェック含む）
-      return gameReducer(state, { type: 'ROLL_DICE' });
+      return gameReducer(state, { type: 'ROLL_DICE' })
 
     default:
-      return state;
+      return state
   }
 }
 ```
@@ -3023,13 +3015,13 @@ git commit -m "feat: ゲームReducerとアクション定義を追加"
 `src/components/common/Button.tsx`:
 
 ```tsx
-import type { ButtonHTMLAttributes } from 'react';
-import styles from './common.module.css';
+import type { ButtonHTMLAttributes } from 'react'
+import styles from './common.module.css'
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
-  size?: 'small' | 'medium' | 'large';
-};
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost'
+  size?: 'small' | 'medium' | 'large'
+}
 
 export default function Button({
   variant = 'primary',
@@ -3045,13 +3037,13 @@ export default function Button({
     className,
   ]
     .filter(Boolean)
-    .join(' ');
+    .join(' ')
 
   return (
     <button className={classes} {...props}>
       {children}
     </button>
-  );
+  )
 }
 ```
 
@@ -3060,14 +3052,14 @@ export default function Button({
 `src/components/common/Dialog.tsx`:
 
 ```tsx
-import type { ReactNode } from 'react';
-import styles from './common.module.css';
+import type { ReactNode } from 'react'
+import styles from './common.module.css'
 
 type DialogProps = {
-  title: string;
-  children: ReactNode;
-  actions?: ReactNode;
-};
+  title: string
+  children: ReactNode
+  actions?: ReactNode
+}
 
 export default function Dialog({ title, children, actions }: DialogProps) {
   return (
@@ -3078,7 +3070,7 @@ export default function Dialog({ title, children, actions }: DialogProps) {
         {actions && <div className={styles.dialogActions}>{actions}</div>}
       </div>
     </div>
-  );
+  )
 }
 ```
 
@@ -3214,54 +3206,52 @@ git commit -m "feat: 共通UIコンポーネント（Button, Dialog）を追加"
 `src/components/Setup/Setup.tsx`:
 
 ```tsx
-import { useState } from 'react';
-import { TOKENS } from '../../game/types';
-import Button from '../common/Button';
-import styles from './Setup.module.css';
+import { useState } from 'react'
+import { TOKENS } from '../../game/types'
+import Button from '../common/Button'
+import styles from './Setup.module.css'
 
 type SetupProps = {
-  onStart: (names: string[], tokens: string[]) => void;
-};
+  onStart: (names: string[], tokens: string[]) => void
+}
 
 const DEFAULT_NAMES = [
   'プレイヤー1',
   'プレイヤー2',
   'プレイヤー3',
   'プレイヤー4',
-];
+]
 
 export default function Setup({ onStart }: SetupProps) {
-  const [playerCount, setPlayerCount] = useState(2);
-  const [names, setNames] = useState(DEFAULT_NAMES);
+  const [playerCount, setPlayerCount] = useState(2)
+  const [names, setNames] = useState(DEFAULT_NAMES)
   const [selectedTokens, setSelectedTokens] = useState([
     TOKENS[0],
     TOKENS[1],
     TOKENS[2],
     TOKENS[3],
-  ]);
+  ])
 
   const handleNameChange = (index: number, name: string) => {
-    const newNames = [...names];
-    newNames[index] = name;
-    setNames(newNames);
-  };
+    const newNames = [...names]
+    newNames[index] = name
+    setNames(newNames)
+  }
 
   const handleTokenChange = (playerIndex: number, token: string) => {
-    const newTokens = [...selectedTokens];
+    const newTokens = [...selectedTokens]
     // 他のプレイヤーが同じトークンを使っていたら交換
     const existingIndex = newTokens.findIndex(
       (t, i) => t === token && i !== playerIndex,
-    );
+    )
     if (existingIndex !== -1) {
-      newTokens[existingIndex] = newTokens[playerIndex];
+      newTokens[existingIndex] = newTokens[playerIndex]
     }
-    newTokens[playerIndex] = token;
-    setSelectedTokens(newTokens);
-  };
+    newTokens[playerIndex] = token
+    setSelectedTokens(newTokens)
+  }
 
-  const canStart = names
-    .slice(0, playerCount)
-    .every((n) => n.trim().length > 0);
+  const canStart = names.slice(0, playerCount).every((n) => n.trim().length > 0)
 
   return (
     <div className={styles.setup}>
@@ -3325,7 +3315,7 @@ export default function Setup({ onStart }: SetupProps) {
         ゲームスタート！
       </Button>
     </div>
-  );
+  )
 }
 ```
 
@@ -3334,17 +3324,17 @@ export default function Setup({ onStart }: SetupProps) {
 `src/App.tsx`:
 
 ```tsx
-import { useReducer } from 'react';
-import { gameReducer, createInitialGameState } from './game/reducer';
-import Setup from './components/Setup/Setup';
-import styles from './App.module.css';
+import { useReducer } from 'react'
+import { gameReducer, createInitialGameState } from './game/reducer'
+import Setup from './components/Setup/Setup'
+import styles from './App.module.css'
 
 export default function App() {
   const [state, dispatch] = useReducer(
     gameReducer,
     undefined,
     createInitialGameState,
-  );
+  )
 
   if (state.phase === 'setup') {
     return (
@@ -3359,7 +3349,7 @@ export default function App() {
           }
         />
       </div>
-    );
+    )
   }
 
   return (
@@ -3370,7 +3360,7 @@ export default function App() {
         {state.players[state.currentPlayerIndex].name}のばん
       </p>
     </div>
-  );
+  )
 }
 ```
 
@@ -3461,46 +3451,46 @@ git commit -m "feat: ゲームセットアップ画面を追加"
 `src/components/Dice/Dice.tsx`:
 
 ```tsx
-import { useState, useEffect } from 'react';
-import styles from './Dice.module.css';
+import { useState, useEffect } from 'react'
+import styles from './Dice.module.css'
 
-const DICE_FACES = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+const DICE_FACES = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅']
 
 type DiceProps = {
-  values: [number, number];
-  rolling: boolean;
-  onRollComplete?: () => void;
-};
+  values: [number, number]
+  rolling: boolean
+  onRollComplete?: () => void
+}
 
 export default function Dice({ values, rolling, onRollComplete }: DiceProps) {
-  const [displayValues, setDisplayValues] = useState(values);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [displayValues, setDisplayValues] = useState(values)
+  const [isAnimating, setIsAnimating] = useState(false)
 
   useEffect(() => {
     if (rolling) {
-      setIsAnimating(true);
+      setIsAnimating(true)
       // ランダムな数字を表示するアニメーション
-      let count = 0;
+      let count = 0
       const interval = setInterval(() => {
         setDisplayValues([
           Math.floor(Math.random() * 6) + 1,
           Math.floor(Math.random() * 6) + 1,
-        ]);
-        count++;
+        ])
+        count++
         if (count >= 8) {
-          clearInterval(interval);
-          setDisplayValues(values);
-          setIsAnimating(false);
-          onRollComplete?.();
+          clearInterval(interval)
+          setDisplayValues(values)
+          setIsAnimating(false)
+          onRollComplete?.()
         }
-      }, 100);
-      return () => clearInterval(interval);
+      }, 100)
+      return () => clearInterval(interval)
     } else {
-      setDisplayValues(values);
+      setDisplayValues(values)
     }
-  }, [rolling, values, onRollComplete]);
+  }, [rolling, values, onRollComplete])
 
-  const isDoubles = values[0] === values[1];
+  const isDoubles = values[0] === values[1]
 
   return (
     <div>
@@ -3520,7 +3510,7 @@ export default function Dice({ values, rolling, onRollComplete }: DiceProps) {
         <div className={styles.diceResult}>ゾロ目！</div>
       )}
     </div>
-  );
+  )
 }
 ```
 
@@ -3631,14 +3621,14 @@ git commit -m "feat: サイコロアニメーションコンポーネントを�
 `src/components/PlayerPanel/PlayerPanel.tsx`:
 
 ```tsx
-import type { Player } from '../../game/types';
-import styles from './PlayerPanel.module.css';
+import type { Player } from '../../game/types'
+import styles from './PlayerPanel.module.css'
 
 type PlayerPanelProps = {
-  currentPlayer: Player;
-  allPlayers: Player[];
-  currentPlayerIndex: number;
-};
+  currentPlayer: Player
+  allPlayers: Player[]
+  currentPlayerIndex: number
+}
 
 export default function PlayerPanel({
   currentPlayer,
@@ -3671,7 +3661,7 @@ export default function PlayerPanel({
         ))}
       </div>
     </>
-  );
+  )
 }
 ```
 
@@ -3830,8 +3820,8 @@ import type {
   Player,
   PropertyState,
   ColorGroup,
-} from '../../game/types';
-import styles from './Board.module.css';
+} from '../../game/types'
+import styles from './Board.module.css'
 
 const COLOR_MAP: Record<ColorGroup, string> = {
   brown: 'var(--color-brown)',
@@ -3842,15 +3832,15 @@ const COLOR_MAP: Record<ColorGroup, string> = {
   yellow: 'var(--color-yellow)',
   green: 'var(--color-green)',
   blue: 'var(--color-blue)',
-};
+}
 
 type SpaceCardProps = {
-  space: BoardSpace;
-  propertyState?: PropertyState;
-  players: Player[];
-  isCurrent: boolean;
-  owner?: Player;
-};
+  space: BoardSpace
+  propertyState?: PropertyState
+  players: Player[]
+  isCurrent: boolean
+  owner?: Player
+}
 
 export default function SpaceCard({
   space,
@@ -3861,10 +3851,10 @@ export default function SpaceCard({
 }: SpaceCardProps) {
   const playersHere = players.filter(
     (p) => p.position === space.position && !p.isBankrupt,
-  );
-  const houses = propertyState?.houses ?? 0;
+  )
+  const houses = propertyState?.houses ?? 0
   const houseDisplay =
-    houses === 5 ? '🏨' : houses > 0 ? '🏠'.repeat(houses) : '';
+    houses === 5 ? '🏨' : houses > 0 ? '🏠'.repeat(houses) : ''
 
   return (
     <div
@@ -3897,7 +3887,7 @@ export default function SpaceCard({
         <div className={styles.spacePrice}>💤 あずけ中</div>
       )}
     </div>
-  );
+  )
 }
 ```
 
@@ -3906,17 +3896,17 @@ export default function SpaceCard({
 `src/components/Board/FocusView.tsx`:
 
 ```tsx
-import { useRef, useEffect } from 'react';
-import type { BoardSpace, Player, PropertyState } from '../../game/types';
-import SpaceCard from './SpaceCard';
-import styles from './Board.module.css';
+import { useRef, useEffect } from 'react'
+import type { BoardSpace, Player, PropertyState } from '../../game/types'
+import SpaceCard from './SpaceCard'
+import styles from './Board.module.css'
 
 type FocusViewProps = {
-  board: BoardSpace[];
-  propertyStates: Record<string, PropertyState>;
-  players: Player[];
-  currentPosition: number;
-};
+  board: BoardSpace[]
+  propertyStates: Record<string, PropertyState>
+  players: Player[]
+  currentPosition: number
+}
 
 export default function FocusView({
   board,
@@ -3924,38 +3914,38 @@ export default function FocusView({
   players,
   currentPosition,
 }: FocusViewProps) {
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   // 現在位置の前後2マスを表示（合計5マス）
-  const visibleRange = 2;
-  const indices: number[] = [];
+  const visibleRange = 2
+  const indices: number[] = []
   for (let i = -visibleRange; i <= visibleRange; i++) {
-    indices.push((currentPosition + i + 40) % 40);
+    indices.push((currentPosition + i + 40) % 40)
   }
 
   useEffect(() => {
     // 中央のカード（現在位置）にスクロール
     if (scrollRef.current) {
-      const cards = scrollRef.current.children;
-      const centerCard = cards[visibleRange] as HTMLElement;
+      const cards = scrollRef.current.children
+      const centerCard = cards[visibleRange] as HTMLElement
       if (centerCard) {
         centerCard.scrollIntoView({
           behavior: 'smooth',
           block: 'nearest',
           inline: 'center',
-        });
+        })
       }
     }
-  }, [currentPosition]);
+  }, [currentPosition])
 
   return (
     <div className={styles.focusView} ref={scrollRef}>
       {indices.map((pos) => {
-        const space = board[pos];
-        const propState = propertyStates[space.id];
+        const space = board[pos]
+        const propState = propertyStates[space.id]
         const owner = propState?.ownerId
           ? players.find((p) => p.id === propState.ownerId)
-          : undefined;
+          : undefined
 
         return (
           <SpaceCard
@@ -3966,10 +3956,10 @@ export default function FocusView({
             isCurrent={pos === currentPosition}
             owner={owner}
           />
-        );
+        )
       })}
     </div>
-  );
+  )
 }
 ```
 
@@ -3983,8 +3973,8 @@ import type {
   Player,
   PropertyState,
   ColorGroup,
-} from '../../game/types';
-import styles from './Board.module.css';
+} from '../../game/types'
+import styles from './Board.module.css'
 
 const COLOR_MAP: Record<ColorGroup, string> = {
   brown: 'var(--color-brown)',
@@ -3995,29 +3985,29 @@ const COLOR_MAP: Record<ColorGroup, string> = {
   yellow: 'var(--color-yellow)',
   green: 'var(--color-green)',
   blue: 'var(--color-blue)',
-};
+}
 
 type MiniMapProps = {
-  board: BoardSpace[];
-  propertyStates: Record<string, PropertyState>;
-  players: Player[];
-  onSpaceClick: (position: number) => void;
-};
+  board: BoardSpace[]
+  propertyStates: Record<string, PropertyState>
+  players: Player[]
+  onSpaceClick: (position: number) => void
+}
 
 /** ボード位置 → CSSグリッドの(row, col)。モノポボードの外周を時計回りに配置。 */
 function getGridPosition(position: number): { row: number; col: number } {
   if (position <= 10) {
     // 下辺: 左から右 (row=11, col=11-position)
-    return { row: 11, col: 11 - position };
+    return { row: 11, col: 11 - position }
   } else if (position <= 20) {
     // 左辺: 下から上 (col=1, row=11-(position-10))
-    return { row: 11 - (position - 10), col: 1 };
+    return { row: 11 - (position - 10), col: 1 }
   } else if (position <= 30) {
     // 上辺: 左から右 (row=1, col=position-20+1)
-    return { row: 1, col: position - 20 + 1 };
+    return { row: 1, col: position - 20 + 1 }
   } else {
     // 右辺: 上から下 (col=11, row=position-30+1)
-    return { row: position - 30 + 1, col: 11 };
+    return { row: position - 30 + 1, col: 11 }
   }
 }
 
@@ -4027,17 +4017,17 @@ export default function MiniMap({
   players,
   onSpaceClick,
 }: MiniMapProps) {
-  const activePlayers = players.filter((p) => !p.isBankrupt);
+  const activePlayers = players.filter((p) => !p.isBankrupt)
 
   return (
     <div className={styles.miniMap}>
       <div className={styles.miniMapBoard}>
         {board.map((space) => {
-          const { row, col } = getGridPosition(space.position);
+          const { row, col } = getGridPosition(space.position)
           const playersHere = activePlayers.filter(
             (p) => p.position === space.position,
-          );
-          const propState = propertyStates[space.id];
+          )
+          const propState = propertyStates[space.id]
 
           return (
             <div
@@ -4065,12 +4055,12 @@ export default function MiniMap({
                 </span>
               ))}
             </div>
-          );
+          )
         })}
         <div className={styles.miniCenter}>🎲</div>
       </div>
     </div>
-  );
+  )
 }
 ```
 
@@ -4222,17 +4212,17 @@ git commit -m "feat: ボード表示コンポーネント（フォーカスビ�
 `src/components/ActionDialog/PurchaseDialog.tsx`:
 
 ```tsx
-import type { BoardSpace, Player } from '../../game/types';
-import Dialog from '../common/Dialog';
-import Button from '../common/Button';
-import styles from './ActionDialog.module.css';
+import type { BoardSpace, Player } from '../../game/types'
+import Dialog from '../common/Dialog'
+import Button from '../common/Button'
+import styles from './ActionDialog.module.css'
 
 type PurchaseDialogProps = {
-  space: BoardSpace;
-  player: Player;
-  onBuy: () => void;
-  onDecline: () => void;
-};
+  space: BoardSpace
+  player: Player
+  onBuy: () => void
+  onDecline: () => void
+}
 
 export default function PurchaseDialog({
   space,
@@ -4240,7 +4230,7 @@ export default function PurchaseDialog({
   onBuy,
   onDecline,
 }: PurchaseDialogProps) {
-  const canAfford = player.money >= (space.price ?? 0);
+  const canAfford = player.money >= (space.price ?? 0)
 
   return (
     <Dialog
@@ -4268,7 +4258,7 @@ export default function PurchaseDialog({
         )}
       </div>
     </Dialog>
-  );
+  )
 }
 ```
 
@@ -4277,18 +4267,18 @@ export default function PurchaseDialog({
 `src/components/ActionDialog/AuctionDialog.tsx`:
 
 ```tsx
-import type { AuctionState, Player } from '../../game/types';
-import { BOARD_SPACES } from '../../game/board';
-import Dialog from '../common/Dialog';
-import Button from '../common/Button';
-import styles from './ActionDialog.module.css';
+import type { AuctionState, Player } from '../../game/types'
+import { BOARD_SPACES } from '../../game/board'
+import Dialog from '../common/Dialog'
+import Button from '../common/Button'
+import styles from './ActionDialog.module.css'
 
 type AuctionDialogProps = {
-  auction: AuctionState;
-  players: Player[];
-  onBid: (amount: number) => void;
-  onPass: () => void;
-};
+  auction: AuctionState
+  players: Player[]
+  onBid: (amount: number) => void
+  onPass: () => void
+}
 
 export default function AuctionDialog({
   auction,
@@ -4296,11 +4286,11 @@ export default function AuctionDialog({
   onBid,
   onPass,
 }: AuctionDialogProps) {
-  const space = BOARD_SPACES.find((s) => s.id === auction.propertyId)!;
-  const activePlayer = players[auction.activePlayerIndex];
+  const space = BOARD_SPACES.find((s) => s.id === auction.propertyId)!
+  const activePlayer = players[auction.activePlayerIndex]
   const currentBidder = auction.currentBidderId
     ? players.find((p) => p.id === auction.currentBidderId)
-    : null;
+    : null
 
   return (
     <Dialog title="みんなでオークション！">
@@ -4346,7 +4336,7 @@ export default function AuctionDialog({
         </Button>
       </div>
     </Dialog>
-  );
+  )
 }
 ```
 
@@ -4355,19 +4345,19 @@ export default function AuctionDialog({
 `src/components/ActionDialog/CardDialog.tsx`:
 
 ```tsx
-import type { Card } from '../../game/types';
-import Dialog from '../common/Dialog';
-import Button from '../common/Button';
-import styles from './ActionDialog.module.css';
+import type { Card } from '../../game/types'
+import Dialog from '../common/Dialog'
+import Button from '../common/Button'
+import styles from './ActionDialog.module.css'
 
 type CardDialogProps = {
-  card: Card;
-  onDismiss: () => void;
-};
+  card: Card
+  onDismiss: () => void
+}
 
 export default function CardDialog({ card, onDismiss }: CardDialogProps) {
-  const emoji = card.type === 'chance' ? '❓' : '💝';
-  const title = card.type === 'chance' ? 'チャンスカード' : 'おたすけカード';
+  const emoji = card.type === 'chance' ? '❓' : '💝'
+  const title = card.type === 'chance' ? 'チャンスカード' : 'おたすけカード'
 
   return (
     <Dialog
@@ -4379,7 +4369,7 @@ export default function CardDialog({ card, onDismiss }: CardDialogProps) {
         <div>{card.text}</div>
       </div>
     </Dialog>
-  );
+  )
 }
 ```
 
@@ -4388,16 +4378,16 @@ export default function CardDialog({ card, onDismiss }: CardDialogProps) {
 `src/components/ActionDialog/JailDialog.tsx`:
 
 ```tsx
-import type { Player } from '../../game/types';
-import Dialog from '../common/Dialog';
-import Button from '../common/Button';
+import type { Player } from '../../game/types'
+import Dialog from '../common/Dialog'
+import Button from '../common/Button'
 
 type JailDialogProps = {
-  player: Player;
-  onPayFine: () => void;
-  onUseCard: () => void;
-  onRoll: () => void;
-};
+  player: Player
+  onPayFine: () => void
+  onUseCard: () => void
+  onRoll: () => void
+}
 
 export default function JailDialog({
   player,
@@ -4434,7 +4424,7 @@ export default function JailDialog({
         </Button>
       </div>
     </Dialog>
-  );
+  )
 }
 ```
 
@@ -4443,20 +4433,20 @@ export default function JailDialog({
 `src/components/ActionDialog/BuildDialog.tsx`:
 
 ```tsx
-import type { Player, PropertyState, BoardSpace } from '../../game/types';
-import { canBuildHouse, canSellHouse } from '../../game/rules';
-import { BOARD_SPACES } from '../../game/board';
-import Dialog from '../common/Dialog';
-import Button from '../common/Button';
-import styles from './ActionDialog.module.css';
+import type { Player, PropertyState, BoardSpace } from '../../game/types'
+import { canBuildHouse, canSellHouse } from '../../game/rules'
+import { BOARD_SPACES } from '../../game/board'
+import Dialog from '../common/Dialog'
+import Button from '../common/Button'
+import styles from './ActionDialog.module.css'
 
 type BuildDialogProps = {
-  player: Player;
-  propertyStates: Record<string, PropertyState>;
-  onBuild: (propertyId: string) => void;
-  onSell: (propertyId: string) => void;
-  onClose: () => void;
-};
+  player: Player
+  propertyStates: Record<string, PropertyState>
+  onBuild: (propertyId: string) => void
+  onSell: (propertyId: string) => void
+  onClose: () => void
+}
 
 export default function BuildDialog({
   player,
@@ -4470,7 +4460,7 @@ export default function BuildDialog({
       space: BOARD_SPACES.find((s) => s.id === id)!,
       state: propertyStates[id],
     }))
-    .filter(({ space }) => space.type === 'property');
+    .filter(({ space }) => space.type === 'property')
 
   return (
     <Dialog
@@ -4499,17 +4489,17 @@ export default function BuildDialog({
             player.id,
             propertyStates,
             BOARD_SPACES,
-          );
+          )
           const canSellH = canSellHouse(
             space.id,
             player.id,
             propertyStates,
             BOARD_SPACES,
-          );
-          const houses = state?.houses ?? 0;
+          )
+          const houses = state?.houses ?? 0
           const houseLabel =
-            houses === 5 ? '🏨' : houses > 0 ? '🏠'.repeat(houses) : 'なし';
-          const costOk = player.money >= (space.houseCost ?? 0);
+            houses === 5 ? '🏨' : houses > 0 ? '🏠'.repeat(houses) : 'なし'
+          const costOk = player.money >= (space.houseCost ?? 0)
 
           return (
             <div key={space.id} className={styles.buildItem}>
@@ -4537,11 +4527,11 @@ export default function BuildDialog({
                 </Button>
               </div>
             </div>
-          );
+          )
         })}
       </div>
     </Dialog>
-  );
+  )
 }
 ```
 
@@ -4550,20 +4540,20 @@ export default function BuildDialog({
 `src/components/ActionDialog/MortgageDialog.tsx`:
 
 ```tsx
-import type { Player, PropertyState } from '../../game/types';
-import { canMortgage, canUnmortgage } from '../../game/rules';
-import { BOARD_SPACES } from '../../game/board';
-import Dialog from '../common/Dialog';
-import Button from '../common/Button';
-import styles from './ActionDialog.module.css';
+import type { Player, PropertyState } from '../../game/types'
+import { canMortgage, canUnmortgage } from '../../game/rules'
+import { BOARD_SPACES } from '../../game/board'
+import Dialog from '../common/Dialog'
+import Button from '../common/Button'
+import styles from './ActionDialog.module.css'
 
 type MortgageDialogProps = {
-  player: Player;
-  propertyStates: Record<string, PropertyState>;
-  onMortgage: (propertyId: string) => void;
-  onUnmortgage: (propertyId: string) => void;
-  onClose: () => void;
-};
+  player: Player
+  propertyStates: Record<string, PropertyState>
+  onMortgage: (propertyId: string) => void
+  onUnmortgage: (propertyId: string) => void
+  onClose: () => void
+}
 
 export default function MortgageDialog({
   player,
@@ -4575,7 +4565,7 @@ export default function MortgageDialog({
   const ownedProperties = player.properties.map((id) => ({
     space: BOARD_SPACES.find((s) => s.id === id)!,
     state: propertyStates[id],
-  }));
+  }))
 
   return (
     <Dialog
@@ -4599,22 +4589,22 @@ export default function MortgageDialog({
           </div>
         )}
         {ownedProperties.map(({ space, state }) => {
-          const isMortgaged = state?.isMortgaged ?? false;
+          const isMortgaged = state?.isMortgaged ?? false
           const canM = canMortgage(
             space.id,
             player.id,
             propertyStates,
             BOARD_SPACES,
-          );
+          )
           const canU = canUnmortgage(
             space.id,
             player.id,
             player,
             propertyStates,
             BOARD_SPACES,
-          );
-          const mortgageValue = space.mortgageValue ?? 0;
-          const unmortgageCost = Math.floor(mortgageValue * 1.1);
+          )
+          const mortgageValue = space.mortgageValue ?? 0
+          const unmortgageCost = Math.floor(mortgageValue * 1.1)
 
           return (
             <div key={space.id} className={styles.buildItem}>
@@ -4648,11 +4638,11 @@ export default function MortgageDialog({
                 </Button>
               )}
             </div>
-          );
+          )
         })}
       </div>
     </Dialog>
-  );
+  )
 }
 ```
 
@@ -4661,20 +4651,20 @@ export default function MortgageDialog({
 `src/components/ActionDialog/TradeDialog.tsx`:
 
 ```tsx
-import { useState } from 'react';
-import type { Player, PropertyState, TradeOffer } from '../../game/types';
-import { BOARD_SPACES } from '../../game/board';
-import Dialog from '../common/Dialog';
-import Button from '../common/Button';
-import styles from './ActionDialog.module.css';
+import { useState } from 'react'
+import type { Player, PropertyState, TradeOffer } from '../../game/types'
+import { BOARD_SPACES } from '../../game/board'
+import Dialog from '../common/Dialog'
+import Button from '../common/Button'
+import styles from './ActionDialog.module.css'
 
 type TradeDialogProps = {
-  currentPlayer: Player;
-  targetPlayer: Player;
-  propertyStates: Record<string, PropertyState>;
-  onPropose: (offer: TradeOffer) => void;
-  onClose: () => void;
-};
+  currentPlayer: Player
+  targetPlayer: Player
+  propertyStates: Record<string, PropertyState>
+  onPropose: (offer: TradeOffer) => void
+  onClose: () => void
+}
 
 export default function TradeDialog({
   currentPlayer,
@@ -4683,25 +4673,25 @@ export default function TradeDialog({
   onPropose,
   onClose,
 }: TradeDialogProps) {
-  const [offerProps, setOfferProps] = useState<string[]>([]);
-  const [requestProps, setRequestProps] = useState<string[]>([]);
-  const [offerMoney, setOfferMoney] = useState(0);
-  const [requestMoney, setRequestMoney] = useState(0);
+  const [offerProps, setOfferProps] = useState<string[]>([])
+  const [requestProps, setRequestProps] = useState<string[]>([])
+  const [offerMoney, setOfferMoney] = useState(0)
+  const [requestMoney, setRequestMoney] = useState(0)
 
   const toggleProp = (
     list: string[],
     setList: (v: string[]) => void,
     id: string,
   ) => {
-    setList(list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
-  };
+    setList(list.includes(id) ? list.filter((x) => x !== id) : [...list, id])
+  }
 
   const myProps = currentPlayer.properties
     .filter((id) => !(propertyStates[id]?.houses > 0))
-    .map((id) => BOARD_SPACES.find((s) => s.id === id)!);
+    .map((id) => BOARD_SPACES.find((s) => s.id === id)!)
   const theirProps = targetPlayer.properties
     .filter((id) => !(propertyStates[id]?.houses > 0))
-    .map((id) => BOARD_SPACES.find((s) => s.id === id)!);
+    .map((id) => BOARD_SPACES.find((s) => s.id === id)!)
 
   return (
     <Dialog title={`🤝 ${targetPlayer.name}と交換`}>
@@ -4806,7 +4796,7 @@ export default function TradeDialog({
         </Button>
       </div>
     </Dialog>
-  );
+  )
 }
 ```
 
@@ -4815,15 +4805,15 @@ export default function TradeDialog({
 `src/components/ActionDialog/BankruptDialog.tsx`:
 
 ```tsx
-import type { Player } from '../../game/types';
-import Dialog from '../common/Dialog';
-import Button from '../common/Button';
+import type { Player } from '../../game/types'
+import Dialog from '../common/Dialog'
+import Button from '../common/Button'
 
 type BankruptDialogProps = {
-  player: Player;
-  creditorId: string | null;
-  onDeclare: () => void;
-};
+  player: Player
+  creditorId: string | null
+  onDeclare: () => void
+}
 
 export default function BankruptDialog({
   player,
@@ -4854,7 +4844,7 @@ export default function BankruptDialog({
         </p>
       </div>
     </Dialog>
-  );
+  )
 }
 ```
 
@@ -4921,51 +4911,51 @@ export default function BankruptDialog({
 `src/components/GameBoard/GameBoard.tsx`:
 
 ```tsx
-import { useState, useCallback } from 'react';
-import type { GameState } from '../../game/types';
-import type { GameAction } from '../../game/actions';
-import { BOARD_SPACES } from '../../game/board';
-import PlayerPanel from '../PlayerPanel/PlayerPanel';
-import FocusView from '../Board/FocusView';
-import MiniMap from '../Board/MiniMap';
-import Dice from '../Dice/Dice';
-import Button from '../common/Button';
-import PurchaseDialog from '../ActionDialog/PurchaseDialog';
-import AuctionDialog from '../ActionDialog/AuctionDialog';
-import CardDialog from '../ActionDialog/CardDialog';
-import JailDialog from '../ActionDialog/JailDialog';
-import BuildDialog from '../ActionDialog/BuildDialog';
-import MortgageDialog from '../ActionDialog/MortgageDialog';
-import TradeDialog from '../ActionDialog/TradeDialog';
-import BankruptDialog from '../ActionDialog/BankruptDialog';
-import styles from './GameBoard.module.css';
+import { useState, useCallback } from 'react'
+import type { GameState } from '../../game/types'
+import type { GameAction } from '../../game/actions'
+import { BOARD_SPACES } from '../../game/board'
+import PlayerPanel from '../PlayerPanel/PlayerPanel'
+import FocusView from '../Board/FocusView'
+import MiniMap from '../Board/MiniMap'
+import Dice from '../Dice/Dice'
+import Button from '../common/Button'
+import PurchaseDialog from '../ActionDialog/PurchaseDialog'
+import AuctionDialog from '../ActionDialog/AuctionDialog'
+import CardDialog from '../ActionDialog/CardDialog'
+import JailDialog from '../ActionDialog/JailDialog'
+import BuildDialog from '../ActionDialog/BuildDialog'
+import MortgageDialog from '../ActionDialog/MortgageDialog'
+import TradeDialog from '../ActionDialog/TradeDialog'
+import BankruptDialog from '../ActionDialog/BankruptDialog'
+import styles from './GameBoard.module.css'
 
 type GameBoardProps = {
-  state: GameState;
-  dispatch: React.Dispatch<GameAction>;
-};
+  state: GameState
+  dispatch: React.Dispatch<GameAction>
+}
 
 export default function GameBoard({ state, dispatch }: GameBoardProps) {
-  const [isRolling, setIsRolling] = useState(false);
-  const [showTradeSelect, setShowTradeSelect] = useState(false);
-  const [focusPosition, setFocusPosition] = useState<number | null>(null);
+  const [isRolling, setIsRolling] = useState(false)
+  const [showTradeSelect, setShowTradeSelect] = useState(false)
+  const [focusPosition, setFocusPosition] = useState<number | null>(null)
 
-  const currentPlayer = state.players[state.currentPlayerIndex];
-  const currentSpace = BOARD_SPACES[currentPlayer.position];
-  const propState = state.propertyStates[currentSpace.id];
+  const currentPlayer = state.players[state.currentPlayerIndex]
+  const currentSpace = BOARD_SPACES[currentPlayer.position]
+  const propState = state.propertyStates[currentSpace.id]
 
   const handleRoll = () => {
-    setIsRolling(true);
-    dispatch({ type: 'ROLL_DICE' });
-  };
+    setIsRolling(true)
+    dispatch({ type: 'ROLL_DICE' })
+  }
 
   const handleRollComplete = useCallback(() => {
-    setIsRolling(false);
+    setIsRolling(false)
     // 少し遅延させてから移動完了
     setTimeout(() => {
-      dispatch({ type: 'FINISH_MOVING' });
-    }, 500);
-  }, [dispatch]);
+      dispatch({ type: 'FINISH_MOVING' })
+    }, 500)
+  }, [dispatch])
 
   // 物件購入ダイアログ表示判定
   const showPurchase =
@@ -4974,23 +4964,22 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
       currentSpace.type === 'railroad' ||
       currentSpace.type === 'utility') &&
     !propState?.ownerId &&
-    !state.currentCard;
+    !state.currentCard
 
   // カードを引くフェーズ判定
   const showDrawCard =
     state.turnPhase === 'action' &&
     (currentSpace.type === 'chance' ||
       currentSpace.type === 'communityChest') &&
-    !state.currentCard;
+    !state.currentCard
 
   // 税金支払い判定
-  const showPayTax =
-    state.turnPhase === 'action' && currentSpace.type === 'tax';
+  const showPayTax = state.turnPhase === 'action' && currentSpace.type === 'tax'
 
   // 刑務所にいるプレイヤーのターン
-  const showJail = state.turnPhase === 'roll' && currentPlayer.inJail;
+  const showJail = state.turnPhase === 'roll' && currentPlayer.inJail
 
-  const displayPosition = focusPosition ?? currentPlayer.position;
+  const displayPosition = focusPosition ?? currentPlayer.position
 
   return (
     <div className={styles.gameBoard}>
@@ -5053,8 +5042,8 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
             variant="secondary"
             size="large"
             onClick={() => {
-              setFocusPosition(null);
-              dispatch({ type: 'END_TURN' });
+              setFocusPosition(null)
+              dispatch({ type: 'END_TURN' })
             }}
           >
             つぎの人にわたす →
@@ -5203,11 +5192,11 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                   key={p.id}
                   variant="ghost"
                   onClick={() => {
-                    setShowTradeSelect(false);
+                    setShowTradeSelect(false)
                     dispatch({
                       type: 'OPEN_TRADE_DIALOG',
                       targetPlayerId: p.id,
-                    });
+                    })
                   }}
                   style={{ width: '100%', marginBottom: 8 }}
                 >
@@ -5226,7 +5215,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
         </div>
       )}
     </div>
-  );
+  )
 }
 ```
 
@@ -5235,18 +5224,18 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
 `src/App.tsx`:
 
 ```tsx
-import { useReducer } from 'react';
-import { gameReducer, createInitialGameState } from './game/reducer';
-import Setup from './components/Setup/Setup';
-import GameBoard from './components/GameBoard/GameBoard';
-import styles from './App.module.css';
+import { useReducer } from 'react'
+import { gameReducer, createInitialGameState } from './game/reducer'
+import Setup from './components/Setup/Setup'
+import GameBoard from './components/GameBoard/GameBoard'
+import styles from './App.module.css'
 
 export default function App() {
   const [state, dispatch] = useReducer(
     gameReducer,
     undefined,
     createInitialGameState,
-  );
+  )
 
   if (state.phase === 'setup') {
     return (
@@ -5261,11 +5250,11 @@ export default function App() {
           }
         />
       </div>
-    );
+    )
   }
 
   if (state.phase === 'finished') {
-    const winner = state.players.find((p) => p.id === state.winnerId)!;
+    const winner = state.players.find((p) => p.id === state.winnerId)!
     return (
       <div className={styles.app}>
         <div
@@ -5303,14 +5292,14 @@ export default function App() {
           </button>
         </div>
       </div>
-    );
+    )
   }
 
   return (
     <div className={styles.app}>
       <GameBoard state={state} dispatch={dispatch} />
     </div>
-  );
+  )
 }
 ```
 
@@ -5347,17 +5336,17 @@ Howler.jsの代わりに、Web Audio APIで直接サウンドを生成する方�
 `src/sound/sounds.ts`:
 
 ```typescript
-let audioContext: AudioContext | null = null;
+let audioContext: AudioContext | null = null
 
 function getContext(): AudioContext {
   if (!audioContext) {
-    audioContext = new AudioContext();
+    audioContext = new AudioContext()
   }
-  return audioContext;
+  return audioContext
 }
 
 export function initAudio() {
-  getContext();
+  getContext()
 }
 
 function playTone(
@@ -5366,104 +5355,104 @@ function playTone(
   type: OscillatorType = 'sine',
   volume = 0.3,
 ) {
-  const ctx = getContext();
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
+  const ctx = getContext()
+  const osc = ctx.createOscillator()
+  const gain = ctx.createGain()
 
-  osc.type = type;
-  osc.frequency.setValueAtTime(frequency, ctx.currentTime);
-  gain.gain.setValueAtTime(volume, ctx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+  osc.type = type
+  osc.frequency.setValueAtTime(frequency, ctx.currentTime)
+  gain.gain.setValueAtTime(volume, ctx.currentTime)
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration)
 
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-  osc.start(ctx.currentTime);
-  osc.stop(ctx.currentTime + duration);
+  osc.connect(gain)
+  gain.connect(ctx.destination)
+  osc.start(ctx.currentTime)
+  osc.stop(ctx.currentTime + duration)
 }
 
 function playNoise(duration: number, volume = 0.1) {
-  const ctx = getContext();
-  const bufferSize = ctx.sampleRate * duration;
-  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-  const data = buffer.getChannelData(0);
+  const ctx = getContext()
+  const bufferSize = ctx.sampleRate * duration
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
+  const data = buffer.getChannelData(0)
   for (let i = 0; i < bufferSize; i++) {
-    data[i] = Math.random() * 2 - 1;
+    data[i] = Math.random() * 2 - 1
   }
 
-  const source = ctx.createBufferSource();
-  const gain = ctx.createGain();
-  source.buffer = buffer;
-  gain.gain.setValueAtTime(volume, ctx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+  const source = ctx.createBufferSource()
+  const gain = ctx.createGain()
+  source.buffer = buffer
+  gain.gain.setValueAtTime(volume, ctx.currentTime)
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration)
 
-  source.connect(gain);
-  gain.connect(ctx.destination);
-  source.start();
+  source.connect(gain)
+  gain.connect(ctx.destination)
+  source.start()
 }
 
 export const SoundEffects = {
   diceRoll: () => {
     // コロコロ音
     for (let i = 0; i < 6; i++) {
-      setTimeout(() => playNoise(0.05, 0.15), i * 80);
+      setTimeout(() => playNoise(0.05, 0.15), i * 80)
     }
   },
 
   land: () => {
     // ポン
-    playTone(400, 0.15, 'sine', 0.2);
+    playTone(400, 0.15, 'sine', 0.2)
   },
 
   moneyGain: () => {
     // チャリン
-    playTone(800, 0.1, 'sine', 0.2);
-    setTimeout(() => playTone(1200, 0.15, 'sine', 0.2), 100);
+    playTone(800, 0.1, 'sine', 0.2)
+    setTimeout(() => playTone(1200, 0.15, 'sine', 0.2), 100)
   },
 
   moneyLoss: () => {
     // シュッ
-    playTone(400, 0.2, 'sawtooth', 0.1);
+    playTone(400, 0.2, 'sawtooth', 0.1)
   },
 
   purchase: () => {
     // ピンポン
-    playTone(523, 0.15, 'sine', 0.2);
-    setTimeout(() => playTone(659, 0.15, 'sine', 0.2), 150);
-    setTimeout(() => playTone(784, 0.2, 'sine', 0.2), 300);
+    playTone(523, 0.15, 'sine', 0.2)
+    setTimeout(() => playTone(659, 0.15, 'sine', 0.2), 150)
+    setTimeout(() => playTone(784, 0.2, 'sine', 0.2), 300)
   },
 
   build: () => {
     // トントン
-    playTone(200, 0.08, 'square', 0.15);
-    setTimeout(() => playTone(250, 0.08, 'square', 0.15), 150);
+    playTone(200, 0.08, 'square', 0.15)
+    setTimeout(() => playTone(250, 0.08, 'square', 0.15), 150)
   },
 
   jail: () => {
     // ガシャン
-    playNoise(0.3, 0.2);
-    playTone(150, 0.3, 'sawtooth', 0.15);
+    playNoise(0.3, 0.2)
+    playTone(150, 0.3, 'sawtooth', 0.15)
   },
 
   card: () => {
     // ペラッ
-    playNoise(0.1, 0.1);
-    playTone(600, 0.1, 'sine', 0.1);
+    playNoise(0.1, 0.1)
+    playTone(600, 0.1, 'sine', 0.1)
   },
 
   bankrupt: () => {
     // ドーン
-    playTone(100, 0.5, 'sawtooth', 0.2);
-    playTone(80, 0.6, 'sine', 0.15);
+    playTone(100, 0.5, 'sawtooth', 0.2)
+    playTone(80, 0.6, 'sine', 0.15)
   },
 
   win: () => {
     // ファンファーレ
-    const notes = [523, 659, 784, 1047];
+    const notes = [523, 659, 784, 1047]
     notes.forEach((freq, i) => {
-      setTimeout(() => playTone(freq, 0.3, 'sine', 0.25), i * 200);
-    });
+      setTimeout(() => playTone(freq, 0.3, 'sine', 0.25), i * 200)
+    })
   },
-};
+}
 ```
 
 - [ ] **Step 2: SoundContext作成**
@@ -5477,54 +5466,54 @@ import {
   useState,
   useCallback,
   type ReactNode,
-} from 'react';
-import { SoundEffects, initAudio } from './sounds';
+} from 'react'
+import { SoundEffects, initAudio } from './sounds'
 
 type SoundContextType = {
-  muted: boolean;
-  toggleMute: () => void;
-  play: (sound: keyof typeof SoundEffects) => void;
-};
+  muted: boolean
+  toggleMute: () => void
+  play: (sound: keyof typeof SoundEffects) => void
+}
 
 const SoundContext = createContext<SoundContextType>({
   muted: false,
   toggleMute: () => {},
   play: () => {},
-});
+})
 
 export function SoundProvider({ children }: { children: ReactNode }) {
-  const [muted, setMuted] = useState(false);
-  const [initialized, setInitialized] = useState(false);
+  const [muted, setMuted] = useState(false)
+  const [initialized, setInitialized] = useState(false)
 
   const play = useCallback(
     (sound: keyof typeof SoundEffects) => {
-      if (muted) return;
+      if (muted) return
       if (!initialized) {
-        initAudio();
-        setInitialized(true);
+        initAudio()
+        setInitialized(true)
       }
-      SoundEffects[sound]();
+      SoundEffects[sound]()
     },
     [muted, initialized],
-  );
+  )
 
   const toggleMute = useCallback(() => {
     if (!initialized) {
-      initAudio();
-      setInitialized(true);
+      initAudio()
+      setInitialized(true)
     }
-    setMuted((m) => !m);
-  }, [initialized]);
+    setMuted((m) => !m)
+  }, [initialized])
 
   return (
     <SoundContext.Provider value={{ muted, toggleMute, play }}>
       {children}
     </SoundContext.Provider>
-  );
+  )
 }
 
 export function useSound() {
-  return useContext(SoundContext);
+  return useContext(SoundContext)
 }
 ```
 
@@ -5533,11 +5522,11 @@ export function useSound() {
 `src/main.tsx`:
 
 ```tsx
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import { SoundProvider } from './sound/SoundContext';
-import App from './App';
-import './index.css';
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { SoundProvider } from './sound/SoundContext'
+import App from './App'
+import './index.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -5545,7 +5534,7 @@ createRoot(document.getElementById('root')!).render(
       <App />
     </SoundProvider>
   </StrictMode>,
-);
+)
 ```
 
 - [ ] **Step 4: GameBoardにサウンドを統合**
@@ -5553,23 +5542,23 @@ createRoot(document.getElementById('root')!).render(
 `src/components/GameBoard/GameBoard.tsx` の冒頭に追加:
 
 ```tsx
-import { useSound } from '../../sound/SoundContext';
+import { useSound } from '../../sound/SoundContext'
 ```
 
 コンポーネント内の先頭に追加:
 
 ```tsx
-const { play, muted, toggleMute } = useSound();
+const { play, muted, toggleMute } = useSound()
 ```
 
 `handleRoll`を修正:
 
 ```tsx
 const handleRoll = () => {
-  setIsRolling(true);
-  play('diceRoll');
-  dispatch({ type: 'ROLL_DICE' });
-};
+  setIsRolling(true)
+  play('diceRoll')
+  dispatch({ type: 'ROLL_DICE' })
+}
 ```
 
 ミュートボタンをreturnの最後に追加:
