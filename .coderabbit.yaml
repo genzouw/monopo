@@ -1,5 +1,91 @@
-language: 'ja'
+# CodeRabbit configuration
+# https://docs.coderabbit.ai/reference/configuration
+
+language: 'ja-JP'
+early_access: false
+enable_free_tier: true
+
 reviews:
-  poem: false
-  # ソロ運用でブランチ保護の承認必須要件を満たすため、全コメント resolve 時に CodeRabbit が approve に遷移するよう有効化
+  # 個人運営だが、main マージ後に Cloud Run / Cloudflare Pages の本番環境へ
+  # 自動デプロイされる前提のため検出漏れを避けたい。"assertive" で検出感度を
+  # 高めに維持し、ノイズが過剰になった場合は "chill" に戻すことも検討する。
+  profile: 'assertive'
+
+  # PR 全体に対する指針。path_instructions に "**/*" を入れるとファイル毎に
+  # 繰り返し適用されてノイズが増えるため、広範な指示は instructions に集約する。
+  instructions: |
+    変更がプロジェクト全体に与える影響や、アーキテクチャの観点など、広いスコープからコードレビューを行ってください。必ず日本語でコメントしてください。
+    メインブランチにマージされた場合に Cloud Run / Cloudflare Pages 上の本番環境にデプロイされることを考慮し、以下の観点を強調し、重要視して必ずレビューに盛り込んでください:
+    - 実行環境へのアクセス方法（認証情報、API キー、DB 接続文字列、内部 URL など）がコードやログから漏洩していないこと。
+    - 実行環境に不正にアクセスするための攻撃手法や脆弱性（インジェクション、認可不足、不適切な権限設定、CORS / CSRF / Secure Cookie / Secure Headers の設定崩れなど）が入り込んでいないこと。
+
+  # CodeRabbit を bot reviewer として動作させる。問題なしと判断した PR に対して
+  # Approve ステータスを返す。個人運営での self-merge 運用 (PR 作成者は自分の
+  # PR を承認できない GitHub 仕様) を補助する目的で有効化。Approve は最終判断
+  # ではなく補助。
   request_changes_workflow: true
+
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: true
+
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - main
+
+  path_instructions:
+    - path: 'backend/src/**/*.ts'
+      instructions: |
+        Hono + Better Auth + Drizzle 構成のサーバサイドコードとしてレビューしてください:
+        - 認可チェック (requireOperator / requireTenant 等のミドルウェア適用漏れ) が無いか。
+        - DB クエリでテナント境界 (tenant_id) の絞り込みが抜けていないか。
+        - 外部入力 (HTTP body / query / webhook payload) が zod 等で検証されているか。
+    - path: 'frontend/src/**/*.{ts,tsx}'
+      instructions: |
+        React + Vite + better-auth/react のクライアントコードとしてレビューしてください:
+        - 認証状態に依存する画面遷移・データ取得が SSR/CSR 境界で正しく扱われているか。
+        - 認証/権限が必要な API 呼び出しで credentials の送信が漏れていないか。
+        - ユーザー入力をそのまま innerHTML / dangerouslySetInnerHTML 等に流していないか。
+    - path: '.github/workflows/**'
+      instructions: |
+        GitHub Actions ワークフローとしてレビューしてください:
+        - シークレットの露出 (echo / set-output 経由のリーク) が無いか。
+        - 外部 action は SHA pin されているか。
+        - permissions: が最小権限になっているか。
+    - path: 'db/migrations/**'
+      instructions: |
+        Drizzle のマイグレーション SQL です。以下を必ず確認してください:
+        - 既存行に対して破壊的 (DROP COLUMN / NOT NULL 追加 / 型変更) になっていないか、なるなら backfill / default 設定が整合しているか。
+        - インデックス追加が大規模テーブルでロックを引き起こさないか (CONCURRENTLY の検討)。
+
+  # 生成物 / 依存物 / ロックファイルなどはレビュー対象から除外する。
+  path_filters:
+    - '!**/dist/**'
+    - '!**/build/**'
+    - '!**/coverage/**'
+    - '!**/node_modules/**'
+    - '!**/.wrangler/**'
+    - '!**/.turbo/**'
+    - '!**/.next/**'
+    - '!infra/cdktf.out/**'
+    - '!infra/.gen/**'
+    - '!**/bun.lock'
+    - '!**/package-lock.json'
+    - '!**/yarn.lock'
+    - '!**/pnpm-lock.yaml'
+    - '!**/*.min.js'
+    - '!**/*.min.css'
+    - '!**/*.map'
+    - '!**/*.snap'
+    - '!**/*.tsbuildinfo'
+
+  abort_on_close: true
+
+chat:
+  auto_reply: true
+
+knowledge_base:
+  opt_out: false

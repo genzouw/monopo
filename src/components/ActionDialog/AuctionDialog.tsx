@@ -1,20 +1,20 @@
-import type { AuctionState, Player } from '../../game/types'
-import { BOARD_SPACES } from '../../game/board'
-import { getSpaceById } from '../../game/rules'
-import Dialog from '../common/Dialog'
-import Button from '../common/Button'
-import styles from './ActionDialog.module.css'
+import type { AuctionState, Player } from '../../game/types';
+import { BOARD_SPACES } from '../../game/board';
+import { getSpaceById } from '../../game/rules';
+import Dialog from '../common/Dialog';
+import Button from '../common/Button';
+import styles from './ActionDialog.module.css';
 
-const MAX_BID_INCREMENT = 100
-const NO_MONEY_HINT_TEXT = 'おかねがたりないよ'
+const MAX_BID_INCREMENT = 100;
+const NO_MONEY_HINT_TEXT = 'おかねがたりないよ';
 
 type AuctionDialogProps = {
-  auction: AuctionState
-  players: Player[]
-  currentPlayer: Player
-  onBid: (amount: number) => void
-  onPass: () => void
-}
+  auction: AuctionState;
+  players: Player[];
+  currentPlayer: Player;
+  onBid: (amount: number) => void;
+  onPass: () => void;
+};
 
 export default function AuctionDialog({
   auction,
@@ -22,11 +22,11 @@ export default function AuctionDialog({
   onBid,
   onPass,
 }: AuctionDialogProps) {
-  const space = getSpaceById(auction.propertyId, BOARD_SPACES)
+  const space = getSpaceById(auction.propertyId, BOARD_SPACES);
   const currentBidder = auction.currentBidderId
     ? players.find((p) => p.id === auction.currentBidderId)
-    : null
-  const activePlayer = players[auction.activePlayerIndex]
+    : null;
+  const activePlayer = players[auction.activePlayerIndex];
 
   return (
     <Dialog title="オークション！">
@@ -108,5 +108,5 @@ export default function AuctionDialog({
           </div>
         )}
     </Dialog>
-  )
+  );
 }

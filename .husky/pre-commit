@@ -1,0 +1,24 @@
+#!/bin/sh
+set -e
+
+# Run lint-staged using bunx
+bunx lint-staged
+
+# Run gitleaks local check if installed to prevent committing secrets
+if command -v gitleaks > /dev/null 2>&1; then
+  echo "🔒 Running local gitleaks check..."
+  gitleaks protect --staged --verbose
+else
+  echo "⚠️ gitleaks is not installed locally. Skipping local secret scan. (Highly recommended: brew install gitleaks)"
+fi
+
+# Run typecheck and test for changed files in the project
+# Check if any project config or source files have changed
+changed_files=$(git diff --cached --name-only -- 'src/' 'package.json' 'tsconfig.json' 'tsconfig.app.json' 'tsconfig.node.json' 'vite.config.ts')
+
+if [ -n "$changed_files" ]; then
+  echo "🔍 Running typecheck..."
+  bun run typecheck
+  echo "🧪 Running tests..."
+  bun run test
+fi

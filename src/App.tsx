@@ -1,28 +1,28 @@
-import { useReducer, useEffect, useState } from 'react'
-import { gameReducer, createInitialGameState } from './game/reducer'
-import { saveGame, loadGame, clearSave } from './game/storage'
-import type { GameState } from './game/types'
-import Setup from './components/Setup/Setup'
-import GameBoard from './components/GameBoard/GameBoard'
-import Button from './components/common/Button'
-import styles from './App.module.css'
+import { useReducer, useEffect, useState } from 'react';
+import { gameReducer, createInitialGameState } from './game/reducer';
+import { saveGame, loadGame, clearSave } from './game/storage';
+import type { GameState } from './game/types';
+import Setup from './components/Setup/Setup';
+import GameBoard from './components/GameBoard/GameBoard';
+import Button from './components/common/Button';
+import styles from './App.module.css';
 
 export default function App() {
-  const [savedGame] = useState<GameState | null>(() => loadGame())
+  const [savedGame] = useState<GameState | null>(() => loadGame());
 
   const [state, dispatch] = useReducer(
     gameReducer,
     undefined,
     createInitialGameState,
-  )
+  );
 
   useEffect(() => {
     if (state.phase === 'playing') {
-      saveGame(state)
+      saveGame(state);
     } else if (state.phase === 'finished') {
-      clearSave()
+      clearSave();
     }
-  }, [state])
+  }, [state]);
 
   if (state.phase === 'setup') {
     return (
@@ -47,11 +47,11 @@ export default function App() {
           savedGame={savedGame}
         />
       </div>
-    )
+    );
   }
 
   if (state.phase === 'finished') {
-    const winner = state.players.find((p) => p.id === state.winnerId)!
+    const winner = state.players.find((p) => p.id === state.winnerId)!;
     return (
       <div className={styles.app}>
         <div
@@ -77,12 +77,12 @@ export default function App() {
           </Button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className={styles.app}>
       <GameBoard state={state} dispatch={dispatch} />
     </div>
-  )
+  );
 }
