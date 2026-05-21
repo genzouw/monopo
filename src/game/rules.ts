@@ -157,11 +157,14 @@ export function findNearestSpace(
   spaceType: 'railroad' | 'utility',
   board: BoardSpace[],
 ): number {
-  const targets = board.filter((s) => s.type === spaceType);
-  for (const target of targets) {
+  const cache = getBoardCache(board);
+  const targetIds = cache.byType.get(spaceType) || [];
+  for (const id of targetIds) {
+    const target = cache.byId.get(id)!;
     if (target.position > currentPosition) return target.position;
   }
-  return targets[0].position;
+  const firstTarget = cache.byId.get(targetIds[0])!;
+  return firstTarget.position;
 }
 
 export function calculateTotalAssets(

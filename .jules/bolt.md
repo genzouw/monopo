@@ -7,3 +7,8 @@
 
 **Learning:** Using `bun` instead of `pnpm` and `node` reduces build times and simplifies toolchain configurations, especially in CI environments where `actions/setup-node` and `pnpm/action-setup` can be replaced by a single `oven-sh/setup-bun` action. Note that `bun audit` was only added in bun 1.2.21 and does not yet fully analyse the new text-form lockfile (`bun.lock`), so CVE scanning is delegated to Dependabot until `bun audit` matures. `bun pm untrusted` is for listing packages with blocked lifecycle scripts, not for CVE scanning.
 **Action:** For future Node to Bun migrations, comprehensively update all package manager references across configuration files (`package.json`), lockfiles (`bun.lock`), documentation (`README.md`, `CONTRIBUTING.md`), and CI workflows (`ci.yml`, `deploy.yml`), ensuring that workflow node setup steps are safely removed and that an appropriate security scanning path (Dependabot today, `bun audit` once it covers `bun.lock`) is in place.
+
+## 2024-05-21 - Replace O(N) Array Iteration with Precomputed O(1) BoardCache Lookup in findNearestSpace
+
+**Learning:** `findNearestSpace` was using `board.filter((s) => s.type === spaceType)` every time a player drew a card that moved them to the nearest railroad or utility. This forced an O(N) scan allocating a new array over all 40 board spaces. However, the existing `getBoardCache` `WeakMap` already computes `byType` and stores the IDs in board index order, enabling O(1) retrieval of targets and eliminating the intermediate array entirely.
+**Action:** Always prefer retrieving pre-computed lists (e.g., `cache.byType`) from `getBoardCache` when querying spaces by type, and map them to spaces via `cache.byId` in O(1) time instead of using `.filter()` on the raw `board` array.
