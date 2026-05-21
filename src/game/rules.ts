@@ -160,11 +160,13 @@ export function findNearestSpace(
   const cache = getBoardCache(board);
   const targetIds = cache.byType.get(spaceType) || [];
   for (const id of targetIds) {
-    const target = cache.byId.get(id)!;
-    if (target.position > currentPosition) return target.position;
+    const target = cache.byId.get(id);
+    if (target && target.position > currentPosition) return target.position;
   }
-  const firstTarget = cache.byId.get(targetIds[0])!;
-  return firstTarget.position;
+  const firstId = targetIds[0];
+  if (firstId === undefined) return currentPosition;
+  const firstTarget = cache.byId.get(firstId);
+  return firstTarget ? firstTarget.position : currentPosition;
 }
 
 export function calculateTotalAssets(
