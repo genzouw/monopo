@@ -14,7 +14,9 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
+  # リポジトリのソースコード読み込み用
   contents: read
+  # CodeQL 解析結果を GitHub Security タブへアップロードするために必要
   security-events: write
 
 jobs:
