@@ -27,8 +27,8 @@
 
 ## セルフチェック
 
-- [ ] `bun --cwd backend run lint` / `bun --cwd frontend run lint` がパスする
-- [ ] `bun --cwd backend run typecheck` / `bun --cwd frontend run typecheck` がパスする
+- [ ] `bun run lint` がパスする
+- [ ] `bun run typecheck` がパスする
 - [ ] 破壊的変更がある場合、README または docs を更新した
 - [ ] DB マイグレーションがある場合、ロールバック手順を確認した
 - [ ] secret / 個人情報を含むコードや設定が含まれていない
