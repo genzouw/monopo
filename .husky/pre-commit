@@ -5,7 +5,7 @@ set -e
 bunx lint-staged
 
 # Run gitleaks local check if installed to prevent committing secrets
-if command -v gitleaks &> /dev/null; then
+if command -v gitleaks > /dev/null 2>&1; then
   echo "🔒 Running local gitleaks check..."
   gitleaks protect --staged --verbose
 else
