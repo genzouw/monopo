@@ -1,219 +1,219 @@
-import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
-import type { Dispatch } from 'react'
-import type { GameState } from '../../game/types'
-import type { GameAction } from '../../game/actions'
-import { MAX_JAIL_TURNS } from '../../game/reducer'
-import { calculateTotalAssets, getSpaceById } from '../../game/rules'
-import PlayerPanel from '../PlayerPanel/PlayerPanel'
-import MiniMap from '../Board/MiniMap'
-import Dice from '../Dice/Dice'
-import Button from '../common/Button'
-import Dialog from '../common/Dialog'
-import PurchaseDialog from '../ActionDialog/PurchaseDialog'
-import AuctionDialog from '../ActionDialog/AuctionDialog'
-import CardDialog from '../ActionDialog/CardDialog'
-import JailDialog from '../ActionDialog/JailDialog'
-import BuildDialog from '../ActionDialog/BuildDialog'
-import SellDialog from '../ActionDialog/SellDialog'
-import TradeDialog from '../ActionDialog/TradeDialog'
-import BankruptDialog from '../ActionDialog/BankruptDialog'
-import ForceBuyDialog from '../ActionDialog/ForceBuyDialog'
-import { useSound } from '../../sound/useSound'
-import styles from './GameBoard.module.css'
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
+import type { Dispatch } from 'react';
+import type { GameState } from '../../game/types';
+import type { GameAction } from '../../game/actions';
+import { MAX_JAIL_TURNS } from '../../game/reducer';
+import { calculateTotalAssets, getSpaceById } from '../../game/rules';
+import PlayerPanel from '../PlayerPanel/PlayerPanel';
+import MiniMap from '../Board/MiniMap';
+import Dice from '../Dice/Dice';
+import Button from '../common/Button';
+import Dialog from '../common/Dialog';
+import PurchaseDialog from '../ActionDialog/PurchaseDialog';
+import AuctionDialog from '../ActionDialog/AuctionDialog';
+import CardDialog from '../ActionDialog/CardDialog';
+import JailDialog from '../ActionDialog/JailDialog';
+import BuildDialog from '../ActionDialog/BuildDialog';
+import SellDialog from '../ActionDialog/SellDialog';
+import TradeDialog from '../ActionDialog/TradeDialog';
+import BankruptDialog from '../ActionDialog/BankruptDialog';
+import ForceBuyDialog from '../ActionDialog/ForceBuyDialog';
+import { useSound } from '../../sound/useSound';
+import styles from './GameBoard.module.css';
 
 type GameBoardProps = {
-  state: GameState
-  dispatch: Dispatch<GameAction>
-}
+  state: GameState;
+  dispatch: Dispatch<GameAction>;
+};
 
 export default function GameBoard({ state, dispatch }: GameBoardProps) {
-  const [isRolling, setIsRolling] = useState(false)
-  const [showTradeSelect, setShowTradeSelect] = useState(false)
+  const [isRolling, setIsRolling] = useState(false);
+  const [showTradeSelect, setShowTradeSelect] = useState(false);
   const [animatingPosition, setAnimatingPosition] = useState<number | null>(
     null,
-  )
-  const [showPlayerDetail, setShowPlayerDetail] = useState<string | null>(null)
-  const [showSpaceDetail, setShowSpaceDetail] = useState<number | null>(null)
-  const { muted, toggleMute, play } = useSound()
-  const movingRef = useRef(false)
+  );
+  const [showPlayerDetail, setShowPlayerDetail] = useState<string | null>(null);
+  const [showSpaceDetail, setShowSpaceDetail] = useState<number | null>(null);
+  const { muted, toggleMute, play } = useSound();
+  const movingRef = useRef(false);
   // Refs to capture current values for the animation callback
-  const positionRef = useRef(0)
-  const diceRef = useRef<[number, number]>([1, 1])
-  const turnPhaseRef = useRef(state.turnPhase)
+  const positionRef = useRef(0);
+  const diceRef = useRef<[number, number]>([1, 1]);
+  const turnPhaseRef = useRef(state.turnPhase);
 
   useEffect(() => {
-    turnPhaseRef.current = state.turnPhase
-  }, [state.turnPhase])
+    turnPhaseRef.current = state.turnPhase;
+  }, [state.turnPhase]);
 
   useEffect(() => {
-    diceRef.current = state.dice.values
-  }, [state.dice.values])
+    diceRef.current = state.dice.values;
+  }, [state.dice.values]);
 
-  const currentPlayer = state.players[state.currentPlayerIndex]
+  const currentPlayer = state.players[state.currentPlayerIndex];
 
-  const currentSpace = state.board[currentPlayer.position]
+  const currentSpace = state.board[currentPlayer.position];
   const isPurchasable =
     currentSpace &&
     (currentSpace.type === 'property' ||
       currentSpace.type === 'railroad' ||
-      currentSpace.type === 'utility')
+      currentSpace.type === 'utility');
   const spaceHasNoOwner =
-    isPurchasable && !state.propertyStates[currentSpace.id]?.ownerId
+    isPurchasable && !state.propertyStates[currentSpace.id]?.ownerId;
 
   const handleRoll = () => {
     // Capture position before dispatch changes state
-    positionRef.current = currentPlayer.position
-    play('diceRoll')
-    setIsRolling(true)
-    dispatch({ type: 'ROLL_DICE' })
-  }
+    positionRef.current = currentPlayer.position;
+    play('diceRoll');
+    setIsRolling(true);
+    dispatch({ type: 'ROLL_DICE' });
+  };
 
   const handleRollComplete = useCallback(() => {
-    setIsRolling(false)
+    setIsRolling(false);
 
     // 移動が必要なフェーズのみアニメーション実行
     // （刑務所内ロールで脱出失敗 → endTurn の場合はスキップ）
     if (turnPhaseRef.current !== 'moving') {
-      return
+      return;
     }
 
-    if (movingRef.current) return
-    movingRef.current = true
+    if (movingRef.current) return;
+    movingRef.current = true;
 
     // Use refs to get correct values captured at roll time
-    const startPos = positionRef.current
-    const diceTotal = diceRef.current[0] + diceRef.current[1]
-    let step = 0
+    const startPos = positionRef.current;
+    const diceTotal = diceRef.current[0] + diceRef.current[1];
+    let step = 0;
 
     const moveInterval = setInterval(() => {
-      step++
-      const nextPos = (startPos + step) % 40
-      setAnimatingPosition(nextPos)
+      step++;
+      const nextPos = (startPos + step) % 40;
+      setAnimatingPosition(nextPos);
 
       if (step >= diceTotal) {
-        clearInterval(moveInterval)
+        clearInterval(moveInterval);
         setTimeout(() => {
-          play('land')
-          setAnimatingPosition(null)
-          movingRef.current = false
-          dispatch({ type: 'FINISH_MOVING' })
-        }, 200)
+          play('land');
+          setAnimatingPosition(null);
+          movingRef.current = false;
+          dispatch({ type: 'FINISH_MOVING' });
+        }, 200);
       }
-    }, 300)
-  }, [play, dispatch])
+    }, 300);
+  }, [play, dispatch]);
 
   const handleBuy = () => {
-    play('purchase')
-    dispatch({ type: 'BUY_PROPERTY' })
-  }
+    play('purchase');
+    dispatch({ type: 'BUY_PROPERTY' });
+  };
 
   const handleDeclinePurchase = () => {
-    dispatch({ type: 'DECLINE_PURCHASE' })
-  }
+    dispatch({ type: 'DECLINE_PURCHASE' });
+  };
 
   const handlePlaceBid = (increment: number) => {
     dispatch({
       type: 'PLACE_BID',
       amount: state.auction!.currentBid + increment,
-    })
-  }
+    });
+  };
 
   const handlePassAuction = () => {
-    dispatch({ type: 'PASS_AUCTION' })
-  }
+    dispatch({ type: 'PASS_AUCTION' });
+  };
 
   const handleDrawCard = () => {
-    play('card')
-    dispatch({ type: 'DRAW_CARD' })
-  }
+    play('card');
+    dispatch({ type: 'DRAW_CARD' });
+  };
 
   const handleDismissCard = () => {
-    dispatch({ type: 'DISMISS_CARD' })
-  }
+    dispatch({ type: 'DISMISS_CARD' });
+  };
 
   const handlePayTax = () => {
-    play('moneyLoss')
-    dispatch({ type: 'PAY_TAX' })
-  }
+    play('moneyLoss');
+    dispatch({ type: 'PAY_TAX' });
+  };
 
   const handleEndTurn = () => {
-    dispatch({ type: 'END_TURN' })
-  }
+    dispatch({ type: 'END_TURN' });
+  };
 
   const handlePayJailFine = () => {
-    play('moneyLoss')
-    dispatch({ type: 'PAY_JAIL_FINE' })
-  }
+    play('moneyLoss');
+    dispatch({ type: 'PAY_JAIL_FINE' });
+  };
 
   const handleUseJailCard = () => {
-    dispatch({ type: 'USE_JAIL_CARD' })
-  }
+    dispatch({ type: 'USE_JAIL_CARD' });
+  };
 
   const handleRollForJail = () => {
     // 脱出時のアニメーションのため、現在位置をキャプチャ
-    positionRef.current = currentPlayer.position
-    play('diceRoll')
-    setIsRolling(true)
-    dispatch({ type: 'ROLL_FOR_JAIL' })
-  }
+    positionRef.current = currentPlayer.position;
+    play('diceRoll');
+    setIsRolling(true);
+    dispatch({ type: 'ROLL_FOR_JAIL' });
+  };
 
   const handleBuildHouse = (propertyId: string) => {
-    play('build')
-    dispatch({ type: 'BUILD_HOUSE', propertyId })
-  }
+    play('build');
+    dispatch({ type: 'BUILD_HOUSE', propertyId });
+  };
 
   const handleSellHouse = (propertyId: string) => {
-    play('moneyGain')
-    dispatch({ type: 'SELL_HOUSE', propertyId })
-  }
+    play('moneyGain');
+    dispatch({ type: 'SELL_HOUSE', propertyId });
+  };
 
   const handleSellProperty = (propertyId: string) => {
-    dispatch({ type: 'SELL_PROPERTY', propertyId })
-  }
+    dispatch({ type: 'SELL_PROPERTY', propertyId });
+  };
 
   const handleProposeTrade = (offer: import('../../game/types').TradeOffer) => {
-    dispatch({ type: 'PROPOSE_TRADE', offer })
-  }
+    dispatch({ type: 'PROPOSE_TRADE', offer });
+  };
 
   const handleBankrupt = () => {
-    play('bankrupt')
-    dispatch({ type: 'DECLARE_BANKRUPTCY', creditorId: null })
-  }
+    play('bankrupt');
+    dispatch({ type: 'DECLARE_BANKRUPTCY', creditorId: null });
+  };
 
   const otherActivePlayers = state.players.filter(
     (p) => p.id !== currentPlayer.id && !p.isBankrupt,
-  )
+  );
 
   // Determine which dialog to show
   const showPurchaseDialog =
     state.turnPhase === 'action' &&
     isPurchasable &&
     spaceHasNoOwner &&
-    !state.currentCard
+    !state.currentCard;
 
-  const showCardDialog = !!state.currentCard
-  const showAuctionDialog = state.turnPhase === 'auction' && !!state.auction
-  const showJailDialog = state.turnPhase === 'roll' && currentPlayer.inJail
-  const showBuildDialog = state.turnPhase === 'build'
+  const showCardDialog = !!state.currentCard;
+  const showAuctionDialog = state.turnPhase === 'auction' && !!state.auction;
+  const showJailDialog = state.turnPhase === 'roll' && currentPlayer.inJail;
+  const showBuildDialog = state.turnPhase === 'build';
   const showSellDialog =
-    state.turnPhase === 'sell' || state.turnPhase === 'forceSell'
-  const showTradeDialog = state.turnPhase === 'trade' && !!state.trade
-  const showBankruptDialog = state.turnPhase === 'bankrupt'
-  const showForceBuyDialog = state.turnPhase === 'forceBuy'
+    state.turnPhase === 'sell' || state.turnPhase === 'forceSell';
+  const showTradeDialog = state.turnPhase === 'trade' && !!state.trade;
+  const showBankruptDialog = state.turnPhase === 'bankrupt';
+  const showForceBuyDialog = state.turnPhase === 'forceBuy';
   const canSubAction =
-    state.turnPhase === 'endTurn' || state.turnPhase === 'roll'
+    state.turnPhase === 'endTurn' || state.turnPhase === 'roll';
 
   const showPayTax =
-    state.turnPhase === 'action' && currentSpace?.type === 'tax'
+    state.turnPhase === 'action' && currentSpace?.type === 'tax';
   const showDrawCard =
     state.turnPhase === 'action' &&
     (currentSpace?.type === 'chance' ||
       currentSpace?.type === 'communityChest') &&
-    !state.currentCard
+    !state.currentCard;
 
   const tradeTargetPlayer = state.trade
     ? state.players.find((p) => p.id === state.trade!.toPlayerId)
-    : null
+    : null;
 
   // Players with animating position override for minimap
   // ⚡ Bolt: useMemo to keep array reference stable across renders, so MiniMap's React.memo can short-circuit when neither players nor animatingPosition changed.
@@ -227,16 +227,16 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           )
         : state.players,
     [animatingPosition, state.players, state.currentPlayerIndex],
-  )
+  );
 
   // ⚡ Bolt: Use useCallback to memoize handlers, preventing unnecessary re-renders of heavy pure UI components (MiniMap, PlayerPanel) during animation state updates.
   const handlePlayerClick = useCallback((id: string) => {
-    setShowPlayerDetail(id)
-  }, [])
+    setShowPlayerDetail(id);
+  }, []);
 
   const handleSpaceClick = useCallback((pos: number) => {
-    setShowSpaceDetail(pos)
-  }, [])
+    setShowSpaceDetail(pos);
+  }, []);
 
   // ⚡ Bolt: useMemo to keep the children element reference stable, so MiniMap's React.memo isn't bypassed by a fresh JSX object on every render.
   const diceElement = useMemo(
@@ -249,7 +249,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
         />
       ) : undefined,
     [state.dice.rolled, state.dice.values, isRolling, handleRollComplete],
-  )
+  );
 
   return (
     <div className={styles.gameBoard}>
@@ -419,15 +419,17 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
         (() => {
           const from = state.players.find(
             (p) => p.id === state.trade!.fromPlayerId,
-          )
-          const to = state.players.find((p) => p.id === state.trade!.toPlayerId)
-          const offer = state.trade!
+          );
+          const to = state.players.find(
+            (p) => p.id === state.trade!.toPlayerId,
+          );
+          const offer = state.trade!;
           const offerSpaces = offer.offerProperties.map(
             (id) => getSpaceById(id, state.board)!,
-          )
+          );
           const requestSpaces = offer.requestProperties.map(
             (id) => getSpaceById(id, state.board)!,
-          )
+          );
           return (
             <Dialog
               title={`${to?.token} ${to?.name}へのていあん`}
@@ -496,7 +498,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                 )}
               </div>
             </Dialog>
-          )
+          );
         })()}
 
       {showBankruptDialog && (
@@ -509,11 +511,11 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
       {showForceBuyDialog &&
         currentSpace &&
         (() => {
-          const ps = state.propertyStates[currentSpace.id]
+          const ps = state.propertyStates[currentSpace.id];
           const owner = ps?.ownerId
             ? state.players.find((p) => p.id === ps.ownerId)
-            : null
-          if (!owner) return null
+            : null;
+          if (!owner) return null;
           return (
             <ForceBuyDialog
               space={currentSpace}
@@ -523,22 +525,22 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
               onBuy={() => dispatch({ type: 'FORCE_BUY' })}
               onDecline={() => dispatch({ type: 'DECLINE_FORCE_BUY' })}
             />
-          )
+          );
         })()}
 
       {/* Space detail dialog */}
       {showSpaceDetail !== null &&
         (() => {
-          const space = state.board[showSpaceDetail]
-          if (!space) return null
-          const ps = state.propertyStates[space.id]
+          const space = state.board[showSpaceDetail];
+          if (!space) return null;
+          const ps = state.propertyStates[space.id];
           const owner = ps?.ownerId
             ? state.players.find((p) => p.id === ps.ownerId)
-            : null
-          const isProp = space.type === 'property'
-          const isRR = space.type === 'railroad'
-          const isUtil = space.type === 'utility'
-          const purchasable = isProp || isRR || isUtil
+            : null;
+          const isProp = space.type === 'property';
+          const isRR = space.type === 'railroad';
+          const isUtil = space.type === 'utility';
+          const purchasable = isProp || isRR || isUtil;
 
           const rentLabels = isProp
             ? [
@@ -551,7 +553,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
               ]
             : isRR
               ? ['1つ所有', '2つ所有', '3つ所有', '4つ所有']
-              : []
+              : [];
 
           const typeLabel = isProp
             ? '🏠 土地'
@@ -567,7 +569,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                     ? '❓ チャンスカード'
                     : space.type === 'communityChest'
                       ? '💝 おたすけカード'
-                      : '📍 マス'
+                      : '📍 マス';
 
           return (
             <Dialog
@@ -754,7 +756,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                 )}
               </div>
             </Dialog>
-          )
+          );
         })()}
 
       {/* Player detail dialog */}
@@ -762,13 +764,13 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
         (() => {
           const detailPlayer = state.players.find(
             (p) => p.id === showPlayerDetail,
-          )
-          if (!detailPlayer) return null
+          );
+          if (!detailPlayer) return null;
           const totalAssets = calculateTotalAssets(
             detailPlayer,
             state.propertyStates,
             state.board,
-          )
+          );
           const colorOrder = [
             'brown',
             'lightblue',
@@ -778,7 +780,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
             'yellow',
             'green',
             'blue',
-          ]
+          ];
           const ownedProps = detailPlayer.properties
             .map((id) => ({
               space: getSpaceById(id, state.board)!,
@@ -787,14 +789,14 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
             .sort((a, b) => {
               const ai = a.space.color
                 ? colorOrder.indexOf(a.space.color)
-                : colorOrder.length
+                : colorOrder.length;
               const bi = b.space.color
                 ? colorOrder.indexOf(b.space.color)
-                : colorOrder.length
-              return ai !== bi ? ai - bi : a.space.position - b.space.position
-            })
+                : colorOrder.length;
+              return ai !== bi ? ai - bi : a.space.position - b.space.position;
+            });
           const currentSpaceName =
-            state.board[detailPlayer.position]?.name ?? ''
+            state.board[detailPlayer.position]?.name ?? '';
           return (
             <Dialog
               title={`${detailPlayer.token} ${detailPlayer.name}`}
@@ -923,7 +925,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                 </div>
               </div>
             </Dialog>
-          )
+          );
         })()}
 
       {/* Trade target selection modal */}
@@ -953,11 +955,11 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                 key={player.id}
                 variant="secondary"
                 onClick={() => {
-                  setShowTradeSelect(false)
+                  setShowTradeSelect(false);
                   dispatch({
                     type: 'OPEN_TRADE_DIALOG',
                     targetPlayerId: player.id,
-                  })
+                  });
                 }}
               >
                 {player.token} {player.name}
@@ -967,5 +969,5 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
         </Dialog>
       )}
     </div>
-  )
+  );
 }
