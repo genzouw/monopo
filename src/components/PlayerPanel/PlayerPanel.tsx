@@ -1,13 +1,13 @@
-import { memo } from 'react'
-import type { Player } from '../../game/types'
-import { getOwnerBg } from '../common/playerColors'
-import styles from './PlayerPanel.module.css'
+import { memo } from 'react';
+import type { Player } from '../../game/types';
+import { getOwnerBg } from '../common/playerColors';
+import styles from './PlayerPanel.module.css';
 
 type PlayerPanelProps = {
-  allPlayers: Player[]
-  currentPlayerIndex: number
-  onPlayerClick?: (playerId: string) => void
-}
+  allPlayers: Player[];
+  currentPlayerIndex: number;
+  onPlayerClick?: (playerId: string) => void;
+};
 
 const PlayerPanel = memo(function PlayerPanel({
   allPlayers,
@@ -48,7 +48,7 @@ const PlayerPanel = memo(function PlayerPanel({
         </button>
       ))}
     </div>
-  )
-})
+  );
+});
 
-export default PlayerPanel
+export default PlayerPanel;

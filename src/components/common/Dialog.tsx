@@ -1,15 +1,15 @@
-import { useEffect, useId, useRef } from 'react'
-import type { ReactNode } from 'react'
-import { useFocusTrap } from '../../hooks/useFocusTrap'
-import styles from './common.module.css'
+import { useEffect, useId, useRef } from 'react';
+import type { ReactNode } from 'react';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
+import styles from './common.module.css';
 
 type DialogProps = {
-  title: string
-  children: ReactNode
-  actions?: ReactNode
+  title: string;
+  children: ReactNode;
+  actions?: ReactNode;
   /** 指定時のみ Escape でクローズ可能。業務的に強制遷移が必要な Dialog（破産・オークション等）では意図的に未指定にする。 */
-  onClose?: () => void
-}
+  onClose?: () => void;
+};
 
 export default function Dialog({
   title,
@@ -17,25 +17,25 @@ export default function Dialog({
   actions,
   onClose,
 }: DialogProps) {
-  const titleId = useId()
-  const containerRef = useFocusTrap<HTMLDivElement>()
-  const onCloseRef = useRef(onClose)
+  const titleId = useId();
+  const containerRef = useFocusTrap<HTMLDivElement>();
+  const onCloseRef = useRef(onClose);
   useEffect(() => {
-    onCloseRef.current = onClose
-  })
+    onCloseRef.current = onClose;
+  });
 
-  const closeEnabled = !!onClose
+  const closeEnabled = !!onClose;
   useEffect(() => {
-    if (!closeEnabled) return
+    if (!closeEnabled) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        e.preventDefault()
-        onCloseRef.current?.()
+        e.preventDefault();
+        onCloseRef.current?.();
       }
-    }
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [closeEnabled])
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [closeEnabled]);
 
   return (
     <div className={styles.overlay}>
@@ -59,5 +59,5 @@ export default function Dialog({
         {actions && <div className={styles.dialogActions}>{actions}</div>}
       </div>
     </div>
-  )
+  );
 }
