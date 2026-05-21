@@ -14,7 +14,9 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
+  # チェックアウト・リポジトリ参照用
   contents: read
+  # Trivy スキャン結果を GitHub Security タブへアップロードするために必要
   security-events: write
 
 jobs:

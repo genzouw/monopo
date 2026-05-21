@@ -6,8 +6,12 @@ on:
   workflow_dispatch:
 
 permissions:
+  # stale PRへのラベル付与・コメント・クローズ用
   pull-requests: write
-  issues: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   stale:
