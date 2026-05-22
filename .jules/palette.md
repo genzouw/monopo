@@ -34,3 +34,7 @@
 ## 2026-05-19 - Explicitly link visual helper text to disabled buttons
 **Learning:** Found that visible error messages explaining why a button is disabled (e.g. insufficient funds) were not programmatically associated with the button itself. Screen reader users would not understand why the action is blocked when focusing the button.
 **Action:** When providing visible helper text explaining a disabled state, always use `aria-describedby` on the button to link to the helper text's `id`, ensuring the reason is accessible to screen readers. Use `useId()` from React to generate unique IDs for the helper text elements, ensuring uniqueness when a component is rendered in multiple instances.
+
+## 2026-05-22 - Mirror aria-label in visible tooltips for interactive board elements
+**Learning:** Found that the mini map spaces (`MemoizedMiniSpace`) had rich, dynamically generated descriptive information in their `aria-label` (including property name, owner, number of houses, and players present) that was completely inaccessible to sighted mouse users. The UI lacked visual cues for this detailed state unless clicked to open a dialog.
+**Action:** Always provide visual tooltips (e.g., using the `title` attribute) that mirror the information provided in `aria-label` for interactive board elements or densely packed UI components, ensuring that sighted users have the same quick access to state information as screen-reader users without requiring additional clicks.

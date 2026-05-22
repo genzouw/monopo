@@ -141,6 +141,7 @@ export const MemoizedMiniSpace = memo(function MemoizedMiniSpace({
       }}
       onClick={() => onSpaceClick(space.position)}
       aria-label={ariaLabel}
+      title={ariaLabel}
     >
       {space.color && (
         <div
