@@ -36,6 +36,22 @@ function getSpaceIcon(space: BoardSpace): string | null {
   return null;
 }
 
+function getSpaceLabel(
+  space: BoardSpace,
+  ownerName: string | undefined,
+  houses: number,
+  playerCount: number,
+): string {
+  return [
+    space.name,
+    ownerName && `所有者: ${ownerName}`,
+    houses > 0 && (houses === 5 ? 'ホテル' : `家${houses}軒`),
+    playerCount > 0 && `プレイヤー${playerCount}人滞在中`,
+  ]
+    .filter(Boolean)
+    .join(' ');
+}
+
 function getColorBarPosition(position: number): React.CSSProperties {
   if (position <= 10) return { top: 0, left: 0, right: 0 };
   if (position <= 20) return { top: 0, bottom: 0, right: 0 };
@@ -115,14 +131,7 @@ export const MemoizedMiniSpace = memo(function MemoizedMiniSpace({
     ? allPlayers.find((p) => p.id === ownerId)?.name
     : undefined;
   const houses = propState?.houses ?? 0;
-  const ariaLabel = [
-    space.name,
-    ownerName && `所有者: ${ownerName}`,
-    houses > 0 && (houses === 5 ? 'ホテル' : `家${houses}軒`),
-    playersHere.length > 0 && `プレイヤー${playersHere.length}人滞在中`,
-  ]
-    .filter(Boolean)
-    .join(' ');
+  const ariaLabel = getSpaceLabel(space, ownerName, houses, playersHere.length);
 
   return (
     <button
@@ -141,6 +150,7 @@ export const MemoizedMiniSpace = memo(function MemoizedMiniSpace({
       }}
       onClick={() => onSpaceClick(space.position)}
       aria-label={ariaLabel}
+      title={ariaLabel}
     >
       {space.color && (
         <div
