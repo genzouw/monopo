@@ -1,2 +1,17 @@
 [config]
 response_language="ja-JP"
+
+[github_action_config]
+auto_review = true
+auto_describe = true
+auto_improve = true
+pr_actions = ["opened", "reopened", "ready_for_review", "synchronize"]
+
+[pr_similar_issue]
+skip_comments = false
+force_update_dataset = false
+max_issues_to_scan = 500
+vectordb = "pinecone"
+
+[auto_best_practices]
+enable_auto_best_practices = true

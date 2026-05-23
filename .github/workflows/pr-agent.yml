@@ -13,10 +13,17 @@ permissions:
 jobs:
   pr_agent_job:
     runs-on: ubuntu-latest
-    if: ${{ github.event.sender.type != 'Bot' }}
+    if: >-
+      ${{ github.event.sender.type != 'Bot' &&
+          (github.event_name != 'issue_comment' ||
+           (github.event.issue.pull_request != null &&
+            (github.event.comment.author_association == 'OWNER' ||
+             github.event.comment.author_association == 'MEMBER' ||
+             github.event.comment.author_association == 'COLLABORATOR'))) }}
     steps:
       - name: PR Agent action step
-        uses: the-pr-agent/pr-agent@e6ef3c0adfbe1c5ffc6818f8dd420c74c8dc6ea8
+        uses: qodo-ai/pr-agent@0bd56c0508504c718cc03d504cd4ceb6725ba3c7 # v0.35.0
         env:
           OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
