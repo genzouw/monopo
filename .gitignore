@@ -28,3 +28,15 @@ coverage
 # Jules (AI agent) workspace
 .jules/
 .Jules/
+
+# Sensitive files
+.env
+*.pem
+*.tfstate
+credentials
+
+# AI agent workspaces
+.cursor/
+.claude/
+.continue/
+.aider*

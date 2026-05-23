@@ -16,7 +16,8 @@ jobs:
     if: ${{ github.event.sender.type != 'Bot' }}
     steps:
       - name: PR Agent action step
-        uses: the-pr-agent/pr-agent@e6ef3c0adfbe1c5ffc6818f8dd420c74c8dc6ea8
+        uses: qodo-ai/pr-agent@main
         env:
           OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
