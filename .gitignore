@@ -35,11 +35,17 @@ coverage
 !.env.example
 *.pem
 *.key
-*credentials*
+*credentials*.json
+*credentials*.yml
+*credentials*.yaml
+*credentials*.env
 id_rsa
+id_ed25519
+id_ecdsa
+id_dsa
 *service-account*
 *serviceaccount*
-*.tfstate
+*.tfstate*
 
 # AI agent workspaces
 .cursor/
