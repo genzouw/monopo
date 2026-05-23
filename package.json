@@ -15,7 +15,9 @@
     "test": "vitest run",
     "test:coverage": "vitest --run --coverage",
     "test:watch": "vitest",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "sync:ai-guidelines": "bun run scripts/sync-ai-guidelines.ts",
+    "sync:ai-guidelines:check": "bun run scripts/sync-ai-guidelines.ts --check"
   },
   "dependencies": {
     "howler": "^2.2.4",
