@@ -7,7 +7,8 @@
 開発者が自身のローカル環境で誤って秘密情報をコミットするのを防ぎます。
 
 - **`gitleaks` フック**: コミット時に `.husky/pre-commit` フックを通してローカルで `gitleaks` が実行され、秘密情報を検知した場合はコミットをブロックします。
-  - **推奨**: 開発環境には [gitleaks](https://github.com/gitleaks/gitleaks) をインストールしておくことを強く推奨します。（例: `brew install gitleaks`）
+  - **⚠️ 注意**: `gitleaks` が未インストールの場合、フックはスキャンをスキップします（コミットはブロックされません）。この場合、ローカルでの秘密情報検知は行われません。
+  - **必須**: 開発環境には [gitleaks](https://github.com/gitleaks/gitleaks) をインストールしてください。（例: `brew install gitleaks`）インストールしない場合、ローカル防御は機能しません。
 - **`.gitignore` による除外**:
   - `.env`, `.env.*` (ただし `.env.example` は除く)
   - `*.pem`, `*.key`, `id_rsa`, `*credentials*` 等
