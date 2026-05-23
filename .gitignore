@@ -28,3 +28,21 @@ coverage
 # Jules (AI agent) workspace
 .jules/
 .Jules/
+
+# Secret and Credential files
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*credentials*
+id_rsa
+*service-account*
+*serviceaccount*
+*.tfstate
+
+# AI agent workspaces
+.cursor/
+.claude/
+.aider*
+.continue/
