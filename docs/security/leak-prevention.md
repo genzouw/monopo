@@ -11,7 +11,7 @@
   - **必須**: 開発環境には [gitleaks](https://github.com/gitleaks/gitleaks) をインストールしてください。（例: `brew install gitleaks`）インストールしない場合、ローカル防御は機能しません。
 - **`.gitignore` による除外**:
   - `.env`, `.env.*` (ただし `.env.example` は除く)
-  - `*.pem`, `*.key`, `id_rsa`, `*credentials*` 等
+  - `*.pem`, `*.key`, `id_rsa`, `id_ed25519`, `id_ecdsa`, `id_dsa`, `*credentials*.json` 等
   - AI エージェントの作業跡（`.cursor/`, `.claude/`, `.aider*` 等）はローカル環境特有の秘密情報が含まれるリスクがあるため除外しています。
 
 ## 2. CI 検知（リポジトリ防御）
