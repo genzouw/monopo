@@ -29,14 +29,26 @@ coverage
 .jules/
 .Jules/
 
-# Sensitive files
+# Secret and Credential files
 .env
+.env.*
+!.env.example
 *.pem
-*.tfstate
-credentials
+*.key
+*credentials*.json
+*credentials*.yml
+*credentials*.yaml
+*credentials*.env
+id_rsa
+id_ed25519
+id_ecdsa
+id_dsa
+*service-account*
+*serviceaccount*
+*.tfstate*
 
 # AI agent workspaces
 .cursor/
 .claude/
-.continue/
 .aider*
+.continue/

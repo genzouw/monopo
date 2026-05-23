@@ -42,6 +42,7 @@ jobs:
         run: |
           gitleaks detect \
             --source . \
+            --log-opts="--all" \
             --redact \
             --verbose \
             --no-banner \
