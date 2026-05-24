@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useId } from 'react';
 import {
   TOKENS,
   MIN_PLAYERS,
@@ -24,7 +24,19 @@ const DEFAULT_NAMES = [
 const DEFAULT_TOKENS: string[] = [TOKENS[0], TOKENS[1], TOKENS[2], TOKENS[3]];
 const START_GUIDE_MSG = 'すべてのプレイヤーのなまえを入力してね';
 
+/**
+ * ゲーム開始前の初期設定画面コンポーネント。
+ *
+ * プレイヤー人数の増減、各プレイヤーのなまえ入力（文字数カウンター付き）、
+ * コマの選択、および保存済みゲームの再開導線を提供する。
+ *
+ * @param onStart - 入力済みの名前一覧とコマ一覧でゲームを開始するコールバック。
+ * @param onResume - 保存済みゲームを再開するコールバック。`savedGame` がある場合のみ表示。
+ * @param savedGame - 直前に保存されたゲーム状態。存在すれば「つづきからあそぶ」UI を表示する。
+ * @returns セットアップ画面の JSX 要素。
+ */
 export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
+  const baseId = useId();
   const [initialConfig] = useState(() => loadSetupConfig());
   const [playerCount, setPlayerCount] = useState(
     initialConfig?.playerCount ?? MIN_PLAYERS,
@@ -126,7 +138,7 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
                 handleTokenChange(i, nextToken);
               }}
               aria-label={`${names[i] || DEFAULT_NAMES[i]}のコマを変更する（現在のコマ: ${selectedTokens[i]}）`}
-              title={`${names[i] || DEFAULT_NAMES[i]}のコマを変更する`}
+              title={`${names[i] || DEFAULT_NAMES[i]}のコマを変更する（現在のコマ: ${selectedTokens[i]}）`}
             >
               {selectedTokens[i]}
             </button>
@@ -135,9 +147,19 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
               value={names[i]}
               onChange={(e) => handleNameChange(i, e.target.value)}
               placeholder={`プレイヤー${i + 1}のなまえ`}
-              aria-label={`プレイヤー${i + 1}のなまえ`}
+              aria-label={`プレイヤー${i + 1}のなまえ（最大${MAX_NAME_LENGTH}文字）`}
               maxLength={MAX_NAME_LENGTH}
+              aria-required="true"
+              aria-invalid={names[i].trim().length === 0}
+              aria-describedby={`${baseId}-char-count-${i}`}
             />
+            <span
+              id={`${baseId}-char-count-${i}`}
+              className={styles.charCount}
+              role="status"
+            >
+              {[...names[i]].length}/{MAX_NAME_LENGTH}
+            </span>
           </div>
         ))}
       </div>
