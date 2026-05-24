@@ -26,6 +26,9 @@ export const MAX_JAIL_TURNS = 3;
 /** 刑務所から出るための罰金額（PAY_JAIL_FINE / 強制出獄時に支払う） */
 export const JAIL_FINE = 50;
 
+/** エコシステム・タックス（循環税）の税率：家賃の何%を最貧プレイヤーに還元するか */
+export const ECOSYSTEM_TAX_RATE = 0.1;
+
 // ── ヘルパー関数 ──
 
 export function rollDice(): [number, number] {
@@ -222,8 +225,8 @@ function handleLanding(state: GameState): GameState {
       );
 
       // 1000年先の文明の洞察: 富の集中を防ぎ、ゲームの流動性を高める「エコシステム・タックス（循環税）」
-      // 家賃の10%は、自動的にその時点で最も貧しいプレイヤーに還元される。
-      const ecosystemTax = Math.floor(rent * 0.1);
+      // 家賃の一定割合は、自動的にその時点で最も貧しいプレイヤーに還元される。
+      const ecosystemTax = Math.floor(rent * ECOSYSTEM_TAX_RATE);
       const ownerRevenue = rent - ecosystemTax;
 
       const activePlayers = state.players.filter((p) => !p.isBankrupt);
