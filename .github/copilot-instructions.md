@@ -1,4 +1,15 @@
+<!--
+  ⚠️ このファイルは自動生成されています。直接編集しないでください。
+  対象ツール: GitHub Copilot
+  マスタ: docs/ai-guidelines.md
+  同期: bun run sync:ai-guidelines
+-->
+
 # monopo AIコーディングガイドライン
+
+> 本ファイルは AI コーディングアシスタント（Cursor / GitHub Copilot 等）共通のマスタガイドラインです。
+> 各 AI ツール固有の設定ファイル（`.cursorrules` / `.github/copilot-instructions.md` など）は本ファイルから自動生成されます。
+> 変更時はマスタファイル (`docs/ai-guidelines.md`) のみを編集し、`bun run sync:ai-guidelines` を実行して同期してください。
 
 ## 言語ルール
 

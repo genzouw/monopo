@@ -52,6 +52,20 @@ bun run dev
 - `bun run lint`: ESLint を使用してコードの静的解析を行います
 - `bun run format`: Prettier を使用してコードのフォーマットを行います
 - `bun run typecheck`: TypeScript の型チェックを実行します
+- `bun run sync:ai-guidelines`: AI コーディングアシスタント向け設定ファイル（`.cursorrules` / `.github/copilot-instructions.md` など）を `docs/ai-guidelines.md` から再生成します
+- `bun run sync:ai-guidelines:check`: 上記の同期状態を検証します（CI で利用、差分があれば非 0 終了）
+
+## AI コーディングアシスタント設定 (AI Coding Assistant Configuration)
+
+本プロジェクトでは Cursor / GitHub Copilot 等の AI コーディングアシスタント向け設定ファイルが複数存在しますが、内容は `docs/ai-guidelines.md` をマスタとして自動生成されています。
+
+ガイドラインを更新する際は次の手順に従ってください:
+
+1. `docs/ai-guidelines.md` を編集
+2. `bun run sync:ai-guidelines` を実行して各設定ファイルを再生成
+3. 生成された差分も含めてコミット
+
+新しい AI ツールへ対応する場合は `scripts/sync-ai-guidelines.ts` の `TARGETS` 配列にエントリを追加してください。
 
 ## 貢献について (Contributing)
 
