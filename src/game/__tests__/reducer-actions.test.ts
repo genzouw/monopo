@@ -125,9 +125,19 @@ describe('FINISH_MOVING - handleLanding 各種マス', () => {
   });
 
   it('他のプレイヤーの物件にとまると家賃を払う', () => {
-    let state = startedGame();
-    // baltic (price=60, base rent=4) を player-1 が所有（カラーグループ未制覇）
+    let state = startedGame(); // By default has 2 players
+    // baltic (price=60, base rent=4) を player-1 が所有
     state = withPropertyOwner(state, 'baltic', 'player-1');
+    state = {
+      ...state,
+      propertyStates: {
+        ...state.propertyStates,
+        baltic: { ...state.propertyStates['baltic'], houses: 1 },
+      },
+    };
+    // There are only 2 players (index 0 and 1). Make player-1 the poorest.
+    state.players[1].money = 500;
+
     state = withCurrentPlayer(state, { position: 0 });
     state = {
       ...state,
@@ -135,8 +145,12 @@ describe('FINISH_MOVING - handleLanding 各種マス', () => {
       turnPhase: 'moving',
     };
     const next = gameReducer(state, { type: 'FINISH_MOVING' });
-    expect(next.players[0].money).toBe(1496); // -4 (rent)
-    expect(next.players[1].money).toBe(1504); // +4 (rent)
+    // rent is 20. ecosystemTax = 2. ownerRevenue = 18.
+    // poorest is player-1.
+    // player-0 pays 20 -> 1500 - 20 = 1480
+    // player-1 receives 18 + 2 (ecosystem tax) = 20. -> 500 + 20 = 520
+    expect(next.players[0].money).toBe(1480);
+    expect(next.players[1].money).toBe(520);
   });
 
   it('抵当に入った物件にとまっても家賃は払わない', () => {

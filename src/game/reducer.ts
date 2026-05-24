@@ -221,11 +221,30 @@ function handleLanding(state: GameState): GameState {
         state.dice.values,
       );
 
+      // 1000年先の文明の洞察: 富の集中を防ぎ、ゲームの流動性を高める「エコシステム・タックス（循環税）」
+      // 家賃の10%は、自動的にその時点で最も貧しいプレイヤーに還元される。
+      const ecosystemTax = Math.floor(rent * 0.1);
+      const ownerRevenue = rent - ecosystemTax;
+
+      const activePlayers = state.players.filter((p) => !p.isBankrupt);
+      const poorestPlayer = activePlayers.reduce((prev, curr) =>
+        curr.money < prev.money ? curr : prev,
+      );
+
       const newPlayers = state.players.map((p) => {
-        if (p.id === player.id) return { ...p, money: p.money - rent };
-        if (p.id === owner.id) return { ...p, money: p.money + rent };
-        return p;
+        let diff = 0;
+        if (p.id === player.id) diff -= rent;
+        if (p.id === owner.id) diff += ownerRevenue;
+        if (p.id === poorestPlayer.id) diff += ecosystemTax;
+        return { ...p, money: p.money + diff };
       });
+
+      let rentMsg = `${owner.name}に$${rent}のとまり賃をはらったよ`;
+      if (ecosystemTax > 0 && poorestPlayer.id !== owner.id) {
+        rentMsg = `${owner.name}に$${ownerRevenue}をはらい、$${ecosystemTax}が社会(${poorestPlayer.name})に還元されたよ`;
+      } else if (ecosystemTax > 0) {
+        rentMsg = `${owner.name}に$${rent}のとまり賃をはらったよ(エコ還元なし)`;
+      }
 
       // 5倍買い可能かチェック（所持金が足りる場合のみ提示）
       const forceBuyCost = (space.price ?? 0) * 5;
@@ -235,7 +254,7 @@ function handleLanding(state: GameState): GameState {
           ...state,
           players: newPlayers,
           turnPhase: 'forceBuy',
-          message: `${owner.name}に$${rent}のとまり賃をはらったよ。$${forceBuyCost}で5ばいがいする？`,
+          message: `${rentMsg}。$${forceBuyCost}で5ばいがいする？`,
         };
       }
 
@@ -243,7 +262,7 @@ function handleLanding(state: GameState): GameState {
         ...state,
         players: newPlayers,
         turnPhase: 'endTurn',
-        message: `${owner.name}に$${rent}のとまり賃をはらったよ`,
+        message: rentMsg,
       };
     }
 
