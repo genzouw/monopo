@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useId } from 'react';
 import {
   TOKENS,
   MIN_PLAYERS,
@@ -25,6 +25,7 @@ const DEFAULT_TOKENS: string[] = [TOKENS[0], TOKENS[1], TOKENS[2], TOKENS[3]];
 const START_GUIDE_MSG = 'すべてのプレイヤーのなまえを入力してね';
 
 export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
+  const baseId = useId();
   const [initialConfig] = useState(() => loadSetupConfig());
   const [playerCount, setPlayerCount] = useState(
     initialConfig?.playerCount ?? MIN_PLAYERS,
@@ -139,8 +140,13 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
               maxLength={MAX_NAME_LENGTH}
               aria-required="true"
               aria-invalid={names[i].trim().length === 0}
+              aria-describedby={`${baseId}-char-count-${i}`}
             />
-            <span className={styles.charCount} aria-hidden="true">
+            <span
+              id={`${baseId}-char-count-${i}`}
+              className={styles.charCount}
+              role="status"
+            >
               {[...names[i]].length}/{MAX_NAME_LENGTH}
             </span>
           </div>
