@@ -23,7 +23,7 @@
 - **Trivy ワークフロー (`.github/workflows/trivy.yml`)**:
   - パッケージの脆弱性や IaC の設定ミスに加え、シークレットのスキャン (`secret` スキャナ) も実施し、多角的に検知します。
 - **CodeQL ワークフロー (`.github/workflows/codeql.yml`)**:
-  - `security-extended` クエリを使用して、データフロー解析によるシークレットのハードコード検知など、高度な静的解析を行います。
+  - `security-extended` および `security-and-quality` クエリを使用して、データフロー解析によるシークレットのハードコード検知や品質チェックなど、高度な静的解析を行います。
 - **権限 (Permissions) の最小化**:
   - CI の各ワークフロー (`.github/workflows/*.yml`) では `permissions` が明示されており、GitHub Actions が必要以上にリポジトリを書き換える権限を持たないように設計されています。
 
