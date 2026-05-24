@@ -126,7 +126,7 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
                 handleTokenChange(i, nextToken);
               }}
               aria-label={`${names[i] || DEFAULT_NAMES[i]}のコマを変更する（現在のコマ: ${selectedTokens[i]}）`}
-              title={`${names[i] || DEFAULT_NAMES[i]}のコマを変更する`}
+              title={`${names[i] || DEFAULT_NAMES[i]}のコマを変更する（現在のコマ: ${selectedTokens[i]}）`}
             >
               {selectedTokens[i]}
             </button>
@@ -135,9 +135,14 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
               value={names[i]}
               onChange={(e) => handleNameChange(i, e.target.value)}
               placeholder={`プレイヤー${i + 1}のなまえ`}
-              aria-label={`プレイヤー${i + 1}のなまえ`}
+              aria-label={`プレイヤー${i + 1}のなまえ（最大${MAX_NAME_LENGTH}文字）`}
               maxLength={MAX_NAME_LENGTH}
+              aria-required="true"
+              aria-invalid={names[i].trim().length === 0}
             />
+            <span className={styles.charCount} aria-hidden="true">
+              {[...names[i]].length}/{MAX_NAME_LENGTH}
+            </span>
           </div>
         ))}
       </div>
