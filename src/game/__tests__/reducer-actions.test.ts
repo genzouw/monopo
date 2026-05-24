@@ -127,14 +127,7 @@ describe('FINISH_MOVING - handleLanding 各種マス', () => {
   it('他のプレイヤーの物件にとまると家賃を払う', () => {
     let state = startedGame(); // By default has 2 players
     // baltic (price=60, base rent=4) を player-1 が所有
-    state = withPropertyOwner(state, 'baltic', 'player-1');
-    state = {
-      ...state,
-      propertyStates: {
-        ...state.propertyStates,
-        baltic: { ...state.propertyStates['baltic'], houses: 1 },
-      },
-    };
+    state = withPropertyOwner(state, 'baltic', 'player-1', { houses: 1 });
     // There are only 2 players (index 0 and 1). Make player-1 the poorest.
     state.players[1].money = 500;
 
