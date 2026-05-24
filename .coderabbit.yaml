@@ -89,3 +89,5 @@ chat:
 
 knowledge_base:
   opt_out: false
+  web_search:
+    enabled: true
