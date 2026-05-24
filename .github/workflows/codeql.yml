@@ -41,7 +41,7 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           # クエリセットを指定してセキュリティ・品質チェックを強化可能
-          # queries: security-extended,security-and-quality
+          queries: security-extended,security-and-quality
 
       - name: Autobuild
         uses: github/codeql-action/autobuild@78ed0c7291d93e40c51b085850dc669a4c3ab73b # v3
