@@ -14,6 +14,9 @@
  *   下記 `TARGETS` 配列に出力先を追加するだけで対応可能です。
  */
 
+import { mkdir } from 'node:fs/promises';
+import { dirname } from 'node:path';
+
 interface SyncTarget {
   name: string;
   dest: string;
@@ -76,6 +79,11 @@ async function main(): Promise<void> {
         console.log(`✅ 同期OK: ${target.dest}`);
       }
     } else {
+      // 出力先ディレクトリが存在しない場合に備え事前作成（Bun.write は自動作成しない）
+      const dir = dirname(target.dest);
+      if (dir && dir !== '.') {
+        await mkdir(dir, { recursive: true });
+      }
       await Bun.write(target.dest, expected);
       console.log(`✅ 生成: ${target.dest}`);
     }
