@@ -2,6 +2,7 @@ import { useId } from 'react';
 import type { Player } from '../../game/types';
 import Dialog from '../common/Dialog';
 import Button from '../common/Button';
+import styles from './ActionDialog.module.css';
 
 const JAIL_FINE = 50;
 
@@ -51,7 +52,7 @@ export default function JailDialog({
           <div
             id={noMoneyHintId}
             role="status"
-            style={{ color: 'var(--color-danger)', fontSize: 13, marginTop: 4 }}
+            className={styles.noMoneyHintTight}
           >
             おかねがたりないよ（${JAIL_FINE}ひつよう）
           </div>
