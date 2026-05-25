@@ -12,3 +12,8 @@
 
 **Learning:** `findNearestSpace` was using `board.filter((s) => s.type === spaceType)` every time a player drew a card that moved them to the nearest railroad or utility. This forced an O(N) scan allocating a new array over all 40 board spaces. However, the existing `getBoardCache` `WeakMap` already computes `byType` and stores the IDs in board index order, enabling O(1) retrieval of targets and eliminating the intermediate array entirely.
 **Action:** Always prefer retrieving pre-computed lists (e.g., `cache.byType`) from `getBoardCache` when querying spaces by type, and map them to spaces via `cache.byId` in O(1) time instead of using `.filter()` on the raw `board` array.
+
+## 2024-08-16 - Eliminate intermediate array allocations during O(N) game rule loops
+
+**Learning:** Core game rules that scan arrays (like `calculateRent`, `canBuildHouse`, and `canSellHouse`) run frequently across multiple components during both React renders and Redux-like action dispatches. Utilizing functional array spread patterns like `Math.max(...group.map(...))` or `.filter(...).length` allocates temporary arrays repeatedly, which degrades performance and triggers unnecessary garbage collection under load.
+**Action:** Always replace chained functional array operations like `.map()`, `.some()`, and array spreading with explicit `for...of` loops and accumulator variables (e.g. `minHouses`, `ownedRailroads`) when checking rules or properties against groups.

@@ -78,20 +78,24 @@ export function calculateRent(
   const space = cache.byId.get(propertyId)!;
   if (space.type === 'railroad') {
     const railroadIds = cache.byType.get('railroad') ?? [];
-    const ownedRailroads = railroadIds.filter(
-      (id) =>
-        propertyStates[id]?.ownerId === state.ownerId &&
-        !propertyStates[id]?.isMortgaged,
-    ).length;
+    let ownedRailroads = 0;
+    for (const id of railroadIds) {
+      const pState = propertyStates[id];
+      if (pState?.ownerId === state.ownerId && !pState?.isMortgaged) {
+        ownedRailroads++;
+      }
+    }
     return space.rent![ownedRailroads - 1];
   }
   if (space.type === 'utility') {
     const utilityIds = cache.byType.get('utility') ?? [];
-    const ownedUtilities = utilityIds.filter(
-      (id) =>
-        propertyStates[id]?.ownerId === state.ownerId &&
-        !propertyStates[id]?.isMortgaged,
-    ).length;
+    let ownedUtilities = 0;
+    for (const id of utilityIds) {
+      const pState = propertyStates[id];
+      if (pState?.ownerId === state.ownerId && !pState?.isMortgaged) {
+        ownedUtilities++;
+      }
+    }
     const diceTotal = diceValues[0] + diceValues[1];
     return diceTotal * (ownedUtilities === 1 ? 4 : 10);
   }
@@ -112,15 +116,22 @@ export function canBuildHouse(
   if (!state || state.ownerId !== playerId) return false;
   if (state.houses >= 5) return false;
   if (state.isMortgaged) return false;
-  if (!ownsFullColorGroup(propertyId, playerId, propertyStates, board))
-    return false;
+
   const group = getColorGroup(propertyId, board);
-  if (group.some((id) => propertyStates[id]?.isMortgaged)) return false;
-  const currentHouses = state.houses;
-  const minHouses = Math.min(
-    ...group.map((id) => propertyStates[id]?.houses ?? 0),
-  );
-  return currentHouses <= minHouses;
+  if (group.length === 0) return false;
+
+  let minHouses = Infinity;
+  for (const id of group) {
+    const pState = propertyStates[id];
+    // Must own full color group
+    if (pState?.ownerId !== playerId) return false;
+    // No property in the group can be mortgaged
+    if (pState?.isMortgaged) return false;
+    const h = pState?.houses ?? 0;
+    if (h < minHouses) minHouses = h;
+  }
+
+  return state.houses <= minHouses;
 }
 
 export function canMortgage(
@@ -261,10 +272,13 @@ export function canSellHouse(
   const state = propertyStates[propertyId];
   if (!state || state.ownerId !== playerId) return false;
   if (state.houses <= 0) return false;
+
   const group = getColorGroup(propertyId, board);
-  const currentHouses = state.houses;
-  const maxHouses = Math.max(
-    ...group.map((id) => propertyStates[id]?.houses ?? 0),
-  );
-  return currentHouses >= maxHouses;
+  let maxHouses = 0;
+  for (const id of group) {
+    const h = propertyStates[id]?.houses ?? 0;
+    if (h > maxHouses) maxHouses = h;
+  }
+
+  return state.houses >= maxHouses;
 }
