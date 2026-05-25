@@ -31,10 +31,18 @@
   justify-content: center;
   margin-top: 12px;
 }
+/* ボタン群（.bidButtons など）の下に置くヒント。上のブロックとの余白を確保する。 */
 .noMoneyHint {
   color: var(--color-danger);
   font-size: 13px;
   margin-top: 12px;
+  text-align: center;
+}
+/* インラインのテキスト直下に置くヒント。前後の文との距離を詰めて自然につなげる。 */
+.noMoneyHintTight {
+  color: var(--color-danger);
+  font-size: 13px;
+  margin-top: 4px;
   text-align: center;
 }
 .cardContent {

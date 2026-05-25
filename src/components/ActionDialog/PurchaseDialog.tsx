@@ -48,7 +48,7 @@ export default function PurchaseDialog({
           <div
             id={noMoneyHintId}
             role="status"
-            style={{ color: 'var(--color-danger)', fontSize: 13, marginTop: 4 }}
+            className={styles.noMoneyHintTight}
           >
             おかねがたりないよ
           </div>
