@@ -1,7 +1,7 @@
 # monopo AIコーディングガイドライン
 
 > `docs/ai-guidelines.md` は AI コーディングアシスタント（Cursor / GitHub Copilot / Aider / Cline / Continue.dev 等）共通のマスタガイドラインです。
-> 各 AI ツール固有の設定ファイル（`.cursorrules` / `.github/copilot-instructions.md` など）は本ファイルから自動生成されます。
+> 各 AI ツール固有の設定ファイル（`.cursorrules` / `.github/copilot-instructions.md` など）は `docs/ai-guidelines.md` から自動生成されます。
 > 変更時はマスタファイル (`docs/ai-guidelines.md`) のみを編集し、`bun run sync:ai-guidelines` を実行して同期してください。
 
 ## 言語ルール
