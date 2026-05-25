@@ -141,7 +141,21 @@ function handleLanding(state: GameState): GameState {
       if (space.id === 'go-to-jail') {
         return sendToJail(state);
       }
-      // GO, jail (visiting), free-parking: nothing special
+      if (space.id === 'free-parking') {
+        if (state.freeParkingPool > 0) {
+          const poolAmount = state.freeParkingPool;
+          const newState = updateCurrentPlayer(state, {
+            money: player.money + poolAmount,
+          });
+          return {
+            ...newState,
+            freeParkingPool: 0,
+            turnPhase: 'endTurn',
+            message: `${space.name}にとまったよ！プールされた$${poolAmount}をもらったよ！`,
+          };
+        }
+      }
+      // GO, jail (visiting): nothing special
       return {
         ...state,
         turnPhase: 'endTurn',
@@ -423,6 +437,7 @@ export function createInitialGameState(): GameState {
     currentCard: null,
     message: 'ゲームをはじめよう！',
     winnerId: null,
+    freeParkingPool: 0,
   };
 }
 
@@ -490,6 +505,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         currentCard: null,
         message: `${firstPlayer.name}のばんだよ！サイコロをふろう！`,
         winnerId: null,
+        freeParkingPool: 0,
       };
     }
 
@@ -808,6 +824,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
 
       return {
         ...newState,
+        freeParkingPool: state.freeParkingPool + space.price,
         turnPhase: 'endTurn',
         message: `$${space.price}のぜいきんをはらったよ`,
       };
@@ -1125,6 +1142,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       });
       return {
         ...newState,
+        freeParkingPool: state.freeParkingPool + JAIL_FINE,
         turnPhase: 'roll',
         dice: { ...state.dice, rolled: false },
         message: `$${JAIL_FINE}はらって刑務所をでたよ！サイコロをふろう！`,
@@ -1180,6 +1198,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         });
         return {
           ...newState,
+          freeParkingPool: state.freeParkingPool + JAIL_FINE,
           dice: { values: [d1, d2], doubles: 0, rolled: true },
           turnPhase: 'moving',
           message: `${MAX_JAIL_TURNS}かいゾロ目がでなかったから$${JAIL_FINE}はらって刑務所をでたよ！`,

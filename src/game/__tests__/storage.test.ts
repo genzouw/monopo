@@ -54,6 +54,7 @@ const createPlayingState = (): GameState =>
     currentCard: null,
     message: '',
     winnerId: null,
+    freeParkingPool: 0,
   }) as GameState;
 
 beforeEach(() => {

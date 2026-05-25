@@ -150,6 +150,7 @@ export type GameState = {
   currentCard: Card | null;
   message: string;
   winnerId: string | null;
+  freeParkingPool: number;
 };
 
 // ── ファクトリ関数 ──
