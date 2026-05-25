@@ -230,20 +230,23 @@ function handleLanding(state: GameState): GameState {
       const ownerRevenue = rent - ecosystemTax;
 
       const activePlayers = state.players.filter((p) => !p.isBankrupt);
-      const poorestPlayer = activePlayers.reduce((prev, curr) =>
-        curr.money < prev.money ? curr : prev,
-      );
+      const poorestPlayer =
+        activePlayers.length > 0
+          ? activePlayers.reduce((prev, curr) =>
+              curr.money < prev.money ? curr : prev,
+            )
+          : null;
 
       const newPlayers = state.players.map((p) => {
         let diff = 0;
         if (p.id === player.id) diff -= rent;
         if (p.id === owner.id) diff += ownerRevenue;
-        if (p.id === poorestPlayer.id) diff += ecosystemTax;
+        if (poorestPlayer && p.id === poorestPlayer.id) diff += ecosystemTax;
         return { ...p, money: p.money + diff };
       });
 
       let rentMsg = `${owner.name}に$${rent}のとまり賃をはらったよ`;
-      if (ecosystemTax > 0 && poorestPlayer.id !== owner.id) {
+      if (ecosystemTax > 0 && poorestPlayer && poorestPlayer.id !== owner.id) {
         rentMsg = `${owner.name}に$${ownerRevenue}をはらい、$${ecosystemTax}が社会(${poorestPlayer.name})に還元されたよ`;
       } else if (ecosystemTax > 0) {
         rentMsg = `${owner.name}に$${rent}のとまり賃をはらったよ(エコ還元なし)`;
