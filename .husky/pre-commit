@@ -4,12 +4,15 @@ set -e
 # Run lint-staged using bunx
 bunx lint-staged
 
-# Run gitleaks local check if installed to prevent committing secrets
+# Run gitleaks local check to prevent committing secrets
 if command -v gitleaks > /dev/null 2>&1; then
   echo "🔒 Running local gitleaks check..."
   gitleaks protect --staged --verbose
 else
-  echo "⚠️ gitleaks is not installed locally. Skipping local secret scan. (Highly recommended: brew install gitleaks)"
+  echo "❌ Error: gitleaks is not installed locally."
+  echo "To prevent accidental secret leaks, gitleaks is REQUIRED for commits."
+  echo "Please install it: (e.g., 'brew install gitleaks' or download from https://github.com/gitleaks/gitleaks/releases)"
+  exit 1
 fi
 
 # Run typecheck and test for changed files in the project

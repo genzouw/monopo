@@ -1,0 +1,8 @@
+# 秘密情報を含む可能性のあるファイルの diff を非表示にし、意図せぬ表示を防ぐ
+.env* -diff export-ignore
+*.pem -diff export-ignore
+*.key -diff export-ignore
+*credentials* -diff export-ignore
+*service-account* -diff export-ignore
+*serviceaccount* -diff export-ignore
+*.tfstate* -diff export-ignore
