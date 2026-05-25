@@ -38,3 +38,7 @@
 ## 2026-05-22 - Mirror aria-label in visible tooltips for interactive board elements
 **Learning:** Found that the mini map spaces (`MemoizedMiniSpace`) had rich, dynamically generated descriptive information in their `aria-label` (including property name, owner, number of houses, and players present) that was completely inaccessible to sighted mouse users. The UI lacked visual cues for this detailed state unless clicked to open a dialog.
 **Action:** Always provide visual tooltips (e.g., using the `title` attribute) that mirror the information provided in `aria-label` for interactive board elements or densely packed UI components, ensuring that sighted users have the same quick access to state information as screen-reader users without requiring additional clicks.
+
+## 2026-05-25 - Missing Accessibility on Disabled Force Buy Button
+**Learning:** Found a missing disabled state and accessibility hints in the `ForceBuyDialog` component when a player tries to buy but cannot afford the cost. While other dialogs like `PurchaseDialog` handled this well, `ForceBuyDialog` missed the `disabled` prop and `aria-describedby` hint, which could cause a confusing user experience for both keyboard/screen-reader users and sighted users.
+**Action:** Applied a similar pattern used in `PurchaseDialog` by calculating `canAfford` before rendering, disabling the primary button, and presenting an accessible `role="status"` hint linked to the button via `aria-describedby`. Always ensure all purchasing dialogs handle "insufficient funds" explicitly.
