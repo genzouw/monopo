@@ -44,15 +44,18 @@ export function getSpaceById(
   return getBoardCache(board).byId.get(propertyId);
 }
 
+const EMPTY_COLOR_GROUP: readonly string[] = [];
+
+// ⚡ Bolt: Returns a readonly reference to the cached array (no allocation).
+// Callers must not mutate the result.
 export function getColorGroup(
   propertyId: string,
   board: BoardSpace[],
-): string[] {
+): readonly string[] {
   const cache = getBoardCache(board);
   const space = cache.byId.get(propertyId);
-  if (!space?.color) return [];
-  const ids = cache.byColor.get(space.color);
-  return ids ? [...ids] : [];
+  if (!space?.color) return EMPTY_COLOR_GROUP;
+  return cache.byColor.get(space.color) ?? EMPTY_COLOR_GROUP;
 }
 
 export function ownsFullColorGroup(
