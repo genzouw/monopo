@@ -129,7 +129,12 @@ describe('FINISH_MOVING - handleLanding 各種マス', () => {
     // baltic (price=60, base rent=4) を player-1 が所有
     state = withPropertyOwner(state, 'baltic', 'player-1', { houses: 1 });
     // There are only 2 players (index 0 and 1). Make player-1 the poorest.
-    state.players[1].money = 500;
+    state = {
+      ...state,
+      players: state.players.map((p) =>
+        p.id === 'player-1' ? { ...p, money: 500 } : p,
+      ),
+    };
 
     state = withCurrentPlayer(state, { position: 0 });
     state = {
