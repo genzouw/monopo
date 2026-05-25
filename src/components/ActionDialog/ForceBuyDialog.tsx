@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import type { BoardSpace, Player } from '../../game/types';
 import Dialog from '../common/Dialog';
 import Button from '../common/Button';
@@ -20,7 +21,9 @@ export default function ForceBuyDialog({
   onBuy,
   onDecline,
 }: ForceBuyDialogProps) {
+  const noMoneyHintId = useId();
   const cost = (space.price ?? 0) * 5;
+  const canAfford = currentPlayer.money >= cost;
   const toOwner = Math.floor(cost * 0.6);
   const houseSellBack =
     houses > 0 && space.houseCost
@@ -33,7 +36,13 @@ export default function ForceBuyDialog({
       onClose={onDecline}
       actions={
         <>
-          <Button onClick={onBuy}>${cost.toLocaleString()}で買いとる！</Button>
+          <Button
+            onClick={onBuy}
+            disabled={!canAfford}
+            aria-describedby={!canAfford ? noMoneyHintId : undefined}
+          >
+            ${cost.toLocaleString()}で買いとる！
+          </Button>
           <Button variant="secondary" onClick={onDecline}>
             やめておく
           </Button>
@@ -62,6 +71,15 @@ export default function ForceBuyDialog({
         <div className={styles.propertyPrice} style={{ marginTop: 8 }}>
           もってるおかね: ${currentPlayer.money.toLocaleString()}
         </div>
+        {!canAfford && (
+          <div
+            id={noMoneyHintId}
+            role="status"
+            style={{ color: 'var(--color-danger)', fontSize: 13, marginTop: 4 }}
+          >
+            おかねがたりないよ
+          </div>
+        )}
       </div>
     </Dialog>
   );
