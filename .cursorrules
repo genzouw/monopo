@@ -7,8 +7,8 @@
 
 # monopo AIコーディングガイドライン
 
-> 本ファイルは AI コーディングアシスタント（Cursor / GitHub Copilot 等）共通のマスタガイドラインです。
-> 各 AI ツール固有の設定ファイル（`.cursorrules` / `.github/copilot-instructions.md` など）は本ファイルから自動生成されます。
+> `docs/ai-guidelines.md` は AI コーディングアシスタント（Cursor / GitHub Copilot / Aider / Cline / Continue.dev 等）共通のマスタガイドラインです。
+> 各 AI ツール固有の設定ファイル（`.cursorrules` / `.github/copilot-instructions.md` など）は `docs/ai-guidelines.md` から自動生成されます。
 > 変更時はマスタファイル (`docs/ai-guidelines.md`) のみを編集し、`bun run sync:ai-guidelines` を実行して同期してください。
 
 ## 言語ルール
@@ -36,3 +36,7 @@
 
 - GitHub ActionsのCI/CDワークフローでは、`actions/setup-node` の代わりに `oven-sh/setup-bun` を利用して環境を構築してください。
 - 乱数生成に依存するテストを作成または更新する際は、`Math.random()` の代わりに `src/game/random.ts` の `getSecureRandomInt` をモックしてください。
+
+## ツール・拡張機能
+
+- ローカルAIエージェント（Aider、Cline、Continue.devなど）を利用する際は、リポジトリ固有のルールを遵守し、作業ディレクトリ（`.aider*`、`.continue/` など）をコミットしないように注意してください。
