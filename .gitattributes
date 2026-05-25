@@ -1,0 +1,14 @@
+# 秘密情報を含む可能性のあるファイルの diff を非表示にし、意図せぬ表示を防ぐ
+.env -diff export-ignore
+.env.* -diff export-ignore
+# テンプレートはレビュー可能にする（.gitignore の !.env.example と同様）
+.env.example diff !export-ignore
+*.pem -diff export-ignore
+*.key -diff export-ignore
+*credentials*.json -diff export-ignore
+*credentials*.yml -diff export-ignore
+*credentials*.yaml -diff export-ignore
+*credentials*.env -diff export-ignore
+*service-account*.json -diff export-ignore
+*serviceaccount*.json -diff export-ignore
+*.tfstate* -diff export-ignore
