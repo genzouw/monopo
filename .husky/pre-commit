@@ -9,9 +9,11 @@ if command -v gitleaks > /dev/null 2>&1; then
   echo "🔒 Running local gitleaks check..."
   gitleaks protect --staged --verbose
 else
-  echo "❌ Error: gitleaks is not installed locally."
-  echo "To prevent accidental secret leaks, gitleaks is REQUIRED for commits."
-  echo "Please install it: (e.g., 'brew install gitleaks' or download from https://github.com/gitleaks/gitleaks/releases)"
+  {
+    echo "❌ Error: gitleaks is not installed locally."
+    echo "To prevent accidental secret leaks, gitleaks is REQUIRED for commits."
+    echo "Please install it: (e.g., 'brew install gitleaks' or download from https://github.com/gitleaks/gitleaks/releases)"
+  } >&2
   exit 1
 fi
 
