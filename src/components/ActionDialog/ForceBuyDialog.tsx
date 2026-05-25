@@ -13,6 +13,12 @@ type ForceBuyDialogProps = {
   onDecline: () => void;
 };
 
+/**
+ * 5倍買い確認ダイアログ。
+ * 他プレイヤー所有の土地を強制的に5倍価格で買い取るアクションを表示し、
+ * 所持金が不足している場合は購入ボタンを無効化したうえで
+ * `aria-describedby` で結び付けた補助メッセージから理由を伝える。
+ */
 export default function ForceBuyDialog({
   space,
   currentPlayer,
