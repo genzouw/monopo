@@ -76,3 +76,8 @@ updates:
       include: 'scope'
     pull-request-branch-name:
       separator: '/'
+    ignore:
+      # v23.x 以降は Node.js 24 ランタイム要求のため、GitHub Actions runner が
+      # node24 を正式サポートするまではメジャーアップデートを停止する。
+      - dependency-name: 'DavidAnson/markdownlint-cli2-action'
+        update-types: ['version-update:semver-major']
