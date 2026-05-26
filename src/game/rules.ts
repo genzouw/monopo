@@ -205,6 +205,14 @@ export function calculateTotalAssets(
   return total;
 }
 
+/**
+ * 取引オファーの妥当性を検証します。
+ * プレイヤーの存在、資金、物件所有、家の有無などをチェックします。
+ * オファーまたはリクエスト物件のカラーグループ内に家が建っている場合は取引不可となります。
+ * @param state - 現在のゲーム状態
+ * @param offer - 検証する取引オファー
+ * @returns 検証結果（isValid と任意の reason を含むオブジェクト）
+ */
 export function validateTradeOffer(
   state: GameState,
   offer: TradeOffer,
@@ -259,20 +267,30 @@ export function validateTradeOffer(
     }
   }
 
-  const checkHasHouses = (properties: string[]) => {
-    for (const id of properties) {
-      const group = getColorGroup(id, state.board);
-      for (const gid of group) {
-        if ((state.propertyStates[gid]?.houses ?? 0) > 0) return true;
+  let propertyHasHouses = false;
+  for (const id of offer.offerProperties) {
+    const group = getColorGroup(id, state.board);
+    for (const gid of group) {
+      if ((state.propertyStates[gid]?.houses ?? 0) > 0) {
+        propertyHasHouses = true;
+        break;
       }
     }
-    return false;
-  };
-
-  if (
-    checkHasHouses(offer.offerProperties) ||
-    checkHasHouses(offer.requestProperties)
-  ) {
+    if (propertyHasHouses) break;
+  }
+  if (!propertyHasHouses) {
+    for (const id of offer.requestProperties) {
+      const group = getColorGroup(id, state.board);
+      for (const gid of group) {
+        if ((state.propertyStates[gid]?.houses ?? 0) > 0) {
+          propertyHasHouses = true;
+          break;
+        }
+      }
+      if (propertyHasHouses) break;
+    }
+  }
+  if (propertyHasHouses) {
     return { isValid: false, reason: 'PROPERTY_HAS_HOUSES' };
   }
 
