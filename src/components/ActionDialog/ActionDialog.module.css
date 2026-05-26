@@ -45,6 +45,13 @@
   margin-top: 4px;
   text-align: center;
 }
+/* 強制イベントを回避できる手段の所持を伝える緑ヒント。インラインのテキスト直下用。 */
+.hasCardHint {
+  color: var(--color-success);
+  font-size: 13px;
+  margin-top: 4px;
+  text-align: center;
+}
 .cardContent {
   text-align: center;
   padding: 16px 0;
