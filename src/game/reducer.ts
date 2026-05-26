@@ -132,6 +132,12 @@ function sendToJail(state: GameState): GameState {
   };
 }
 
+/**
+ * 現在のプレイヤーが止まったマスに応じて着地処理を行う。
+ * `free-parking` に止まった場合は `freeParkingPool` を受け取りリセットする副作用がある。
+ * @param state - 現在のゲーム状態
+ * @returns 着地処理後の新しい GameState。`turnPhase` および `message` が更新される場合がある
+ */
 function handleLanding(state: GameState): GameState {
   const player = state.players[state.currentPlayerIndex];
   const space = state.board[player.position];
@@ -419,6 +425,11 @@ function applyCardEffect(state: GameState, card: Card): GameState {
 
 // ── 初期状態 ──
 
+/**
+ * ゲームの初期 GameState を生成して返す。
+ * `freeParkingPool` は 0 で初期化される。
+ * @returns セットアップフェーズの初期 GameState
+ */
 export function createInitialGameState(): GameState {
   return {
     phase: 'setup',
@@ -471,6 +482,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
   return checkNegativeMoney(result);
 }
 
+/**
+ * アクションを処理して新しい GameState を返す純粋関数（内部 reducer）。
+ * 税金・罰金などの支払いは `freeParkingPool` に積み立てられる。
+ * @param state - 現在のゲーム状態
+ * @param action - 実行するアクション
+ * @returns アクション処理後の新しい GameState
+ */
 function gameReducerInner(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     // ── START_GAME ──
