@@ -43,8 +43,8 @@ jobs:
             BASE_REF=$(git describe --tags --abbrev=0 "$HEAD_REF^" 2>/dev/null || echo "")
           fi
 
-          echo "base_ref=$BASE_REF" >> $GITHUB_OUTPUT
-          echo "head_ref=$HEAD_REF" >> $GITHUB_OUTPUT
+          echo "base_ref=$BASE_REF" >> "$GITHUB_OUTPUT"
+          echo "head_ref=$HEAD_REF" >> "$GITHUB_OUTPUT"
 
       - name: Generate release notes
         id: notes
