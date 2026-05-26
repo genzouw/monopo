@@ -58,15 +58,7 @@ export default function JailDialog({
           </div>
         )}
         {hasCards && (
-          <div
-            style={{
-              color: 'var(--color-success)',
-              fontSize: 13,
-              marginTop: 4,
-            }}
-          >
-            しゃほうカードをもってるよ！
-          </div>
+          <div className={styles.hasCardHint}>しゃほうカードをもってるよ！</div>
         )}
       </div>
     </Dialog>
