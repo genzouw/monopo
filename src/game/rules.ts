@@ -58,6 +58,14 @@ export function getColorGroup(
   return cache.byColor.get(space.color) ?? EMPTY_COLOR_GROUP;
 }
 
+/**
+ * 指定されたプレイヤーがカラーグループ全体を所有しているかを判定します。
+ * @param propertyId - チェック対象の物件ID
+ * @param ownerId - 所有者のプレイヤーID
+ * @param propertyStates - 物件の状態レコード
+ * @param board - ボードスペースの配列
+ * @returns カラーグループ全体を所有している場合は true
+ */
 export function ownsFullColorGroup(
   propertyId: string,
   ownerId: string,
@@ -140,6 +148,15 @@ export function canBuildHouse(
   return state.houses <= minHouses;
 }
 
+/**
+ * 指定された物件を抵当に入れることができるかを判定します。
+ * カラーグループ内のいずれかの物件に家が建っている場合は抵当に入れられません。
+ * @param propertyId - チェック対象の物件ID
+ * @param playerId - プレイヤーID
+ * @param propertyStates - 物件の状態レコード
+ * @param board - ボードスペースの配列
+ * @returns 抵当に入れられる場合は true
+ */
 export function canMortgage(
   propertyId: string,
   playerId: string,
