@@ -66,7 +66,7 @@ export default function JailDialog({
         )}
         {hasCards && (
           <div role="status" className={styles.hasCardHint}>
-            しゃほうカードをもってるよ！
+            しゃくほうカードをもってるよ！
           </div>
         )}
       </div>
