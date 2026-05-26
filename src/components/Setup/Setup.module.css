@@ -112,3 +112,8 @@
   min-width: 3.5em;
   text-align: right;
 }
+.countDesc {
+  font-size: 14px;
+  color: var(--color-text-light);
+  text-align: center;
+}
