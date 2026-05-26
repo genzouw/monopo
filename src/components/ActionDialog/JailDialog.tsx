@@ -13,6 +13,13 @@ type JailDialogProps = {
   onRollForJail: () => void;
 };
 
+/**
+ * 刑務所滞在中のプレイヤー向けアクションダイアログ。
+ * 「罰金を払って出る」「釈放カードを使う」「ゾロ目チャレンジ」の 3 つの脱出手段を提示し、
+ * 所持金が不足している場合は罰金ボタンを無効化したうえで
+ * `aria-describedby` で結び付けた補助メッセージから理由を伝える。
+ * 釈放カードを所持している場合は、その旨をヒントとして併記する。
+ */
 export default function JailDialog({
   currentPlayer,
   onPayFine,
@@ -58,13 +65,7 @@ export default function JailDialog({
           </div>
         )}
         {hasCards && (
-          <div
-            style={{
-              color: 'var(--color-success)',
-              fontSize: 13,
-              marginTop: 4,
-            }}
-          >
+          <div role="status" className={styles.hasCardHint}>
             しゃくほうカードをもってるよ！
           </div>
         )}
