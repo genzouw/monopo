@@ -58,6 +58,14 @@ export function getColorGroup(
   return cache.byColor.get(space.color) ?? EMPTY_COLOR_GROUP;
 }
 
+/**
+ * 指定されたプレイヤーがカラーグループ全体を所有しているかを判定します。
+ * @param propertyId - チェック対象の物件ID
+ * @param ownerId - 所有者のプレイヤーID
+ * @param propertyStates - 物件の状態レコード
+ * @param board - ボードスペースの配列
+ * @returns カラーグループ全体を所有している場合は true
+ */
 export function ownsFullColorGroup(
   propertyId: string,
   ownerId: string,
@@ -66,7 +74,10 @@ export function ownsFullColorGroup(
 ): boolean {
   const group = getColorGroup(propertyId, board);
   if (group.length === 0) return false;
-  return group.every((id) => propertyStates[id]?.ownerId === ownerId);
+  for (const id of group) {
+    if (propertyStates[id]?.ownerId !== ownerId) return false;
+  }
+  return true;
 }
 
 export function calculateRent(
@@ -137,6 +148,15 @@ export function canBuildHouse(
   return state.houses <= minHouses;
 }
 
+/**
+ * 指定された物件を抵当に入れることができるかを判定します。
+ * カラーグループ内のいずれかの物件に家が建っている場合は抵当に入れられません。
+ * @param propertyId - チェック対象の物件ID
+ * @param playerId - プレイヤーID
+ * @param propertyStates - 物件の状態レコード
+ * @param board - ボードスペースの配列
+ * @returns 抵当に入れられる場合は true
+ */
 export function canMortgage(
   propertyId: string,
   playerId: string,
@@ -147,7 +167,9 @@ export function canMortgage(
   if (!state || state.ownerId !== playerId) return false;
   if (state.isMortgaged) return false;
   const group = getColorGroup(propertyId, board);
-  if (group.some((id) => (propertyStates[id]?.houses ?? 0) > 0)) return false;
+  for (const id of group) {
+    if ((propertyStates[id]?.houses ?? 0) > 0) return false;
+  }
   return true;
 }
 
@@ -200,6 +222,14 @@ export function calculateTotalAssets(
   return total;
 }
 
+/**
+ * 取引オファーの妥当性を検証します。
+ * プレイヤーの存在、資金、物件所有、家の有無などをチェックします。
+ * オファーまたはリクエスト物件のカラーグループ内に家が建っている場合は取引不可となります。
+ * @param state - 現在のゲーム状態
+ * @param offer - 検証する取引オファー
+ * @returns 検証結果（isValid と任意の reason を含むオブジェクト）
+ */
 export function validateTradeOffer(
   state: GameState,
   offer: TradeOffer,
@@ -213,16 +243,20 @@ export function validateTradeOffer(
     return { isValid: false, reason: 'PLAYER_BANKRUPT' };
   }
 
-  const numericFields = [
-    offer.offerMoney,
-    offer.requestMoney,
-    offer.offerJailCards,
-    offer.requestJailCards,
-  ];
-  if (numericFields.some((n) => !Number.isInteger(n))) {
+  if (
+    !Number.isInteger(offer.offerMoney) ||
+    !Number.isInteger(offer.requestMoney) ||
+    !Number.isInteger(offer.offerJailCards) ||
+    !Number.isInteger(offer.requestJailCards)
+  ) {
     return { isValid: false, reason: 'NOT_INTEGER' };
   }
-  if (numericFields.some((n) => n < 0)) {
+  if (
+    offer.offerMoney < 0 ||
+    offer.requestMoney < 0 ||
+    offer.offerJailCards < 0 ||
+    offer.requestJailCards < 0
+  ) {
     return { isValid: false, reason: 'NEGATIVE_VALUE' };
   }
 
@@ -239,27 +273,41 @@ export function validateTradeOffer(
     return { isValid: false, reason: 'INSUFFICIENT_JAIL_CARDS' };
   }
 
-  if (
-    !offer.offerProperties.every((id) => fromPlayer.properties.includes(id))
-  ) {
-    return { isValid: false, reason: 'NOT_PROPERTY_OWNER' };
+  for (const id of offer.offerProperties) {
+    if (!fromPlayer.properties.includes(id)) {
+      return { isValid: false, reason: 'NOT_PROPERTY_OWNER' };
+    }
   }
-  if (
-    !offer.requestProperties.every((id) => toPlayer.properties.includes(id))
-  ) {
-    return { isValid: false, reason: 'NOT_PROPERTY_OWNER' };
+  for (const id of offer.requestProperties) {
+    if (!toPlayer.properties.includes(id)) {
+      return { isValid: false, reason: 'NOT_PROPERTY_OWNER' };
+    }
   }
 
-  const tradedProperties = [
-    ...offer.offerProperties,
-    ...offer.requestProperties,
-  ];
-  if (
-    tradedProperties.some((id) => {
+  let propertyHasHouses = false;
+  for (const id of offer.offerProperties) {
+    const group = getColorGroup(id, state.board);
+    for (const gid of group) {
+      if ((state.propertyStates[gid]?.houses ?? 0) > 0) {
+        propertyHasHouses = true;
+        break;
+      }
+    }
+    if (propertyHasHouses) break;
+  }
+  if (!propertyHasHouses) {
+    for (const id of offer.requestProperties) {
       const group = getColorGroup(id, state.board);
-      return group.some((gid) => (state.propertyStates[gid]?.houses ?? 0) > 0);
-    })
-  ) {
+      for (const gid of group) {
+        if ((state.propertyStates[gid]?.houses ?? 0) > 0) {
+          propertyHasHouses = true;
+          break;
+        }
+      }
+      if (propertyHasHouses) break;
+    }
+  }
+  if (propertyHasHouses) {
     return { isValid: false, reason: 'PROPERTY_HAS_HOUSES' };
   }
 

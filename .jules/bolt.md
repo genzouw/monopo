@@ -17,3 +17,8 @@
 
 **Learning:** Core game rules that scan arrays (like `calculateRent`, `canBuildHouse`, and `canSellHouse`) run frequently across multiple components during both React renders and Redux-like action dispatches. Utilizing functional array spread patterns like `Math.max(...group.map(...))` or `.filter(...).length` allocates temporary arrays repeatedly, which degrades performance and triggers unnecessary garbage collection under load.
 **Action:** Always replace chained functional array operations like `.map()`, `.some()`, and array spreading with explicit `for...of` loops and accumulator variables (e.g. `minHouses`, `ownedRailroads`) when checking rules or properties against groups.
+
+## 2024-10-25 - 頻繁な評価処理で .some や .every などの配列メソッドを避ける
+
+**Learning:** コアゲームルール評価（例: `ownsFullColorGroup`, `canMortgage`, `validateTradeOffer`）において、`.every` や `.some` などの関数型配列メソッドを使用すると、一時的な関数と配列が割り当てられ、React レンダーやアクションディスパッチなどの頻繁な評価時に中間的なアロケーションが発生し、ガベージコレクションに悪影響を与えます。
+**Action:** プロパティのチェックやコアゲームルールの評価を行う際は、`.every` や `.some` のようなチェーン操作を常に明示的な `for...of` ループとアキュムレータ/フラグ変数に置き換えてください。
