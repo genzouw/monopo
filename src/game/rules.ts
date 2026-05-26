@@ -66,7 +66,10 @@ export function ownsFullColorGroup(
 ): boolean {
   const group = getColorGroup(propertyId, board);
   if (group.length === 0) return false;
-  return group.every((id) => propertyStates[id]?.ownerId === ownerId);
+  for (const id of group) {
+    if (propertyStates[id]?.ownerId !== ownerId) return false;
+  }
+  return true;
 }
 
 export function calculateRent(
@@ -147,7 +150,9 @@ export function canMortgage(
   if (!state || state.ownerId !== playerId) return false;
   if (state.isMortgaged) return false;
   const group = getColorGroup(propertyId, board);
-  if (group.some((id) => (propertyStates[id]?.houses ?? 0) > 0)) return false;
+  for (const id of group) {
+    if ((propertyStates[id]?.houses ?? 0) > 0) return false;
+  }
   return true;
 }
 
@@ -213,16 +218,20 @@ export function validateTradeOffer(
     return { isValid: false, reason: 'PLAYER_BANKRUPT' };
   }
 
-  const numericFields = [
-    offer.offerMoney,
-    offer.requestMoney,
-    offer.offerJailCards,
-    offer.requestJailCards,
-  ];
-  if (numericFields.some((n) => !Number.isInteger(n))) {
+  if (
+    !Number.isInteger(offer.offerMoney) ||
+    !Number.isInteger(offer.requestMoney) ||
+    !Number.isInteger(offer.offerJailCards) ||
+    !Number.isInteger(offer.requestJailCards)
+  ) {
     return { isValid: false, reason: 'NOT_INTEGER' };
   }
-  if (numericFields.some((n) => n < 0)) {
+  if (
+    offer.offerMoney < 0 ||
+    offer.requestMoney < 0 ||
+    offer.offerJailCards < 0 ||
+    offer.requestJailCards < 0
+  ) {
     return { isValid: false, reason: 'NEGATIVE_VALUE' };
   }
 
@@ -239,26 +248,30 @@ export function validateTradeOffer(
     return { isValid: false, reason: 'INSUFFICIENT_JAIL_CARDS' };
   }
 
-  if (
-    !offer.offerProperties.every((id) => fromPlayer.properties.includes(id))
-  ) {
-    return { isValid: false, reason: 'NOT_PROPERTY_OWNER' };
+  for (const id of offer.offerProperties) {
+    if (!fromPlayer.properties.includes(id)) {
+      return { isValid: false, reason: 'NOT_PROPERTY_OWNER' };
+    }
   }
-  if (
-    !offer.requestProperties.every((id) => toPlayer.properties.includes(id))
-  ) {
-    return { isValid: false, reason: 'NOT_PROPERTY_OWNER' };
+  for (const id of offer.requestProperties) {
+    if (!toPlayer.properties.includes(id)) {
+      return { isValid: false, reason: 'NOT_PROPERTY_OWNER' };
+    }
   }
 
-  const tradedProperties = [
-    ...offer.offerProperties,
-    ...offer.requestProperties,
-  ];
-  if (
-    tradedProperties.some((id) => {
+  const checkHasHouses = (properties: string[]) => {
+    for (const id of properties) {
       const group = getColorGroup(id, state.board);
-      return group.some((gid) => (state.propertyStates[gid]?.houses ?? 0) > 0);
-    })
+      for (const gid of group) {
+        if ((state.propertyStates[gid]?.houses ?? 0) > 0) return true;
+      }
+    }
+    return false;
+  };
+
+  if (
+    checkHasHouses(offer.offerProperties) ||
+    checkHasHouses(offer.requestProperties)
   ) {
     return { isValid: false, reason: 'PROPERTY_HAS_HOUSES' };
   }
