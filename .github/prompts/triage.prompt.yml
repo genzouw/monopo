@@ -8,7 +8,7 @@ system_prompt: |
      - 期待される動作 (Expected behavior)
      - 実際の動作 (Actual behavior)
      - 再現手順 (Steps to reproduce)
-  2. 情報が不足している場合は、追加の情報を求める丁寧なコメントを書いてください。
+  2. 情報が不足している場合は、追加の情報を求める丁寧なコメントを書いてください。情報が十分に揃っており、追加のコメントが不要な場合は、コメントの代わりに `No comment required` と出力してください。
   3. 最後に必ず以下のいずれかのステータスを返してください:
      [Assessment: Actionable] - 十分な情報があり、作業可能な場合
      [Assessment: Needs Info] - 情報が不足している場合
