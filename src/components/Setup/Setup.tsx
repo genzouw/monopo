@@ -112,10 +112,10 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
           onClick={() => setPlayerCount((c) => c - 1)}
           disabled={playerCount <= MIN_PLAYERS}
           aria-label="プレイヤーを減らす"
-          title={
+          aria-describedby={
             playerCount <= MIN_PLAYERS
-              ? 'これ以上減らせません'
-              : 'プレイヤーを減らす'
+              ? `${baseId}-min-players-desc`
+              : undefined
           }
         >
           −
@@ -126,15 +126,35 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
           onClick={() => setPlayerCount((c) => c + 1)}
           disabled={playerCount >= MAX_PLAYERS}
           aria-label="プレイヤーを増やす"
-          title={
+          aria-describedby={
             playerCount >= MAX_PLAYERS
-              ? 'これ以上増やせません'
-              : 'プレイヤーを増やす'
+              ? `${baseId}-max-players-desc`
+              : undefined
           }
         >
           ＋
         </button>
       </div>
+      {playerCount <= MIN_PLAYERS && (
+        <span
+          id={`${baseId}-min-players-desc`}
+          className={styles.countDesc}
+          role="status"
+          aria-live="polite"
+        >
+          これ以上減らせません
+        </span>
+      )}
+      {playerCount >= MAX_PLAYERS && (
+        <span
+          id={`${baseId}-max-players-desc`}
+          className={styles.countDesc}
+          role="status"
+          aria-live="polite"
+        >
+          これ以上増やせません
+        </span>
+      )}
       <div className={styles.playerList}>
         {Array.from({ length: playerCount }).map((_, i) => (
           <div key={i} className={styles.playerRow}>
