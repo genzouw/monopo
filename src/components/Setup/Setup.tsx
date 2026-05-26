@@ -112,6 +112,11 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
           onClick={() => setPlayerCount((c) => c - 1)}
           disabled={playerCount <= MIN_PLAYERS}
           aria-label="プレイヤーを減らす"
+          title={
+            playerCount <= MIN_PLAYERS
+              ? 'これ以上減らせません'
+              : 'プレイヤーを減らす'
+          }
         >
           −
         </button>
@@ -121,6 +126,11 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
           onClick={() => setPlayerCount((c) => c + 1)}
           disabled={playerCount >= MAX_PLAYERS}
           aria-label="プレイヤーを増やす"
+          title={
+            playerCount >= MAX_PLAYERS
+              ? 'これ以上増やせません'
+              : 'プレイヤーを増やす'
+          }
         >
           ＋
         </button>
