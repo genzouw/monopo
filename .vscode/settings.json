@@ -11,11 +11,11 @@
     "**/*service-account*.json": true,
     "**/*serviceaccount*.json": true,
     "**/*.tfstate*": true,
-    "**/.cursor/": true,
-    "**/.claude/": true,
-    "**/.aider*/": true,
-    "**/.continue/": true,
-    "**/.jules/": true
+    "**/.cursor/**": true,
+    "**/.claude/**": true,
+    "**/.aider*/**": true,
+    "**/.continue/**": true,
+    "**/.jules/**": true
   },
   "search.exclude": {
     "**/.env": true,
@@ -29,10 +29,10 @@
     "**/*service-account*.json": true,
     "**/*serviceaccount*.json": true,
     "**/*.tfstate*": true,
-    "**/.cursor/": true,
-    "**/.claude/": true,
-    "**/.aider*/": true,
-    "**/.continue/": true,
-    "**/.jules/": true
+    "**/.cursor/**": true,
+    "**/.claude/**": true,
+    "**/.aider*/**": true,
+    "**/.continue/**": true,
+    "**/.jules/**": true
   }
 }
