@@ -802,14 +802,37 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       const space = state.board[player.position];
       if (!space || !space.price) return state;
 
-      const newState = updateCurrentPlayer(state, {
-        money: player.money - space.price,
+      const taxAmount = space.price;
+
+      // 1000年先の叡智：税金は銀行に消滅せず、社会の他メンバーに還元される（循環型経済）
+      const otherActivePlayers = state.players.filter(
+        (p, index) => index !== state.currentPlayerIndex && !p.isBankrupt,
+      );
+
+      let dividend = 0;
+      if (otherActivePlayers.length > 0) {
+        dividend = Math.floor(taxAmount / otherActivePlayers.length);
+      }
+
+      const newPlayers = state.players.map((p, index) => {
+        if (index === state.currentPlayerIndex) {
+          return { ...p, money: p.money - taxAmount };
+        } else if (!p.isBankrupt) {
+          return { ...p, money: p.money + dividend };
+        }
+        return p;
       });
 
+      const message =
+        dividend > 0
+          ? `$${taxAmount}のぜいきんをはらい、他プレイヤーに$${dividend}ずつ分配されたよ！`
+          : `$${taxAmount}のぜいきんをはらったよ`;
+
       return {
-        ...newState,
+        ...state,
+        players: newPlayers,
         turnPhase: 'endTurn',
-        message: `$${space.price}のぜいきんをはらったよ`,
+        message,
       };
     }
 

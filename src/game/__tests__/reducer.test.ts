@@ -272,8 +272,9 @@ describe('rollDice', () => {
 // ── PAY_TAX ──
 
 describe('PAY_TAX', () => {
-  it('税金を払ってお金が減る', () => {
-    let state = startedGame();
+  it('税金を払ってお金が減り、他の生存プレイヤーに分配される', () => {
+    // 3人プレイで開始
+    let state = startedGame(3);
     // income-tax (position=4, price=200) に移動
     state = {
       ...state,
@@ -281,9 +282,16 @@ describe('PAY_TAX', () => {
         i === 0 ? { ...p, position: 4 } : p,
       ),
     };
+
+    // 他のプレイヤーへの分配金は 200 / 2 = 100
     const next = gameReducer(state, { type: 'PAY_TAX' });
     expect(next.players[0].money).toBe(1300); // 1500 - 200
+    expect(next.players[1].money).toBe(1600); // 1500 + 100
+    expect(next.players[2].money).toBe(1600); // 1500 + 100
     expect(next.turnPhase).toBe('endTurn');
+    expect(next.message).toBe(
+      '$200のぜいきんをはらい、他プレイヤーに$100ずつ分配されたよ！',
+    );
   });
 });
 
