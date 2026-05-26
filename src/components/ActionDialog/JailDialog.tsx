@@ -65,7 +65,7 @@ export default function JailDialog({
               marginTop: 4,
             }}
           >
-            しゃほうカードをもってるよ！
+            しゃくほうカードをもってるよ！
           </div>
         )}
       </div>
