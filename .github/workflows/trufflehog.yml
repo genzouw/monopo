@@ -33,8 +33,8 @@ jobs:
         uses: trufflesecurity/trufflehog@37b77001d0174ebec2fcca2bd83ff83a6d45a3ab # v3.95.3
         with:
           path: ./
-          base: ${{ github.event.repository.default_branch }}
-          head: HEAD
+          base: ${{ github.event_name == 'pull_request' && github.event.repository.default_branch || '' }}
+          head: ${{ github.event_name == 'pull_request' && 'HEAD' || '' }}
           # 実際に外部プロバイダに有効か検証できたシークレット（Active Verified）のみ検知する
           # Gitleaks のパターンマッチと役割を分けるため --only-verified を使用
           extra_args: --only-verified
