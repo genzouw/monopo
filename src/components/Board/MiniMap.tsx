@@ -40,7 +40,7 @@ const MiniMap = memo(function MiniMap({
     return grouped;
   }, [players, board]);
 
-  // ⚡ Bolt: group players by ID once (O(N)) to avoid O(N) find lookups per space.
+  // ⚡ Bolt: 各マスでの O(N) 探索を避けるため、プレイヤーID辞書を一度だけ構築する。
   const playersById = useMemo(() => {
     const dict: Record<string, Player> = {};
     for (const p of players) {
