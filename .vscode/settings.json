@@ -1,0 +1,38 @@
+{
+  "files.exclude": {
+    "**/.env": true,
+    "**/.env.*": true,
+    "**/*.pem": true,
+    "**/*.key": true,
+    "**/*credentials*.json": true,
+    "**/*credentials*.yml": true,
+    "**/*credentials*.yaml": true,
+    "**/*credentials*.env": true,
+    "**/*service-account*.json": true,
+    "**/*serviceaccount*.json": true,
+    "**/*.tfstate*": true,
+    "**/.cursor/**": true,
+    "**/.claude/**": true,
+    "**/.aider*/**": true,
+    "**/.continue/**": true,
+    "**/.jules/**": true
+  },
+  "search.exclude": {
+    "**/.env": true,
+    "**/.env.*": true,
+    "**/*.pem": true,
+    "**/*.key": true,
+    "**/*credentials*.json": true,
+    "**/*credentials*.yml": true,
+    "**/*credentials*.yaml": true,
+    "**/*credentials*.env": true,
+    "**/*service-account*.json": true,
+    "**/*serviceaccount*.json": true,
+    "**/*.tfstate*": true,
+    "**/.cursor/**": true,
+    "**/.claude/**": true,
+    "**/.aider*/**": true,
+    "**/.continue/**": true,
+    "**/.jules/**": true
+  }
+}

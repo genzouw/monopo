@@ -12,3 +12,10 @@
 *service-account*.json -diff export-ignore
 *serviceaccount*.json -diff export-ignore
 *.tfstate* -diff export-ignore
+# AI agent workspaces (to prevent local context leakage in diffs/archives)
+.cursor/** -diff export-ignore
+.claude/** -diff export-ignore
+.aider* -diff export-ignore
+.aider*/** -diff export-ignore
+.continue/** -diff export-ignore
+.jules/** -diff export-ignore
