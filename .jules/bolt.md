@@ -23,7 +23,7 @@
 **Learning:** コアゲームルール評価（例: `ownsFullColorGroup`, `canMortgage`, `validateTradeOffer`）において、`.every` や `.some` などの関数型配列メソッドを使用すると、一時的な関数と配列が割り当てられ、React レンダーやアクションディスパッチなどの頻繁な評価時に中間的なアロケーションが発生し、ガベージコレクションに悪影響を与えます。
 **Action:** プロパティのチェックやコアゲームルールの評価を行う際は、`.every` や `.some` のようなチェーン操作を常に明示的な `for...of` ループとアキュムレータ/フラグ変数に置き換えてください。
 
-## 2024-11-20 - Replace O(N) array scans in list renders with O(1) dictionary lookups
+## 2024-11-20 - リスト描画における O(N) 配列スキャンを O(1) 辞書ルックアップに置き換える
 
-**Learning:** When rendering lists of components (e.g., board spaces in `MiniMap`), passing entire arrays (`allPlayers`) to child components and performing O(N) `.find()` lookups inside the child's render function and `React.memo` equality checks creates a significant performance bottleneck ($O(N)$ operations invoked $N$ times, resulting in $O(N^2)$). Additionally, using array literals with `.filter(Boolean).join(' ')` in frequently executed UI helpers (like `getSpaceLabel`) introduces unnecessary garbage collection overhead.
-**Action:** Always precompute O(1) lookup dictionaries (like `playersById`) in the parent using `useMemo` and pass only the specific entity (e.g., `owner`) to the child component as a prop. Replace intermediate array allocations and chained methods in hot paths with standard string concatenation or template literals.
+**Learning:** コンポーネントのリスト（例: `MiniMap` のボードマス）を描画する際、子コンポーネントに配列全体（`allPlayers`）を渡して子の描画関数や `React.memo` の等価チェック内で O(N) の `.find()` ルックアップを行うと、O(N) の操作が N 回実行され O(N²) となる深刻なパフォーマンスボトルネックになる。また、頻繁に呼ばれる UI ヘルパー（`getSpaceLabel` など）で `.filter(Boolean).join(' ')` のような配列リテラルを使用すると、不要なガベージコレクションのオーバーヘッドが発生する。
+**Action:** 親コンポーネントで `useMemo` を使って O(1) のルックアップ辞書（`playersById` など）を事前に計算し、子コンポーネントには特定のエンティティ（`owner` など）のみをプロパティとして渡すこと。ホットパスでは中間配列の割り当てやチェーン操作を避け、標準的な文字列結合またはテンプレートリテラルに置き換えること。
