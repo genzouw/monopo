@@ -293,7 +293,18 @@ function applyCardEffect(state: GameState, card: Card): GameState {
 
     case 'moveRelative': {
       const newPos = (player.position + action.spaces + 40) % 40;
-      const newState = updateCurrentPlayer(state, { position: newPos });
+      const passedGo = action.spaces > 0 && newPos < player.position;
+      const dynamicGoBonus = passedGo ? calculateDynamicGoBonus(state) : 0;
+      let newState = updateCurrentPlayer(state, {
+        position: newPos,
+        money: player.money + dynamicGoBonus,
+      });
+      if (passedGo) {
+        newState = {
+          ...newState,
+          message: `GOをとおりすぎた！経済成長にあわせて$${dynamicGoBonus}の給料をもらったよ！`,
+        };
+      }
       return handleLanding(newState);
     }
 
