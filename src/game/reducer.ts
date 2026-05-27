@@ -557,7 +557,8 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       const newPos = (oldPos + steps) % 40;
       const passedGo = oldPos !== 0 && newPos < oldPos;
 
-      const dynamicGoBonus = calculateDynamicGoBonus(state);
+      const dynamicGoBonus =
+        passedGo && !player.inJail ? calculateDynamicGoBonus(state) : 0;
 
       let newState = updateCurrentPlayer(state, {
         position: newPos,
