@@ -312,8 +312,10 @@ function applyCardEffect(state: GameState, card: Card): GameState {
         action.amount >= 0
           ? `$${action.amount}もらったよ！`
           : `$${Math.abs(action.amount)}はらったよ`;
+      const fineToPool = action.amount < 0 ? Math.abs(action.amount) : 0;
       return {
         ...newState,
+        freeParkingPool: state.freeParkingPool + fineToPool,
         turnPhase: 'endTurn',
         message: msg,
       };
@@ -392,6 +394,7 @@ function applyCardEffect(state: GameState, card: Card): GameState {
       });
       return {
         ...newState,
+        freeParkingPool: state.freeParkingPool + cost,
         turnPhase: 'endTurn',
         message: `しゅうり代として$${cost}はらったよ`,
       };
