@@ -155,7 +155,9 @@ export const MemoizedMiniSpace = memo(function MemoizedMiniSpace({
           {icon}
         </span>
       )}
-      {ownerId && <span className={styles.miniOwnerToken}>{owner?.token}</span>}
+      {owner?.token && (
+        <span className={styles.miniOwnerToken}>{owner.token}</span>
+      )}
       {propState && propState.houses > 0 && (
         <span className={styles.miniHouses}>
           {propState.houses === 5 ? '🏨' : '🏠'.repeat(propState.houses)}
