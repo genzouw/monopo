@@ -40,6 +40,15 @@ const MiniMap = memo(function MiniMap({
     return grouped;
   }, [players, board]);
 
+  // ⚡ Bolt: 各マスでの O(N) 探索を避けるため、プレイヤーID辞書を一度だけ構築する。
+  const playersById = useMemo(() => {
+    const dict: Record<string, Player> = {};
+    for (const p of players) {
+      dict[p.id] = p;
+    }
+    return dict;
+  }, [players]);
+
   return (
     <div className={styles.miniMap}>
       <div className={styles.miniMapBoard}>
@@ -47,6 +56,9 @@ const MiniMap = memo(function MiniMap({
           const { row, col } = getGridPosition(space.position);
           const playersHere = playersByPosition[space.position];
           const propState = propertyStates[space.id];
+          const owner = propState?.ownerId
+            ? playersById[propState.ownerId]
+            : undefined;
 
           return (
             <MemoizedMiniSpace
@@ -56,7 +68,7 @@ const MiniMap = memo(function MiniMap({
               col={col}
               playersHere={playersHere}
               propState={propState}
-              allPlayers={players}
+              owner={owner}
               onSpaceClick={onSpaceClick}
             />
           );
