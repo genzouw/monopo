@@ -1,5 +1,7 @@
 # monopo (モノポ)
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/45271675ed754b8d9efb401c403b7616)](https://app.codacy.com/gh/genzouw/monopo?utm_source=github.com&utm_medium=referral&utm_content=genzouw/monopo&utm_campaign=Badge_Grade)
+
 React + TypeScript + Vite で構築された Web ベースのボードゲームアプリケーション「monopo（モノポ）」です。
 
 ## 特徴 (Features)
