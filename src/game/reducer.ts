@@ -15,6 +15,7 @@ import {
   canSellHouse,
   findNearestSpace,
   validateTradeOffer,
+  calculateTotalAssets,
 } from './rules';
 import { getSecureRandomInt } from './random';
 
@@ -30,6 +31,18 @@ export const JAIL_FINE = 50;
 
 export function rollDice(): [number, number] {
   return [getSecureRandomInt(1, 6), getSecureRandomInt(1, 6)];
+}
+
+function calculateDynamicGoBonus(state: GameState): number {
+  const activePlayers = state.players.filter((p) => !p.isBankrupt);
+  if (activePlayers.length === 0) return 200;
+
+  const totalAssets = activePlayers.reduce((sum, p) => {
+    return sum + calculateTotalAssets(p, state.propertyStates, state.board);
+  }, 0);
+
+  const averageTotalAssets = totalAssets / activePlayers.length;
+  return Math.max(200, Math.floor(averageTotalAssets * 0.1));
 }
 
 function nextActivePlayer(players: Player[], currentIndex: number): number {
@@ -264,15 +277,15 @@ function applyCardEffect(state: GameState, card: Card): GameState {
     case 'move': {
       const newPos = action.position;
       const passedGo = newPos < player.position && newPos !== 10;
-      const bonus = passedGo ? 200 : 0;
+      const dynamicGoBonus = passedGo ? calculateDynamicGoBonus(state) : 0;
       let newState = updateCurrentPlayer(state, {
         position: newPos,
-        money: player.money + bonus,
+        money: player.money + dynamicGoBonus,
       });
       if (passedGo) {
         newState = {
           ...newState,
-          message: `GOをとおりすぎたから$200もらったよ！`,
+          message: `GOをとおりすぎた！経済成長にあわせて$${dynamicGoBonus}の給料をもらったよ！`,
         };
       }
       return handleLanding(newState);
@@ -384,15 +397,15 @@ function applyCardEffect(state: GameState, card: Card): GameState {
         state.board,
       );
       const passedGo = nearestPos < player.position;
-      const bonus = passedGo ? 200 : 0;
+      const dynamicGoBonus = passedGo ? calculateDynamicGoBonus(state) : 0;
       let newState = updateCurrentPlayer(state, {
         position: nearestPos,
-        money: player.money + bonus,
+        money: player.money + dynamicGoBonus,
       });
       if (passedGo) {
         newState = {
           ...newState,
-          message: `GOをとおりすぎたから$200もらったよ！`,
+          message: `GOをとおりすぎた！経済成長にあわせて$${dynamicGoBonus}の給料をもらったよ！`,
         };
       }
       return handleLanding(newState);
@@ -544,15 +557,20 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       const newPos = (oldPos + steps) % 40;
       const passedGo = oldPos !== 0 && newPos < oldPos;
 
+      const dynamicGoBonus = calculateDynamicGoBonus(state);
+
       let newState = updateCurrentPlayer(state, {
         position: newPos,
-        money: passedGo && !player.inJail ? player.money + 200 : player.money,
+        money:
+          passedGo && !player.inJail
+            ? player.money + dynamicGoBonus
+            : player.money,
       });
 
       if (passedGo && !player.inJail) {
         newState = {
           ...newState,
-          message: `GOをとおりすぎたから$200もらったよ！`,
+          message: `GOをとおりすぎた！経済成長にあわせて$${dynamicGoBonus}の給料をもらったよ！`,
         };
       }
 

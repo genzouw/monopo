@@ -546,7 +546,7 @@ describe('DRAW_CARD + DISMISS_CARD (applyCardEffect)', () => {
     state = gameReducer(state, { type: 'DRAW_CARD' });
     const next = gameReducer(state, { type: 'DISMISS_CARD' });
     expect(next.players[0].position).toBe(5);
-    expect(next.players[0].money).toBe(1700); // +200
+    expect(next.players[0].money).toBe(1700); // +dynamic bonus (which is 200 at start)
   });
 
   it('moveRelative で相対移動', () => {
