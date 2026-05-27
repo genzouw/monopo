@@ -42,14 +42,11 @@ function getSpaceLabel(
   houses: number,
   playerCount: number,
 ): string {
-  return [
-    space.name,
-    ownerName && `所有者: ${ownerName}`,
-    houses > 0 && (houses === 5 ? 'ホテル' : `家${houses}軒`),
-    playerCount > 0 && `プレイヤー${playerCount}人滞在中`,
-  ]
-    .filter(Boolean)
-    .join(' ');
+  let label = space.name;
+  if (ownerName) label += ` 所有者: ${ownerName}`;
+  if (houses > 0) label += houses === 5 ? ' ホテル' : ` 家${houses}軒`;
+  if (playerCount > 0) label += ` プレイヤー${playerCount}人滞在中`;
+  return label;
 }
 
 function getColorBarPosition(position: number): React.CSSProperties {
@@ -69,7 +66,7 @@ type MemoizedMiniSpaceProps = {
   col: number;
   playersHere: Player[];
   propState?: PropertyState;
-  allPlayers: Player[];
+  owner?: Player;
   onSpaceClick: (position: number) => void;
 };
 
@@ -99,17 +96,11 @@ const areEqual = (
     }
   }
 
-  const prevOwnerId = prevPropState?.ownerId;
-  const nextOwnerId = nextPropState?.ownerId;
-  if (prevOwnerId && nextOwnerId && prevOwnerId === nextOwnerId) {
-    const prevOwner = prevProps.allPlayers.find((p) => p.id === prevOwnerId);
-    const nextOwner = nextProps.allPlayers.find((p) => p.id === nextOwnerId);
-    if (
-      prevOwner?.name !== nextOwner?.name ||
-      prevOwner?.token !== nextOwner?.token
-    ) {
-      return false;
-    }
+  if (
+    prevProps.owner?.name !== nextProps.owner?.name ||
+    prevProps.owner?.token !== nextProps.owner?.token
+  ) {
+    return false;
   }
 
   return true;
@@ -121,15 +112,13 @@ export const MemoizedMiniSpace = memo(function MemoizedMiniSpace({
   col,
   playersHere,
   propState,
-  allPlayers,
+  owner,
   onSpaceClick,
 }: MemoizedMiniSpaceProps) {
   const icon = getSpaceIcon(space);
   const ownerId = propState?.ownerId;
   const ownerBg = ownerId ? getOwnerBg(ownerId) : undefined;
-  const ownerName = ownerId
-    ? allPlayers.find((p) => p.id === ownerId)?.name
-    : undefined;
+  const ownerName = owner?.name;
   const houses = propState?.houses ?? 0;
   const ariaLabel = getSpaceLabel(space, ownerName, houses, playersHere.length);
 
@@ -166,11 +155,7 @@ export const MemoizedMiniSpace = memo(function MemoizedMiniSpace({
           {icon}
         </span>
       )}
-      {ownerId && (
-        <span className={styles.miniOwnerToken}>
-          {allPlayers.find((p) => p.id === ownerId)?.token}
-        </span>
-      )}
+      {ownerId && <span className={styles.miniOwnerToken}>{owner?.token}</span>}
       {propState && propState.houses > 0 && (
         <span className={styles.miniHouses}>
           {propState.houses === 5 ? '🏨' : '🏠'.repeat(propState.houses)}
