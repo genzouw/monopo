@@ -22,7 +22,7 @@
 - **Gitleaks ワークフロー (`.github/workflows/gitleaks.yml`)**:
   - 全ての PR と `main` ブランチへのプッシュ時に、対象となるソースコードをスキャンし、secrets の漏洩があれば CI がエラー（赤検知）となります。正規表現とエントロピーによるパターンベースの検知を行います。
 - **TruffleHog ワークフロー (`.github/workflows/trufflehog.yml`)**:
-  - `gitleaks` と補完する形で、実際に外部プロバイダ API に対して有効か検証できたシークレット（Active Verified）のみを検知します（`--only-verified`）。誤検知を減らしつつ、漏洩したキーが現在も利用可能かどうかの重大なリスクを即座にブロックします。
+  - `gitleaks` を補完する形で、実際に外部プロバイダ API に対して有効か検証できたシークレット（Active Verified）のみを検知します（`--only-verified`）。誤検知を減らしつつ、漏洩したキーが現在も利用可能かどうかの重大なリスクを即座にブロックします。
 - **Trivy ワークフロー (`.github/workflows/trivy.yml`)**:
   - パッケージの脆弱性や IaC の設定ミスに加え、シークレットのスキャン (`secret` スキャナ) も実施し、多角的に検知します。
 - **CodeQL ワークフロー (`.github/workflows/codeql.yml`)**:
