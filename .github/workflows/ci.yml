@@ -11,6 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
+  pull-requests: write
   contents: read
 
 jobs:
@@ -24,7 +25,13 @@ jobs:
         with:
           bun-version: 1.2.14
       - run: bun install --frozen-lockfile --ignore-scripts
-      - run: bun run lint
+      - name: Run Reviewdog ESLint
+        uses: reviewdog/action-eslint@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-review
+          eslint_flags: '.'
+          fail_on_error: true
 
   format:
     name: Prettier
