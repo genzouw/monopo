@@ -77,6 +77,17 @@
   background: #f8f8f8;
   border-radius: var(--radius-sm);
 }
+.buildItemContent {
+  flex: 1;
+}
+.buildItemActions {
+  margin-left: auto;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
 .buildItemName {
   display: flex;
   align-items: center;

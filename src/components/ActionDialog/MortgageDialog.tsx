@@ -68,7 +68,7 @@ export default function MortgageDialog({
           const unmortgageCost = Math.floor((space.mortgageValue ?? 0) * 1.1);
           return (
             <div key={space.id} className={styles.buildItem}>
-              <div style={{ flex: 1 }}>
+              <div className={styles.buildItemContent}>
                 <div className={styles.buildItemName}>
                   {isMortgaged ? '🔒 ' : ''}
                   {space.name}
@@ -79,16 +79,7 @@ export default function MortgageDialog({
                     : `かりられるがく: $${space.mortgageValue}`}
                 </div>
               </div>
-              <div
-                style={{
-                  marginLeft: 'auto',
-                  alignSelf: 'center',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'flex-end',
-                  gap: 4,
-                }}
-              >
+              <div className={styles.buildItemActions}>
                 {isMortgaged ? (
                   <>
                     <Button
@@ -108,7 +99,6 @@ export default function MortgageDialog({
                         id={`${hintIdBase}-unmortgage-${space.id}`}
                         role="status"
                         className={styles.noMoneyHintTight}
-                        style={{ fontSize: 11, marginTop: 2 }}
                       >
                         おかねがたりないよ
                       </div>
@@ -134,7 +124,6 @@ export default function MortgageDialog({
                         id={`${hintIdBase}-mortgage-${space.id}`}
                         role="status"
                         className={styles.noMoneyHintTight}
-                        style={{ fontSize: 11, marginTop: 2 }}
                       >
                         家があるグループだよ
                       </div>
