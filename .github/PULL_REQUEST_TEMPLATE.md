@@ -45,5 +45,4 @@
 新しく追加した AI ツールや CI/CD サービスに手動のセットアップ（API キーや GitHub Secrets の登録など）が必要な場合、以下に記載してください。
 例:
 - [ ] `GITHUB_TOKEN` の権限確認（`pull-requests: write` が必要）
-- [ ] 新規 Secret `REVIEWDOG_GITHUB_API_TOKEN` の登録確認
 -->
