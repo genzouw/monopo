@@ -534,7 +534,7 @@ describe('DRAW_CARD + DISMISS_CARD (applyCardEffect)', () => {
   });
 
   it('move カードで指定位置に移動 (GO 通過あり)', () => {
-    let state = startedGame();
+    let state = startedGame(2);
     // position 36 = chance マス。36 → 5 で GO 通過
     state = withCurrentPlayer(state, { position: 36 });
     state = withTopCard(state, {
@@ -546,7 +546,8 @@ describe('DRAW_CARD + DISMISS_CARD (applyCardEffect)', () => {
     state = gameReducer(state, { type: 'DRAW_CARD' });
     const next = gameReducer(state, { type: 'DISMISS_CARD' });
     expect(next.players[0].position).toBe(5);
-    expect(next.players[0].money).toBe(1700); // +200
+    expect(next.players[0].money).toBe(1650); // 1500 + 150
+    expect(next.players[1].money).toBe(1550); // 1500 + 50
   });
 
   it('moveRelative で相対移動', () => {

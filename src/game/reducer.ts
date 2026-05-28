@@ -264,17 +264,29 @@ function applyCardEffect(state: GameState, card: Card): GameState {
     case 'move': {
       const newPos = action.position;
       const passedGo = newPos < player.position && newPos !== 10;
-      const bonus = passedGo ? 200 : 0;
-      let newState = updateCurrentPlayer(state, {
-        position: newPos,
-        money: player.money + bonus,
-      });
+
+      let newState = { ...state };
       if (passedGo) {
+        // 社会配当の導入: 通過者は150、他プレイヤーは50を受け取る
+        const newPlayers = state.players.map((p, index) => {
+          if (p.isBankrupt) return p;
+          if (index === state.currentPlayerIndex) {
+            return { ...p, position: newPos, money: p.money + 150 };
+          } else {
+            return { ...p, money: p.money + 50 };
+          }
+        });
         newState = {
           ...newState,
-          message: `GOをとおりすぎたから$200もらったよ！`,
+          players: newPlayers,
+          message: `GOをとおりすぎた！みんなに$50ずつ、自分は$150の社会配当をもらったよ！`,
         };
+      } else {
+        newState = updateCurrentPlayer(newState, {
+          position: newPos,
+        });
       }
+
       return handleLanding(newState);
     }
 
@@ -544,16 +556,26 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       const newPos = (oldPos + steps) % 40;
       const passedGo = oldPos !== 0 && newPos < oldPos;
 
-      let newState = updateCurrentPlayer(state, {
-        position: newPos,
-        money: passedGo && !player.inJail ? player.money + 200 : player.money,
-      });
-
+      let newState = { ...state };
       if (passedGo && !player.inJail) {
+        // 社会配当の導入: 通過者は150、他プレイヤーは50を受け取る
+        const newPlayers = state.players.map((p, index) => {
+          if (p.isBankrupt) return p;
+          if (index === state.currentPlayerIndex) {
+            return { ...p, position: newPos, money: p.money + 150 };
+          } else {
+            return { ...p, money: p.money + 50 };
+          }
+        });
         newState = {
           ...newState,
-          message: `GOをとおりすぎたから$200もらったよ！`,
+          players: newPlayers,
+          message: `GOをとおりすぎた！みんなに$50ずつ、自分は$150の社会配当をもらったよ！`,
         };
+      } else {
+        newState = updateCurrentPlayer(newState, {
+          position: newPos,
+        });
       }
 
       newState = { ...newState, turnPhase: 'landed' };
