@@ -42,3 +42,7 @@
 ## 2026-05-25 - Missing Accessibility on Disabled Force Buy Button
 **Learning:** Found a missing disabled state and accessibility hints in the `ForceBuyDialog` component when a player tries to buy but cannot afford the cost. While other dialogs like `PurchaseDialog` handled this well, `ForceBuyDialog` missed the `disabled` prop and `aria-describedby` hint, which could cause a confusing user experience for both keyboard/screen-reader users and sighted users.
 **Action:** Applied a similar pattern used in `PurchaseDialog` by calculating `canAfford` before rendering, disabling the primary button, and presenting an accessible `role="status"` hint linked to the button via `aria-describedby`. Always ensure all purchasing dialogs handle "insufficient funds" explicitly.
+## 2026-05-28 - Missing Accessibility on Disabled Mortgage/Unmortgage Buttons
+**Learning:** Found a missing disabled state accessibility hint in the `MortgageDialog` component. The `かえす` and `かりる` buttons disabled states were not accessible via screen reader. This pattern must be used across all components in the `ActionDialog` folder to ensure standard and accessible experiences.
+**Action:** Applied the `aria-describedby` pattern with an accessible hint when disabled on the buttons inside `MortgageDialog`, completing the pattern usage across `ActionDialogs`.
+

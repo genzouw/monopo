@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import type { BoardSpace, Player, PropertyState } from '../../game/types';
 import { canMortgage, canUnmortgage, getSpaceById } from '../../game/rules';
 import Dialog from '../common/Dialog';
@@ -21,6 +22,7 @@ export default function MortgageDialog({
   onUnmortgage,
   onClose,
 }: MortgageDialogProps) {
+  const hintIdBase = useId();
   const ownedProperties = currentPlayer.properties
     .map((id: string) => getSpaceById(id, board))
     .filter((s): s is BoardSpace => !!s && !!s.mortgageValue);
@@ -66,7 +68,7 @@ export default function MortgageDialog({
           const unmortgageCost = Math.floor((space.mortgageValue ?? 0) * 1.1);
           return (
             <div key={space.id} className={styles.buildItem}>
-              <div>
+              <div style={{ flex: 1 }}>
                 <div className={styles.buildItemName}>
                   {isMortgaged ? '🔒 ' : ''}
                   {space.name}
@@ -77,24 +79,69 @@ export default function MortgageDialog({
                     : `かりられるがく: $${space.mortgageValue}`}
                 </div>
               </div>
-              {isMortgaged ? (
-                <Button
-                  size="small"
-                  onClick={() => onUnmortgage(space.id)}
-                  disabled={!canDoUnmortgage}
-                >
-                  かえす
-                </Button>
-              ) : (
-                <Button
-                  size="small"
-                  variant="danger"
-                  onClick={() => onMortgage(space.id)}
-                  disabled={!canDoMortgage}
-                >
-                  かりる
-                </Button>
-              )}
+              <div
+                style={{
+                  marginLeft: 'auto',
+                  alignSelf: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-end',
+                  gap: 4,
+                }}
+              >
+                {isMortgaged ? (
+                  <>
+                    <Button
+                      size="small"
+                      onClick={() => onUnmortgage(space.id)}
+                      disabled={!canDoUnmortgage}
+                      aria-describedby={
+                        !canDoUnmortgage
+                          ? `${hintIdBase}-unmortgage-${space.id}`
+                          : undefined
+                      }
+                    >
+                      かえす
+                    </Button>
+                    {!canDoUnmortgage && (
+                      <div
+                        id={`${hintIdBase}-unmortgage-${space.id}`}
+                        role="status"
+                        className={styles.noMoneyHintTight}
+                        style={{ fontSize: 11, marginTop: 2 }}
+                      >
+                        おかねがたりないよ
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      size="small"
+                      variant="danger"
+                      onClick={() => onMortgage(space.id)}
+                      disabled={!canDoMortgage}
+                      aria-describedby={
+                        !canDoMortgage
+                          ? `${hintIdBase}-mortgage-${space.id}`
+                          : undefined
+                      }
+                    >
+                      かりる
+                    </Button>
+                    {!canDoMortgage && (
+                      <div
+                        id={`${hintIdBase}-mortgage-${space.id}`}
+                        role="status"
+                        className={styles.noMoneyHintTight}
+                        style={{ fontSize: 11, marginTop: 2 }}
+                      >
+                        家があるグループだよ
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
           );
         })}
