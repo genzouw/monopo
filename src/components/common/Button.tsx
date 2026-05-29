@@ -1,25 +1,9 @@
 import type { ButtonHTMLAttributes } from 'react';
 import styles from './common.module.css';
 
-type Variant = 'primary' | 'secondary' | 'danger' | 'ghost';
-type Size = 'small' | 'medium' | 'large';
-
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: Variant;
-  size?: Size;
-};
-
-const variantClass: Record<Variant, string> = {
-  primary: styles.primary,
-  secondary: styles.secondary,
-  danger: styles.danger,
-  ghost: styles.ghost,
-};
-
-const sizeClass: Record<Size, string> = {
-  small: styles.small,
-  medium: '',
-  large: styles.large,
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
+  size?: 'small' | 'medium' | 'large';
 };
 
 export default function Button({
@@ -29,12 +13,10 @@ export default function Button({
   children,
   ...props
 }: ButtonProps) {
-  const base = `${styles.button} ${variantClass[variant]}`;
-  const sized = size === 'medium' ? base : `${base} ${sizeClass[size]}`;
-  const classes =
-    className === undefined || className === ''
-      ? sized
-      : `${sized} ${className}`;
+  let classes = styles.button || '';
+  if (styles[variant]) classes += ` ${styles[variant]}`;
+  if (size !== 'medium' && styles[size]) classes += ` ${styles[size]}`;
+  if (className) classes += ` ${className}`;
   return (
     <button className={classes} {...props}>
       {children}
