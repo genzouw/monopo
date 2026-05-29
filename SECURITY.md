@@ -40,6 +40,6 @@
 - **CI 検知**: GitHub Actions にて `gitleaks`、`trivy`、`trufflehog` を用い、PR差分およびリポジトリ全体の履歴・依存関係に含まれるシークレットを自動スキャンしています。また、`actionlint` を `shellcheck` と連携させ、CI スクリプト経由での意図しないトークン漏洩（インジェクション）を防いでいます。
 - **定期監査**: 週次ベースでリポジトリ全体のフルスキャンを自動実行し、設定ミスによる新たな漏洩リスクを継続的に監視しています。
 
-### GitHub Secret Scanning と Push Protection の推奨
+### GitHub Secret Scanning と Push Protection の推奨 (リポジトリ管理者向け)
 
-リポジトリ管理者に対して、GitHub ネイティブの **Secret Scanning** および **Push Protection** をリポジトリ設定画面から有効化することを強く推奨します。これにより、ローカルのチェックをすり抜けたシークレットも push 時にサーバー側でブロックされます。
+リポジトリ管理者に対して、GitHub ネイティブの [Secret Scanning](https://docs.github.com/code-security/secret-scanning/about-secret-scanning) および [Push Protection](https://docs.github.com/code-security/secret-scanning/protecting-pushes-with-secret-scanning) をリポジトリ設定画面から有効化することを強く推奨します。これにより、ローカルのチェックをすり抜けたシークレットも push 時にサーバー側でブロックされます。
