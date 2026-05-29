@@ -54,14 +54,18 @@ bun run test
 
 1. リポジトリをフォークし、ローカルにクローンします。
 2. 作業用の新しいブランチを作成します。（例: `feature/add-new-board-space`, `fix/dice-roll-bug`）
+
    ```bash
    git checkout -b feature/your-feature-name
    ```
+
 3. 変更を加え、コミットします。コミットメッセージはわかりやすく簡潔に記述してください。
 4. フォークしたリポジトリにプッシュします。
+
    ```bash
    git push origin feature/your-feature-name
    ```
+
 5. 本リポジトリに対してプルリクエストを作成します。
 6. PRを作成する際は、テンプレート（`.github/PULL_REQUEST_TEMPLATE.md`）に沿って必要な情報を記入してください。
 
