@@ -20,16 +20,12 @@ const PlayerPanel = memo(function PlayerPanel({
         <button
           key={player.id}
           type="button"
-          aria-label={[
-            player.token,
-            player.name,
-            `所持金 ${player.money.toLocaleString()}ドル`,
-            player.inJail && '刑務所に入っています',
-            player.isBankrupt && '破産しています',
-            onPlayerClick && '詳細を見る',
-          ]
-            .filter(Boolean)
-            .join(' ')}
+          aria-label={
+            `${player.token} ${player.name} 所持金 ${player.money.toLocaleString()}ドル` +
+            (player.inJail ? ' 刑務所に入っています' : '') +
+            (player.isBankrupt ? ' 破産しています' : '') +
+            (onPlayerClick ? ' 詳細を見る' : '')
+          }
           aria-current={idx === currentPlayerIndex ? 'true' : 'false'}
           aria-disabled={!onPlayerClick}
           className={`${styles.playerChip} ${idx === currentPlayerIndex ? styles.playerChipActive : ''} ${player.isBankrupt ? styles.playerChipBankrupt : ''}`}

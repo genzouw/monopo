@@ -27,3 +27,8 @@
 
 **Learning:** コンポーネントのリスト（例: `MiniMap` のボードマス）を描画する際、子コンポーネントに配列全体（`allPlayers`）を渡して子の描画関数や `React.memo` の等価チェック内で O(N) の `.find()` ルックアップを行うと、O(N) の操作が N 回実行され O(N²) となる深刻なパフォーマンスボトルネックになる。また、頻繁に呼ばれる UI ヘルパー（`getSpaceLabel` など）で `.filter(Boolean).join(' ')` のような配列リテラルを使用すると、不要なガベージコレクションのオーバーヘッドが発生する。
 **Action:** 親コンポーネントで `useMemo` を使って O(1) のルックアップ辞書（`playersById` など）を事前に計算し、子コンポーネントには特定のエンティティ（`owner` など）のみをプロパティとして渡すこと。ホットパスでは中間配列の割り当てやチェーン操作を避け、標準的な文字列結合またはテンプレートリテラルに置き換えること。
+
+## 2024-12-05 - Avoid `.filter(Boolean).join(' ')` chains in highly re-rendered components
+
+**Learning:** Using `[...].filter(Boolean).join(' ')` inside render functions (e.g., `PlayerPanel`, `Button`) allocates temporary arrays and calls array methods repeatedly, adding garbage collection pressure, particularly on list-rendered or highly reused components.
+**Action:** Replace `[...].filter(Boolean).join(' ')` with direct string concatenation or template literals (`+` and conditionals) in frequently called components to eliminate these intermediate array allocations.
