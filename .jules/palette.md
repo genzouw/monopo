@@ -42,3 +42,7 @@
 ## 2026-05-25 - Missing Accessibility on Disabled Force Buy Button
 **Learning:** Found a missing disabled state and accessibility hints in the `ForceBuyDialog` component when a player tries to buy but cannot afford the cost. While other dialogs like `PurchaseDialog` handled this well, `ForceBuyDialog` missed the `disabled` prop and `aria-describedby` hint, which could cause a confusing user experience for both keyboard/screen-reader users and sighted users.
 **Action:** Applied a similar pattern used in `PurchaseDialog` by calculating `canAfford` before rendering, disabling the primary button, and presenting an accessible `role="status"` hint linked to the button via `aria-describedby`. Always ensure all purchasing dialogs handle "insufficient funds" explicitly.
+## 2026-05-28 - 抵当/抵当解除ボタンの無効状態にアクセシビリティ対応を追加
+**学び:** `MortgageDialog` コンポーネントで、無効状態のボタンに対するアクセシビリティヒントが実装されていなかった。`かえす` および `かりる` ボタンが無効になった理由をスクリーンリーダーが読み上げられない状態だった。このパターンは `ActionDialog` フォルダ内のすべてのコンポーネントで一貫して使用する必要がある。
+**対応:** `MortgageDialog` 内のボタンに対して、無効状態のとき `aria-describedby` で補助ヒントを関連付けるパターンを適用し、全 `ActionDialog` へのパターン適用を完成させた。
+
