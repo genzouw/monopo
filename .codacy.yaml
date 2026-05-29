@@ -1,0 +1,12 @@
+---
+engines:
+  jshint:
+    exclude_paths:
+      - 'src/**'
+      - 'scripts/**'
+exclude_paths:
+  - 'node_modules/**'
+  - 'dist/**'
+  - 'coverage/**'
+  - '**/*.test.ts'
+  - '**/*.test.tsx'
