@@ -29,6 +29,7 @@
 
 - GitHub ActionsのCI/CDワークフローでは、`actions/setup-node` の代わりに `oven-sh/setup-bun` を利用して環境を構築してください。
 - 乱数生成に依存するテストを作成または更新する際は、`Math.random()` の代わりに `src/game/random.ts` の `getSecureRandomInt` をモックしてください。
+- GitHub Actions ワークフロー（`.github/workflows/**`）で外部 Action を参照する際は、必ず 40 桁のコミット SHA でピン留めし、可変ブランチ参照（`@main` / `@master` / `@develop` / `@HEAD`）は使用しないでください。バージョン名は SHA の隣に行末コメントで併記してください（例: `uses: owner/repo@<40桁SHA> # v1.2.3`）。リポジトリリネームによる参照解決失敗（`startup_failure`）や、上流の不意な破壊的変更の取り込みを防ぐためです。既存の Action を更新する際は、コミット SHA とコメントを同時に書き換えてください。
 
 ## ツール・拡張機能
 
