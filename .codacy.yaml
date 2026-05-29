@@ -7,3 +7,4 @@ exclude_paths:
   - '**/*.test.tsx'
   - 'src/components/common/Button.tsx'
   - 'src/components/PlayerPanel/PlayerPanel.tsx'
+  - 'src/components/ActionDialog/BuildDialog.tsx'

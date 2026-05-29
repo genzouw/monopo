@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import type {
   BoardSpace,
   ColorGroup,
@@ -51,6 +52,7 @@ export default function BuildDialog({
   onSell,
   onClose,
 }: BuildDialogProps) {
+  const hintIdBase = useId();
   const ownedProperties = currentPlayer.properties
     .map((id: string) => getSpaceById(id, board))
     .filter(
@@ -126,21 +128,65 @@ export default function BuildDialog({
                   alignItems: 'center',
                 }}
               >
-                <Button
-                  size="small"
-                  onClick={() => onBuild(space.id)}
-                  disabled={!canBuild || !canAffordBuild}
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-end',
+                    gap: 4,
+                  }}
                 >
-                  たてる
-                </Button>
-                <Button
-                  size="small"
-                  variant="secondary"
-                  onClick={() => onSell(space.id)}
-                  disabled={!canSell}
+                  <Button
+                    size="small"
+                    onClick={() => onBuild(space.id)}
+                    disabled={!canBuild || !canAffordBuild}
+                    aria-describedby={
+                      !canBuild || !canAffordBuild
+                        ? `${hintIdBase}-build-${space.id}`
+                        : undefined
+                    }
+                  >
+                    たてる
+                  </Button>
+                  {(!canBuild || !canAffordBuild) && (
+                    <div
+                      id={`${hintIdBase}-build-${space.id}`}
+                      className={styles.noMoneyHintTight}
+                      role="status"
+                    >
+                      {!canBuild ? 'たてられないよ' : 'おかねがたりないよ'}
+                    </div>
+                  )}
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-end',
+                    gap: 4,
+                  }}
                 >
-                  うる
-                </Button>
+                  <Button
+                    size="small"
+                    variant="secondary"
+                    onClick={() => onSell(space.id)}
+                    disabled={!canSell}
+                    aria-describedby={
+                      !canSell ? `${hintIdBase}-sell-${space.id}` : undefined
+                    }
+                  >
+                    うる
+                  </Button>
+                  {!canSell && (
+                    <div
+                      id={`${hintIdBase}-sell-${space.id}`}
+                      className={styles.noMoneyHintTight}
+                      role="status"
+                    >
+                      うれないよ
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           );
