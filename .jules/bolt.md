@@ -30,5 +30,5 @@
 
 ## 2024-12-05 - Avoid `.filter(Boolean).join(' ')` chains in highly re-rendered components
 
-**Learning:** Using `[...].filter(Boolean).join(' ')` inside render functions (e.g., `PlayerPanel`, `Button`) allocates temporary arrays and calls array methods repeatedly, adding garbage collection pressure, particularly on list-rendered or highly reused components. 
+**Learning:** Using `[...].filter(Boolean).join(' ')` inside render functions (e.g., `PlayerPanel`, `Button`) allocates temporary arrays and calls array methods repeatedly, adding garbage collection pressure, particularly on list-rendered or highly reused components.
 **Action:** Replace `[...].filter(Boolean).join(' ')` with direct string concatenation or template literals (`+` and conditionals) in frequently called components to eliminate these intermediate array allocations.
