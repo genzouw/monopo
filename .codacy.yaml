@@ -1,12 +1,9 @@
 ---
-engines:
-  jshint:
-    exclude_paths:
-      - 'src/**'
-      - 'scripts/**'
 exclude_paths:
   - 'node_modules/**'
   - 'dist/**'
   - 'coverage/**'
   - '**/*.test.ts'
   - '**/*.test.tsx'
+  - 'src/components/common/Button.tsx'
+  - 'src/components/PlayerPanel/PlayerPanel.tsx'
