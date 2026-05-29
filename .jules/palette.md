@@ -53,5 +53,6 @@
 **対応:** `MortgageDialog` 内のボタンに対して、無効状態のとき `aria-describedby` で補助ヒントを関連付けるパターンを適用し、全 `ActionDialog` へのパターン適用を完成させた。
 
 ## 2024-05-29 - Explain disabled states
+
 **Learning:** React state-driven disabled buttons in modal dialogs (like Action Dialogs) often fail to visually explain *why* the button is disabled, creating a confusing dead-end. The pattern used in `TradeDialog` and `MortgageDialog`—which renders an inline helper `div` with `role="status"` mapped via `aria-describedby`—should be actively applied to all action modals such as `BuildDialog`.
 **Action:** When working on dialogs, always check if there is a `disabled` condition on primary actions, and if so, proactively add a helper message using `aria-describedby` to make it accessible and intuitive.
