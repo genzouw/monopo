@@ -26,7 +26,24 @@ export const MAX_JAIL_TURNS = 3;
 /** 刑務所から出るための罰金額（PAY_JAIL_FINE / 強制出獄時に支払う） */
 export const JAIL_FINE = 50;
 
+/** 社会配当: GOを通過した本人が受け取る金額 */
+export const SOCIAL_DIVIDEND_SELF = 150;
+
+/** 社会配当: GOを通過した際に他の破産していないプレイヤーが受け取る金額 */
+export const SOCIAL_DIVIDEND_OTHERS = 50;
+
 // ── ヘルパー関数 ──
+
+function distributeSocialDividend(state: GameState, newPos: number): Player[] {
+  return state.players.map((p, index) => {
+    if (p.isBankrupt) return p;
+    if (index === state.currentPlayerIndex) {
+      return { ...p, position: newPos, money: p.money + SOCIAL_DIVIDEND_SELF };
+    } else {
+      return { ...p, money: p.money + SOCIAL_DIVIDEND_OTHERS };
+    }
+  });
+}
 
 export function rollDice(): [number, number] {
   return [getSecureRandomInt(1, 6), getSecureRandomInt(1, 6)];
@@ -264,23 +281,36 @@ function applyCardEffect(state: GameState, card: Card): GameState {
     case 'move': {
       const newPos = action.position;
       const passedGo = newPos < player.position && newPos !== 10;
-      const bonus = passedGo ? 200 : 0;
-      let newState = updateCurrentPlayer(state, {
-        position: newPos,
-        money: player.money + bonus,
-      });
+
+      let newState = { ...state };
       if (passedGo) {
         newState = {
           ...newState,
-          message: `GOをとおりすぎたから$200もらったよ！`,
+          players: distributeSocialDividend(state, newPos),
+          message: `GOをとおりすぎた！みんなに$${SOCIAL_DIVIDEND_OTHERS}ずつ、自分は$${SOCIAL_DIVIDEND_SELF}の社会配当をもらったよ！`,
         };
+      } else {
+        newState = updateCurrentPlayer(newState, {
+          position: newPos,
+        });
       }
+
       return handleLanding(newState);
     }
 
     case 'moveRelative': {
       const newPos = (player.position + action.spaces + 40) % 40;
-      const newState = updateCurrentPlayer(state, { position: newPos });
+      const passedGo = action.spaces > 0 && newPos < player.position;
+      let newState = { ...state };
+      if (passedGo) {
+        newState = {
+          ...newState,
+          players: distributeSocialDividend(state, newPos),
+          message: `GOをとおりすぎた！みんなに$${SOCIAL_DIVIDEND_OTHERS}ずつ、自分は$${SOCIAL_DIVIDEND_SELF}の社会配当をもらったよ！`,
+        };
+      } else {
+        newState = updateCurrentPlayer(newState, { position: newPos });
+      }
       return handleLanding(newState);
     }
 
@@ -384,16 +414,15 @@ function applyCardEffect(state: GameState, card: Card): GameState {
         state.board,
       );
       const passedGo = nearestPos < player.position;
-      const bonus = passedGo ? 200 : 0;
-      let newState = updateCurrentPlayer(state, {
-        position: nearestPos,
-        money: player.money + bonus,
-      });
+      let newState = { ...state };
       if (passedGo) {
         newState = {
           ...newState,
-          message: `GOをとおりすぎたから$200もらったよ！`,
+          players: distributeSocialDividend(state, nearestPos),
+          message: `GOをとおりすぎた！みんなに$${SOCIAL_DIVIDEND_OTHERS}ずつ、自分は$${SOCIAL_DIVIDEND_SELF}の社会配当をもらったよ！`,
         };
+      } else {
+        newState = updateCurrentPlayer(newState, { position: nearestPos });
       }
       return handleLanding(newState);
     }
@@ -544,16 +573,17 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       const newPos = (oldPos + steps) % 40;
       const passedGo = oldPos !== 0 && newPos < oldPos;
 
-      let newState = updateCurrentPlayer(state, {
-        position: newPos,
-        money: passedGo && !player.inJail ? player.money + 200 : player.money,
-      });
-
+      let newState = { ...state };
       if (passedGo && !player.inJail) {
         newState = {
           ...newState,
-          message: `GOをとおりすぎたから$200もらったよ！`,
+          players: distributeSocialDividend(state, newPos),
+          message: `GOをとおりすぎた！みんなに$${SOCIAL_DIVIDEND_OTHERS}ずつ、自分は$${SOCIAL_DIVIDEND_SELF}の社会配当をもらったよ！`,
         };
+      } else {
+        newState = updateCurrentPlayer(newState, {
+          position: newPos,
+        });
       }
 
       newState = { ...newState, turnPhase: 'landed' };

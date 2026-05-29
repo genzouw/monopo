@@ -137,8 +137,8 @@ describe('FINISH_MOVING', () => {
     expect(next.players[0].position).toBe(7); // 0 + 7
   });
 
-  it('GOを通過したら $200 もらう', () => {
-    let state = startedGame();
+  it('GOを通過したら $150 もらい、他のプレイヤーは $50 もらう', () => {
+    let state = startedGame(4);
     // position を 38 に設定してサイコロで 4 以上にする → GOを超える
     state = {
       ...state,
@@ -151,10 +151,13 @@ describe('FINISH_MOVING', () => {
     const next = gameReducer(state, { type: 'FINISH_MOVING' });
     // 38 + 7 = 45 → 5 (GOを超えた)
     expect(next.players[0].position).toBe(5);
-    expect(next.players[0].money).toBe(1700); // 1500 + 200
+    expect(next.players[0].money).toBe(1650); // 1500 + 150
+    expect(next.players[1].money).toBe(1550); // 1500 + 50
+    expect(next.players[2].money).toBe(1550); // 1500 + 50
+    expect(next.players[3].money).toBe(1550); // 1500 + 50
   });
 
-  it('GO（position 0）を踏んでも $200 もらわない（通過時のみ）', () => {
+  it('GO（position 0）を踏んだ場合も社会配当を分配する', () => {
     let state = startedGame();
     // position を 37 に設定してサイコロ 3 で GO に着地
     state = {
@@ -166,9 +169,10 @@ describe('FINISH_MOVING', () => {
       turnPhase: 'moving',
     };
     const next = gameReducer(state, { type: 'FINISH_MOVING' });
-    // 37 + 3 = 40 → 0 (GO着地) → GOを通ったので+200
+    // 37 + 3 = 40 → 0 (GO着地) → GOを通ったので+150
     expect(next.players[0].position).toBe(0);
-    expect(next.players[0].money).toBe(1700);
+    expect(next.players[0].money).toBe(1650); // 1500 + 150
+    expect(next.players[1].money).toBe(1550); // 1500 + 50
   });
 });
 
