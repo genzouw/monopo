@@ -28,17 +28,26 @@
 **Action:** When a button is conditionally disabled due to a specific rule or state (like insufficient funds), render the reason as visible helper text nearby and link it via `aria-describedby` so all users—whether visual, touch, or screen-reader reliant—can understand the UI state.
 
 ## 2026-05-18 - Add empty states to dynamic lists and disable empty submissions
+
 **Learning:** Found that the TradeDialog could be submitted without any items selected, and that empty property lists rendered as confusing blank spaces. Users might think the UI is broken or accidentally submit useless empty trades.
 **Action:** Always provide explicit, friendly empty states for dynamic lists (e.g., "わたせる土地がないよ") to reassure users. Additionally, disable submission buttons when the action is a no-op (like an empty trade) and use `aria-describedby` with visible helper text to explain why the button is disabled.
 
 ## 2026-05-19 - Explicitly link visual helper text to disabled buttons
+
 **Learning:** Found that visible error messages explaining why a button is disabled (e.g. insufficient funds) were not programmatically associated with the button itself. Screen reader users would not understand why the action is blocked when focusing the button.
 **Action:** When providing visible helper text explaining a disabled state, always use `aria-describedby` on the button to link to the helper text's `id`, ensuring the reason is accessible to screen readers. Use `useId()` from React to generate unique IDs for the helper text elements, ensuring uniqueness when a component is rendered in multiple instances.
 
 ## 2026-05-22 - Mirror aria-label in visible tooltips for interactive board elements
+
 **Learning:** Found that the mini map spaces (`MemoizedMiniSpace`) had rich, dynamically generated descriptive information in their `aria-label` (including property name, owner, number of houses, and players present) that was completely inaccessible to sighted mouse users. The UI lacked visual cues for this detailed state unless clicked to open a dialog.
 **Action:** Always provide visual tooltips (e.g., using the `title` attribute) that mirror the information provided in `aria-label` for interactive board elements or densely packed UI components, ensuring that sighted users have the same quick access to state information as screen-reader users without requiring additional clicks.
 
 ## 2026-05-25 - Missing Accessibility on Disabled Force Buy Button
+
 **Learning:** Found a missing disabled state and accessibility hints in the `ForceBuyDialog` component when a player tries to buy but cannot afford the cost. While other dialogs like `PurchaseDialog` handled this well, `ForceBuyDialog` missed the `disabled` prop and `aria-describedby` hint, which could cause a confusing user experience for both keyboard/screen-reader users and sighted users.
 **Action:** Applied a similar pattern used in `PurchaseDialog` by calculating `canAfford` before rendering, disabling the primary button, and presenting an accessible `role="status"` hint linked to the button via `aria-describedby`. Always ensure all purchasing dialogs handle "insufficient funds" explicitly.
+
+## 2026-05-28 - 抵当/抵当解除ボタンの無効状態にアクセシビリティ対応を追加
+
+**学び:** `MortgageDialog` コンポーネントで、無効状態のボタンに対するアクセシビリティヒントが実装されていなかった。`かえす` および `かりる` ボタンが無効になった理由をスクリーンリーダーが読み上げられない状態だった。このパターンは `ActionDialog` フォルダ内のすべてのコンポーネントで一貫して使用する必要がある。
+**対応:** `MortgageDialog` 内のボタンに対して、無効状態のとき `aria-describedby` で補助ヒントを関連付けるパターンを適用し、全 `ActionDialog` へのパターン適用を完成させた。
