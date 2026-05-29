@@ -19,3 +19,13 @@ enable_auto_best_practices = true
 [pr_reviewer]
 require_tests_review = true
 require_security_review = true
+
+[pr_description]
+publish_labels = true
+add_original_user_description = true
+generate_ai_title = true
+use_description_markers = true
+
+[pr_code_suggestions]
+num_code_suggestions = 4
+focus_only_on_problems = true
