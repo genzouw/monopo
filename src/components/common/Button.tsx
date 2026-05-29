@@ -13,14 +13,9 @@ export default function Button({
   children,
   ...props
 }: ButtonProps) {
-  const classes = [
-    styles.button,
-    styles[variant],
-    size !== 'medium' && styles[size],
-    className,
-  ]
-    .filter(Boolean)
-    .join(' ');
+  let classes = `${styles.button} ${styles[variant]}`;
+  if (size !== 'medium') classes += ` ${styles[size]}`;
+  if (className) classes += ` ${className}`;
   return (
     <button className={classes} {...props}>
       {children}
