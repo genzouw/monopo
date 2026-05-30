@@ -120,22 +120,8 @@ export default function BuildDialog({
                   {HOUSE_LABELS[houses]} たてるコスト: ${space.houseCost}
                 </div>
               </div>
-              <div
-                style={{
-                  display: 'flex',
-                  gap: 4,
-                  marginLeft: 'auto',
-                  alignItems: 'center',
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'flex-end',
-                    gap: 4,
-                  }}
-                >
+              <div className={styles.buildItemActionPair}>
+                <div className={styles.buildItemActionColumn}>
                   <Button
                     size="small"
                     onClick={() => onBuild(space.id)}
@@ -158,14 +144,7 @@ export default function BuildDialog({
                     </div>
                   )}
                 </div>
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'flex-end',
-                    gap: 4,
-                  }}
-                >
+                <div className={styles.buildItemActionColumn}>
                   <Button
                     size="small"
                     variant="secondary"
