@@ -95,6 +95,7 @@
   gap: 4px;
   margin-left: auto;
   align-items: flex-start;
+  flex-shrink: 0;
 }
 /* アクションペアの各列。ボタンの下にヒントを縦積みする。 */
 .buildItemActionColumn {
