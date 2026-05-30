@@ -1,6 +1,13 @@
-import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
+import {
+  useState,
+  useRef,
+  useCallback,
+  useMemo,
+  useEffect,
+  useId,
+} from 'react';
 import type { Dispatch } from 'react';
-import type { GameState } from '../../game/types';
+import type { GameState, Player } from '../../game/types';
 import type { GameAction } from '../../game/actions';
 import { MAX_JAIL_TURNS } from '../../game/reducer';
 import { calculateTotalAssets, getSpaceById } from '../../game/rules';
@@ -27,6 +34,15 @@ type GameBoardProps = {
 };
 
 export default function GameBoard({ state, dispatch }: GameBoardProps) {
+  const playersById = useMemo(() => {
+    const dict: Record<string, Player> = {};
+    for (const p of state.players) {
+      dict[p.id] = p;
+    }
+    return dict;
+  }, [state.players]);
+
+  const rollingHintId = useId();
   const [isRolling, setIsRolling] = useState(false);
   const [showTradeSelect, setShowTradeSelect] = useState(false);
   const [animatingPosition, setAnimatingPosition] = useState<number | null>(
@@ -212,7 +228,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
     !state.currentCard;
 
   const tradeTargetPlayer = state.trade
-    ? state.players.find((p) => p.id === state.trade!.toPlayerId)
+    ? playersById[state.trade.toPlayerId]
     : null;
 
   // Players with animating position override for minimap
@@ -280,9 +296,25 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
       <div className={styles.actions}>
         <div className={styles.primaryAction}>
           {state.turnPhase === 'roll' && !currentPlayer.inJail && (
-            <Button size="large" onClick={handleRoll} disabled={isRolling}>
-              🎲 さいころをふる！
-            </Button>
+            <div className={styles.rollButtonWrapper}>
+              <Button
+                size="large"
+                onClick={handleRoll}
+                disabled={isRolling}
+                aria-describedby={isRolling ? rollingHintId : undefined}
+              >
+                🎲 さいころをふる！
+              </Button>
+              {isRolling && (
+                <span
+                  id={rollingHintId}
+                  className={styles.rollingHint}
+                  role="status"
+                >
+                  現在さいころをころがしています。
+                </span>
+              )}
+            </div>
           )}
 
           {showDrawCard && (
@@ -417,13 +449,14 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
       {state.turnPhase === 'tradeConfirm' &&
         state.trade &&
         (() => {
-          const from = state.players.find(
-            (p) => p.id === state.trade!.fromPlayerId,
-          );
-          const to = state.players.find(
-            (p) => p.id === state.trade!.toPlayerId,
-          );
-          const offer = state.trade!;
+          const from = state.trade
+            ? playersById[state.trade.fromPlayerId]
+            : undefined;
+          const to = state.trade
+            ? playersById[state.trade.toPlayerId]
+            : undefined;
+          const offer = state.trade;
+          if (!offer) return null;
           const offerSpaces = offer.offerProperties.map(
             (id) => getSpaceById(id, state.board)!,
           );
@@ -512,9 +545,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
         currentSpace &&
         (() => {
           const ps = state.propertyStates[currentSpace.id];
-          const owner = ps?.ownerId
-            ? state.players.find((p) => p.id === ps.ownerId)
-            : null;
+          const owner = ps?.ownerId ? playersById[ps.ownerId] : null;
           if (!owner) return null;
           return (
             <ForceBuyDialog
@@ -534,9 +565,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           const space = state.board[showSpaceDetail];
           if (!space) return null;
           const ps = state.propertyStates[space.id];
-          const owner = ps?.ownerId
-            ? state.players.find((p) => p.id === ps.ownerId)
-            : null;
+          const owner = ps?.ownerId ? playersById[ps.ownerId] : null;
           const isProp = space.type === 'property';
           const isRR = space.type === 'railroad';
           const isUtil = space.type === 'utility';
@@ -762,9 +791,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
       {/* Player detail dialog */}
       {showPlayerDetail &&
         (() => {
-          const detailPlayer = state.players.find(
-            (p) => p.id === showPlayerDetail,
-          );
+          const detailPlayer = playersById[showPlayerDetail];
           if (!detailPlayer) return null;
           const totalAssets = calculateTotalAssets(
             detailPlayer,
