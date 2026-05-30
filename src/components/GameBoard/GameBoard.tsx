@@ -1,4 +1,11 @@
-import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
+import {
+  useState,
+  useRef,
+  useCallback,
+  useMemo,
+  useEffect,
+  useId,
+} from 'react';
 import type { Dispatch } from 'react';
 import type { GameState } from '../../game/types';
 import type { GameAction } from '../../game/actions';
@@ -27,6 +34,7 @@ type GameBoardProps = {
 };
 
 export default function GameBoard({ state, dispatch }: GameBoardProps) {
+  const rollingHintId = useId();
   const [isRolling, setIsRolling] = useState(false);
   const [showTradeSelect, setShowTradeSelect] = useState(false);
   const [animatingPosition, setAnimatingPosition] = useState<number | null>(
@@ -280,9 +288,25 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
       <div className={styles.actions}>
         <div className={styles.primaryAction}>
           {state.turnPhase === 'roll' && !currentPlayer.inJail && (
-            <Button size="large" onClick={handleRoll} disabled={isRolling}>
-              {isRolling ? '🎲 ころがし中...' : '🎲 さいころをふる！'}
-            </Button>
+            <div className={styles.rollButtonWrapper}>
+              <Button
+                size="large"
+                onClick={handleRoll}
+                disabled={isRolling}
+                aria-describedby={isRolling ? rollingHintId : undefined}
+              >
+                🎲 さいころをふる！
+              </Button>
+              {isRolling && (
+                <span
+                  id={rollingHintId}
+                  className={styles.rollingHint}
+                  role="status"
+                >
+                  現在さいころをころがしています。
+                </span>
+              )}
+            </div>
           )}
 
           {showDrawCard && (
