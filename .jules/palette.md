@@ -56,3 +56,7 @@
 
 **Learning:** React state-driven disabled buttons in modal dialogs (like Action Dialogs) often fail to visually explain *why* the button is disabled, creating a confusing dead-end. The pattern used in `TradeDialog` and `MortgageDialog`—which renders an inline helper `div` with `role="status"` mapped via `aria-describedby`—should be actively applied to all action modals such as `BuildDialog`.
 **Action:** When working on dialogs, always check if there is a `disabled` condition on primary actions, and if so, proactively add a helper message using `aria-describedby` to make it accessible and intuitive.
+## 2026-05-30 - Add loading states to async operations
+
+**Learning:** Found that the "さいころをふる！" (Roll Dice) button remained static while the dice roll animation played, providing no immediate text feedback to the user that the action was in progress. This could lead to a feeling of unresponsiveness or uncertainty.
+**Action:** Always provide explicit, immediate text feedback (like "ころがし中...") on action buttons that trigger async operations or animations, letting the user know the system is actively processing their request.

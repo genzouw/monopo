@@ -281,7 +281,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
         <div className={styles.primaryAction}>
           {state.turnPhase === 'roll' && !currentPlayer.inJail && (
             <Button size="large" onClick={handleRoll} disabled={isRolling}>
-              🎲 さいころをふる！
+              {isRolling ? '🎲 ころがし中...' : '🎲 さいころをふる！'}
             </Button>
           )}
 
