@@ -17,7 +17,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: AI Issue Triage
-        uses: github/ai-assessment-comment-labeler@v1
+        uses: github/ai-assessment-comment-labeler@e3bedc38cfffa9179fe4cee8f7ecc93bffb3fee7 # v1.0.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           ai_review_label: 'request ai review'
