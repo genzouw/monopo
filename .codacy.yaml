@@ -12,4 +12,6 @@ exclude_paths:
   - 'src/components/ActionDialog/PurchaseDialog.tsx'
   - 'src/components/ActionDialog/ForceBuyDialog.tsx'
   - 'src/components/ActionDialog/MortgageDialog.tsx'
+  - 'src/components/ActionDialog/AuctionDialog.tsx'
   - 'src/components/GameBoard/GameBoard.tsx'
+  - 'src/components/Board/FocusView.tsx'
