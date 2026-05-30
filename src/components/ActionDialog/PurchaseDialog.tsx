@@ -27,7 +27,7 @@ export default function PurchaseDialog({
         <>
           <Button
             onClick={onBuy}
-            disabled={!canAfford}
+            aria-disabled={!canAfford}
             aria-describedby={!canAfford ? noMoneyHintId : undefined}
           >
             ${space.price}で買う！
@@ -45,11 +45,7 @@ export default function PurchaseDialog({
           もってるおかね: ${currentPlayer.money.toLocaleString()}
         </div>
         {!canAfford && (
-          <div
-            id={noMoneyHintId}
-            role="status"
-            className={styles.noMoneyHintTight}
-          >
+          <div id={noMoneyHintId} className={styles.noMoneyHintTight}>
             おかねがたりないよ
           </div>
         )}

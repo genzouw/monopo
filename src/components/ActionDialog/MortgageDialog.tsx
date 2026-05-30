@@ -85,7 +85,7 @@ export default function MortgageDialog({
                     <Button
                       size="small"
                       onClick={() => onUnmortgage(space.id)}
-                      disabled={!canDoUnmortgage}
+                      aria-disabled={!canDoUnmortgage}
                       aria-describedby={
                         !canDoUnmortgage
                           ? `${hintIdBase}-unmortgage-${space.id}`
@@ -97,7 +97,6 @@ export default function MortgageDialog({
                     {!canDoUnmortgage && (
                       <div
                         id={`${hintIdBase}-unmortgage-${space.id}`}
-                        role="status"
                         className={styles.noMoneyHintTight}
                       >
                         おかねがたりないよ
@@ -110,7 +109,7 @@ export default function MortgageDialog({
                       size="small"
                       variant="danger"
                       onClick={() => onMortgage(space.id)}
-                      disabled={!canDoMortgage}
+                      aria-disabled={!canDoMortgage}
                       aria-describedby={
                         !canDoMortgage
                           ? `${hintIdBase}-mortgage-${space.id}`
@@ -122,7 +121,6 @@ export default function MortgageDialog({
                     {!canDoMortgage && (
                       <div
                         id={`${hintIdBase}-mortgage-${space.id}`}
-                        role="status"
                         className={styles.noMoneyHintTight}
                       >
                         家があるグループだよ

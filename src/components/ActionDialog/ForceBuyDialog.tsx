@@ -44,7 +44,7 @@ export default function ForceBuyDialog({
         <>
           <Button
             onClick={onBuy}
-            disabled={!canAfford}
+            aria-disabled={!canAfford}
             aria-describedby={!canAfford ? noMoneyHintId : undefined}
           >
             ${cost.toLocaleString()}で買いとる！
@@ -80,7 +80,6 @@ export default function ForceBuyDialog({
         {!canAfford && (
           <div
             id={noMoneyHintId}
-            role="status"
             style={{ color: 'var(--color-danger)', fontSize: 13, marginTop: 4 }}
           >
             おかねがたりないよ
