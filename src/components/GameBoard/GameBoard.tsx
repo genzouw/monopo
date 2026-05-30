@@ -25,6 +25,8 @@ import SellDialog from '../ActionDialog/SellDialog';
 import TradeDialog from '../ActionDialog/TradeDialog';
 import BankruptDialog from '../ActionDialog/BankruptDialog';
 import ForceBuyDialog from '../ActionDialog/ForceBuyDialog';
+import StockDialog from '../ActionDialog/StockDialog';
+import InvestDialog from '../ActionDialog/InvestDialog';
 import { useSound } from '../../sound/useSound';
 import styles from './GameBoard.module.css';
 
@@ -216,6 +218,11 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
   const showTradeDialog = state.turnPhase === 'trade' && !!state.trade;
   const showBankruptDialog = state.turnPhase === 'bankrupt';
   const showForceBuyDialog = state.turnPhase === 'forceBuy';
+  // P1 拡張: 株式・増資ダイアログ
+  const showStockDialog = state.turnPhase === 'stock' && !!state.stockMarket;
+  const showInvestDialog = state.turnPhase === 'invest';
+  const stocksEnabled = state.features?.stocks === true;
+  const investmentEnabled = state.features?.investment === true;
   const canSubAction =
     state.turnPhase === 'endTurn' || state.turnPhase === 'roll';
 
@@ -365,6 +372,26 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                   🤝 こうかん
                 </Button>
               )}
+              {stocksEnabled && (
+                <Button
+                  size="small"
+                  variant="secondary"
+                  className={styles.subActionButton}
+                  onClick={() => dispatch({ type: 'OPEN_STOCK_DIALOG' })}
+                >
+                  📈 おうえんカード
+                </Button>
+              )}
+              {investmentEnabled && (
+                <Button
+                  size="small"
+                  variant="secondary"
+                  className={styles.subActionButton}
+                  onClick={() => dispatch({ type: 'OPEN_INVEST_DIALOG' })}
+                >
+                  💰 エリアおうえん
+                </Button>
+              )}
             </div>
           )}
           <button
@@ -432,6 +459,32 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           onSellHouse={handleSellHouse}
           onClose={() => dispatch({ type: 'CLOSE_SELL_DIALOG' })}
           forced={state.turnPhase === 'forceSell'}
+        />
+      )}
+
+      {showStockDialog && state.stockMarket && (
+        <StockDialog
+          currentPlayer={currentPlayer}
+          stockMarket={state.stockMarket}
+          onBuy={(color, shares) =>
+            dispatch({ type: 'BUY_STOCK', color, shares })
+          }
+          onSell={(color, shares) =>
+            dispatch({ type: 'SELL_STOCK', color, shares })
+          }
+          onClose={() => dispatch({ type: 'CLOSE_STOCK_DIALOG' })}
+        />
+      )}
+
+      {showInvestDialog && (
+        <InvestDialog
+          currentPlayer={currentPlayer}
+          board={state.board}
+          propertyStates={state.propertyStates}
+          onInvest={(propertyId) =>
+            dispatch({ type: 'INVEST_PROPERTY', propertyId })
+          }
+          onClose={() => dispatch({ type: 'CLOSE_INVEST_DIALOG' })}
         />
       )}
 

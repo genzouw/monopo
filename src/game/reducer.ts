@@ -1,4 +1,5 @@
 import type {
+  ColorGroup,
   GameState,
   Player,
   Card,
@@ -17,6 +18,16 @@ import {
   validateTradeOffer,
 } from './rules';
 import { getSecureRandomInt } from './random';
+import {
+  INVESTMENT_STOCK_BOOST,
+  createInitialStockMarket,
+  distributeDividends,
+  isInvestmentEnabled,
+  isStocksEnabled,
+  validateInvestment,
+  validateStockBuy,
+  validateStockSell,
+} from './economy';
 
 // ── 定数 ──
 
@@ -238,9 +249,25 @@ function handleLanding(state: GameState): GameState {
         state.dice.values,
       );
 
+      // P1 拡張: 株式が有効なら家賃の一部を配当として株主へ配分
+      const dividends = isStocksEnabled(state)
+        ? distributeDividends(
+            rent,
+            space.color,
+            owner.id,
+            player.id,
+            state.players,
+          )
+        : {};
+      const dividendPaid = isStocksEnabled(state)
+        ? Object.values(dividends).reduce((a, b) => a + b, 0)
+        : 0;
+      const ownerProceeds = rent - dividendPaid;
+
       const newPlayers = state.players.map((p) => {
         if (p.id === player.id) return { ...p, money: p.money - rent };
-        if (p.id === owner.id) return { ...p, money: p.money + rent };
+        if (p.id === owner.id) return { ...p, money: p.money + ownerProceeds };
+        if (dividends[p.id]) return { ...p, money: p.money + dividends[p.id] };
         return p;
       });
 
@@ -502,6 +529,10 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         isBankrupt: false,
       }));
       const firstPlayer = players[0];
+      // P1 拡張: 株式機能 ON のときだけ市場を初期化（OFF時は undefined のまま既存挙動）
+      const stockMarket = action.features?.stocks
+        ? createInitialStockMarket()
+        : undefined;
       return {
         ...state,
         phase: 'playing',
@@ -519,6 +550,8 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         currentCard: null,
         message: `${firstPlayer.name}のばんだよ！サイコロをふろう！`,
         winnerId: null,
+        features: action.features,
+        stockMarket,
       };
     }
 
@@ -1334,9 +1367,121 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       return action.savedState;
     }
 
+    // ── P1 拡張: 株式・増資 ──
+    case 'OPEN_STOCK_DIALOG': {
+      if (!isStocksEnabled(state)) return state;
+      return { ...state, turnPhase: 'stock' };
+    }
+    case 'CLOSE_STOCK_DIALOG': {
+      if (state.turnPhase !== 'stock') return state;
+      return { ...state, turnPhase: 'endTurn' };
+    }
+    case 'BUY_STOCK': {
+      const player = state.players[state.currentPlayerIndex];
+      const result = validateStockBuy(
+        state,
+        player.id,
+        action.color,
+        action.shares,
+      );
+      if (!result.ok) return state;
+      return applyStockTrade(
+        state,
+        player.id,
+        action.color,
+        action.shares,
+        -result.cost,
+      );
+    }
+    case 'SELL_STOCK': {
+      const player = state.players[state.currentPlayerIndex];
+      const result = validateStockSell(
+        state,
+        player.id,
+        action.color,
+        action.shares,
+      );
+      if (!result.ok) return state;
+      return applyStockTrade(
+        state,
+        player.id,
+        action.color,
+        -action.shares,
+        result.proceeds,
+      );
+    }
+    case 'OPEN_INVEST_DIALOG': {
+      if (!isInvestmentEnabled(state)) return state;
+      return { ...state, turnPhase: 'invest' };
+    }
+    case 'CLOSE_INVEST_DIALOG': {
+      if (state.turnPhase !== 'invest') return state;
+      return { ...state, turnPhase: 'endTurn' };
+    }
+    case 'INVEST_PROPERTY': {
+      const player = state.players[state.currentPlayerIndex];
+      const result = validateInvestment(state, player.id, action.propertyId);
+      if (!result.ok) return state;
+      const newPlayers = state.players.map((p) =>
+        p.id === player.id ? { ...p, money: p.money - result.cost } : p,
+      );
+      const newMarket = bumpStockPrice(
+        state,
+        result.color,
+        INVESTMENT_STOCK_BOOST,
+      );
+      return {
+        ...state,
+        players: newPlayers,
+        stockMarket: newMarket,
+        message: `${player.name}が${action.propertyId}を増資！株価が+$${INVESTMENT_STOCK_BOOST}したよ`,
+      };
+    }
+
     default:
       return state;
   }
+}
+
+// ── P1 ヘルパー: 株売買の共通処理 ──
+// sharesDelta: プレイヤーの保有株変化（正: 買い、負: 売り）
+// moneyDelta: プレイヤーの所持金変化（負: 買い、正: 売り）
+function applyStockTrade(
+  state: GameState,
+  playerId: string,
+  color: ColorGroup,
+  sharesDelta: number,
+  moneyDelta: number,
+): GameState {
+  const newPlayers = state.players.map((p) => {
+    if (p.id !== playerId) return p;
+    const currentShares = p.stocks?.[color] ?? 0;
+    const nextShares = currentShares + sharesDelta;
+    const newStocks = { ...(p.stocks ?? {}), [color]: nextShares };
+    if (nextShares <= 0) delete newStocks[color];
+    return { ...p, money: p.money + moneyDelta, stocks: newStocks };
+  });
+  const market = state.stockMarket?.[color];
+  if (!market) return { ...state, players: newPlayers };
+  const newStockMarket = {
+    ...state.stockMarket,
+    [color]: { ...market, bankShares: market.bankShares - sharesDelta },
+  };
+  return { ...state, players: newPlayers, stockMarket: newStockMarket };
+}
+
+// ── P1 ヘルパー: 株価を増額（増資による株価上昇用） ──
+function bumpStockPrice(
+  state: GameState,
+  color: ColorGroup,
+  delta: number,
+): GameState['stockMarket'] {
+  const market = state.stockMarket?.[color];
+  if (!market) return state.stockMarket;
+  return {
+    ...state.stockMarket,
+    [color]: { ...market, pricePerShare: market.pricePerShare + delta },
+  };
 }
 
 // ── 競売の次のプレイヤーを探すヘルパー ──
