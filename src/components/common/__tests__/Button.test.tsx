@@ -47,7 +47,7 @@ describe('Button', () => {
     expect(handleClick).not.toHaveBeenCalled();
   });
 
-  it('aria-disabled が無効のときクリックは親要素にバブリングしない', () => {
+  it('aria-disabled="true" のときクリックは親要素にバブリングしない', () => {
     const parentClick = vi.fn();
     const handleClick = vi.fn();
     render(
