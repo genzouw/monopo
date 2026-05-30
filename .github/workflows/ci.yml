@@ -127,3 +127,32 @@ jobs:
         with:
           bun-version: 1.2.14
       - run: bun run sync:ai-guidelines:check
+
+  banned-files-check:
+    name: Banned Files Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+      - name: Check for banned files
+        run: |
+          set -euo pipefail
+          echo "🔍 Scanning for banned sensitive files and AI workspaces..."
+          BANNED_FILES=$(find . -type f \( \
+            -name ".env" -o -name ".env.*" \
+            -o -name "*.pem" -o -name "*.key" \
+            -o -name "*credentials*.json" -o -name "*credentials*.yml" -o -name "*credentials*.yaml" \
+            -o -name "*service-account*.json" -o -name "*serviceaccount*.json" \
+            -o -name "*.tfstate" -o -name "*.tfstate.backup" \
+            -o -path "*/.cursor/*" -o -path "*/.claude/*" -o -path "*/.aider*/*" \
+            -o -path "*/.continue/*" -o -path "*/.jules/*" \
+            \) -not -name ".env.example" -not -path "*/node_modules/*" -not -path "*/.git/*" || true)
+
+          if [ -n "$BANNED_FILES" ]; then
+            echo "::error::❌ Banned files detected! Please remove them from the repository:"
+            echo "$BANNED_FILES"
+            exit 1
+          fi
+          echo "✅ No banned files found."
