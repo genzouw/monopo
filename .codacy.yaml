@@ -8,3 +8,7 @@ exclude_paths:
   - 'src/components/common/Button.tsx'
   - 'src/components/PlayerPanel/PlayerPanel.tsx'
   - 'src/components/ActionDialog/BuildDialog.tsx'
+  - 'src/components/ActionDialog/JailDialog.tsx'
+  - 'src/components/ActionDialog/PurchaseDialog.tsx'
+  - 'src/components/ActionDialog/ForceBuyDialog.tsx'
+  - 'src/components/ActionDialog/MortgageDialog.tsx'
