@@ -88,6 +88,21 @@
   align-items: flex-end;
   gap: 4px;
 }
+/* 横並びアクションペア（例: たてる/うる）の外側コンテナ。
+   片方の列にだけヒントが出てもボタン Y 位置が揃うよう align-items は flex-start。 */
+.buildItemActionPair {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+  align-items: flex-start;
+}
+/* アクションペアの各列。ボタンの下にヒントを縦積みする。 */
+.buildItemActionColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
 .buildItemName {
   display: flex;
   align-items: center;
