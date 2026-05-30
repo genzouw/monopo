@@ -32,3 +32,8 @@
 
 **Learning:** Using `[...].filter(Boolean).join(' ')` inside render functions (e.g., `PlayerPanel`, `Button`) allocates temporary arrays and calls array methods repeatedly, adding garbage collection pressure, particularly on list-rendered or highly reused components.
 **Action:** Replace `[...].filter(Boolean).join(' ')` with direct string concatenation or template literals (`+` and conditionals) in frequently called components to eliminate these intermediate array allocations.
+
+## 2024-12-05 - Avoid `.find()` on state arrays during React renders
+
+**Learning:** Using `.find((p) => p.id === id)` repeatedly inside React render loops for large or complex arrays (like `state.players` or `boardSpaces`) results in unnecessary O(N) traversal per lookup, degrading performance.
+**Action:** Replace direct `.find()` operations in hot paths and JSX logic with O(1) dictionary lookups constructed via `useMemo` (e.g., `const playersById = useMemo(() => { ... })`). This stabilizes performance, especially during animations or frequent re-renders where many localized lookups are required.

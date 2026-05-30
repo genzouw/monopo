@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import type { AuctionState, Player } from '../../game/types';
 import { BOARD_SPACES } from '../../game/board';
 import { getSpaceById } from '../../game/rules';
@@ -22,9 +23,17 @@ export default function AuctionDialog({
   onBid,
   onPass,
 }: AuctionDialogProps) {
+  const playersById = useMemo(() => {
+    const dict: Record<string, Player> = {};
+    for (const p of players) {
+      dict[p.id] = p;
+    }
+    return dict;
+  }, [players]);
+
   const space = getSpaceById(auction.propertyId, BOARD_SPACES);
   const currentBidder = auction.currentBidderId
-    ? players.find((p) => p.id === auction.currentBidderId)
+    ? playersById[auction.currentBidderId]
     : null;
   const activePlayer = players[auction.activePlayerIndex];
 
