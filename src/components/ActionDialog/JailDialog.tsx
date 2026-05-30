@@ -36,7 +36,7 @@ export default function JailDialog({
         <>
           <Button
             onClick={onPayFine}
-            aria-disabled={!canPayFine ? 'true' : undefined}
+            aria-disabled={!canPayFine}
             aria-describedby={!canPayFine ? noMoneyHintId : undefined}
           >
             ${JAIL_FINE}はらって出る

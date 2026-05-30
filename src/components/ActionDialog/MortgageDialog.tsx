@@ -85,7 +85,7 @@ export default function MortgageDialog({
                     <Button
                       size="small"
                       onClick={() => onUnmortgage(space.id)}
-                      aria-disabled={!canDoUnmortgage ? 'true' : undefined}
+                      aria-disabled={!canDoUnmortgage}
                       aria-describedby={
                         !canDoUnmortgage
                           ? `${hintIdBase}-unmortgage-${space.id}`
@@ -109,7 +109,7 @@ export default function MortgageDialog({
                       size="small"
                       variant="danger"
                       onClick={() => onMortgage(space.id)}
-                      aria-disabled={!canDoMortgage ? 'true' : undefined}
+                      aria-disabled={!canDoMortgage}
                       aria-describedby={
                         !canDoMortgage
                           ? `${hintIdBase}-mortgage-${space.id}`

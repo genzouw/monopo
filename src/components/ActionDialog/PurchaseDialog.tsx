@@ -27,7 +27,7 @@ export default function PurchaseDialog({
         <>
           <Button
             onClick={onBuy}
-            aria-disabled={!canAfford ? 'true' : undefined}
+            aria-disabled={!canAfford}
             aria-describedby={!canAfford ? noMoneyHintId : undefined}
           >
             ${space.price}で買う！

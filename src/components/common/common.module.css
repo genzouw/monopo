@@ -26,13 +26,16 @@
   opacity: 0.5;
   pointer-events: none;
 }
+
 .button[aria-disabled='true'] {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
 .button[aria-disabled='true']:active {
   transform: none;
 }
+
 .primary {
   background: var(--color-primary);
   color: var(--color-white);
