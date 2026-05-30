@@ -36,7 +36,7 @@ export default function JailDialog({
         <>
           <Button
             onClick={onPayFine}
-            disabled={!canPayFine}
+            aria-disabled={!canPayFine ? 'true' : undefined}
             aria-describedby={!canPayFine ? noMoneyHintId : undefined}
           >
             ${JAIL_FINE}はらって出る
@@ -56,16 +56,12 @@ export default function JailDialog({
         <div>けいむしょにいるよ。</div>
         <div>どうやってでる？</div>
         {!canPayFine && (
-          <div
-            id={noMoneyHintId}
-            role="status"
-            className={styles.noMoneyHintTight}
-          >
+          <div id={noMoneyHintId} className={styles.noMoneyHintTight}>
             おかねがたりないよ（${JAIL_FINE}ひつよう）
           </div>
         )}
         {hasCards && (
-          <div role="status" className={styles.hasCardHint}>
+          <div className={styles.hasCardHint}>
             しゃくほうカードをもってるよ！
           </div>
         )}
