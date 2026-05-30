@@ -220,7 +220,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
     !state.currentCard;
 
   const tradeTargetPlayer = state.trade
-    ? playersById[state.trade!.toPlayerId]
+    ? playersById[state.trade.toPlayerId]
     : null;
 
   // Players with animating position override for minimap
