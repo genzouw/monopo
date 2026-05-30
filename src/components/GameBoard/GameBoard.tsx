@@ -425,9 +425,14 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
       {state.turnPhase === 'tradeConfirm' &&
         state.trade &&
         (() => {
-          const from = playersById[state.trade!.fromPlayerId];
-          const to = playersById[state.trade!.toPlayerId];
-          const offer = state.trade!;
+          const from = state.trade
+            ? playersById[state.trade.fromPlayerId]
+            : undefined;
+          const to = state.trade
+            ? playersById[state.trade.toPlayerId]
+            : undefined;
+          const offer = state.trade;
+          if (!offer) return null;
           const offerSpaces = offer.offerProperties.map(
             (id) => getSpaceById(id, state.board)!,
           );
