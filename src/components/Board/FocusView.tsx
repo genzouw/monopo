@@ -1,4 +1,4 @@
-import { useRef, useEffect, memo } from 'react';
+import { useRef, useEffect, memo, useMemo } from 'react';
 import type { BoardSpace, Player, PropertyState } from '../../game/types';
 import SpaceCard from './SpaceCard';
 import styles from './Board.module.css';
@@ -16,6 +16,14 @@ const FocusView = memo(function FocusView({
   players,
   currentPosition,
 }: FocusViewProps) {
+  const playersById = useMemo(() => {
+    const dict: Record<string, Player> = {};
+    for (const p of players) {
+      dict[p.id] = p;
+    }
+    return dict;
+  }, [players]);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const visibleRange = 2;
   const indices: number[] = [];
@@ -42,7 +50,7 @@ const FocusView = memo(function FocusView({
         const space = board[pos];
         const propState = propertyStates[space.id];
         const owner = propState?.ownerId
-          ? players.find((p) => p.id === propState.ownerId)
+          ? playersById[propState.ownerId]
           : undefined;
         return (
           <SpaceCard
