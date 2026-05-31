@@ -340,46 +340,53 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           )}
         </div>
 
-        {canSubAction && (
-          <div className={styles.subActions}>
-            <Button
-              size="small"
-              variant="secondary"
-              className={styles.subActionButton}
-              onClick={() => dispatch({ type: 'OPEN_BUILD_DIALOG' })}
-            >
-              🏠 いえをたてる
-            </Button>
-            <Button
-              size="small"
-              variant="secondary"
-              className={styles.subActionButton}
-              onClick={() => dispatch({ type: 'OPEN_SELL_DIALOG' })}
-            >
-              🏷️ 売りだし
-            </Button>
-            {otherActivePlayers.length > 0 && (
+        {/*
+          サブアクション領域は DOM 常駐させ、表示/非表示でレイアウトシフトを
+          起こさないようにする（min-height は CSS 側で固定）。
+          canSubAction が false のときは中身ボタンを出さず、空のまま高さだけ確保する。
+        */}
+        <div className={styles.subActions} aria-hidden={!canSubAction}>
+          {canSubAction && (
+            <>
               <Button
                 size="small"
                 variant="secondary"
                 className={styles.subActionButton}
-                onClick={() => setShowTradeSelect(true)}
+                onClick={() => dispatch({ type: 'OPEN_BUILD_DIALOG' })}
               >
-                🤝 こうかん
+                🏠 いえをたてる
               </Button>
-            )}
-            {stocksEnabled && (
               <Button
                 size="small"
                 variant="secondary"
                 className={styles.subActionButton}
-                onClick={() => dispatch({ type: 'OPEN_STOCK_DIALOG' })}
+                onClick={() => dispatch({ type: 'OPEN_SELL_DIALOG' })}
               >
-                📈 おうえんカード
+                🏷️ 売りだし
               </Button>
-            )}
-          </div>
-        )}
+              {otherActivePlayers.length > 0 && (
+                <Button
+                  size="small"
+                  variant="secondary"
+                  className={styles.subActionButton}
+                  onClick={() => setShowTradeSelect(true)}
+                >
+                  🤝 こうかん
+                </Button>
+              )}
+              {stocksEnabled && (
+                <Button
+                  size="small"
+                  variant="secondary"
+                  className={styles.subActionButton}
+                  onClick={() => dispatch({ type: 'OPEN_STOCK_DIALOG' })}
+                >
+                  📈 おうえんカード
+                </Button>
+              )}
+            </>
+          )}
+        </div>
       </div>
 
       {/* 音声トグル: 画面右上の固定位置に常時表示（操作行の混雑を避ける） */}

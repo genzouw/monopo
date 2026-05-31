@@ -39,6 +39,11 @@
   flex-direction: column;
   gap: 8px;
   align-items: center;
+  /* レイアウトシフト防止: ターンフェーズで主要ボタン・サブアクションが
+     表示/非表示になっても下部エリアの高さを固定し、上のボード位置を動かさない。
+     内訳: primaryAction(62) + gap(8) + subActions 2行分(76) + padding 上下(24) = 170 */
+  min-height: 170px;
+  flex-shrink: 0;
 }
 .primaryAction {
   width: 100%;
@@ -66,7 +71,11 @@
      （狭い端末で見切れないことを優先） */
   flex-wrap: wrap;
   justify-content: center;
+  align-content: flex-start;
   min-width: 0;
+  /* canSubAction=false でも領域を確保しレイアウトシフトを防ぐ
+     （2行折り返し時の高さ目安。subActionsButton 1行 ≈ 36px + gap 6px = 78px） */
+  min-height: 78px;
 }
 .subActionButton {
   padding-left: 8px;
