@@ -51,6 +51,11 @@ export default function StockDialog({
         <div className={styles.propertyPrice}>
           もってるおかね: ${currentPlayer.money.toLocaleString()}
         </div>
+        {groups.length === 0 && (
+          <div className={styles.noMoneyHintTight}>
+            いま売り買いできるカードはないよ
+          </div>
+        )}
         {groups.map((color) => {
           const market = stockMarket[color];
           if (!market) return null;
