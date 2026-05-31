@@ -340,58 +340,58 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           )}
         </div>
 
-        <div className={styles.subActionsRow}>
-          {canSubAction && (
-            <div className={styles.subActions}>
+        {canSubAction && (
+          <div className={styles.subActions}>
+            <Button
+              size="small"
+              variant="secondary"
+              className={styles.subActionButton}
+              onClick={() => dispatch({ type: 'OPEN_BUILD_DIALOG' })}
+            >
+              🏠 いえをたてる
+            </Button>
+            <Button
+              size="small"
+              variant="secondary"
+              className={styles.subActionButton}
+              onClick={() => dispatch({ type: 'OPEN_SELL_DIALOG' })}
+            >
+              🏷️ 売りだし
+            </Button>
+            {otherActivePlayers.length > 0 && (
               <Button
                 size="small"
                 variant="secondary"
                 className={styles.subActionButton}
-                onClick={() => dispatch({ type: 'OPEN_BUILD_DIALOG' })}
+                onClick={() => setShowTradeSelect(true)}
               >
-                🏠 いえをたてる
+                🤝 こうかん
               </Button>
+            )}
+            {stocksEnabled && (
               <Button
                 size="small"
                 variant="secondary"
                 className={styles.subActionButton}
-                onClick={() => dispatch({ type: 'OPEN_SELL_DIALOG' })}
+                onClick={() => dispatch({ type: 'OPEN_STOCK_DIALOG' })}
               >
-                🏷️ 売りだし
+                📈 おうえんカード
               </Button>
-              {otherActivePlayers.length > 0 && (
-                <Button
-                  size="small"
-                  variant="secondary"
-                  className={styles.subActionButton}
-                  onClick={() => setShowTradeSelect(true)}
-                >
-                  🤝 こうかん
-                </Button>
-              )}
-              {stocksEnabled && (
-                <Button
-                  size="small"
-                  variant="secondary"
-                  className={styles.subActionButton}
-                  onClick={() => dispatch({ type: 'OPEN_STOCK_DIALOG' })}
-                >
-                  📈 おうえんカード
-                </Button>
-              )}
-            </div>
-          )}
-          <button
-            type="button"
-            className={styles.muteButton}
-            onClick={toggleMute}
-            aria-label={muted ? 'サウンドをオンにする' : 'サウンドをオフにする'}
-            title={muted ? 'サウンドをオンにする' : 'サウンドをオフにする'}
-          >
-            {muted ? '🔇' : '🔊'}
-          </button>
-        </div>
+            )}
+          </div>
+        )}
       </div>
+
+      {/* 音声トグル: 画面右上の固定位置に常時表示（操作行の混雑を避ける） */}
+      <button
+        type="button"
+        className={styles.muteButton}
+        onClick={toggleMute}
+        aria-label={muted ? 'サウンドをオンにする' : 'サウンドをオフにする'}
+        title={muted ? 'サウンドをオンにする' : 'サウンドをオフにする'}
+      >
+        {muted ? '🔇' : '🔊'}
+      </button>
 
       {/* Dialogs */}
       {showPurchaseDialog && currentSpace && (
