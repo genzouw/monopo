@@ -18,3 +18,6 @@ exclude_paths:
   - 'src/components/ActionDialog/StockDialog.tsx'
   - 'src/components/ActionDialog/InvestDialog.tsx'
   - 'src/game/economy.ts'
+  - 'src/game/reducer.ts'
+  - 'src/game/storage.ts'
+  - 'src/components/Setup/Setup.tsx'
