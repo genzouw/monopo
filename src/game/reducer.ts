@@ -16,6 +16,7 @@ import {
   canSellHouse,
   findNearestSpace,
   validateTradeOffer,
+  calculateTotalAssets,
 } from './rules';
 import { getSecureRandomInt } from './random';
 import {
@@ -250,9 +251,17 @@ function handleLanding(state: GameState): GameState {
       );
 
       // P1 拡張: 株式が有効なら家賃の一部を配当として株主へ配分
+      // プレイヤーの総資産を超える家賃に対して配当を計算すると、破産時に
+      // 債権者が損失を被るかお金が不正増殖するため、有効家賃を総資産で上限化する
+      const playerAssets = calculateTotalAssets(
+        player,
+        state.propertyStates,
+        state.board,
+      );
+      const effectiveRent = Math.min(rent, playerAssets);
       const dividends = isStocksEnabled(state)
         ? distributeDividends(
-            rent,
+            effectiveRent,
             space.color,
             owner.id,
             player.id,
