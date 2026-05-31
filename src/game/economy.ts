@@ -117,6 +117,7 @@ export type StockBuyValidation =
 export type StockBuyReason =
   | 'STOCKS_DISABLED'
   | 'COLOR_UNKNOWN'
+  | 'PLAYER_NOT_FOUND'
   | 'INVALID_SHARES'
   | 'INSUFFICIENT_BANK_SHARES'
   | 'INSUFFICIENT_FUNDS';
@@ -135,7 +136,7 @@ export function validateStockBuy(
   if (market.bankShares < shares)
     return { ok: false, reason: 'INSUFFICIENT_BANK_SHARES' };
   const player = state.players.find((p) => p.id === playerId);
-  if (!player) return { ok: false, reason: 'COLOR_UNKNOWN' };
+  if (!player) return { ok: false, reason: 'PLAYER_NOT_FOUND' };
   const cost = market.pricePerShare * shares;
   if (player.money < cost) return { ok: false, reason: 'INSUFFICIENT_FUNDS' };
   return { ok: true, cost };
@@ -149,6 +150,7 @@ export type StockSellValidation =
 export type StockSellReason =
   | 'STOCKS_DISABLED'
   | 'COLOR_UNKNOWN'
+  | 'PLAYER_NOT_FOUND'
   | 'INVALID_SHARES'
   | 'INSUFFICIENT_HOLDINGS';
 
@@ -164,7 +166,7 @@ export function validateStockSell(
   const market = state.stockMarket?.[color];
   if (!market) return { ok: false, reason: 'COLOR_UNKNOWN' };
   const player = state.players.find((p) => p.id === playerId);
-  if (!player) return { ok: false, reason: 'COLOR_UNKNOWN' };
+  if (!player) return { ok: false, reason: 'PLAYER_NOT_FOUND' };
   const owned = player.stocks?.[color] ?? 0;
   if (owned < shares) return { ok: false, reason: 'INSUFFICIENT_HOLDINGS' };
   const proceeds = market.pricePerShare * shares;
