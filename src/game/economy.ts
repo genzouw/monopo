@@ -56,7 +56,7 @@ export function createInitialStockMarket(): Record<
   return market;
 }
 
-// 指定プレイヤーの指定カラーグループにおける株の保有比率（0-1）を返す
+// 指定カラーグループの株を全プレイヤー分集計し、保有比率（0-1）を返す
 export function getStockHoldingRatio(
   color: ColorGroup,
   player: Player,

@@ -250,7 +250,6 @@ function handleLanding(state: GameState): GameState {
         state.dice.values,
       );
 
-      // P1 拡張: 株式が有効なら家賃の一部を配当として株主へ配分
       // プレイヤーの総資産を超える家賃に対して配当を計算すると、破産時に
       // 債権者が損失を被るかお金が不正増殖するため、有効家賃を総資産で上限化する
       const playerAssets = calculateTotalAssets(
@@ -259,6 +258,7 @@ function handleLanding(state: GameState): GameState {
         state.board,
       );
       const effectiveRent = Math.min(rent, playerAssets);
+      // P1 拡張: 株式が有効なら家賃の一部を配当として株主へ配分
       const dividends = isStocksEnabled(state)
         ? distributeDividends(
             effectiveRent,
@@ -1439,15 +1439,11 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         result.color,
         INVESTMENT_STOCK_BOOST,
       );
-      const investSpace = getSpaceById(action.propertyId, state.board);
-      const investSpaceName = investSpace
-        ? investSpace.name
-        : action.propertyId;
       return {
         ...state,
         players: newPlayers,
         stockMarket: newMarket,
-        message: `${player.name}が${investSpaceName}を増資！株価が+$${INVESTMENT_STOCK_BOOST}したよ`,
+        message: `${player.name}が${action.propertyId}を増資！株価が+$${INVESTMENT_STOCK_BOOST}したよ`,
       };
     }
 

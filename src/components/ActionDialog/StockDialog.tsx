@@ -1,4 +1,3 @@
-import { useId } from 'react';
 import type { ColorGroup, ColorGroupStock, Player } from '../../game/types';
 import Dialog from '../common/Dialog';
 import Button from '../common/Button';
@@ -34,7 +33,6 @@ export default function StockDialog({
   onSell,
   onClose,
 }: StockDialogProps) {
-  const baseId = useId();
   const groups = Object.keys(stockMarket) as ColorGroup[];
 
   return (
@@ -56,18 +54,10 @@ export default function StockDialog({
           if (!market) return null;
           const owned = currentPlayer.stocks?.[color] ?? 0;
           const price = market.pricePerShare;
-          const isMoneyShort = currentPlayer.money < price;
-          const isBankShort = market.bankShares < SHARES_PER_TRADE;
-          const canBuy = !isMoneyShort && !isBankShort;
+          const canBuy =
+            currentPlayer.money >= price &&
+            market.bankShares >= SHARES_PER_TRADE;
           const canSell = owned >= SHARES_PER_TRADE;
-          const buyDisabledReason = isMoneyShort
-            ? 'おかねがたりないよ'
-            : isBankShort
-              ? 'うりきれだよ'
-              : '';
-          const sellDisabledReason = !canSell ? 'もっていないよ' : '';
-          const buyDescId = `${baseId}-${color}-buy`;
-          const sellDescId = `${baseId}-${color}-sell`;
           return (
             <div key={color} className={styles.propertyInfo}>
               <div className={styles.propertyName}>{COLOR_LABEL[color]}</div>
@@ -75,38 +65,18 @@ export default function StockDialog({
                 かかく: ${price} / じぶん: {owned}まい / ぎんこう:{' '}
                 {market.bankShares}まい
               </div>
-              {!canBuy && buyDisabledReason && (
-                <div
-                  id={buyDescId}
-                  role="status"
-                  className={styles.noMoneyHintTight}
-                >
-                  {buyDisabledReason}
-                </div>
-              )}
               <Button
                 size="small"
-                onClick={() => canBuy && onBuy(color, SHARES_PER_TRADE)}
-                disabled={!canBuy}
-                aria-describedby={!canBuy ? buyDescId : undefined}
+                onClick={() => onBuy(color, SHARES_PER_TRADE)}
+                aria-disabled={!canBuy}
               >
                 かう (+1)
               </Button>
-              {!canSell && sellDisabledReason && (
-                <div
-                  id={sellDescId}
-                  role="status"
-                  className={styles.noMoneyHintTight}
-                >
-                  {sellDisabledReason}
-                </div>
-              )}
               <Button
                 size="small"
                 variant="secondary"
-                onClick={() => canSell && onSell(color, SHARES_PER_TRADE)}
-                disabled={!canSell}
-                aria-describedby={!canSell ? sellDescId : undefined}
+                onClick={() => onSell(color, SHARES_PER_TRADE)}
+                aria-disabled={!canSell}
               >
                 うる (-1)
               </Button>

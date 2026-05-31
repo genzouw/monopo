@@ -1,4 +1,3 @@
-import { useId } from 'react';
 import type { BoardSpace, Player, PropertyState } from '../../game/types';
 import { INVESTMENT_COST } from '../../game/economy';
 import { getSpaceById } from '../../game/rules';
@@ -22,7 +21,6 @@ export default function InvestDialog({
   onInvest,
   onClose,
 }: InvestDialogProps) {
-  const baseId = useId();
   const ownedProps = currentPlayer.properties
     .map((id) => ({
       space: getSpaceById(id, board),
@@ -60,31 +58,18 @@ export default function InvestDialog({
             おうえんできる土地がまだないよ
           </div>
         )}
-        {ownedProps.map(({ space }) => {
-          const descId = `${baseId}-${space.id}`;
-          return (
-            <div key={space.id} className={styles.propertyInfo}>
-              <div className={styles.propertyName}>{space.name}</div>
-              {!canAfford && (
-                <div
-                  id={descId}
-                  role="status"
-                  className={styles.noMoneyHintTight}
-                >
-                  おかねがたりないよ
-                </div>
-              )}
-              <Button
-                size="small"
-                onClick={() => canAfford && onInvest(space.id)}
-                disabled={!canAfford}
-                aria-describedby={!canAfford ? descId : undefined}
-              >
-                おうえん（${INVESTMENT_COST}）
-              </Button>
-            </div>
-          );
-        })}
+        {ownedProps.map(({ space }) => (
+          <div key={space.id} className={styles.propertyInfo}>
+            <div className={styles.propertyName}>{space.name}</div>
+            <Button
+              size="small"
+              onClick={() => onInvest(space.id)}
+              aria-disabled={!canAfford}
+            >
+              おうえん（${INVESTMENT_COST}）
+            </Button>
+          </div>
+        ))}
       </div>
     </Dialog>
   );
