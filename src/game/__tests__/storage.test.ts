@@ -348,10 +348,10 @@ describe('saveSetupConfig / loadSetupConfig', () => {
   it('features を含む設定を保存して復元できる', () => {
     saveSetupConfig({
       ...validConfig,
-      features: { stocks: true, investment: false },
+      features: { stocks: true },
     });
     const loaded = loadSetupConfig();
-    expect(loaded?.features).toEqual({ stocks: true, investment: false });
+    expect(loaded?.features).toEqual({ stocks: true });
   });
 
   it('features が未指定なら features は undefined', () => {
@@ -365,7 +365,7 @@ describe('saveSetupConfig / loadSetupConfig', () => {
       SETUP_KEY,
       JSON.stringify({
         ...validConfig,
-        features: { stocks: 'yes', investment: 1 },
+        features: { stocks: 'yes' },
       }),
     );
     const loaded = loadSetupConfig();

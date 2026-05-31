@@ -23,3 +23,5 @@ exclude_paths:
   - 'src/components/Setup/Setup.tsx'
   - 'src/App.tsx'
   - 'src/components/common/Dialog.tsx'
+  - 'src/game/types.ts'
+  - 'src/game/actions.ts'

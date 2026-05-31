@@ -36,11 +36,8 @@ export type GameAction =
   | { type: 'DECLARE_BANKRUPTCY'; creditorId: string | null }
   | { type: 'END_TURN' }
   | { type: 'PAY_TAX' }
-  // P1 拡張: 株式・増資
+  // P1 拡張: 株式売買（需要供給モデル）
   | { type: 'OPEN_STOCK_DIALOG' }
   | { type: 'CLOSE_STOCK_DIALOG' }
   | { type: 'BUY_STOCK'; color: ColorGroup; shares: number }
-  | { type: 'SELL_STOCK'; color: ColorGroup; shares: number }
-  | { type: 'OPEN_INVEST_DIALOG' }
-  | { type: 'CLOSE_INVEST_DIALOG' }
-  | { type: 'INVEST_PROPERTY'; propertyId: string };
+  | { type: 'SELL_STOCK'; color: ColorGroup; shares: number };

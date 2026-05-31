@@ -61,8 +61,8 @@ export type Player = {
 
 // ── P1 拡張: 機能フラグ（OFF時は既存挙動完全互換） ──
 export type FeatureFlags = {
-  stocks?: boolean; // エリア株売買・配当（応援カード）
-  investment?: boolean; // 増資（エリアの応援、株価連動）
+  stocks?: boolean; // エリア株売買・配当（応援カード）。
+  // 株価は需要供給モデル（売買で動的変動）＋家・ホテル建設で連動上昇。
 };
 
 // ── P1 拡張: エリア株（カラーグループ株） ──
@@ -148,7 +148,6 @@ export type TurnPhase =
   | 'build'
   | 'sell'
   | 'stock' // P1 拡張: 株式売買フェーズ（roll/endTurn からサブアクションで開始）
-  | 'invest' // P1 拡張: 増資フェーズ
   | 'forceBuy'
   | 'forceSell'
   | 'bankrupt'

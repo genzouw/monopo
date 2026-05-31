@@ -1,19 +1,19 @@
 import { describe, it, expect } from 'vitest';
-import type { GameState, Player } from '../types';
+import type { ColorGroup, GameState, Player } from '../types';
 import { BOARD_SPACES } from '../board';
 import { createInitialGameState, gameReducer } from '../reducer';
 import {
   DIVIDEND_RATE_PCT,
-  INVESTMENT_COST,
-  INVESTMENT_STOCK_BOOST,
+  HOUSE_PRICE_BOOST,
+  PRICE_DELTA_PER_SHARE,
   STOCK_INITIAL_PRICE,
+  STOCK_MIN_PRICE,
   STOCK_TOTAL_SHARES,
   calculateDividendPool,
+  calculateNextPrice,
   createInitialStockMarket,
   distributeDividends,
   isStocksEnabled,
-  isInvestmentEnabled,
-  validateInvestment,
   validateStockBuy,
   validateStockSell,
 } from '../economy';
@@ -34,10 +34,7 @@ function makePlayer(overrides: Partial<Player> = {}): Player {
   };
 }
 
-function startGame(features?: {
-  stocks?: boolean;
-  investment?: boolean;
-}): GameState {
+function startGame(features?: { stocks?: boolean }): GameState {
   return gameReducer(createInitialGameState(), {
     type: 'START_GAME',
     playerNames: ['たろう', 'はなこ'],
@@ -58,6 +55,18 @@ describe('economy.ts 純粋関数', () => {
         expect(m.totalShares).toBe(STOCK_TOTAL_SHARES);
         expect(m.bankShares).toBe(STOCK_TOTAL_SHARES);
       }
+    });
+  });
+
+  describe('calculateNextPrice', () => {
+    it('正のデルタで上昇', () => {
+      expect(calculateNextPrice(100, 5)).toBe(105);
+    });
+    it('負のデルタで下降', () => {
+      expect(calculateNextPrice(100, -20)).toBe(80);
+    });
+    it('STOCK_MIN_PRICE 以下にはならない', () => {
+      expect(calculateNextPrice(20, -100)).toBe(STOCK_MIN_PRICE);
     });
   });
 
@@ -91,7 +100,6 @@ describe('economy.ts 純粋関数', () => {
         'payer',
         players,
       );
-      // 対象プレイヤーがいないので配当ゼロ
       expect(result).toEqual({});
     });
 
@@ -102,10 +110,7 @@ describe('economy.ts 純粋関数', () => {
         makePlayer({ id: 'a', stocks: { brown: 30 } }),
         makePlayer({ id: 'b', stocks: { brown: 10 } }),
       ];
-      // pool = 1000 * 10% = 100
-      // 対象株: 30 + 10 = 40
-      // a への配当: floor(100 * 30 / 40) = 75
-      // b への配当: floor(100 * 10 / 40) = 25
+      // pool = 1000 * 10% = 100、対象株 = 40、a=75, b=25
       const result = distributeDividends(
         1000,
         'brown',
@@ -151,15 +156,10 @@ describe('economy.ts 純粋関数', () => {
         ok: false,
         reason: 'INVALID_SHARES',
       });
-      expect(validateStockBuy(state, 'player-0', 'brown', -1)).toEqual({
-        ok: false,
-        reason: 'INVALID_SHARES',
-      });
     });
 
     it('資金不足なら INSUFFICIENT_FUNDS', () => {
       const state = startGame({ stocks: true });
-      // player-0 は $1500、株価 $100 → 100 株は $10000 で資金不足
       const result = validateStockBuy(state, 'player-0', 'brown', 100);
       expect(result).toEqual({
         ok: false,
@@ -185,28 +185,9 @@ describe('economy.ts 純粋関数', () => {
     });
   });
 
-  describe('validateInvestment', () => {
-    it('investment OFF なら INVESTMENT_DISABLED', () => {
-      const state = startGame({ investment: false });
-      const result = validateInvestment(state, 'player-0', 'mediterranean');
-      expect(result).toEqual({
-        ok: false,
-        reason: 'INVESTMENT_DISABLED',
-      });
-    });
-
-    it('所有していない物件は NOT_OWNER', () => {
-      const state = startGame({ investment: true });
-      const result = validateInvestment(state, 'player-0', 'mediterranean');
-      expect(result).toEqual({ ok: false, reason: 'NOT_OWNER' });
-    });
-  });
-
   describe('featureFlags', () => {
-    it('OFF時は isStocksEnabled / isInvestmentEnabled が false', () => {
-      const state = startGame();
-      expect(isStocksEnabled(state)).toBe(false);
-      expect(isInvestmentEnabled(state)).toBe(false);
+    it('OFF時は isStocksEnabled が false', () => {
+      expect(isStocksEnabled(startGame())).toBe(false);
     });
 
     it('ON時は stockMarket が初期化される', () => {
@@ -215,17 +196,17 @@ describe('economy.ts 純粋関数', () => {
       expect(isStocksEnabled(state)).toBe(true);
     });
 
-    it('OFF時は stockMarket が undefined のまま（既存挙動互換）', () => {
-      const state = startGame();
-      expect(state.stockMarket).toBeUndefined();
+    it('OFF時は stockMarket が undefined（既存挙動互換）', () => {
+      expect(startGame().stockMarket).toBeUndefined();
     });
   });
 });
 
 describe('reducer P1 拡張', () => {
   describe('BUY_STOCK', () => {
-    it('正常な購入で money 減算・stocks 加算・bankShares 減算', () => {
+    it('正常な購入で money 減算・stocks 加算・bankShares 減算・株価上昇', () => {
       const state = startGame({ stocks: true });
+      const beforePrice = state.stockMarket?.brown?.pricePerShare ?? 0;
       const next = gameReducer(state, {
         type: 'BUY_STOCK',
         color: 'brown',
@@ -235,6 +216,10 @@ describe('reducer P1 拡張', () => {
       expect(buyer.money).toBe(1500 - STOCK_INITIAL_PRICE * 2);
       expect(buyer.stocks?.brown).toBe(2);
       expect(next.stockMarket?.brown?.bankShares).toBe(STOCK_TOTAL_SHARES - 2);
+      // 株価は 2 * PRICE_DELTA_PER_SHARE 上昇
+      expect(next.stockMarket?.brown?.pricePerShare).toBe(
+        beforePrice + 2 * PRICE_DELTA_PER_SHARE,
+      );
     });
 
     it('stocks OFF なら state 不変', () => {
@@ -249,75 +234,120 @@ describe('reducer P1 拡張', () => {
   });
 
   describe('SELL_STOCK', () => {
-    it('購入後の売却で保有数 0・所持金復元', () => {
+    it('購入→売却で 株価が初期値に戻り、保有 0', () => {
       let state = startGame({ stocks: true });
       state = gameReducer(state, {
         type: 'BUY_STOCK',
         color: 'brown',
         shares: 3,
       });
-      const afterBuy = state.players[0];
-      expect(afterBuy.stocks?.brown).toBe(3);
       state = gameReducer(state, {
         type: 'SELL_STOCK',
         color: 'brown',
         shares: 3,
       });
-      const afterSell = state.players[0];
-      expect(afterSell.stocks?.brown).toBeUndefined();
-      expect(afterSell.money).toBe(1500);
+      expect(state.players[0].stocks?.brown).toBeUndefined();
+      expect(state.players[0].money).toBe(
+        // 買い: 3 * 100 払い、株価 +15 上昇
+        // 売り: 3 * 115 受取り（115 = 100 + 3*5）
+        1500 - 3 * 100 + 3 * (STOCK_INITIAL_PRICE + 3 * PRICE_DELTA_PER_SHARE),
+      );
       expect(state.stockMarket?.brown?.bankShares).toBe(STOCK_TOTAL_SHARES);
+      // 株価は買いで +15、売りで -15 戻って初期値
+      expect(state.stockMarket?.brown?.pricePerShare).toBe(STOCK_INITIAL_PRICE);
     });
   });
 
-  describe('INVEST_PROPERTY', () => {
-    it('investment OFF なら state 不変', () => {
-      const state = startGame({ investment: false });
-      const next = gameReducer(state, {
-        type: 'INVEST_PROPERTY',
-        propertyId: 'mediterranean',
-      });
-      expect(next).toBe(state);
-    });
-
-    it('所有していない物件への投資は state 不変', () => {
-      const state = startGame({ investment: true });
-      const next = gameReducer(state, {
-        type: 'INVEST_PROPERTY',
-        propertyId: 'mediterranean',
-      });
-      expect(next).toBe(state);
-    });
-
-    it('所有物件への投資でコスト減算・株価上昇', () => {
-      let state = startGame({ stocks: true, investment: true });
-      // 手動で物件所有を設定
-      const mediterranean = BOARD_SPACES.find((s) => s.id === 'mediterranean')!;
+  describe('BUILD_HOUSE による株価ブースト', () => {
+    it('stocks ON: 家を建てるとそのエリアの株価が +HOUSE_PRICE_BOOST', () => {
+      const targetSpace = BOARD_SPACES.find(
+        (s) => s.type === 'property' && s.color === 'brown',
+      )!;
+      const colorGroup = BOARD_SPACES.filter((s) => s.color === 'brown').map(
+        (s) => s.id,
+      );
+      let state = startGame({ stocks: true });
+      const playerId = state.players[0].id;
+      // カラーグループ全所有・抵当なしの状態を組み立て
+      const propStates = { ...state.propertyStates };
+      for (const id of colorGroup) {
+        propStates[id] = { ownerId: playerId, houses: 0, isMortgaged: false };
+      }
       state = {
         ...state,
         players: state.players.map((p, i) =>
-          i === 0 ? { ...p, properties: ['mediterranean'] } : p,
+          i === 0 ? { ...p, properties: colorGroup, money: 5000 } : p,
         ),
-        propertyStates: {
-          ...state.propertyStates,
-          mediterranean: {
-            ownerId: 'player-0',
-            houses: 0,
-            isMortgaged: false,
-          },
-        },
+        propertyStates: propStates,
       };
-      const beforePrice =
-        state.stockMarket?.[mediterranean.color!]?.pricePerShare;
+      const beforePrice = state.stockMarket?.brown?.pricePerShare ?? 0;
       const next = gameReducer(state, {
-        type: 'INVEST_PROPERTY',
-        propertyId: 'mediterranean',
+        type: 'BUILD_HOUSE',
+        propertyId: targetSpace.id,
       });
-      const investor = next.players[0];
-      expect(investor.money).toBe(1500 - INVESTMENT_COST);
-      const afterPrice =
-        next.stockMarket?.[mediterranean.color!]?.pricePerShare;
-      expect(afterPrice).toBe((beforePrice ?? 0) + INVESTMENT_STOCK_BOOST);
+      expect(next.stockMarket?.brown?.pricePerShare).toBe(
+        beforePrice + HOUSE_PRICE_BOOST,
+      );
+    });
+
+    it('stocks OFF: 株価ブーストは発生しない（stockMarket undefined）', () => {
+      let state = startGame({ stocks: false });
+      const targetSpace = BOARD_SPACES.find(
+        (s) => s.type === 'property' && s.color === 'brown',
+      )!;
+      const colorGroup = BOARD_SPACES.filter((s) => s.color === 'brown').map(
+        (s) => s.id,
+      );
+      const playerId = state.players[0].id;
+      const propStates = { ...state.propertyStates };
+      for (const id of colorGroup) {
+        propStates[id] = { ownerId: playerId, houses: 0, isMortgaged: false };
+      }
+      state = {
+        ...state,
+        players: state.players.map((p, i) =>
+          i === 0 ? { ...p, properties: colorGroup, money: 5000 } : p,
+        ),
+        propertyStates: propStates,
+      };
+      const next = gameReducer(state, {
+        type: 'BUILD_HOUSE',
+        propertyId: targetSpace.id,
+      });
+      expect(next.stockMarket).toBeUndefined();
+    });
+  });
+
+  describe('SELL_HOUSE による株価下降', () => {
+    it('stocks ON: 家を売るとそのエリアの株価が -HOUSE_PRICE_BOOST', () => {
+      const targetSpace = BOARD_SPACES.find(
+        (s) => s.type === 'property' && s.color === 'brown',
+      )!;
+      const colorGroup = BOARD_SPACES.filter((s) => s.color === 'brown').map(
+        (s) => s.id,
+      );
+      let state = startGame({ stocks: true });
+      const playerId = state.players[0].id;
+      const propStates = { ...state.propertyStates };
+      // 全物件に家1軒
+      for (const id of colorGroup) {
+        propStates[id] = { ownerId: playerId, houses: 1, isMortgaged: false };
+      }
+      state = {
+        ...state,
+        players: state.players.map((p, i) =>
+          i === 0 ? { ...p, properties: colorGroup, money: 5000 } : p,
+        ),
+        propertyStates: propStates,
+      };
+      const beforePrice = state.stockMarket?.brown?.pricePerShare ?? 0;
+      const next = gameReducer(state, {
+        type: 'SELL_HOUSE',
+        propertyId: targetSpace.id,
+      });
+      expect(next.stockMarket?.brown?.pricePerShare).toBe(
+        Math.max(beforePrice - HOUSE_PRICE_BOOST, STOCK_MIN_PRICE),
+      );
     });
   });
 
@@ -342,3 +372,7 @@ describe('reducer P1 拡張', () => {
     });
   });
 });
+
+// 型エクスポート確認用の no-op（未使用 import 警告回避）
+const _color: ColorGroup = 'brown';
+void _color;

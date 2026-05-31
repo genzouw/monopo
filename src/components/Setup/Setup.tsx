@@ -26,12 +26,7 @@ const FEATURE_TOGGLES: Array<{
     key: 'stocks',
     label: '📈 おうえんカード（株式）',
     description:
-      '色ごとに「おうえんカード」を売り買いできるよ。家賃の一部をみんなに分けるよ',
-  },
-  {
-    key: 'investment',
-    label: '💰 エリアおうえん（増資）',
-    description: '自分の土地を「おうえん」してねだんを上げられるよ',
+      '色ごとに「おうえんカード」を売り買いできるよ。買うとねだんが上がって、売ると下がるよ。家をたてると人気が上がるよ',
   },
 ];
 const DEFAULT_NAMES = [

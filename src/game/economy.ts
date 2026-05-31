@@ -1,22 +1,23 @@
 // P1 拡張: 経済モデルの純粋関数層
-// reducer.ts を肥大化させないため、株式・配当・増資のロジックはここに集約する。
+// reducer.ts を肥大化させないため、株式・配当のロジックはここに集約する。
 // 既存ゲーム挙動を破壊しないよう、本ファイルの関数はすべて副作用なしの計算関数として実装する。
 
-import type {
-  ColorGroup,
-  ColorGroupStock,
-  GameState,
-  Player,
-  PropertyState,
-} from './types';
-import { getSpaceById } from './rules';
+import type { ColorGroup, ColorGroupStock, GameState, Player } from './types';
 
 // TODO: balance review — マジックナンバーは将来のバランス調整で見直す
 export const STOCK_INITIAL_PRICE = 100;
 export const STOCK_TOTAL_SHARES = 100;
 export const DIVIDEND_RATE_PCT = 10; // 家賃の 10% を株主に配当
-export const INVESTMENT_COST = 200;
-export const INVESTMENT_STOCK_BOOST = 10; // 1回の増資で株価が +10
+
+// 株価は需要供給モデル: 1株売買ごとに価格を ±PRICE_DELTA_PER_SHARE 変動させる
+// （買い = 市場から株が減る = 価格上昇、売り = 市場へ株が戻る = 価格下降）。
+// 株価の下限を STOCK_MIN_PRICE で保証することで、暴落時の負値・無料化を回避。
+export const PRICE_DELTA_PER_SHARE = 5;
+export const STOCK_MIN_PRICE = 10;
+
+// 家・ホテル建設による株価ブースト: 物件価値向上 = そのエリアの株価上昇
+// （売却時は下降）。子供向けメタファー: 「家をたてたら、おうえんカードが人気に！」
+export const HOUSE_PRICE_BOOST = 15;
 
 // 既存のすべての ColorGroup を列挙（types.ts と一致）
 export const STOCK_COLOR_GROUPS: ColorGroup[] = [
@@ -33,10 +34,6 @@ export const STOCK_COLOR_GROUPS: ColorGroup[] = [
 
 export function isStocksEnabled(state: GameState): boolean {
   return state.features?.stocks === true;
-}
-
-export function isInvestmentEnabled(state: GameState): boolean {
-  return state.features?.investment === true;
 }
 
 // 株式市場の初期状態を作成
@@ -64,6 +61,16 @@ export function getStockHoldingRatio(
   const shares = player.stocks?.[color] ?? 0;
   if (shares <= 0) return 0;
   return shares / STOCK_TOTAL_SHARES;
+}
+
+// 株価変動: 現在価格に金額デルタを加算し、下限 STOCK_MIN_PRICE でクランプする純粋関数。
+// 売買ブーストには `sharesDelta * PRICE_DELTA_PER_SHARE` を、
+// 家・ホテル建設ブーストには `±HOUSE_PRICE_BOOST` を呼び出し側で事前計算して渡す。
+export function calculateNextPrice(
+  currentPrice: number,
+  priceDelta: number,
+): number {
+  return Math.max(currentPrice + priceDelta, STOCK_MIN_PRICE);
 }
 
 // 家賃支払時の配当総額（家賃の DIVIDEND_RATE_PCT%）
@@ -117,7 +124,6 @@ export type StockBuyValidation =
 export type StockBuyReason =
   | 'STOCKS_DISABLED'
   | 'COLOR_UNKNOWN'
-  | 'PLAYER_NOT_FOUND'
   | 'INVALID_SHARES'
   | 'INSUFFICIENT_BANK_SHARES'
   | 'INSUFFICIENT_FUNDS';
@@ -136,7 +142,7 @@ export function validateStockBuy(
   if (market.bankShares < shares)
     return { ok: false, reason: 'INSUFFICIENT_BANK_SHARES' };
   const player = state.players.find((p) => p.id === playerId);
-  if (!player) return { ok: false, reason: 'PLAYER_NOT_FOUND' };
+  if (!player) return { ok: false, reason: 'COLOR_UNKNOWN' };
   const cost = market.pricePerShare * shares;
   if (player.money < cost) return { ok: false, reason: 'INSUFFICIENT_FUNDS' };
   return { ok: true, cost };
@@ -150,7 +156,6 @@ export type StockSellValidation =
 export type StockSellReason =
   | 'STOCKS_DISABLED'
   | 'COLOR_UNKNOWN'
-  | 'PLAYER_NOT_FOUND'
   | 'INVALID_SHARES'
   | 'INSUFFICIENT_HOLDINGS';
 
@@ -166,40 +171,9 @@ export function validateStockSell(
   const market = state.stockMarket?.[color];
   if (!market) return { ok: false, reason: 'COLOR_UNKNOWN' };
   const player = state.players.find((p) => p.id === playerId);
-  if (!player) return { ok: false, reason: 'PLAYER_NOT_FOUND' };
+  if (!player) return { ok: false, reason: 'COLOR_UNKNOWN' };
   const owned = player.stocks?.[color] ?? 0;
   if (owned < shares) return { ok: false, reason: 'INSUFFICIENT_HOLDINGS' };
   const proceeds = market.pricePerShare * shares;
   return { ok: true, proceeds };
-}
-
-// 増資の検証
-export type InvestmentValidation =
-  | { ok: true; cost: number; color: ColorGroup }
-  | { ok: false; reason: InvestmentReason };
-
-export type InvestmentReason =
-  | 'INVESTMENT_DISABLED'
-  | 'NOT_OWNER'
-  | 'PROPERTY_NOT_FOUND'
-  | 'NOT_COLORED_PROPERTY'
-  | 'INSUFFICIENT_FUNDS';
-
-export function validateInvestment(
-  state: GameState,
-  playerId: string,
-  propertyId: string,
-): InvestmentValidation {
-  if (!isInvestmentEnabled(state))
-    return { ok: false, reason: 'INVESTMENT_DISABLED' };
-  const space = getSpaceById(propertyId, state.board);
-  if (!space) return { ok: false, reason: 'PROPERTY_NOT_FOUND' };
-  if (!space.color) return { ok: false, reason: 'NOT_COLORED_PROPERTY' };
-  const ps: PropertyState | undefined = state.propertyStates[propertyId];
-  if (!ps || ps.ownerId !== playerId) return { ok: false, reason: 'NOT_OWNER' };
-  const player = state.players.find((p) => p.id === playerId);
-  if (!player) return { ok: false, reason: 'NOT_OWNER' };
-  if (player.money < INVESTMENT_COST)
-    return { ok: false, reason: 'INSUFFICIENT_FUNDS' };
-  return { ok: true, cost: INVESTMENT_COST, color: space.color };
 }

@@ -20,12 +20,12 @@ import {
 } from './rules';
 import { getSecureRandomInt } from './random';
 import {
-  INVESTMENT_STOCK_BOOST,
+  HOUSE_PRICE_BOOST,
+  PRICE_DELTA_PER_SHARE,
+  calculateNextPrice,
   createInitialStockMarket,
   distributeDividends,
-  isInvestmentEnabled,
   isStocksEnabled,
-  validateInvestment,
   validateStockBuy,
   validateStockSell,
 } from './economy';
@@ -915,8 +915,14 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       });
 
       const houseName = currentPropState.houses + 1 === 5 ? 'ホテル' : 'おうち';
+      // P1 拡張: 物件の家・ホテル建設で対象エリアの株価を上昇
+      const boostedState = applyHousePriceBoost(
+        newState,
+        space.color,
+        HOUSE_PRICE_BOOST,
+      );
       return {
-        ...newState,
+        ...boostedState,
         propertyStates: newPropertyStates,
         message: `${space.name}に${houseName}をたてたよ！`,
       };
@@ -952,8 +958,14 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         money: player.money + sellPrice,
       });
 
+      // P1 拡張: 家・ホテル売却で対象エリアの株価を下降（建設と対称）
+      const boostedState = applyHousePriceBoost(
+        newState,
+        space.color,
+        -HOUSE_PRICE_BOOST,
+      );
       return {
-        ...newState,
+        ...boostedState,
         propertyStates: newPropertyStates,
         message: `${space.name}のおうちをうったよ！$${sellPrice}もらったよ`,
       };
@@ -1376,7 +1388,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       return action.savedState;
     }
 
-    // ── P1 拡張: 株式・増資 ──
+    // ── P1 拡張: 株式（需要供給モデル） ──
     case 'OPEN_STOCK_DIALOG': {
       if (!isStocksEnabled(state)) return state;
       return { ...state, turnPhase: 'stock' };
@@ -1419,46 +1431,16 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         result.proceeds,
       );
     }
-    case 'OPEN_INVEST_DIALOG': {
-      if (!isInvestmentEnabled(state)) return state;
-      return { ...state, turnPhase: 'invest' };
-    }
-    case 'CLOSE_INVEST_DIALOG': {
-      if (state.turnPhase !== 'invest') return state;
-      return { ...state, turnPhase: 'endTurn' };
-    }
-    case 'INVEST_PROPERTY': {
-      const player = state.players[state.currentPlayerIndex];
-      const result = validateInvestment(state, player.id, action.propertyId);
-      if (!result.ok) return state;
-      const newPlayers = state.players.map((p) =>
-        p.id === player.id ? { ...p, money: p.money - result.cost } : p,
-      );
-      const newMarket = bumpStockPrice(
-        state,
-        result.color,
-        INVESTMENT_STOCK_BOOST,
-      );
-      const investSpace = getSpaceById(action.propertyId, state.board);
-      const investSpaceName = investSpace
-        ? investSpace.name
-        : action.propertyId;
-      return {
-        ...state,
-        players: newPlayers,
-        stockMarket: newMarket,
-        message: `${player.name}が${investSpaceName}を増資！株価が+$${INVESTMENT_STOCK_BOOST}したよ`,
-      };
-    }
 
     default:
       return state;
   }
 }
 
-// ── P1 ヘルパー: 株売買の共通処理 ──
+// ── P1 ヘルパー: 株売買の共通処理（需要供給で株価変動） ──
 // sharesDelta: プレイヤーの保有株変化（正: 買い、負: 売り）
 // moneyDelta: プレイヤーの所持金変化（負: 買い、正: 売り）
+// 価格更新は calculateNextPrice を介して STOCK_MIN_PRICE 下限保証つき。
 function applyStockTrade(
   state: GameState,
   playerId: string,
@@ -1476,24 +1458,40 @@ function applyStockTrade(
   });
   const market = state.stockMarket?.[color];
   if (!market) return { ...state, players: newPlayers };
+  // 売買 1 株あたり ±PRICE_DELTA_PER_SHARE で価格を動かす（買い=上昇／売り=下降）
+  const priceDelta = sharesDelta * PRICE_DELTA_PER_SHARE;
+  const nextPrice = calculateNextPrice(market.pricePerShare, priceDelta);
   const newStockMarket = {
     ...state.stockMarket,
-    [color]: { ...market, bankShares: market.bankShares - sharesDelta },
+    [color]: {
+      ...market,
+      bankShares: market.bankShares - sharesDelta,
+      pricePerShare: nextPrice,
+    },
   };
   return { ...state, players: newPlayers, stockMarket: newStockMarket };
 }
 
-// ── P1 ヘルパー: 株価を増額（増資による株価上昇用） ──
-function bumpStockPrice(
+// ── P1 ヘルパー: 家・ホテル建設/売却による株価ブースト ──
+// delta > 0: 建設で株価上昇、delta < 0: 売却で株価下降。
+// stocks 機能 OFF または対象色の市場が未初期化なら何もしない（既存挙動互換）。
+function applyHousePriceBoost(
   state: GameState,
-  color: ColorGroup,
+  color: ColorGroup | undefined,
   delta: number,
-): GameState['stockMarket'] {
+): GameState {
+  if (!isStocksEnabled(state) || !color) return state;
   const market = state.stockMarket?.[color];
-  if (!market) return state.stockMarket;
+  if (!market) return state;
   return {
-    ...state.stockMarket,
-    [color]: { ...market, pricePerShare: market.pricePerShare + delta },
+    ...state,
+    stockMarket: {
+      ...state.stockMarket,
+      [color]: {
+        ...market,
+        pricePerShare: calculateNextPrice(market.pricePerShare, delta),
+      },
+    },
   };
 }
 
