@@ -1,4 +1,4 @@
-import type { GameState } from './types';
+import type { FeatureFlags, GameState } from './types';
 import { TOKENS, MIN_PLAYERS, MAX_PLAYERS, MAX_NAME_LENGTH } from './types';
 
 const STORAGE_KEY = 'monopo-save';
@@ -24,6 +24,8 @@ export type SetupConfig = {
   playerCount: number;
   names: string[];
   tokens: string[];
+  // P1 拡張: 機能トグル（未指定時は全 OFF＝既存挙動）
+  features?: FeatureFlags;
 };
 
 export function saveGame(state: GameState): void {
@@ -98,10 +100,25 @@ export function loadSetupConfig(): SetupConfig | null {
     ) {
       return null;
     }
+    // P1 拡張: features は形式チェックのみ（boolean のみ受け入れる）
+    let features: FeatureFlags | undefined;
+    if (
+      config.features &&
+      typeof config.features === 'object' &&
+      !Array.isArray(config.features)
+    ) {
+      const f: FeatureFlags = {};
+      if (typeof config.features.stocks === 'boolean')
+        f.stocks = config.features.stocks;
+      if (typeof config.features.investment === 'boolean')
+        f.investment = config.features.investment;
+      features = f;
+    }
     return {
       playerCount: config.playerCount,
       names: config.names,
       tokens: config.tokens,
+      features,
     };
   } catch {
     return null;

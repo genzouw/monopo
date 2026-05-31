@@ -5,16 +5,35 @@ import {
   MAX_PLAYERS,
   MAX_NAME_LENGTH,
 } from '../../game/types';
-import type { GameState } from '../../game/types';
+import type { FeatureFlags, GameState } from '../../game/types';
 import { loadSetupConfig, saveSetupConfig } from '../../game/storage';
 import Button from '../common/Button';
 import styles from './Setup.module.css';
 
 type SetupProps = {
-  onStart: (names: string[], tokens: string[]) => void;
+  onStart: (names: string[], tokens: string[], features: FeatureFlags) => void;
   onResume?: () => void;
   savedGame?: GameState | null;
 };
+
+// P1 拡張: 切り替え可能な拡張機能の一覧。子供向けメタファー名を併記する。
+const FEATURE_TOGGLES: Array<{
+  key: keyof FeatureFlags;
+  label: string;
+  description: string;
+}> = [
+  {
+    key: 'stocks',
+    label: '📈 おうえんカード（株式）',
+    description:
+      '色ごとに「おうえんカード」を売り買いできるよ。家賃の一部をみんなに分けるよ',
+  },
+  {
+    key: 'investment',
+    label: '💰 エリアおうえん（増資）',
+    description: '自分の土地を「おうえん」してねだんを上げられるよ',
+  },
+];
 const DEFAULT_NAMES = [
   'プレイヤー1',
   'プレイヤー2',
@@ -47,10 +66,18 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
   const [selectedTokens, setSelectedTokens] = useState<string[]>(
     initialConfig?.tokens ?? DEFAULT_TOKENS,
   );
+  // P1 拡張: 機能トグル（既定 OFF＝既存挙動互換）
+  const [features, setFeatures] = useState<FeatureFlags>(
+    initialConfig?.features ?? {},
+  );
 
   useEffect(() => {
-    saveSetupConfig({ playerCount, names, tokens: selectedTokens });
-  }, [playerCount, names, selectedTokens]);
+    saveSetupConfig({ playerCount, names, tokens: selectedTokens, features });
+  }, [playerCount, names, selectedTokens, features]);
+
+  const toggleFeature = (key: keyof FeatureFlags) => {
+    setFeatures((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
 
   const handleNameChange = (index: number, name: string) => {
     const newNames = [...names];
@@ -196,6 +223,35 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
       <div className={styles.subtitle}>
         アイコンをタップしてコマをえらべるよ
       </div>
+
+      {/* P1 拡張: 機能トグル */}
+      <fieldset className={styles.featureSection}>
+        <legend className={styles.featureLegend}>🎓 つかえるあそびかた</legend>
+        <p className={styles.featureHint}>
+          オフのままなら、ふつうのモノポができるよ
+        </p>
+        {FEATURE_TOGGLES.map(({ key, label, description }) => {
+          const checkboxId = `${baseId}-feature-${key}`;
+          const descId = `${checkboxId}-desc`;
+          const checked = features[key] === true;
+          return (
+            <label key={key} htmlFor={checkboxId} className={styles.featureRow}>
+              <input
+                id={checkboxId}
+                type="checkbox"
+                checked={checked}
+                onChange={() => toggleFeature(key)}
+                aria-describedby={descId}
+              />
+              <span className={styles.featureLabel}>{label}</span>
+              <span id={descId} className={styles.featureDescription}>
+                {description}
+              </span>
+            </label>
+          );
+        })}
+      </fieldset>
+
       <Button
         size="large"
         className={styles.startButton}
@@ -203,6 +259,7 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
           onStart(
             names.slice(0, playerCount),
             selectedTokens.slice(0, playerCount),
+            features,
           )
         }
         disabled={!canStart}
