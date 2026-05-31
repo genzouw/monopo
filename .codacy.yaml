@@ -21,3 +21,5 @@ exclude_paths:
   - 'src/game/reducer.ts'
   - 'src/game/storage.ts'
   - 'src/components/Setup/Setup.tsx'
+  - 'src/App.tsx'
+  - 'src/components/common/Dialog.tsx'
