@@ -1439,11 +1439,15 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         result.color,
         INVESTMENT_STOCK_BOOST,
       );
+      const investSpace = getSpaceById(action.propertyId, state.board);
+      const investSpaceName = investSpace
+        ? investSpace.name
+        : action.propertyId;
       return {
         ...state,
         players: newPlayers,
         stockMarket: newMarket,
-        message: `${player.name}が${action.propertyId}を増資！株価が+$${INVESTMENT_STOCK_BOOST}したよ`,
+        message: `${player.name}が${investSpaceName}を増資！株価が+$${INVESTMENT_STOCK_BOOST}したよ`,
       };
     }
 
