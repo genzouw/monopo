@@ -22,7 +22,7 @@ const COLOR_MAP: Record<ColorGroup, string> = {
 type SpaceCardProps = {
   space: BoardSpace;
   propertyState?: PropertyState;
-  playersHere: Player[];
+  playersHere: readonly Player[];
   isCurrent: boolean;
   owner?: Player;
 };

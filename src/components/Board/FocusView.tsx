@@ -75,7 +75,7 @@ const FocusView = memo(function FocusView({
             key={`${space.id}-${pos}`}
             space={space}
             propertyState={propState}
-            playersHere={playersHere as Player[]}
+            playersHere={playersHere}
             isCurrent={pos === currentPosition}
             owner={owner}
           />
