@@ -65,9 +65,7 @@ export default function StockDialog({
             : isBankShort
               ? 'うりきれだよ'
               : '';
-          const sellDisabledReason = !canSell ? 'もっていないよ' : '';
           const buyDescId = `${baseId}-${color}-buy`;
-          const sellDescId = `${baseId}-${color}-sell`;
           return (
             <div key={color} className={styles.propertyInfo}>
               <div className={styles.propertyName}>{COLOR_LABEL[color]}</div>
@@ -92,21 +90,11 @@ export default function StockDialog({
               >
                 かう (+1)
               </Button>
-              {!canSell && sellDisabledReason && (
-                <div
-                  id={sellDescId}
-                  role="status"
-                  className={styles.noMoneyHintTight}
-                >
-                  {sellDisabledReason}
-                </div>
-              )}
               <Button
                 size="small"
                 variant="secondary"
                 onClick={() => canSell && onSell(color, SHARES_PER_TRADE)}
                 disabled={!canSell}
-                aria-describedby={!canSell ? sellDescId : undefined}
               >
                 うる (-1)
               </Button>
