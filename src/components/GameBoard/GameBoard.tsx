@@ -394,6 +394,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
         type="button"
         className={styles.muteButton}
         onClick={toggleMute}
+        aria-pressed={muted}
         aria-label={muted ? 'サウンドをオンにする' : 'サウンドをオフにする'}
         title={muted ? 'サウンドをオンにする' : 'サウンドをオフにする'}
       >
