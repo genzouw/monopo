@@ -28,11 +28,12 @@ export default function App() {
     return (
       <div className={styles.app}>
         <Setup
-          onStart={(names, tokens) =>
+          onStart={(names, tokens, features) =>
             dispatch({
               type: 'START_GAME',
               playerNames: names,
               playerTokens: tokens,
+              features,
             })
           }
           onResume={

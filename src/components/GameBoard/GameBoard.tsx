@@ -25,6 +25,7 @@ import SellDialog from '../ActionDialog/SellDialog';
 import TradeDialog from '../ActionDialog/TradeDialog';
 import BankruptDialog from '../ActionDialog/BankruptDialog';
 import ForceBuyDialog from '../ActionDialog/ForceBuyDialog';
+import StockDialog from '../ActionDialog/StockDialog';
 import { useSound } from '../../sound/useSound';
 import styles from './GameBoard.module.css';
 
@@ -216,6 +217,9 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
   const showTradeDialog = state.turnPhase === 'trade' && !!state.trade;
   const showBankruptDialog = state.turnPhase === 'bankrupt';
   const showForceBuyDialog = state.turnPhase === 'forceBuy';
+  // P1 拡張: 株式ダイアログ
+  const showStockDialog = state.turnPhase === 'stock' && !!state.stockMarket;
+  const stocksEnabled = state.features?.stocks === true;
   const canSubAction =
     state.turnPhase === 'endTurn' || state.turnPhase === 'roll';
 
@@ -336,9 +340,14 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           )}
         </div>
 
-        <div className={styles.subActionsRow}>
+        {/*
+          サブアクション領域は DOM 常駐させ、表示/非表示でレイアウトシフトを
+          起こさないようにする（min-height は CSS 側で固定）。
+          canSubAction が false のときは中身ボタンを出さず、空のまま高さだけ確保する。
+        */}
+        <div className={styles.subActions} aria-hidden={!canSubAction}>
           {canSubAction && (
-            <div className={styles.subActions}>
+            <>
               <Button
                 size="small"
                 variant="secondary"
@@ -365,19 +374,31 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                   🤝 こうかん
                 </Button>
               )}
-            </div>
+              {stocksEnabled && (
+                <Button
+                  size="small"
+                  variant="secondary"
+                  className={styles.subActionButton}
+                  onClick={() => dispatch({ type: 'OPEN_STOCK_DIALOG' })}
+                >
+                  📈 おうえんカード
+                </Button>
+              )}
+            </>
           )}
-          <button
-            type="button"
-            className={styles.muteButton}
-            onClick={toggleMute}
-            aria-label={muted ? 'サウンドをオンにする' : 'サウンドをオフにする'}
-            title={muted ? 'サウンドをオンにする' : 'サウンドをオフにする'}
-          >
-            {muted ? '🔇' : '🔊'}
-          </button>
         </div>
       </div>
+
+      {/* 音声トグル: 画面右上の固定位置に常時表示（操作行の混雑を避ける） */}
+      <button
+        type="button"
+        className={styles.muteButton}
+        onClick={toggleMute}
+        aria-label={muted ? 'サウンドをオンにする' : 'サウンドをオフにする'}
+        title={muted ? 'サウンドをオンにする' : 'サウンドをオフにする'}
+      >
+        {muted ? '🔇' : '🔊'}
+      </button>
 
       {/* Dialogs */}
       {showPurchaseDialog && currentSpace && (
@@ -432,6 +453,20 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           onSellHouse={handleSellHouse}
           onClose={() => dispatch({ type: 'CLOSE_SELL_DIALOG' })}
           forced={state.turnPhase === 'forceSell'}
+        />
+      )}
+
+      {showStockDialog && state.stockMarket && (
+        <StockDialog
+          currentPlayer={currentPlayer}
+          stockMarket={state.stockMarket}
+          onBuy={(color, shares) =>
+            dispatch({ type: 'BUY_STOCK', color, shares })
+          }
+          onSell={(color, shares) =>
+            dispatch({ type: 'SELL_STOCK', color, shares })
+          }
+          onClose={() => dispatch({ type: 'CLOSE_STOCK_DIALOG' })}
         />
       )}
 
