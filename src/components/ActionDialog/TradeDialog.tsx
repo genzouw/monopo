@@ -203,6 +203,7 @@ export default function TradeDialog({
             placeholder="0"
             onChange={(e) => {
               const raw = e.target.value;
+              if (raw.length > 6) return;
               if (raw === '') {
                 setOfferMoney(0);
                 return;
@@ -293,6 +294,7 @@ export default function TradeDialog({
             placeholder="0"
             onChange={(e) => {
               const raw = e.target.value;
+              if (raw.length > 6) return;
               if (raw === '') {
                 setRequestMoney(0);
                 return;
