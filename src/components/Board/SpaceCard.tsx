@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type {
   BoardSpace,
   Player,
@@ -21,21 +22,18 @@ const COLOR_MAP: Record<ColorGroup, string> = {
 type SpaceCardProps = {
   space: BoardSpace;
   propertyState?: PropertyState;
-  players: Player[];
+  playersHere: readonly Player[];
   isCurrent: boolean;
   owner?: Player;
 };
 
-export default function SpaceCard({
+const SpaceCard = memo(function SpaceCard({
   space,
   propertyState,
-  players,
+  playersHere,
   isCurrent,
   owner,
 }: SpaceCardProps) {
-  const playersHere = players.filter(
-    (p) => p.position === space.position && !p.isBankrupt,
-  );
   const houses = propertyState?.houses ?? 0;
   const houseDisplay =
     houses === 5 ? '🏨' : houses > 0 ? '🏠'.repeat(houses) : '';
@@ -71,4 +69,6 @@ export default function SpaceCard({
       )}
     </div>
   );
-}
+});
+
+export default SpaceCard;
