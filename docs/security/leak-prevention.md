@@ -42,3 +42,9 @@
 - **推奨（リポジトリ管理者向け）**: リポジトリ設定 (Settings > Code security and analysis) から、GitHub ネイティブの **Secret Scanning** と **Push Protection** を有効化することを強く推奨します。これにより、プッシュ時の検知がさらに強化されます（※この設定はリポジトリ管理者のみが変更できます）。
 - 本番のシークレットや接続情報（DB、SaaS）を直接コードにハードコードせず、必ず環境変数を使用してください。
 - PR 作成時など、誤って秘密情報を含めてしまったことに気づいた場合は、速やかに管理者に連絡し、必要に応じて該当シークレットの無効化（ローテーション）を行ってください。
+
+### GitHub Actions の権限 (Permissions) の最小化
+
+CI の各ワークフロー (`.github/workflows/*.yml`) では、予期せぬスクリプト実行や悪意ある Action からリポジトリを保護するため、**トップレベルでの `permissions` の明示を必須**としています。
+未指定の場合、GitHub のデフォルト設定によっては過剰な権限（例: リポジトリの書き換え権限）が与えられる可能性があります。
+CI の監査ワークフロー (`.github/workflows/permissions-audit.yml`) にて、全ワークフローファイルが `permissions:` を明示しているかを検査し、漏洩防止の基盤として「最小権限の原則 (Principle of Least Privilege)」を徹底しています。

@@ -343,4 +343,32 @@ describe('saveSetupConfig / loadSetupConfig', () => {
     expect(() => saveSetupConfig(validConfig)).not.toThrow();
     spy.mockRestore();
   });
+
+  // P1 拡張: features の保存・復元
+  it('features を含む設定を保存して復元できる', () => {
+    saveSetupConfig({
+      ...validConfig,
+      features: { stocks: true },
+    });
+    const loaded = loadSetupConfig();
+    expect(loaded?.features).toEqual({ stocks: true });
+  });
+
+  it('features が未指定なら features は undefined', () => {
+    saveSetupConfig(validConfig);
+    const loaded = loadSetupConfig();
+    expect(loaded?.features).toBeUndefined();
+  });
+
+  it('features の非 boolean な値は読み込み時に破棄される', () => {
+    localStorage.setItem(
+      SETUP_KEY,
+      JSON.stringify({
+        ...validConfig,
+        features: { stocks: 'yes' },
+      }),
+    );
+    const loaded = loadSetupConfig();
+    expect(loaded?.features).toEqual({});
+  });
 });
