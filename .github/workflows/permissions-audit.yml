@@ -1,0 +1,34 @@
+name: Default Permissions Audit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 0 * * 0' # 毎週日曜日に実行
+
+permissions:
+  contents: read
+
+jobs:
+  audit-permissions:
+    name: Audit Workflow Permissions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Check for workflows without explicit permissions
+        run: |
+          echo "🔍 Scanning workflows for missing permissions..."
+          VIOLATIONS=$(grep -rEL '^permissions:' .github/workflows/*.yml || true)
+          if [ -n "$VIOLATIONS" ]; then
+            echo "::error::❌ The following workflows do not have explicit top-level permissions set:"
+            echo "$VIOLATIONS"
+            echo "To enforce least privilege, all workflows must have explicit top-level 'permissions'."
+            false
+          else
+            echo "✅ All workflows have explicit top-level permissions."
+          fi

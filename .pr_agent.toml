@@ -5,6 +5,7 @@ response_language="ja-JP"
 auto_review = true
 auto_describe = true
 auto_improve = true
+pr_commands = ["/review", "/describe", "/improve"]
 pr_actions = ["opened", "reopened", "ready_for_review", "synchronize"]
 
 [pr_similar_issue]

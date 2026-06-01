@@ -17,6 +17,16 @@ else
   exit 1
 fi
 
+# Block banned files from being committed (Defense in depth against .env/keys/AI workspaces)
+banned_files=$(git diff --cached --name-only | grep -iE '(\.env$|\.env\..*|.*\.pem$|.*\.key$|credentials\.(json|ya?ml|env)$|service-?account.*\.(json|ya?ml|env)$|\.tfstate.*|^\.cursor/|^\.claude/|^\.aider.*|^\.continue/|^\.jules/)' | grep -vE '\.env\.example$') || true
+
+if [ -n "$banned_files" ]; then
+  echo "❌ Error: Attempted to commit banned sensitive files or AI workspaces:"
+  echo "$banned_files"
+  echo "Please remove them from your commit (e.g., git reset HEAD <file>)."
+  exit 1
+fi
+
 # Run typecheck and test for changed files in the project
 # Check if any project config or source files have changed
 changed_files=$(git diff --cached --name-only -- 'src/' 'package.json' 'tsconfig.json' 'tsconfig.app.json' 'tsconfig.node.json' 'vite.config.ts')
