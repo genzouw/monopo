@@ -12,6 +12,8 @@ import styles from './ActionDialog.module.css';
 import { clamp } from './tradeDialog.utils';
 import { getSpaceById } from '../../game/rules';
 
+const MAX_MONEY_INPUT_LENGTH = 6;
+
 const LABELS = {
   propose: 'ていあんする！',
   cancel: 'やめる',
@@ -203,6 +205,7 @@ export default function TradeDialog({
             placeholder="0"
             onChange={(e) => {
               const raw = e.target.value;
+              if (raw.length > MAX_MONEY_INPUT_LENGTH) return;
               if (raw === '') {
                 setOfferMoney(0);
                 return;
@@ -293,6 +296,7 @@ export default function TradeDialog({
             placeholder="0"
             onChange={(e) => {
               const raw = e.target.value;
+              if (raw.length > MAX_MONEY_INPUT_LENGTH) return;
               if (raw === '') {
                 setRequestMoney(0);
                 return;
