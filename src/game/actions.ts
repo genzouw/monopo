@@ -1,7 +1,12 @@
-import type { TradeOffer, GameState } from './types';
+import type { ColorGroup, FeatureFlags, TradeOffer, GameState } from './types';
 
 export type GameAction =
-  | { type: 'START_GAME'; playerNames: string[]; playerTokens: string[] }
+  | {
+      type: 'START_GAME';
+      playerNames: string[];
+      playerTokens: string[];
+      features?: FeatureFlags;
+    }
   | { type: 'RESUME_GAME'; savedState: GameState }
   | { type: 'ROLL_DICE' }
   | { type: 'FINISH_MOVING' }
@@ -30,4 +35,9 @@ export type GameAction =
   | { type: 'DECLINE_FORCE_BUY' }
   | { type: 'DECLARE_BANKRUPTCY'; creditorId: string | null }
   | { type: 'END_TURN' }
-  | { type: 'PAY_TAX' };
+  | { type: 'PAY_TAX' }
+  // P1 拡張: 株式売買（需要供給モデル）
+  | { type: 'OPEN_STOCK_DIALOG' }
+  | { type: 'CLOSE_STOCK_DIALOG' }
+  | { type: 'BUY_STOCK'; color: ColorGroup; shares: number }
+  | { type: 'SELL_STOCK'; color: ColorGroup; shares: number };

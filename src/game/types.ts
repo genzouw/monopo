@@ -55,6 +55,23 @@ export type Player = {
   jailTurns: number;
   getOutOfJailCards: number;
   isBankrupt: boolean;
+  // P1 拡張: 持株（color → 持株数）。featureFlags.stocks が無効のときは undefined
+  stocks?: Partial<Record<ColorGroup, number>>;
+};
+
+// ── P1 拡張: 機能フラグ（OFF時は既存挙動完全互換） ──
+export type FeatureFlags = {
+  stocks?: boolean; // エリア株売買・配当（応援カード）。
+  // 株価は需要供給モデル（売買で動的変動）＋家・ホテル建設で連動上昇。
+};
+
+// ── P1 拡張: エリア株（カラーグループ株） ──
+// 株価・発行株数・銀行保有株を管理。プレイヤー保有株は Player.stocks 側に持つ。
+export type ColorGroupStock = {
+  color: ColorGroup;
+  pricePerShare: number;
+  totalShares: number; // 発行株数（固定）
+  bankShares: number; // 銀行に残っている株（売れ残り）
 };
 
 // ── カード ──
@@ -130,6 +147,7 @@ export type TurnPhase =
   | 'tradeConfirm'
   | 'build'
   | 'sell'
+  | 'stock' // P1 拡張: 株式売買フェーズ（roll/endTurn からサブアクションで開始）
   | 'forceBuy'
   | 'forceSell'
   | 'bankrupt'
@@ -150,6 +168,10 @@ export type GameState = {
   currentCard: Card | null;
   message: string;
   winnerId: string | null;
+  // P1 拡張: 機能フラグ（未定義時は既存挙動）
+  features?: FeatureFlags;
+  // P1 拡張: 株式市場（features.stocks が有効なときのみ意味を持つ）
+  stockMarket?: Partial<Record<ColorGroup, ColorGroupStock>>;
 };
 
 // ── ファクトリ関数 ──

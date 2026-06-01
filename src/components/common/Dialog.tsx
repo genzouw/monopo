@@ -55,7 +55,7 @@ export default function Dialog({
         >
           {title}
         </div>
-        {children}
+        <div className={styles.dialogBody}>{children}</div>
         {actions && <div className={styles.dialogActions}>{actions}</div>}
       </div>
     </div>
