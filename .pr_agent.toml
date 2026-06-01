@@ -20,6 +20,7 @@ enable_auto_best_practices = true
 [pr_reviewer]
 require_tests_review = true
 require_security_review = true
+extra_instructions = "LLM/AIツールの連携時はプロンプトインジェクションやデータ漏洩等のAI特有のセキュリティリスクを考慮し、ドキュメントの整合性を確認してください。"
 
 [pr_description]
 publish_labels = true
