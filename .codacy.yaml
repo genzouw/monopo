@@ -5,6 +5,7 @@ exclude_paths:
   - 'coverage/**'
   - '**/*.test.ts'
   - '**/*.test.tsx'
+  - 'docs/specs/**'
   - 'src/components/common/Button.tsx'
   - 'src/components/PlayerPanel/PlayerPanel.tsx'
   - 'src/components/ActionDialog/BuildDialog.tsx'
