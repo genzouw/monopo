@@ -1,0 +1,40 @@
+name: AI Issue Research
+on:
+  issues:
+    types: [labeled]
+permissions:
+  issues: write
+  contents: read
+jobs:
+  research:
+    if: github.event.label.name == 'request ai research'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Tavily Search
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+        with:
+          script: |
+            const query = context.payload.issue.title;
+            const response = await fetch('https://api.tavily.com/search', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                api_key: process.env.TAVILY_API_KEY,
+                query: query,
+                search_depth: 'advanced',
+                include_answer: true,
+              }),
+            });
+            const data = await response.json();
+            let body = `### AI Research Results\n\n${data.answer || 'No summary available.'}\n\n#### Sources\n`;
+            if(data.results) {
+               data.results.forEach(r => { body += `- [${r.title}](${r.url})\n`; });
+            }
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });

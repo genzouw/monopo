@@ -1,0 +1,7 @@
+# Sweep AI configuration
+rules:
+  - 'This is a React 19 project using Vite and Bun.'
+  - 'Use TypeScript for all new files.'
+  - 'Do not use npm, yarn, or pnpm. Always use bun.'
+  - 'All UI text, documentations, and comments must be in Japanese.'
+  - 'Strictly use the name "monopo" (モノポ) across the entire codebase.'
