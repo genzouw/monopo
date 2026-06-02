@@ -57,12 +57,17 @@ export type Player = {
   isBankrupt: boolean;
   // P1 拡張: 持株（color → 持株数）。featureFlags.stocks が無効のときは undefined
   stocks?: Partial<Record<ColorGroup, number>>;
+  // P3 拡張: 新アセットクラス（features.altAssets が有効なときのみ意味を持つ）
+  cryptoHolding?: CryptoHolding;
+  vcInvestments?: VCInvestment[];
+  esgHoldings?: ESGHolding[];
 };
 
 // ── P1 拡張: 機能フラグ（OFF時は既存挙動完全互換） ──
 export type FeatureFlags = {
   stocks?: boolean; // エリア株売買・配当（応援カード）。
   // 株価は需要供給モデル（売買で動的変動）＋家・ホテル建設で連動上昇。
+  altAssets?: boolean; // P3 拡張: 新アセットクラス（暗号資産・VC・ESG）。
 };
 
 // ── P1 拡張: エリア株（カラーグループ株） ──
@@ -136,6 +141,23 @@ export type TradeValidationResult =
   | { isValid: true }
   | { isValid: false; reason: TradeInvalidReason };
 
+// ── P3 拡張: 新アセットクラス ──
+
+export type CryptoHolding = {
+  units: number; // 保有ユニット数
+  initialPrice: number; // 購入時の基準価格（クランプ計算用）
+  currentPrice: number; // 現在の市場価格（毎ターン更新）
+};
+
+export type VCInvestment = {
+  amount: number; // 投資額
+  investedTurn: number; // 投資したグローバルターン番号
+};
+
+export type ESGHolding = {
+  amount: number; // 投資額（配当計算の基準）
+};
+
 // ── ターンフェーズ ──
 export type TurnPhase =
   | 'roll'
@@ -148,6 +170,7 @@ export type TurnPhase =
   | 'build'
   | 'sell'
   | 'stock' // P1 拡張: 株式売買フェーズ（roll/endTurn からサブアクションで開始）
+  | 'altAsset' // P3 拡張: 新アセットクラス操作フェーズ
   | 'forceBuy'
   | 'forceSell'
   | 'bankrupt'
@@ -172,6 +195,8 @@ export type GameState = {
   features?: FeatureFlags;
   // P1 拡張: 株式市場（features.stocks が有効なときのみ意味を持つ）
   stockMarket?: Partial<Record<ColorGroup, ColorGroupStock>>;
+  // P3 拡張: グローバルターンカウンター（END_TURN ごとに +1）
+  turnCount?: number;
 };
 
 // ── ファクトリ関数 ──

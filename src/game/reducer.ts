@@ -1,10 +1,13 @@
 import type {
   ColorGroup,
+  CryptoHolding,
+  ESGHolding,
   GameState,
   Player,
   Card,
   PropertyState,
   AuctionState,
+  VCInvestment,
 } from './types';
 import type { GameAction } from './actions';
 import { BOARD_SPACES, createPropertyStates } from './board';
@@ -29,6 +32,16 @@ import {
   validateStockBuy,
   validateStockSell,
 } from './economy';
+import {
+  CRYPTO_INITIAL_PRICE,
+  buyCrypto,
+  sellCrypto,
+  calculateNextCryptoPrice,
+  resolveVCInvestment,
+  isVCMatured,
+  calculateESGDividend,
+  isESGDividendTurn,
+} from './systems/altAssets';
 
 // ── 定数 ──
 
@@ -488,6 +501,7 @@ export function createInitialGameState(): GameState {
     currentCard: null,
     message: 'ゲームをはじめよう！',
     winnerId: null,
+    turnCount: 0,
   };
 }
 
@@ -1366,16 +1380,26 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         };
       }
 
+      const nextTurnCount = (state.turnCount ?? 0) + 1;
+      const diceSum = state.dice.values[0] + state.dice.values[1];
+
+      // P3 拡張: 新アセットクラスの処理
+      let stateAfterAlt = state;
+      if (state.features?.altAssets) {
+        stateAfterAlt = applyAltAssetsEndTurn(state, nextTurnCount, diceSum);
+      }
+
       const nextIndex = nextActivePlayer(
-        state.players,
-        state.currentPlayerIndex,
+        stateAfterAlt.players,
+        stateAfterAlt.currentPlayerIndex,
       );
-      const nextPlayer = state.players[nextIndex];
+      const nextPlayer = stateAfterAlt.players[nextIndex];
 
       return {
-        ...state,
+        ...stateAfterAlt,
         currentPlayerIndex: nextIndex,
         turnPhase: 'roll',
+        turnCount: nextTurnCount,
         dice: { values: [1, 1], doubles: 0, rolled: false },
         message: nextPlayer.inJail
           ? `${nextPlayer.name}のばんだよ！刑務所にいるよ`
@@ -1430,6 +1454,80 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         -action.shares,
         result.proceeds,
       );
+    }
+
+    // ── P3 拡張: 新アセットクラス（暗号資産・VC・ESG） ──
+    case 'OPEN_ALT_ASSET_DIALOG': {
+      if (!state.features?.altAssets) return state;
+      return { ...state, turnPhase: 'altAsset' };
+    }
+    case 'CLOSE_ALT_ASSET_DIALOG': {
+      if (state.turnPhase !== 'altAsset') return state;
+      return { ...state, turnPhase: 'endTurn' };
+    }
+    case 'BUY_CRYPTO': {
+      if (!state.features?.altAssets) return state;
+      const player = state.players[state.currentPlayerIndex];
+      if (action.amount <= 0 || player.money < action.amount) return state;
+      const currentPrice =
+        player.cryptoHolding?.currentPrice ?? CRYPTO_INITIAL_PRICE;
+      const newUnits = action.amount / currentPrice;
+      const newHolding: CryptoHolding = player.cryptoHolding
+        ? {
+            units: player.cryptoHolding.units + newUnits,
+            initialPrice: player.cryptoHolding.initialPrice,
+            currentPrice,
+          }
+        : buyCrypto(action.amount, currentPrice);
+      return updateCurrentPlayer(state, {
+        money: player.money - action.amount,
+        cryptoHolding: newHolding,
+      });
+    }
+    case 'SELL_CRYPTO': {
+      if (!state.features?.altAssets) return state;
+      const player = state.players[state.currentPlayerIndex];
+      if (!player.cryptoHolding) return state;
+      const proceeds = sellCrypto(player.cryptoHolding);
+      return updateCurrentPlayer(state, {
+        money: player.money + proceeds,
+        cryptoHolding: undefined,
+      });
+    }
+    case 'INVEST_VC': {
+      if (!state.features?.altAssets) return state;
+      const player = state.players[state.currentPlayerIndex];
+      if (action.amount <= 0 || player.money < action.amount) return state;
+      const newVC: VCInvestment = {
+        amount: action.amount,
+        investedTurn: state.turnCount ?? 0,
+      };
+      return updateCurrentPlayer(state, {
+        money: player.money - action.amount,
+        vcInvestments: [...(player.vcInvestments ?? []), newVC],
+      });
+    }
+    case 'BUY_ESG': {
+      if (!state.features?.altAssets) return state;
+      const player = state.players[state.currentPlayerIndex];
+      if (action.amount <= 0 || player.money < action.amount) return state;
+      const newESG: ESGHolding = { amount: action.amount };
+      return updateCurrentPlayer(state, {
+        money: player.money - action.amount,
+        esgHoldings: [...(player.esgHoldings ?? []), newESG],
+      });
+    }
+    case 'SELL_ESG': {
+      if (!state.features?.altAssets) return state;
+      const player = state.players[state.currentPlayerIndex];
+      const holdings = player.esgHoldings ?? [];
+      if (action.index < 0 || action.index >= holdings.length) return state;
+      const holding = holdings[action.index];
+      const newHoldings = holdings.filter((_, i) => i !== action.index);
+      return updateCurrentPlayer(state, {
+        money: player.money + holding.amount,
+        esgHoldings: newHoldings.length > 0 ? newHoldings : undefined,
+      });
     }
 
     default:
@@ -1509,4 +1607,66 @@ function nextAuctionPlayer(state: GameState, auction: AuctionState): number {
     count++;
   }
   return next;
+}
+
+// ── P3 ヘルパー: END_TURN 時の新アセットクラス処理 ──
+// 暗号資産価格更新・VC満期判定・ESG配当支払いを一括処理する純粋関数。
+function applyAltAssetsEndTurn(
+  state: GameState,
+  nextTurnCount: number,
+  diceSum: number,
+): GameState {
+  const players = state.players.map((p) => {
+    if (p.isBankrupt) return p;
+    let updated = { ...p };
+
+    // 暗号資産価格の更新
+    if (updated.cryptoHolding) {
+      const newPrice = calculateNextCryptoPrice(
+        updated.cryptoHolding.currentPrice,
+        updated.cryptoHolding.initialPrice,
+        nextTurnCount,
+        p.id,
+      );
+      updated = {
+        ...updated,
+        cryptoHolding: { ...updated.cryptoHolding, currentPrice: newPrice },
+      };
+    }
+
+    // VC 満期チェックと精算
+    if (updated.vcInvestments && updated.vcInvestments.length > 0) {
+      let totalPayout = 0;
+      const remaining: VCInvestment[] = [];
+      for (const vc of updated.vcInvestments) {
+        if (isVCMatured(vc, nextTurnCount)) {
+          totalPayout += resolveVCInvestment(vc.amount, diceSum).payout;
+        } else {
+          remaining.push(vc);
+        }
+      }
+      updated = {
+        ...updated,
+        money: updated.money + totalPayout,
+        vcInvestments: remaining.length > 0 ? remaining : undefined,
+      };
+    }
+
+    // ESG 配当（ESG_DIVIDEND_INTERVAL ターンごと）
+    if (
+      isESGDividendTurn(nextTurnCount) &&
+      updated.esgHoldings &&
+      updated.esgHoldings.length > 0
+    ) {
+      const dividendTotal = updated.esgHoldings.reduce(
+        (sum, h) => sum + calculateESGDividend(h),
+        0,
+      );
+      updated = { ...updated, money: updated.money + dividendTotal };
+    }
+
+    return updated;
+  });
+
+  return { ...state, players };
 }
