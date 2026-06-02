@@ -1518,7 +1518,10 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       const newHolding: CryptoHolding = player.cryptoHolding
         ? {
             units: player.cryptoHolding.units + newUnits,
-            initialPrice: player.cryptoHolding.initialPrice,
+            initialPrice:
+              (player.cryptoHolding.units * player.cryptoHolding.initialPrice +
+                action.amount) /
+              (player.cryptoHolding.units + newUnits),
             currentPrice,
           }
         : buyCrypto(action.amount, currentPrice);
