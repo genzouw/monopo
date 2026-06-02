@@ -42,6 +42,12 @@ import {
   calculateESGDividend,
   isESGDividendTurn,
 } from './systems/altAssets';
+import {
+  BASE_RATE_INITIAL,
+  applyLoanAction,
+  applyLoanEndTurn,
+  liquidateNonPropertyAssets,
+} from './systems/loan';
 
 // ── 定数 ──
 
@@ -93,6 +99,7 @@ function checkWinner(players: Player[]): string | null {
 
 /**
  * 所持金がマイナスのプレイヤーを検出し:
+ * - P3-a 拡張: まず非不動産資産（①暗号資産→②VC→③株式）を自動清算
  * - 物件あり → forceSellフェーズに遷移（強制売りだし）
  * - 物件なし → 自動破産
  */
@@ -104,32 +111,60 @@ function checkNegativeMoney(state: GameState): GameState {
     return state;
   }
 
+  // P3-a 拡張: 非不動産資産の自動清算（破産処理優先順位: ①暗号資産→②VC→③株式）
+  let workingState = state;
+  if (state.features?.altAssets || state.features?.loan) {
+    const player = workingState.players[workingState.currentPlayerIndex];
+    const { updatedPlayer, proceeds } = liquidateNonPropertyAssets(
+      player,
+      workingState.stockMarket,
+    );
+    if (proceeds > 0) {
+      workingState = {
+        ...workingState,
+        players: workingState.players.map((p, i) =>
+          i === workingState.currentPlayerIndex ? updatedPlayer : p,
+        ),
+      };
+      if (updatedPlayer.money >= 0) {
+        return {
+          ...workingState,
+          turnPhase: 'endTurn',
+          message: `${updatedPlayer.name}のアセットを売って借金を返したよ！`,
+        };
+      }
+    }
+  }
+
+  const currentPlayerAfter =
+    workingState.players[workingState.currentPlayerIndex];
+
   // 物件を持っていれば強制売りだし
   // (家がある物件のみの場合もあるので、家を売るか物件を売るか選べるようにする)
-  if (currentPlayer.properties.length > 0) {
+  if (currentPlayerAfter.properties.length > 0) {
     return {
-      ...state,
+      ...workingState,
       turnPhase: 'forceSell',
-      message: `${currentPlayer.name}のおかねがマイナスだよ！物件を売ってお金をつくろう！`,
+      message: `${currentPlayerAfter.name}のおかねがマイナスだよ！物件を売ってお金をつくろう！`,
     };
   }
 
   // 物件もない → 破産
-  const newPlayers = state.players.map((p) =>
-    p.id === currentPlayer.id ? { ...p, isBankrupt: true, money: 0 } : p,
+  const newPlayers = workingState.players.map((p) =>
+    p.id === currentPlayerAfter.id ? { ...p, isBankrupt: true, money: 0 } : p,
   );
 
   const winnerId = checkWinner(newPlayers);
 
   return {
-    ...state,
+    ...workingState,
     players: newPlayers,
-    phase: winnerId ? 'finished' : state.phase,
-    winnerId: winnerId ?? state.winnerId,
+    phase: winnerId ? 'finished' : workingState.phase,
+    winnerId: winnerId ?? workingState.winnerId,
     turnPhase: 'endTurn',
     message: winnerId
       ? `${newPlayers.find((p) => p.id === winnerId)!.name}のかちだよ！🎉`
-      : `${currentPlayer.name}ははさんしたよ…`,
+      : `${currentPlayerAfter.name}ははさんしたよ…`,
   };
 }
 
@@ -556,6 +591,8 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       const stockMarket = action.features?.stocks
         ? createInitialStockMarket()
         : undefined;
+      // P3-a 拡張: ローン機能 ON のときだけ基準金利を初期化
+      const baseRate = action.features?.loan ? BASE_RATE_INITIAL : undefined;
       return {
         ...state,
         phase: 'playing',
@@ -575,6 +612,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         winnerId: null,
         features: action.features,
         stockMarket,
+        baseRate,
       };
     }
 
@@ -1389,6 +1427,11 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         stateAfterAlt = applyAltAssetsEndTurn(state, nextTurnCount, diceSum);
       }
 
+      // P3-a 拡張: ローン返済・基準金利変動
+      if (stateAfterAlt.features?.loan) {
+        stateAfterAlt = applyLoanEndTurn(stateAfterAlt, nextTurnCount);
+      }
+
       const nextIndex = nextActivePlayer(
         stateAfterAlt.players,
         stateAfterAlt.currentPlayerIndex,
@@ -1529,6 +1572,11 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         esgHoldings: newHoldings.length > 0 ? newHoldings : undefined,
       });
     }
+
+    // ── P3-a 拡張: 変動金利ローン ──
+    case 'TAKE_LOAN':
+    case 'REPAY_LOAN':
+      return applyLoanAction(state, action);
 
     default:
       return state;
