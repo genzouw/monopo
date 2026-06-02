@@ -1589,7 +1589,7 @@ function applyInsuranceOnEndTurn(
 ): GameState {
   let players = [...state.players];
   let propertyStates = { ...state.propertyStates };
-  let insuranceState = { ...(state.insuranceState ?? {}) };
+  const insuranceState = { ...(state.insuranceState ?? {}) };
   const messages: string[] = [];
 
   // 保険料徴収（10ターン節目のみ）
