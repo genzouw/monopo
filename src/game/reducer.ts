@@ -21,8 +21,10 @@ import {
 import { getSecureRandomInt } from './random';
 import {
   HOUSE_PRICE_BOOST,
-  PRICE_DELTA_PER_SHARE,
+  calculateBasicIncomeBonus,
   calculateNextPrice,
+  calculateProgressiveTax,
+  calculateStockPriceDelta,
   createInitialStockMarket,
   distributeDividends,
   isStocksEnabled,
@@ -50,7 +52,21 @@ function distributeSocialDividend(state: GameState, newPos: number): Player[] {
   return state.players.map((p, index) => {
     if (p.isBankrupt) return p;
     if (index === state.currentPlayerIndex) {
-      return { ...p, position: newPos, money: p.money + SOCIAL_DIVIDEND_SELF };
+      let dividend = SOCIAL_DIVIDEND_SELF;
+      if (state.features?.progressiveTax || state.features?.basicIncome) {
+        const assets = calculateTotalAssets(
+          p,
+          state.propertyStates,
+          state.board,
+        );
+        if (state.features.progressiveTax) {
+          dividend -= calculateProgressiveTax(dividend, assets);
+        }
+        if (state.features.basicIncome) {
+          dividend += calculateBasicIncomeBonus(assets);
+        }
+      }
+      return { ...p, position: newPos, money: p.money + dividend };
     } else {
       return { ...p, money: p.money + SOCIAL_DIVIDEND_OTHERS };
     }
@@ -1458,8 +1474,8 @@ function applyStockTrade(
   });
   const market = state.stockMarket?.[color];
   if (!market) return { ...state, players: newPlayers };
-  // 売買 1 株あたり ±PRICE_DELTA_PER_SHARE で価格を動かす（買い=上昇／売り=下降）
-  const priceDelta = sharesDelta * PRICE_DELTA_PER_SHARE;
+  // 売買デルタを計算: 大量購入（threshold以上）は急騰ボーナス込みで価格上昇
+  const priceDelta = calculateStockPriceDelta(sharesDelta);
   const nextPrice = calculateNextPrice(market.pricePerShare, priceDelta);
   const newStockMarket = {
     ...state.stockMarket,

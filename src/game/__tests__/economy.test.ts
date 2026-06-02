@@ -3,14 +3,21 @@ import type { ColorGroup, GameState, Player } from '../types';
 import { BOARD_SPACES } from '../board';
 import { createInitialGameState, gameReducer } from '../reducer';
 import {
+  BASIC_INCOME_BONUS,
+  BASIC_INCOME_THRESHOLD,
+  BULK_PRICE_MULTIPLIER,
+  BULK_PURCHASE_THRESHOLD,
   DIVIDEND_RATE_PCT,
   HOUSE_PRICE_BOOST,
   PRICE_DELTA_PER_SHARE,
   STOCK_INITIAL_PRICE,
   STOCK_MIN_PRICE,
   STOCK_TOTAL_SHARES,
+  calculateBasicIncomeBonus,
   calculateDividendPool,
   calculateNextPrice,
+  calculateProgressiveTax,
+  calculateStockPriceDelta,
   createInitialStockMarket,
   distributeDividends,
   isStocksEnabled,
@@ -55,6 +62,73 @@ describe('economy.ts 純粋関数', () => {
         expect(m.totalShares).toBe(STOCK_TOTAL_SHARES);
         expect(m.bankShares).toBe(STOCK_TOTAL_SHARES);
       }
+    });
+  });
+
+  describe('calculateStockPriceDelta', () => {
+    it('少量購入（threshold未満）: 線形デルタ', () => {
+      expect(calculateStockPriceDelta(3)).toBe(3 * PRICE_DELTA_PER_SHARE);
+    });
+
+    it('ちょうどthreshold株: 急騰ボーナス適用', () => {
+      expect(calculateStockPriceDelta(BULK_PURCHASE_THRESHOLD)).toBe(
+        BULK_PURCHASE_THRESHOLD * PRICE_DELTA_PER_SHARE * BULK_PRICE_MULTIPLIER,
+      );
+    });
+
+    it('threshold超の大量購入: 急騰ボーナス適用', () => {
+      expect(calculateStockPriceDelta(15)).toBe(
+        15 * PRICE_DELTA_PER_SHARE * BULK_PRICE_MULTIPLIER,
+      );
+    });
+
+    it('売却は常に線形（マイナスデルタ）', () => {
+      expect(calculateStockPriceDelta(-5)).toBe(-5 * PRICE_DELTA_PER_SHARE);
+    });
+
+    it('0株では0を返す', () => {
+      expect(calculateStockPriceDelta(0)).toBe(0);
+    });
+  });
+
+  describe('calculateProgressiveTax', () => {
+    it('資産が低いブラケット（3000未満）: 税なし', () => {
+      expect(calculateProgressiveTax(150, 1500)).toBe(0);
+      expect(calculateProgressiveTax(150, 2999)).toBe(0);
+    });
+
+    it('中程度の資産（3000以上6000未満）: 10%課税', () => {
+      expect(calculateProgressiveTax(150, 3000)).toBe(Math.floor(150 * 0.1));
+      expect(calculateProgressiveTax(150, 5000)).toBe(Math.floor(150 * 0.1));
+    });
+
+    it('高資産（6000以上10000未満）: 25%課税', () => {
+      expect(calculateProgressiveTax(150, 6000)).toBe(Math.floor(150 * 0.25));
+      expect(calculateProgressiveTax(150, 8000)).toBe(Math.floor(150 * 0.25));
+    });
+
+    it('超高資産（10000以上）: 40%課税', () => {
+      expect(calculateProgressiveTax(150, 10000)).toBe(Math.floor(150 * 0.4));
+      expect(calculateProgressiveTax(150, 15000)).toBe(Math.floor(150 * 0.4));
+    });
+
+    it('税額は社会配当を超えない（切り捨て）', () => {
+      // 150 * 0.4 = 60 → floor(60) = 60
+      expect(calculateProgressiveTax(150, 99999)).toBeLessThanOrEqual(150);
+    });
+  });
+
+  describe('calculateBasicIncomeBonus', () => {
+    it('資産が閾値以下: ボーナスあり', () => {
+      expect(calculateBasicIncomeBonus(BASIC_INCOME_THRESHOLD)).toBe(
+        BASIC_INCOME_BONUS,
+      );
+      expect(calculateBasicIncomeBonus(0)).toBe(BASIC_INCOME_BONUS);
+    });
+
+    it('資産が閾値超: ボーナスなし', () => {
+      expect(calculateBasicIncomeBonus(BASIC_INCOME_THRESHOLD + 1)).toBe(0);
+      expect(calculateBasicIncomeBonus(9999)).toBe(0);
     });
   });
 
@@ -216,9 +290,30 @@ describe('reducer P1 拡張', () => {
       expect(buyer.money).toBe(1500 - STOCK_INITIAL_PRICE * 2);
       expect(buyer.stocks?.brown).toBe(2);
       expect(next.stockMarket?.brown?.bankShares).toBe(STOCK_TOTAL_SHARES - 2);
-      // 株価は 2 * PRICE_DELTA_PER_SHARE 上昇
+      // 2株は threshold 未満なので線形デルタ
       expect(next.stockMarket?.brown?.pricePerShare).toBe(
         beforePrice + 2 * PRICE_DELTA_PER_SHARE,
+      );
+    });
+
+    it('大量購入（threshold以上）: 株価が急騰ボーナス込みで上昇', () => {
+      // プレイヤーに十分な資金を与える
+      let state = startGame({ stocks: true });
+      state = {
+        ...state,
+        players: state.players.map((p, i) =>
+          i === 0 ? { ...p, money: 99999 } : p,
+        ),
+      };
+      const beforePrice = state.stockMarket?.brown?.pricePerShare ?? 0;
+      const shares = BULK_PURCHASE_THRESHOLD;
+      const next = gameReducer(state, {
+        type: 'BUY_STOCK',
+        color: 'brown',
+        shares,
+      });
+      expect(next.stockMarket?.brown?.pricePerShare).toBe(
+        beforePrice + shares * PRICE_DELTA_PER_SHARE * BULK_PRICE_MULTIPLIER,
       );
     });
 
