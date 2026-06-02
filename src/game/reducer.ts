@@ -40,7 +40,7 @@ import {
   resolveVCInvestment,
   isVCMatured,
   calculateESGDividend,
-  isESGDividendTurn,
+  ESG_DIVIDEND_INTERVAL,
 } from './systems/altAssets';
 import {
   BASE_RATE_INITIAL,
@@ -1670,6 +1670,7 @@ function applyAltAssetsEndTurn(
   nextTurnCount: number,
   diceSum: number,
 ): GameState {
+  const messages: string[] = [];
   const players = state.players.map((p) => {
     if (p.isBankrupt) return p;
     let updated = { ...p };
@@ -1694,7 +1695,19 @@ function applyAltAssetsEndTurn(
       const remaining: VCInvestment[] = [];
       for (const vc of updated.vcInvestments) {
         if (isVCMatured(vc, nextTurnCount)) {
-          totalPayout += resolveVCInvestment(vc.amount, diceSum).payout;
+          const res = resolveVCInvestment(vc.amount, diceSum);
+          totalPayout += res.payout;
+          const resultText =
+            res.type === 'unicorn'
+              ? '大成功（10倍）'
+              : res.type === 'bankrupt'
+                ? '倒産（全額消失）'
+                : res.payout > vc.amount
+                  ? '一部回収（+50%）'
+                  : '一部回収（-50%）';
+          messages.push(
+            `${p.name}のVC投資が満期を迎え、${resultText}で$${res.payout}を受け取りました。`,
+          );
         } else {
           remaining.push(vc);
         }
@@ -1706,21 +1719,29 @@ function applyAltAssetsEndTurn(
       };
     }
 
-    // ESG 配当（ESG_DIVIDEND_INTERVAL ターンごと）
-    if (
-      isESGDividendTurn(nextTurnCount) &&
-      updated.esgHoldings &&
-      updated.esgHoldings.length > 0
-    ) {
-      const dividendTotal = updated.esgHoldings.reduce(
-        (sum, h) => sum + calculateESGDividend(h),
-        0,
-      );
-      updated = { ...updated, money: updated.money + dividendTotal };
+    // ESG 配当（購入から ESG_DIVIDEND_INTERVAL ターンごと）
+    if (updated.esgHoldings && updated.esgHoldings.length > 0) {
+      const dividendTotal = updated.esgHoldings.reduce((sum, h) => {
+        const turnsHeld = nextTurnCount - h.investedTurn;
+        if (turnsHeld > 0 && turnsHeld % ESG_DIVIDEND_INTERVAL === 0) {
+          return sum + calculateESGDividend(h);
+        }
+        return sum;
+      }, 0);
+      if (dividendTotal > 0) {
+        updated = { ...updated, money: updated.money + dividendTotal };
+        messages.push(
+          `${p.name}にESG投資の配当金$${dividendTotal}が支払われました。`,
+        );
+      }
     }
 
     return updated;
   });
 
-  return { ...state, players };
+  return {
+    ...state,
+    players,
+    message: messages.length > 0 ? messages.join(' ') : state.message,
+  };
 }

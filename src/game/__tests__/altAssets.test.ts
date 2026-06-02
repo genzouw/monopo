@@ -122,11 +122,11 @@ describe('isVCMatured', () => {
 
 describe('calculateESGDividend', () => {
   it('投資額の5%が配当される', () => {
-    expect(calculateESGDividend({ amount: 1000 })).toBe(50);
+    expect(calculateESGDividend({ amount: 1000, investedTurn: 0 })).toBe(50);
   });
 
   it('端数は切り捨てる', () => {
-    expect(calculateESGDividend({ amount: 333 })).toBe(16);
+    expect(calculateESGDividend({ amount: 333, investedTurn: 0 })).toBe(16);
   });
 });
 
