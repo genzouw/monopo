@@ -1554,7 +1554,10 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       if (!state.features?.altAssets) return state;
       const player = state.players[state.currentPlayerIndex];
       if (action.amount <= 0 || player.money < action.amount) return state;
-      const newESG: ESGHolding = { amount: action.amount };
+      const newESG: ESGHolding = {
+        amount: action.amount,
+        investedTurn: state.turnCount ?? 0,
+      };
       return updateCurrentPlayer(state, {
         money: player.money - action.amount,
         esgHoldings: [...(player.esgHoldings ?? []), newESG],
