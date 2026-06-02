@@ -167,6 +167,7 @@ export type VCInvestment = {
 
 export type ESGHolding = {
   amount: number; // 投資額（配当計算の基準）
+  investedTurn: number; // 投資したグローバルターン番号
 };
 
 // ── ターンフェーズ ──
