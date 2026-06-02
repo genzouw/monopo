@@ -1490,7 +1490,8 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       if (!propState || propState.ownerId !== player.id) return state;
       if (!isPropertyInsured(state.insuranceState, action.propertyId))
         return state;
-      const { [action.propertyId]: _, ...rest } = state.insuranceState ?? {};
+      const rest: Record<string, boolean> = { ...(state.insuranceState ?? {}) };
+      delete rest[action.propertyId];
       const space = getSpaceById(action.propertyId, state.board);
       return {
         ...state,
