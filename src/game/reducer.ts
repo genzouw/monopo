@@ -1,5 +1,6 @@
 import type {
   ColorGroup,
+  EconomyStatus,
   GameState,
   Player,
   Card,
@@ -1420,15 +1421,13 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
           // 株式機能 OFF のときは存在しない株価暴落をアナウンスしないよう、汎用文言にする。
           if (newEconomyStatus === 'crisis' && prevStatus !== 'crisis') {
             if (isStocksEnabled(state)) {
-              newStockMarket = applyFinancialCrisisToStocks(
-                newStockMarket,
-              ) as typeof newStockMarket;
+              newStockMarket = applyFinancialCrisisToStocks(newStockMarket);
               economyMessage = ' ⚠️金融危機！株価が暴落したよ！';
             } else {
               economyMessage = ' ⚠️金融危機！景気が急変したよ！';
             }
           } else if (newEconomyStatus !== prevStatus) {
-            const statusNames: Record<string, string> = {
+            const statusNames: Record<EconomyStatus, string> = {
               boom: '好況',
               normal: '通常',
               recession: '不況',
