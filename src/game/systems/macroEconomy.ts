@@ -31,8 +31,17 @@ export const ECONOMY_TRANSITION_MATRIX: Record<
   crisis: { boom: 0.0, normal: 0.1, recession: 0.5, crisis: 0.4 },
 };
 
-// ランダム値[0, 1)から遷移先の景気ステータスを決定する純粋関数。
-// 確率0の状態はスキップし、各状態の累積確率を超えた最初の状態を返す。
+/**
+ * ランダム値から遷移先の景気ステータスを決定する純粋関数。
+ *
+ * `ECONOMY_TRANSITION_MATRIX[current]` の各遷移確率を累積し、
+ * `random` がその累積確率を超えた最初の状態を返す。確率 0 の状態はスキップする。
+ * 入力が範囲外などで一致する状態がない場合は安全側に `current` を返す。
+ *
+ * @param current 現在の景気ステータス。
+ * @param random `[0, 1)` の範囲の乱数（呼び出し側で生成）。累積選択に使用する。
+ * @returns 次の景気ステータス。
+ */
 export function transitionEconomy(
   current: EconomyStatus,
   random: number,
@@ -50,7 +59,19 @@ export function transitionEconomy(
   return current;
 }
 
-// 景気乗数を適用して金額を補正する（切り捨て、仕様クランプ範囲内）
+/**
+ * 景気乗数を適用して金額を補正する。
+ *
+ * `ECONOMY_FACTORS[status]` を `baseAmount` に乗じ、`Math.floor` で切り捨てる。
+ * 結果は仕様クランプ範囲
+ * `Math.floor(baseAmount * ECONOMY_FACTOR_MIN)` 〜
+ * `Math.floor(baseAmount * ECONOMY_FACTOR_MAX)` に収まるよう調整する。
+ * `baseAmount === 0` のときは無条件で 0 を返す。
+ *
+ * @param baseAmount 補正前の基準金額（整数想定、負値も許容）。
+ * @param status 現在の景気ステータス。
+ * @returns 景気補正後の金額（切り捨て・クランプ済み）。
+ */
 export function applyEconomyFactor(
   baseAmount: number,
   status: EconomyStatus,
@@ -63,17 +84,43 @@ export function applyEconomyFactor(
   return Math.max(min, Math.min(max, adjusted));
 }
 
-// 指定ターン数で景気更新が発生するかどうか（0ターン目は初期状態なので更新しない）
+/**
+ * 指定ターン数で景気更新が発生するかどうかを判定する。
+ *
+ * `turnCount === 0`（初期状態）では更新を発生させない。
+ * `turnCount > 0` かつ `turnCount % ECONOMY_UPDATE_INTERVAL === 0` のときに `true` を返す。
+ *
+ * @param turnCount 現在のターン数（0 以上の整数）。
+ * @returns 景気を更新するべきタイミングなら `true`。
+ */
 export function shouldUpdateEconomy(turnCount: number): boolean {
   return turnCount > 0 && turnCount % ECONOMY_UPDATE_INTERVAL === 0;
 }
 
-// macroEconomy機能が有効かどうか
+/**
+ * macroEconomy 機能が有効かどうかを判定する。
+ *
+ * `state.features?.macroEconomy === true` のときのみ `true` を返す。
+ * 機能フラグが未定義／false の場合は既存挙動互換のため `false`。
+ *
+ * @param state 現在のゲーム状態。
+ * @returns macroEconomy が有効なら `true`。
+ */
 export function isMacroEconomyEnabled(state: GameState): boolean {
   return state.features?.macroEconomy === true;
 }
 
-// 金融危機イベント: 全エリア株価を一律50%減（最低価格1を保証）
+/**
+ * 金融危機イベント: 全エリア株価を一律 50% 減にした新しい株式市場を返す。
+ *
+ * 各色の `pricePerShare` を `Math.floor(price * 0.5)` で切り下げ、
+ * 最低価格 1 でクランプする。元の `stockMarket` は変更せず、
+ * シャローコピーした新しいオブジェクトを返す（イミュータブル性を保証）。
+ * `stockMarket` が `undefined` の場合はそのまま `undefined` を返す。
+ *
+ * @param stockMarket 現在の株式市場（カラーグループ → 株情報のマップ）。`undefined` 可。
+ * @returns 株価を 50% 減（最低 1）にした新しい株式市場。入力が `undefined` ならそのまま `undefined`。
+ */
 export function applyFinancialCrisisToStocks(
   stockMarket: Partial<Record<string, ColorGroupStock>> | undefined,
 ): Partial<Record<string, ColorGroupStock>> | undefined {
