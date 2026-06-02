@@ -18,11 +18,13 @@ vectordb = "pinecone"
 enable_auto_best_practices = true
 
 [pr_reviewer]
+require_can_be_split_review = true
 require_tests_review = true
 require_security_review = true
 extra_instructions = "LLM/AIツールの連携時はプロンプトインジェクションやデータ漏洩等のAI特有のセキュリティリスクを考慮し、ドキュメントの整合性を確認してください。"
 
 [pr_description]
+enable_pr_diagram = true
 publish_labels = true
 add_original_user_description = true
 generate_ai_title = true
