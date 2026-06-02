@@ -19,6 +19,7 @@ function getGridPosition(position: number): { row: number; col: number } {
   return { row: position - 30 + 1, col: 11 };
 }
 
+// Single shared reference for empty spaces — keeps MemoizedMiniSpace props referentially equal, allowing React.memo to skip re-renders.
 const EMPTY_PLAYERS: readonly Player[] = [];
 
 const MiniMap = memo(function MiniMap({
