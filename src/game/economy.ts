@@ -19,27 +19,6 @@ export const STOCK_MIN_PRICE = 10;
 // （売却時は下降）。子供向けメタファー: 「家をたてたら、おうえんカードが人気に！」
 export const HOUSE_PRICE_BOOST = 15;
 
-// 増資ボーナス: BULK_PURCHASE_THRESHOLD 株以上を一度に購入すると株価が急騰する
-// （大口投資家の需要集中 = 市場への強いシグナル）
-export const BULK_PURCHASE_THRESHOLD = 10;
-export const BULK_PRICE_MULTIPLIER = 2;
-
-// 累進課税: GOマス通過時の社会配当に対して資産額に応じた税率を適用
-// ブラケットは { threshold: 資産上限, rate: 税率 } の昇順配列
-export const PROGRESSIVE_TAX_BRACKETS: Array<{
-  threshold: number;
-  rate: number;
-}> = [
-  { threshold: 3000, rate: 0 },
-  { threshold: 6000, rate: 0.1 },
-  { threshold: 10000, rate: 0.25 },
-  { threshold: Infinity, rate: 0.4 },
-];
-
-// ベーシックインカム: 総資産が閾値以下のプレイヤーはGOマス通過時に追加ボーナスを受け取る
-export const BASIC_INCOME_THRESHOLD = 1500;
-export const BASIC_INCOME_BONUS = 50;
-
 // 既存のすべての ColorGroup を列挙（types.ts と一致）
 export const STOCK_COLOR_GROUPS: ColorGroup[] = [
   'brown',
@@ -169,15 +148,6 @@ export function validateStockBuy(
   return { ok: true, cost };
 }
 
-// 株価変動デルタの計算: BULK_PURCHASE_THRESHOLD 株以上の一括購入で急騰ボーナスを適用
-// 売却（sharesDelta < 0）は常に線形のまま
-export function calculateStockPriceDelta(sharesDelta: number): number {
-  if (sharesDelta >= BULK_PURCHASE_THRESHOLD) {
-    return sharesDelta * PRICE_DELTA_PER_SHARE * BULK_PRICE_MULTIPLIER;
-  }
-  return sharesDelta * PRICE_DELTA_PER_SHARE;
-}
-
 // 株売却の検証＆獲得額計算
 export type StockSellValidation =
   | { ok: true; proceeds: number }
@@ -188,27 +158,6 @@ export type StockSellReason =
   | 'COLOR_UNKNOWN'
   | 'INVALID_SHARES'
   | 'INSUFFICIENT_HOLDINGS';
-
-// 累進課税額の計算: 社会配当 socialDividend に対し、総資産 totalAssets に応じた税額を返す
-export function calculateProgressiveTax(
-  socialDividend: number,
-  totalAssets: number,
-): number {
-  for (const bracket of PROGRESSIVE_TAX_BRACKETS) {
-    if (totalAssets < bracket.threshold) {
-      return Math.floor(socialDividend * bracket.rate);
-    }
-  }
-  return Math.floor(
-    socialDividend *
-      PROGRESSIVE_TAX_BRACKETS[PROGRESSIVE_TAX_BRACKETS.length - 1].rate,
-  );
-}
-
-// ベーシックインカムボーナスの計算: 総資産が閾値以下のプレイヤーへの追加支給額
-export function calculateBasicIncomeBonus(totalAssets: number): number {
-  return totalAssets <= BASIC_INCOME_THRESHOLD ? BASIC_INCOME_BONUS : 0;
-}
 
 export function validateStockSell(
   state: GameState,

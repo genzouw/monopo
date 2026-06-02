@@ -63,8 +63,6 @@ export type Player = {
 export type FeatureFlags = {
   stocks?: boolean; // エリア株売買・配当（応援カード）。
   // 株価は需要供給モデル（売買で動的変動）＋家・ホテル建設で連動上昇。
-  progressiveTax?: boolean; // 累進課税: GOマス通過時の社会配当を資産額に応じて減額
-  basicIncome?: boolean; // ベーシックインカム: 資産が少ないプレイヤーのGO配当を増額
 };
 
 // ── P1 拡張: エリア株（カラーグループ株） ──
