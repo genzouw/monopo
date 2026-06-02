@@ -29,6 +29,15 @@ import {
   validateStockBuy,
   validateStockSell,
 } from './economy';
+import {
+  FIRE_PROBABILITY,
+  INSURANCE_COLLECT_INTERVAL,
+  calculateFirePayout,
+  calculatePremium,
+  isInsuranceEnabled,
+  isPropertyInsured,
+  shouldCollectPremium,
+} from './insurance';
 
 // ── 定数 ──
 
@@ -488,6 +497,7 @@ export function createInitialGameState(): GameState {
     currentCard: null,
     message: 'ゲームをはじめよう！',
     winnerId: null,
+    turnCount: 0,
   };
 }
 
@@ -542,6 +552,8 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       const stockMarket = action.features?.stocks
         ? createInitialStockMarket()
         : undefined;
+      // P2-c 拡張: 保険機能 ON のときだけ保険加入状態を初期化（OFF時は undefined）
+      const insuranceState = action.features?.insurance ? {} : undefined;
       return {
         ...state,
         phase: 'playing',
@@ -561,6 +573,8 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         winnerId: null,
         features: action.features,
         stockMarket,
+        insuranceState,
+        turnCount: 0,
       };
     }
 
@@ -1372,8 +1386,19 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       );
       const nextPlayer = state.players[nextIndex];
 
+      const newTurnCount = (state.turnCount ?? 0) + 1;
+      let stateAfterInsurance = { ...state, turnCount: newTurnCount };
+
+      // P2-c 拡張: 保険システム（featureFlag OFF 時は完全スキップ）
+      if (isInsuranceEnabled(state)) {
+        stateAfterInsurance = applyInsuranceOnEndTurn(
+          stateAfterInsurance,
+          newTurnCount,
+        );
+      }
+
       return {
-        ...state,
+        ...stateAfterInsurance,
         currentPlayerIndex: nextIndex,
         turnPhase: 'roll',
         dice: { values: [1, 1], doubles: 0, rolled: false },
@@ -1430,6 +1455,49 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         -action.shares,
         result.proceeds,
       );
+    }
+
+    // ── P2-c 拡張: 不動産保険 ──
+    case 'BUY_INSURANCE': {
+      if (!isInsuranceEnabled(state)) return state;
+      const player = state.players[state.currentPlayerIndex];
+      const propState = state.propertyStates[action.propertyId];
+      // 自分が所有している物件のみ保険加入可
+      if (!propState || propState.ownerId !== player.id) return state;
+      // すでに加入済みなら変更なし
+      if (isPropertyInsured(state.insuranceState, action.propertyId))
+        return state;
+      const space = getSpaceById(action.propertyId, state.board);
+      const premium = calculatePremium(space?.price ?? 0);
+      // 保険料が払えない場合は加入不可
+      if (player.money < premium) return state;
+      const newInsuranceState = {
+        ...state.insuranceState,
+        [action.propertyId]: true,
+      };
+      const newState = updateCurrentPlayer(state, {
+        money: player.money - premium,
+      });
+      return {
+        ...newState,
+        insuranceState: newInsuranceState,
+        message: `${space?.name ?? action.propertyId}に保険をかけたよ！$${premium}の保険料をはらったよ`,
+      };
+    }
+    case 'CANCEL_INSURANCE': {
+      if (!isInsuranceEnabled(state)) return state;
+      const player = state.players[state.currentPlayerIndex];
+      const propState = state.propertyStates[action.propertyId];
+      if (!propState || propState.ownerId !== player.id) return state;
+      if (!isPropertyInsured(state.insuranceState, action.propertyId))
+        return state;
+      const { [action.propertyId]: _, ...rest } = state.insuranceState ?? {};
+      const space = getSpaceById(action.propertyId, state.board);
+      return {
+        ...state,
+        insuranceState: rest,
+        message: `${space?.name ?? action.propertyId}の保険をかいじょしたよ`,
+      };
     }
 
     default:
@@ -1509,4 +1577,82 @@ function nextAuctionPlayer(state: GameState, auction: AuctionState): number {
     count++;
   }
   return next;
+}
+
+// ── P2-c ヘルパー: END_TURN 時の保険処理 ──
+// 1. 10ターン節目なら加入中物件の保険料を徴収
+// 2. 全プレイヤーの物件に対して火災チェック（2%）
+// 発火した物件は消滅し、保険あり→評価額返金、なし→スクラップ分返金
+function applyInsuranceOnEndTurn(
+  state: GameState,
+  newTurnCount: number,
+): GameState {
+  let players = [...state.players];
+  let propertyStates = { ...state.propertyStates };
+  let insuranceState = { ...(state.insuranceState ?? {}) };
+  const messages: string[] = [];
+
+  // 保険料徴収（10ターン節目のみ）
+  if (shouldCollectPremium(newTurnCount)) {
+    players = players.map((p) => {
+      if (p.isBankrupt) return p;
+      let totalPremium = 0;
+      for (const propId of p.properties) {
+        if (!isPropertyInsured(insuranceState, propId)) continue;
+        const space = getSpaceById(propId, state.board);
+        totalPremium += calculatePremium(space?.price ?? 0);
+      }
+      if (totalPremium === 0) return p;
+      messages.push(`${p.name}の保険料$${totalPremium}を徴収したよ`);
+      return { ...p, money: p.money - totalPremium };
+    });
+  }
+
+  // 火災チェック（毎ターン、全プレイヤーの全物件）
+  // 確認用に FIRE_PROBABILITY を参照（定数として使用）
+  void FIRE_PROBABILITY;
+  const fireMessages: string[] = [];
+  const updatedPlayers = players.map((p) => {
+    if (p.isBankrupt) return p;
+    let moneyDelta = 0;
+    const destroyedProps: string[] = [];
+    for (const propId of p.properties) {
+      const space = getSpaceById(propId, state.board);
+      // 不動産（property）のみ火災対象
+      if (!space || space.type !== 'property') continue;
+      const roll = getSecureRandomInt(1, 100);
+      if (roll > FIRE_PROBABILITY * 100) continue;
+      // 火災発生
+      const insured = isPropertyInsured(insuranceState, propId);
+      const payout = calculateFirePayout(space.price ?? 0, insured);
+      moneyDelta += payout;
+      destroyedProps.push(propId);
+      propertyStates = {
+        ...propertyStates,
+        [propId]: { ownerId: null, houses: 0, isMortgaged: false },
+      };
+      // 保険加入状態から除去
+      delete insuranceState[propId];
+      fireMessages.push(
+        insured
+          ? `🔥 ${p.name}の${space.name}で火災！保険で$${payout}補填されたよ`
+          : `🔥 ${p.name}の${space.name}で火災！保険なしでスクラップ$${payout}だよ…`,
+      );
+    }
+    if (destroyedProps.length === 0) return p;
+    return {
+      ...p,
+      money: p.money + moneyDelta,
+      properties: p.properties.filter((id) => !destroyedProps.includes(id)),
+    };
+  });
+
+  const allMessages = [...messages, ...fireMessages];
+  return {
+    ...state,
+    players: updatedPlayers,
+    propertyStates,
+    insuranceState,
+    message: allMessages.length > 0 ? allMessages.join(' / ') : state.message,
+  };
 }
