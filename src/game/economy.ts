@@ -177,3 +177,18 @@ export function validateStockSell(
   const proceeds = market.pricePerShare * shares;
   return { ok: true, proceeds };
 }
+
+// Phase 1.2 / Phase 3-c 拡張: FORCE_BUY の可変乗数計算（3〜5倍）
+// 物件の開発度（家・ホテルの数）に応じて買収コストが上昇する。
+// 家なし=3倍、ホテル=5倍。ポイズンピル的効果: 増資すると買収が高くなる。
+export const FORCE_BUY_MULTIPLIER_MIN = 3;
+export const FORCE_BUY_MULTIPLIER_MAX = 5;
+
+export function calculateForceBuyMultiplier(houses: number): number {
+  // houses: 0-4が家、5がホテル
+  const normalized = Math.max(0, Math.min(houses, 5));
+  return (
+    FORCE_BUY_MULTIPLIER_MIN +
+    ((FORCE_BUY_MULTIPLIER_MAX - FORCE_BUY_MULTIPLIER_MIN) * normalized) / 5
+  );
+}

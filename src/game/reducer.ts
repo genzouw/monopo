@@ -22,6 +22,7 @@ import { getSecureRandomInt } from './random';
 import {
   HOUSE_PRICE_BOOST,
   PRICE_DELTA_PER_SHARE,
+  calculateForceBuyMultiplier,
   calculateNextPrice,
   createInitialStockMarket,
   distributeDividends,
@@ -29,6 +30,14 @@ import {
   validateStockBuy,
   validateStockSell,
 } from './economy';
+import {
+  applyEconomyFactor,
+  applyFinancialCrisisToStocks,
+  isMacroEconomyEnabled,
+  shouldUpdateEconomy,
+  transitionEconomy,
+} from './systems/macroEconomy';
+import { getSecureRandom } from './random';
 
 // ── 定数 ──
 
@@ -243,12 +252,17 @@ function handleLanding(state: GameState): GameState {
 
       // 他のプレイヤーが持っている → 家賃を払う
       const owner = state.players.find((p) => p.id === propState.ownerId)!;
-      const rent = calculateRent(
+      const baseRent = calculateRent(
         space.id,
         state.propertyStates,
         state.board,
         state.dice.values,
       );
+      // P2-a 拡張: 景気乗数を家賃に適用（macroEconomy OFF時は通常家賃のまま）
+      const rent =
+        isMacroEconomyEnabled(state) && state.economyStatus
+          ? applyEconomyFactor(baseRent, state.economyStatus)
+          : baseRent;
 
       // P1 拡張: 株式が有効なら家賃の一部を配当として株主へ配分
       // プレイヤーの総資産を超える家賃に対して配当を計算すると、破産時に
@@ -280,15 +294,17 @@ function handleLanding(state: GameState): GameState {
         return p;
       });
 
-      // 5倍買い可能かチェック（所持金が足りる場合のみ提示）
-      const forceBuyCost = (space.price ?? 0) * 5;
+      // P1.2 拡張: FORCE_BUY 可変乗数（3〜5倍）で買い取り可能かチェック（所持金が足りる場合のみ提示）
+      const forceBuyMultiplier = calculateForceBuyMultiplier(propState.houses);
+      const forceBuyCost = Math.floor((space.price ?? 0) * forceBuyMultiplier);
+      const forceBuyMultiplierDisplay = forceBuyMultiplier.toFixed(1);
       const playerAfterRent = newPlayers.find((p) => p.id === player.id)!;
       if (forceBuyCost > 0 && playerAfterRent.money >= forceBuyCost) {
         return {
           ...state,
           players: newPlayers,
           turnPhase: 'forceBuy',
-          message: `${owner.name}に$${rent}のとまり賃をはらったよ。$${forceBuyCost}で5ばいがいする？`,
+          message: `${owner.name}に$${rent}のとまり賃をはらったよ。$${forceBuyCost}で${forceBuyMultiplierDisplay}ばいがいする？`,
         };
       }
 
@@ -561,6 +577,9 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         winnerId: null,
         features: action.features,
         stockMarket,
+        // P2-a 拡張: ターン数・景気ステータスを初期化
+        turnCount: 0,
+        economyStatus: action.features?.macroEconomy ? 'normal' : undefined,
       };
     }
 
@@ -971,14 +990,16 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       };
     }
 
-    // ── FORCE_BUY (5倍買い) ──
+    // ── FORCE_BUY (P1.2拡張: 3〜5倍可変買い) ──
     case 'FORCE_BUY': {
       const player = state.players[state.currentPlayerIndex];
       const space = state.board[player.position]!;
       const propState = state.propertyStates[space.id];
       if (!propState?.ownerId || propState.ownerId === player.id) return state;
 
-      const cost = (space.price ?? 0) * 5;
+      // P1.2 拡張: 開発度（家・ホテル数）に応じた可変乗数（3〜5倍）
+      const multiplier = calculateForceBuyMultiplier(propState.houses);
+      const cost = Math.floor((space.price ?? 0) * multiplier);
       if (player.money < cost) return state;
 
       const ownerId = propState.ownerId;
@@ -1014,12 +1035,13 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         [space.id]: { ownerId: player.id, houses: 0, isMortgaged: false },
       };
 
+      const multiplierDisplay = multiplier.toFixed(1);
       return {
         ...state,
         players: newPlayers,
         propertyStates: newPropertyStates,
         turnPhase: 'endTurn',
-        message: `${player.name}が${space.name}を5ばいがいしたよ！（${owner.name}に$${toOwner}${houseSellBack > 0 ? `+おうち分$${houseSellBack}` : ''}）`,
+        message: `${player.name}が${space.name}を${multiplierDisplay}ばいがいしたよ！（${owner.name}に$${toOwner}${houseSellBack > 0 ? `+おうち分$${houseSellBack}` : ''}）`,
       };
     }
 
@@ -1372,14 +1394,50 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       );
       const nextPlayer = state.players[nextIndex];
 
+      // P2-a 拡張: ターン数インクリメントと景気サイクル更新
+      const newTurnCount = (state.turnCount ?? 0) + 1;
+      let newEconomyStatus = state.economyStatus;
+      let newStockMarket = state.stockMarket;
+      let economyMessage = '';
+
+      if (isMacroEconomyEnabled(state) && newEconomyStatus) {
+        if (shouldUpdateEconomy(newTurnCount)) {
+          const prevStatus = newEconomyStatus;
+          newEconomyStatus = transitionEconomy(
+            newEconomyStatus,
+            getSecureRandom(),
+          );
+          // 金融危機に突入した場合: 全株価を50%減
+          if (newEconomyStatus === 'crisis' && prevStatus !== 'crisis') {
+            newStockMarket = applyFinancialCrisisToStocks(
+              newStockMarket,
+            ) as typeof newStockMarket;
+            economyMessage = ' ⚠️金融危機！株価が暴落したよ！';
+          } else if (newEconomyStatus !== prevStatus) {
+            const statusNames: Record<string, string> = {
+              boom: '好況',
+              normal: '通常',
+              recession: '不況',
+              crisis: '金融危機',
+            };
+            economyMessage = ` 📊景気が${statusNames[newEconomyStatus]}になったよ！`;
+          }
+        }
+      }
+
       return {
         ...state,
         currentPlayerIndex: nextIndex,
         turnPhase: 'roll',
         dice: { values: [1, 1], doubles: 0, rolled: false },
-        message: nextPlayer.inJail
-          ? `${nextPlayer.name}のばんだよ！刑務所にいるよ`
-          : `${nextPlayer.name}のばんだよ！サイコロをふろう！`,
+        turnCount: newTurnCount,
+        economyStatus: newEconomyStatus,
+        stockMarket: newStockMarket,
+        message:
+          (nextPlayer.inJail
+            ? `${nextPlayer.name}のばんだよ！刑務所にいるよ`
+            : `${nextPlayer.name}のばんだよ！サイコロをふろう！`) +
+          economyMessage,
       };
     }
 
