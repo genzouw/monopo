@@ -66,7 +66,7 @@ export type EconomyStatus = 'boom' | 'normal' | 'recession' | 'crisis';
 export type FeatureFlags = {
   stocks?: boolean; // エリア株売買・配当（応援カード）。
   // 株価は需要供給モデル（売買で動的変動）＋家・ホテル建設で連動上昇。
-  macroEconomy?: boolean; // Phase 2-a: マクロ経済サイクル（好況・不況・インフレ・デフレ・金融危機）
+  macroEconomy?: boolean; // Phase 2-a: マクロ経済サイクル（好況・通常・不況・金融危機の4状態を遷移）
 };
 
 // ── P1 拡張: エリア株（カラーグループ株） ──
