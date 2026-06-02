@@ -1,7 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import type { ColorGroup, GameState, Player } from '../types';
 import { BOARD_SPACES } from '../board';
-import { createInitialGameState, gameReducer } from '../reducer';
+import {
+  SOCIAL_DIVIDEND_OTHERS,
+  SOCIAL_DIVIDEND_SELF,
+  createInitialGameState,
+  gameReducer,
+} from '../reducer';
 import {
   BASIC_INCOME_BONUS,
   BASIC_INCOME_THRESHOLD,
@@ -465,6 +470,102 @@ describe('reducer P1 拡張', () => {
       const next = gameReducer(state, { type: 'CLOSE_STOCK_DIALOG' });
       expect(next.turnPhase).toBe('endTurn');
     });
+  });
+});
+
+describe('distributeSocialDividend 統合テスト (GO通過)', () => {
+  function makeGoPassState(
+    features: { progressiveTax?: boolean; basicIncome?: boolean },
+    playerMoney: number,
+  ): GameState {
+    const state = gameReducer(createInitialGameState(), {
+      type: 'START_GAME',
+      playerNames: ['たろう', 'はなこ'],
+      playerTokens: ['🚗', '🎩'],
+      features,
+    });
+    return {
+      ...state,
+      players: state.players.map((p, i) =>
+        i === 0 ? { ...p, position: 38, money: playerMoney } : p,
+      ),
+      dice: { values: [3, 3], doubles: 0, rolled: true },
+      turnPhase: 'moving',
+    };
+  }
+
+  it('機能フラグ未設定: 常に SOCIAL_DIVIDEND_SELF を受け取る', () => {
+    const state = makeGoPassState({}, 3500);
+    const next = gameReducer(state, { type: 'FINISH_MOVING' });
+    expect(next.players[0].money).toBe(3500 + SOCIAL_DIVIDEND_SELF);
+  });
+
+  it('progressiveTax のみ有効: 高資産プレイヤーが課税される', () => {
+    // 資産 3500: 3000-6000 ブラケット → 10%課税
+    const state = makeGoPassState({ progressiveTax: true }, 3500);
+    const next = gameReducer(state, { type: 'FINISH_MOVING' });
+    const tax = calculateProgressiveTax(SOCIAL_DIVIDEND_SELF, 3500);
+    expect(next.players[0].money).toBe(3500 + SOCIAL_DIVIDEND_SELF - tax);
+  });
+
+  it('progressiveTax のみ有効: 低資産プレイヤーは課税なし', () => {
+    // 資産 1500: 3000未満 → 0%課税
+    const state = makeGoPassState({ progressiveTax: true }, 1500);
+    const next = gameReducer(state, { type: 'FINISH_MOVING' });
+    expect(next.players[0].money).toBe(1500 + SOCIAL_DIVIDEND_SELF);
+  });
+
+  it('basicIncome のみ有効: 低資産プレイヤーがボーナスを受け取る', () => {
+    // 資産 1000 <= BASIC_INCOME_THRESHOLD
+    const state = makeGoPassState({ basicIncome: true }, 1000);
+    const next = gameReducer(state, { type: 'FINISH_MOVING' });
+    expect(next.players[0].money).toBe(
+      1000 + SOCIAL_DIVIDEND_SELF + BASIC_INCOME_BONUS,
+    );
+  });
+
+  it('basicIncome のみ有効: 高資産プレイヤーはボーナスなし', () => {
+    // 資産 2000 > BASIC_INCOME_THRESHOLD
+    const state = makeGoPassState({ basicIncome: true }, 2000);
+    const next = gameReducer(state, { type: 'FINISH_MOVING' });
+    expect(next.players[0].money).toBe(2000 + SOCIAL_DIVIDEND_SELF);
+  });
+
+  it('両フラグ有効・高資産: 課税のみ適用（ボーナスなし）、課税が先に行われる', () => {
+    // 資産 4000: 10%課税、threshold超のためボーナスなし
+    const state = makeGoPassState(
+      { progressiveTax: true, basicIncome: true },
+      4000,
+    );
+    const next = gameReducer(state, { type: 'FINISH_MOVING' });
+    const tax = calculateProgressiveTax(SOCIAL_DIVIDEND_SELF, 4000);
+    expect(next.players[0].money).toBe(4000 + SOCIAL_DIVIDEND_SELF - tax);
+  });
+
+  it('両フラグ有効・低資産: ボーナスのみ適用（課税なし）', () => {
+    // 資産 1000: 課税なし（3000未満）、ボーナスあり
+    const state = makeGoPassState(
+      { progressiveTax: true, basicIncome: true },
+      1000,
+    );
+    const next = gameReducer(state, { type: 'FINISH_MOVING' });
+    expect(next.players[0].money).toBe(
+      1000 + SOCIAL_DIVIDEND_SELF + BASIC_INCOME_BONUS,
+    );
+  });
+
+  it('課税は配当を超えない（最高税率でも最低0）', () => {
+    // 資産 99999: 最高税率40%、税額 = floor(150 * 0.4) = 60 < 150
+    const state = makeGoPassState({ progressiveTax: true }, 99999);
+    const next = gameReducer(state, { type: 'FINISH_MOVING' });
+    expect(next.players[0].money).toBeGreaterThanOrEqual(99999);
+  });
+
+  it('他プレイヤーは GO 通過者の課税に関わらず SOCIAL_DIVIDEND_OTHERS を受け取る', () => {
+    const state = makeGoPassState({ progressiveTax: true }, 3500);
+    const beforeMoney = state.players[1].money;
+    const next = gameReducer(state, { type: 'FINISH_MOVING' });
+    expect(next.players[1].money).toBe(beforeMoney + SOCIAL_DIVIDEND_OTHERS);
   });
 });
 
