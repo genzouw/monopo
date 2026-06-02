@@ -43,3 +43,8 @@
 ### GitHub Secret Scanning と Push Protection の推奨 (リポジトリ管理者向け)
 
 リポジトリ管理者に対して、GitHub ネイティブの [Secret Scanning](https://docs.github.com/code-security/secret-scanning/about-secret-scanning) および [Push Protection](https://docs.github.com/code-security/secret-scanning/protecting-pushes-with-secret-scanning) をリポジトリ設定画面から有効化することを強く推奨します。これにより、ローカルのチェックをすり抜けたシークレットも push 時にサーバー側でブロックされます。
+
+### GitHub Actionsの安全な設定と `pull_request_target` の禁止
+
+CI 経由でのトークンやシークレットの流出を防ぐため、以下のルールを適用しています。
+- **`pull_request_target` の使用禁止**: フォーク元から悪意のあるコードがシークレット付きで実行されるリスクがあるため、`pull_request_target` トリガーの使用を禁止し、通常の `pull_request` に統一しています。

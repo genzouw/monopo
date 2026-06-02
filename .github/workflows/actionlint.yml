@@ -77,3 +77,19 @@ jobs:
             exit 1
           fi
           echo "✅ 全ての外部 Action 参照がブランチ追跡を回避できています。"
+
+      - name: Reject pull_request_target
+        run: |
+          set -euo pipefail
+          violations=$(grep -rEn \
+            --include='*.yml' --include='*.yaml' \
+            '^[[:space:]]*pull_request_target:' \
+            .github/workflows || true)
+          if [ -n "$violations" ]; then
+            echo "::error::フォークPRからのシークレット漏洩リスクがあるため、pull_request_target の使用は禁止されています:"
+            echo "$violations"
+            echo ""
+            echo "修正方法: 通常の \`pull_request\` トリガーを使用してください。"
+            /bin/false
+          fi
+          echo "✅ pull_request_target の使用はありません。"
