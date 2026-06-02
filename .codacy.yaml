@@ -27,4 +27,3 @@ exclude_paths:
   - 'src/components/common/Dialog.tsx'
   - 'src/game/types.ts'
   - 'src/game/actions.ts'
-  - 'src/game/systems/macroEconomy.ts'

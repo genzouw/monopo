@@ -2,7 +2,12 @@
 // reducer.ts を肥大化させないため、景気遷移・乗数計算はここに集約する。
 // 既存ゲーム挙動を破壊しないよう、本ファイルの関数はすべて副作用なしの計算関数として実装する。
 
-import type { ColorGroupStock, EconomyStatus, GameState } from '../types';
+import type {
+  ColorGroup,
+  ColorGroupStock,
+  EconomyStatus,
+  GameState,
+} from '../types';
 
 // 景気乗数（仕様: 好況=1.3、通常=1.0、不況=0.7、金融危機=0.4）
 export const ECONOMY_FACTORS: Record<EconomyStatus, number> = {
@@ -48,15 +53,17 @@ export function transitionEconomy(
 ): EconomyStatus {
   const transitions = ECONOMY_TRANSITION_MATRIX[current];
   let cumulative = 0;
+  let lastValidStatus = current;
   for (const [status, prob] of Object.entries(transitions) as [
     EconomyStatus,
     number,
   ][]) {
     if (prob <= 0) continue;
     cumulative += prob;
+    lastValidStatus = status;
     if (random < cumulative) return status;
   }
-  return current;
+  return lastValidStatus;
 }
 
 /**
@@ -119,19 +126,24 @@ export function isMacroEconomyEnabled(state: GameState): boolean {
  * `stockMarket` が `undefined` の場合はそのまま `undefined` を返す。
  *
  * @param stockMarket 現在の株式市場（カラーグループ → 株情報のマップ）。`undefined` 可。
- * @returns 株価を 50% 減（最低 1）にした新しい株式市場。入力が `undefined` ならそのまま `undefined`。
+ * @returns 株価を `CRISIS_STOCK_PRICE_MULTIPLIER` 倍（最低 1）にした新しい株式市場。入力が `undefined` ならそのまま `undefined`。
  */
+const CRISIS_STOCK_PRICE_MULTIPLIER = 0.5;
+
 export function applyFinancialCrisisToStocks(
-  stockMarket: Partial<Record<string, ColorGroupStock>> | undefined,
-): Partial<Record<string, ColorGroupStock>> | undefined {
+  stockMarket: Partial<Record<ColorGroup, ColorGroupStock>> | undefined,
+): Partial<Record<ColorGroup, ColorGroupStock>> | undefined {
   if (!stockMarket) return stockMarket;
   const newMarket = { ...stockMarket };
-  for (const color of Object.keys(newMarket)) {
+  for (const color of Object.keys(newMarket) as ColorGroup[]) {
     const stock = newMarket[color];
     if (stock) {
       newMarket[color] = {
         ...stock,
-        pricePerShare: Math.max(Math.floor(stock.pricePerShare * 0.5), 1),
+        pricePerShare: Math.max(
+          Math.floor(stock.pricePerShare * CRISIS_STOCK_PRICE_MULTIPLIER),
+          1,
+        ),
       };
     }
   }
