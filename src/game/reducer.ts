@@ -56,12 +56,21 @@ export const SOCIAL_DIVIDEND_OTHERS = 50;
 // ── ヘルパー関数 ──
 
 function distributeSocialDividend(state: GameState, newPos: number): Player[] {
+  // P2-a 拡張: macroEconomy 有効時は GO 通過ボーナスにも景気乗数を適用する
+  // (Issue #167 受け入れ基準: 家賃・GO 収入・株価が economy_factor で補正される)
+  const useEconomy = isMacroEconomyEnabled(state) && state.economyStatus;
+  const selfBonus = useEconomy
+    ? applyEconomyFactor(SOCIAL_DIVIDEND_SELF, state.economyStatus!)
+    : SOCIAL_DIVIDEND_SELF;
+  const othersBonus = useEconomy
+    ? applyEconomyFactor(SOCIAL_DIVIDEND_OTHERS, state.economyStatus!)
+    : SOCIAL_DIVIDEND_OTHERS;
   return state.players.map((p, index) => {
     if (p.isBankrupt) return p;
     if (index === state.currentPlayerIndex) {
-      return { ...p, position: newPos, money: p.money + SOCIAL_DIVIDEND_SELF };
+      return { ...p, position: newPos, money: p.money + selfBonus };
     } else {
-      return { ...p, money: p.money + SOCIAL_DIVIDEND_OTHERS };
+      return { ...p, money: p.money + othersBonus };
     }
   });
 }
