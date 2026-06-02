@@ -56,7 +56,16 @@ export const SOCIAL_DIVIDEND_OTHERS = 50;
 
 // ── ヘルパー関数 ──
 
-function distributeSocialDividend(state: GameState, newPos: number): Player[] {
+type SocialDividendResult = {
+  players: Player[];
+  selfBonus: number;
+  othersBonus: number;
+};
+
+function distributeSocialDividend(
+  state: GameState,
+  newPos: number,
+): SocialDividendResult {
   // P2-a 拡張: macroEconomy 有効時は GO 通過ボーナスにも景気乗数を適用する
   // (Issue #167 受け入れ基準: 家賃・GO 収入・株価が economy_factor で補正される)
   const useEconomy = isMacroEconomyEnabled(state) && state.economyStatus;
@@ -66,14 +75,14 @@ function distributeSocialDividend(state: GameState, newPos: number): Player[] {
   const othersBonus = useEconomy
     ? applyEconomyFactor(SOCIAL_DIVIDEND_OTHERS, state.economyStatus!)
     : SOCIAL_DIVIDEND_OTHERS;
-  return state.players.map((p, index) => {
+  const players = state.players.map((p, index) => {
     if (p.isBankrupt) return p;
     if (index === state.currentPlayerIndex) {
       return { ...p, position: newPos, money: p.money + selfBonus };
-    } else {
-      return { ...p, money: p.money + othersBonus };
     }
+    return { ...p, money: p.money + othersBonus };
   });
+  return { players, selfBonus, othersBonus };
 }
 
 export function rollDice(): [number, number] {
@@ -346,10 +355,11 @@ function applyCardEffect(state: GameState, card: Card): GameState {
 
       let newState = { ...state };
       if (passedGo) {
+        const dividend = distributeSocialDividend(state, newPos);
         newState = {
           ...newState,
-          players: distributeSocialDividend(state, newPos),
-          message: `GOをとおりすぎた！みんなに$${SOCIAL_DIVIDEND_OTHERS}ずつ、自分は$${SOCIAL_DIVIDEND_SELF}の社会配当をもらったよ！`,
+          players: dividend.players,
+          message: `GOをとおりすぎた！みんなに$${dividend.othersBonus}ずつ、自分は$${dividend.selfBonus}の社会配当をもらったよ！`,
         };
       } else {
         newState = updateCurrentPlayer(newState, {
@@ -365,10 +375,11 @@ function applyCardEffect(state: GameState, card: Card): GameState {
       const passedGo = action.spaces > 0 && newPos < player.position;
       let newState = { ...state };
       if (passedGo) {
+        const dividend = distributeSocialDividend(state, newPos);
         newState = {
           ...newState,
-          players: distributeSocialDividend(state, newPos),
-          message: `GOをとおりすぎた！みんなに$${SOCIAL_DIVIDEND_OTHERS}ずつ、自分は$${SOCIAL_DIVIDEND_SELF}の社会配当をもらったよ！`,
+          players: dividend.players,
+          message: `GOをとおりすぎた！みんなに$${dividend.othersBonus}ずつ、自分は$${dividend.selfBonus}の社会配当をもらったよ！`,
         };
       } else {
         newState = updateCurrentPlayer(newState, { position: newPos });
@@ -478,10 +489,11 @@ function applyCardEffect(state: GameState, card: Card): GameState {
       const passedGo = nearestPos < player.position;
       let newState = { ...state };
       if (passedGo) {
+        const dividend = distributeSocialDividend(state, nearestPos);
         newState = {
           ...newState,
-          players: distributeSocialDividend(state, nearestPos),
-          message: `GOをとおりすぎた！みんなに$${SOCIAL_DIVIDEND_OTHERS}ずつ、自分は$${SOCIAL_DIVIDEND_SELF}の社会配当をもらったよ！`,
+          players: dividend.players,
+          message: `GOをとおりすぎた！みんなに$${dividend.othersBonus}ずつ、自分は$${dividend.selfBonus}の社会配当をもらったよ！`,
         };
       } else {
         newState = updateCurrentPlayer(newState, { position: nearestPos });
@@ -646,10 +658,11 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
 
       let newState = { ...state };
       if (passedGo && !player.inJail) {
+        const dividend = distributeSocialDividend(state, newPos);
         newState = {
           ...newState,
-          players: distributeSocialDividend(state, newPos),
-          message: `GOをとおりすぎた！みんなに$${SOCIAL_DIVIDEND_OTHERS}ずつ、自分は$${SOCIAL_DIVIDEND_SELF}の社会配当をもらったよ！`,
+          players: dividend.players,
+          message: `GOをとおりすぎた！みんなに$${dividend.othersBonus}ずつ、自分は$${dividend.selfBonus}の社会配当をもらったよ！`,
         };
       } else {
         newState = updateCurrentPlayer(newState, {
