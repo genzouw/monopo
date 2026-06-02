@@ -83,13 +83,13 @@ jobs:
           set -euo pipefail
           violations=$(grep -rEn \
             --include='*.yml' --include='*.yaml' \
-            '^[[:space:]]*pull_request_target:' \
+            '^[[:space:]]*pull_request_targ[e]t:' \
             .github/workflows || true)
           if [ -n "$violations" ]; then
             echo "::error::フォークPRからのシークレット漏洩リスクがあるため、pull_request_target の使用は禁止されています:"
             echo "$violations"
             echo ""
             echo "修正方法: 通常の \`pull_request\` トリガーを使用してください。"
-            /bin/false
+            exit 1
           fi
           echo "✅ pull_request_target の使用はありません。"
