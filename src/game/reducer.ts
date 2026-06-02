@@ -31,7 +31,6 @@ import {
 } from './economy';
 import {
   FIRE_PROBABILITY,
-  INSURANCE_COLLECT_INTERVAL,
   calculateFirePayout,
   calculatePremium,
   isInsuranceEnabled,
