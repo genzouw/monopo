@@ -61,6 +61,8 @@ export type Player = {
   cryptoHolding?: CryptoHolding;
   vcInvestments?: VCInvestment[];
   esgHoldings?: ESGHolding[];
+  // P3-a 拡張: ローン（features.loan が有効なときのみ意味を持つ）
+  loan?: LoanState;
 };
 
 // ── P1 拡張: 機能フラグ（OFF時は既存挙動完全互換） ──
@@ -68,6 +70,7 @@ export type FeatureFlags = {
   stocks?: boolean; // エリア株売買・配当（応援カード）。
   // 株価は需要供給モデル（売買で動的変動）＋家・ホテル建設で連動上昇。
   altAssets?: boolean; // P3 拡張: 新アセットクラス（暗号資産・VC・ESG）。
+  loan?: boolean; // P3-a 拡張: 変動金利ローン・クレジットスコア。
 };
 
 // ── P1 拡張: エリア株（カラーグループ株） ──
@@ -141,6 +144,14 @@ export type TradeValidationResult =
   | { isValid: true }
   | { isValid: false; reason: TradeInvalidReason };
 
+// ── P3-a 拡張: ローン状態 ──
+export type LoanState = {
+  principal: number; // 残元本
+  annualRate: number; // 現在の年利（小数）
+  monthlyPayment: number; // 毎ターン返済額（元利均等）
+  remainingPayments: number; // 残返済回数
+};
+
 // ── P3 拡張: 新アセットクラス ──
 
 export type CryptoHolding = {
@@ -197,6 +208,8 @@ export type GameState = {
   stockMarket?: Partial<Record<ColorGroup, ColorGroupStock>>;
   // P3 拡張: グローバルターンカウンター（END_TURN ごとに +1）
   turnCount?: number;
+  // P3-a 拡張: 基準金利（features.loan が有効なときのみ意味を持つ）
+  baseRate?: number;
 };
 
 // ── ファクトリ関数 ──

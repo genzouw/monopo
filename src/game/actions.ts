@@ -48,4 +48,7 @@ export type GameAction =
   | { type: 'SELL_CRYPTO' }
   | { type: 'INVEST_VC'; amount: number }
   | { type: 'BUY_ESG'; amount: number }
-  | { type: 'SELL_ESG'; index: number };
+  | { type: 'SELL_ESG'; index: number }
+  // P3-a 拡張: 変動金利ローン
+  | { type: 'TAKE_LOAN'; amount: number }
+  | { type: 'REPAY_LOAN' };
