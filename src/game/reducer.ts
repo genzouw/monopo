@@ -1416,12 +1416,17 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
             newEconomyStatus,
             getSecureRandom(),
           );
-          // 金融危機に突入した場合: 全株価を50%減
+          // 金融危機に突入した場合: 株式機能 ON のときだけ全株価を 50% 減＋暴落メッセージ。
+          // 株式機能 OFF のときは存在しない株価暴落をアナウンスしないよう、汎用文言にする。
           if (newEconomyStatus === 'crisis' && prevStatus !== 'crisis') {
-            newStockMarket = applyFinancialCrisisToStocks(
-              newStockMarket,
-            ) as typeof newStockMarket;
-            economyMessage = ' ⚠️金融危機！株価が暴落したよ！';
+            if (isStocksEnabled(state)) {
+              newStockMarket = applyFinancialCrisisToStocks(
+                newStockMarket,
+              ) as typeof newStockMarket;
+              economyMessage = ' ⚠️金融危機！株価が暴落したよ！';
+            } else {
+              economyMessage = ' ⚠️金融危機！景気が急変したよ！';
+            }
           } else if (newEconomyStatus !== prevStatus) {
             const statusNames: Record<string, string> = {
               boom: '好況',
