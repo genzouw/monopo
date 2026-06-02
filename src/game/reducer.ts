@@ -21,10 +21,8 @@ import {
 import { getSecureRandomInt } from './random';
 import {
   HOUSE_PRICE_BOOST,
-  calculateBasicIncomeBonus,
+  PRICE_DELTA_PER_SHARE,
   calculateNextPrice,
-  calculateProgressiveTax,
-  calculateStockPriceDelta,
   createInitialStockMarket,
   distributeDividends,
   isStocksEnabled,
@@ -48,35 +46,11 @@ export const SOCIAL_DIVIDEND_OTHERS = 50;
 
 // ── ヘルパー関数 ──
 
-function computeSelfDividend(state: GameState, p: Player): number {
-  const features = state.features;
-  let dividend = SOCIAL_DIVIDEND_SELF;
-  if (features?.progressiveTax === true || features?.basicIncome === true) {
-    let assets = calculateTotalAssets(p, state.propertyStates, state.board);
-    if (state.stockMarket && p.stocks) {
-      for (const [color, shares] of Object.entries(p.stocks)) {
-        const market = state.stockMarket[color as ColorGroup];
-        if (market) {
-          assets += (shares ?? 0) * market.pricePerShare;
-        }
-      }
-    }
-    if (features.progressiveTax === true) {
-      dividend -= calculateProgressiveTax(dividend, assets);
-    }
-    if (features.basicIncome === true) {
-      dividend += calculateBasicIncomeBonus(assets);
-    }
-  }
-  return dividend;
-}
-
 function distributeSocialDividend(state: GameState, newPos: number): Player[] {
   return state.players.map((p, index) => {
     if (p.isBankrupt) return p;
     if (index === state.currentPlayerIndex) {
-      const dividend = computeSelfDividend(state, p);
-      return { ...p, position: newPos, money: p.money + dividend };
+      return { ...p, position: newPos, money: p.money + SOCIAL_DIVIDEND_SELF };
     } else {
       return { ...p, money: p.money + SOCIAL_DIVIDEND_OTHERS };
     }
@@ -346,11 +320,10 @@ function applyCardEffect(state: GameState, card: Card): GameState {
 
       let newState = { ...state };
       if (passedGo) {
-        const selfDividend = computeSelfDividend(state, player);
         newState = {
           ...newState,
           players: distributeSocialDividend(state, newPos),
-          message: `GOをとおりすぎた！みんなに$${SOCIAL_DIVIDEND_OTHERS}ずつ、自分は$${selfDividend}の社会配当をもらったよ！`,
+          message: `GOをとおりすぎた！みんなに$${SOCIAL_DIVIDEND_OTHERS}ずつ、自分は$${SOCIAL_DIVIDEND_SELF}の社会配当をもらったよ！`,
         };
       } else {
         newState = updateCurrentPlayer(newState, {
@@ -366,11 +339,10 @@ function applyCardEffect(state: GameState, card: Card): GameState {
       const passedGo = action.spaces > 0 && newPos < player.position;
       let newState = { ...state };
       if (passedGo) {
-        const selfDividend = computeSelfDividend(state, player);
         newState = {
           ...newState,
           players: distributeSocialDividend(state, newPos),
-          message: `GOをとおりすぎた！みんなに$${SOCIAL_DIVIDEND_OTHERS}ずつ、自分は$${selfDividend}の社会配当をもらったよ！`,
+          message: `GOをとおりすぎた！みんなに$${SOCIAL_DIVIDEND_OTHERS}ずつ、自分は$${SOCIAL_DIVIDEND_SELF}の社会配当をもらったよ！`,
         };
       } else {
         newState = updateCurrentPlayer(newState, { position: newPos });
@@ -480,11 +452,10 @@ function applyCardEffect(state: GameState, card: Card): GameState {
       const passedGo = nearestPos < player.position;
       let newState = { ...state };
       if (passedGo) {
-        const selfDividend = computeSelfDividend(state, player);
         newState = {
           ...newState,
           players: distributeSocialDividend(state, nearestPos),
-          message: `GOをとおりすぎた！みんなに$${SOCIAL_DIVIDEND_OTHERS}ずつ、自分は$${selfDividend}の社会配当をもらったよ！`,
+          message: `GOをとおりすぎた！みんなに$${SOCIAL_DIVIDEND_OTHERS}ずつ、自分は$${SOCIAL_DIVIDEND_SELF}の社会配当をもらったよ！`,
         };
       } else {
         newState = updateCurrentPlayer(newState, { position: nearestPos });
@@ -646,11 +617,10 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
 
       let newState = { ...state };
       if (passedGo && !player.inJail) {
-        const selfDividend = computeSelfDividend(state, player);
         newState = {
           ...newState,
           players: distributeSocialDividend(state, newPos),
-          message: `GOをとおりすぎた！みんなに$${SOCIAL_DIVIDEND_OTHERS}ずつ、自分は$${selfDividend}の社会配当をもらったよ！`,
+          message: `GOをとおりすぎた！みんなに$${SOCIAL_DIVIDEND_OTHERS}ずつ、自分は$${SOCIAL_DIVIDEND_SELF}の社会配当をもらったよ！`,
         };
       } else {
         newState = updateCurrentPlayer(newState, {
@@ -1488,8 +1458,8 @@ function applyStockTrade(
   });
   const market = state.stockMarket?.[color];
   if (!market) return { ...state, players: newPlayers };
-  // 売買デルタを計算: 大量購入（threshold以上）は急騰ボーナス込みで価格上昇
-  const priceDelta = calculateStockPriceDelta(sharesDelta);
+  // 売買 1 株あたり ±PRICE_DELTA_PER_SHARE で価格を動かす（買い=上昇／売り=下降）
+  const priceDelta = sharesDelta * PRICE_DELTA_PER_SHARE;
   const nextPrice = calculateNextPrice(market.pricePerShare, priceDelta);
   const newStockMarket = {
     ...state.stockMarket,
