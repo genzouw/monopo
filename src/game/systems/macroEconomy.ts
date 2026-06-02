@@ -24,6 +24,9 @@ export const ECONOMY_FACTOR_MAX = 2.0;
 // 景気更新間隔（ターン数）
 export const ECONOMY_UPDATE_INTERVAL = 5;
 
+// 金融危機時の株価暴落倍率（仕様: 50% 減 = 0.5 倍）
+const CRISIS_STOCK_PRICE_MULTIPLIER = 0.5;
+
 // 景気遷移確率マトリクス: [現在の状態][次の状態] = 確率
 // 各行の合計 = 1.0。好況→金融危機、金融危機→好況への直接遷移は0。
 export const ECONOMY_TRANSITION_MATRIX: Record<
@@ -118,18 +121,17 @@ export function isMacroEconomyEnabled(state: GameState): boolean {
 }
 
 /**
- * 金融危機イベント: 全エリア株価を一律 50% 減にした新しい株式市場を返す。
+ * 金融危機イベント: 全エリア株価を `CRISIS_STOCK_PRICE_MULTIPLIER` 倍（0.5 倍 = 50% 減）にした
+ * 新しい株式市場を返す。
  *
- * 各色の `pricePerShare` を `Math.floor(price * 0.5)` で切り下げ、
- * 最低価格 1 でクランプする。元の `stockMarket` は変更せず、
- * シャローコピーした新しいオブジェクトを返す（イミュータブル性を保証）。
+ * 各色の `pricePerShare` を `Math.floor(price * CRISIS_STOCK_PRICE_MULTIPLIER)` で切り下げ、
+ * 最低価格 1 でクランプする。元の `stockMarket` は変更せず、シャローコピーした新しい
+ * オブジェクトを返す（イミュータブル性を保証）。
  * `stockMarket` が `undefined` の場合はそのまま `undefined` を返す。
  *
  * @param stockMarket 現在の株式市場（カラーグループ → 株情報のマップ）。`undefined` 可。
- * @returns 株価を `CRISIS_STOCK_PRICE_MULTIPLIER` 倍（最低 1）にした新しい株式市場。入力が `undefined` ならそのまま `undefined`。
+ * @returns 株価を 0.5 倍（最低 1）にした新しい株式市場。入力が `undefined` ならそのまま `undefined`。
  */
-const CRISIS_STOCK_PRICE_MULTIPLIER = 0.5;
-
 export function applyFinancialCrisisToStocks(
   stockMarket: Partial<Record<ColorGroup, ColorGroupStock>> | undefined,
 ): Partial<Record<ColorGroup, ColorGroupStock>> | undefined {
