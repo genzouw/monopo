@@ -1386,7 +1386,10 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       const nextPlayer = state.players[nextIndex];
 
       const newTurnCount = (state.turnCount ?? 0) + 1;
-      let stateAfterInsurance = { ...state, turnCount: newTurnCount };
+      let stateAfterInsurance: GameState = {
+        ...state,
+        turnCount: newTurnCount,
+      };
 
       // P2-c 拡張: 保険システム（featureFlag OFF 時は完全スキップ）
       if (isInsuranceEnabled(state)) {
