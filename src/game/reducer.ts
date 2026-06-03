@@ -1704,6 +1704,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     // 即時に公共基金へ寄付として反映する（控除はGO計算で推算）。
     case 'DONATE': {
       if (!isProgressiveTaxEnabled(state)) return state;
+      if (!Number.isInteger(action.amount) || action.amount <= 0) return state;
       const player = state.players.find((p) => p.id === action.playerId);
       if (!player || player.money < action.amount) return state;
       const newPlayers = state.players.map((p) => {
