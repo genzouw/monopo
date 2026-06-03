@@ -38,6 +38,11 @@ import {
   shouldUpdateEconomy,
   transitionEconomy,
 } from './systems/macroEconomy';
+import {
+  calculateProgressiveTax,
+  calculatePublicFundRedistribution,
+  isProgressiveTaxEnabled,
+} from './systems/taxation';
 import { getSecureRandom } from './random';
 
 // ── 定数 ──
@@ -60,6 +65,7 @@ type SocialDividendResult = {
   players: Player[];
   selfBonus: number;
   othersBonus: number;
+  newPublicFund: number;
 };
 
 function distributeSocialDividend(
@@ -67,22 +73,63 @@ function distributeSocialDividend(
   newPos: number,
 ): SocialDividendResult {
   // P2-a 拡張: macroEconomy 有効時は GO 通過ボーナスにも景気乗数を適用する
-  // (Issue #167 受け入れ基準: 家賃・GO 収入・株価が economy_factor で補正される)
   const useEconomy = isMacroEconomyEnabled(state) && state.economyStatus;
-  const selfBonus = useEconomy
+  const selfBonusBase = useEconomy
     ? applyEconomyFactor(SOCIAL_DIVIDEND_SELF, state.economyStatus!)
     : SOCIAL_DIVIDEND_SELF;
   const othersBonus = useEconomy
     ? applyEconomyFactor(SOCIAL_DIVIDEND_OTHERS, state.economyStatus!)
     : SOCIAL_DIVIDEND_OTHERS;
+
+  // Phase 3 拡張: 累進課税（progressiveTax ON 時のみ）
+  let selfBonus = selfBonusBase;
+  let taxCollected = 0;
+  if (isProgressiveTaxEnabled(state)) {
+    const currentPlayer = state.players[state.currentPlayerIndex];
+    const totalAssets = calculateTotalAssets(
+      currentPlayer,
+      state.propertyStates,
+      state.board,
+    );
+    taxCollected = calculateProgressiveTax(selfBonusBase, totalAssets);
+    selfBonus = selfBonusBase - taxCollected;
+  }
+
+  // 公共基金の更新と再分配
+  let newPublicFund = (state.publicFund ?? 0) + taxCollected;
+  const redistribution = isProgressiveTaxEnabled(state)
+    ? calculatePublicFundRedistribution(newPublicFund)
+    : 0;
+
+  // 再分配対象: 最も総資産の少ない非破産・非現在プレイヤー
+  let redistributionTargetId: string | null = null;
+  if (redistribution > 0) {
+    const eligible = state.players.filter(
+      (p, i) => !p.isBankrupt && i !== state.currentPlayerIndex,
+    );
+    if (eligible.length > 0) {
+      const poorest = eligible.reduce((min, p) => {
+        return calculateTotalAssets(p, state.propertyStates, state.board) <
+          calculateTotalAssets(min, state.propertyStates, state.board)
+          ? p
+          : min;
+      });
+      redistributionTargetId = poorest.id;
+      newPublicFund -= redistribution;
+    }
+  }
+
   const players = state.players.map((p, index) => {
     if (p.isBankrupt) return p;
     if (index === state.currentPlayerIndex) {
       return { ...p, position: newPos, money: p.money + selfBonus };
     }
+    if (redistributionTargetId && p.id === redistributionTargetId) {
+      return { ...p, money: p.money + othersBonus + redistribution };
+    }
     return { ...p, money: p.money + othersBonus };
   });
-  return { players, selfBonus, othersBonus };
+  return { players, selfBonus, othersBonus, newPublicFund };
 }
 
 export function rollDice(): [number, number] {
@@ -359,6 +406,7 @@ function applyCardEffect(state: GameState, card: Card): GameState {
         newState = {
           ...newState,
           players: dividend.players,
+          publicFund: dividend.newPublicFund,
           message: `GOをとおりすぎた！みんなに$${dividend.othersBonus}ずつ、自分は$${dividend.selfBonus}の社会配当をもらったよ！`,
         };
       } else {
@@ -379,6 +427,7 @@ function applyCardEffect(state: GameState, card: Card): GameState {
         newState = {
           ...newState,
           players: dividend.players,
+          publicFund: dividend.newPublicFund,
           message: `GOをとおりすぎた！みんなに$${dividend.othersBonus}ずつ、自分は$${dividend.selfBonus}の社会配当をもらったよ！`,
         };
       } else {
@@ -493,6 +542,7 @@ function applyCardEffect(state: GameState, card: Card): GameState {
         newState = {
           ...newState,
           players: dividend.players,
+          publicFund: dividend.newPublicFund,
           message: `GOをとおりすぎた！みんなに$${dividend.othersBonus}ずつ、自分は$${dividend.selfBonus}の社会配当をもらったよ！`,
         };
       } else {
@@ -602,6 +652,8 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         // P2-a 拡張: ターン数・景気ステータスを初期化
         turnCount: 0,
         economyStatus: action.features?.macroEconomy ? 'normal' : undefined,
+        // Phase 3 拡張: 公共基金を初期化（progressiveTax ON 時のみ）
+        publicFund: action.features?.progressiveTax ? 0 : undefined,
       };
     }
 
@@ -662,6 +714,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         newState = {
           ...newState,
           players: dividend.players,
+          publicFund: dividend.newPublicFund,
           message: `GOをとおりすぎた！みんなに$${dividend.othersBonus}ずつ、自分は$${dividend.selfBonus}の社会配当をもらったよ！`,
         };
       } else {

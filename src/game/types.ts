@@ -67,6 +67,7 @@ export type FeatureFlags = {
   stocks?: boolean; // エリア株売買・配当（応援カード）。
   // 株価は需要供給モデル（売買で動的変動）＋家・ホテル建設で連動上昇。
   macroEconomy?: boolean; // Phase 2-a: マクロ経済サイクル（好況・通常・不況・金融危機の4状態を遷移）
+  progressiveTax?: boolean; // Phase 3: 累進課税・公共基金・再分配（GOマス通過時に資産額に応じた税を徴収）
 };
 
 // ── P1 拡張: エリア株（カラーグループ株） ──
@@ -180,6 +181,8 @@ export type GameState = {
   turnCount?: number;
   // P2-a 拡張: 景気ステータス（features.macroEconomy が有効なときのみ意味を持つ）
   economyStatus?: EconomyStatus;
+  // Phase 3 拡張: 累進課税で徴収した税を蓄積する公共基金（features.progressiveTax が有効なときのみ意味を持つ）
+  publicFund?: number;
 };
 
 // ── ファクトリ関数 ──
