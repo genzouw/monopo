@@ -3,6 +3,7 @@ import type { GameState } from '../types';
 import { createInitialGameState, gameReducer } from '../reducer';
 import {
   LOAN_INTEREST_RATES,
+  DEFAULT_LOAN_INTEREST_RATE,
   MAX_LOAN_TO_ASSET_RATIO,
   calculateInterest,
   calculateMaxLoanAmount,
@@ -253,7 +254,7 @@ describe('ローン統合テスト（reducer）', () => {
     // 社会配当150を受け取り、利息が自動引落される
     const interestExpected = calculateInterest(
       borrowAmount,
-      LOAN_INTEREST_RATES.normal,
+      DEFAULT_LOAN_INTEREST_RATE,
     );
     expect(after.players[0].money).toBe(
       1500 + borrowAmount + 150 - interestExpected,
