@@ -401,9 +401,9 @@ describe('FORCE_BUY / DECLINE_FORCE_BUY', () => {
       turnPhase: 'forceBuy',
     };
     const next = gameReducer(state, { type: 'FORCE_BUY' });
-    // cost = 60 * 5 = 300, toOwner = 60% = 180
-    expect(next.players[0].money).toBe(700);
-    expect(next.players[1].money).toBe(1680);
+    // P1.2 拡張: 家なしなので乗数3倍。cost = floor(60 * 3.0) = 180, toOwner = floor(180 * 60%) = 108
+    expect(next.players[0].money).toBe(820);
+    expect(next.players[1].money).toBe(1608);
     expect(next.players[0].properties).toContain('mediterranean');
     expect(next.propertyStates['mediterranean'].ownerId).toBe('player-0');
     expect(next.turnPhase).toBe('endTurn');
