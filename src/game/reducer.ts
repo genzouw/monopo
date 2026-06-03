@@ -1688,6 +1688,15 @@ function applyInsuranceOnEndTurn(
         totalPremium += calculatePremium(space?.price ?? 0);
       }
       if (totalPremium === 0) return p;
+      if (p.money < totalPremium) {
+        for (const propId of p.properties) {
+          if (isPropertyInsured(insuranceState, propId)) {
+            delete insuranceState[propId];
+          }
+        }
+        messages.push(`${p.name}の保険料が払えず、保険が解除されたよ`);
+        return p;
+      }
       messages.push(`${p.name}の保険料$${totalPremium}を徴収したよ`);
       return { ...p, money: p.money - totalPremium };
     });
