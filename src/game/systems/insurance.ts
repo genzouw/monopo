@@ -28,6 +28,7 @@ export function isInsuranceEnabled(state: GameState): boolean {
 export type InsuranceBuyReason =
   | 'INSURANCE_DISABLED'
   | 'NOT_OWNER'
+  | 'ALREADY_INSURED'
   | 'INSUFFICIENT_FUNDS'
   | 'PLAYER_NOT_FOUND'
   | 'PROPERTY_NOT_FOUND';
@@ -55,6 +56,8 @@ export function validateBuyInsurance(
     return { ok: false, reason: 'NOT_OWNER' };
   const space = state.board.find((s) => s.id === propertyId);
   if (!space) return { ok: false, reason: 'PROPERTY_NOT_FOUND' };
+  if (state.propertyStates[propertyId]?.isInsured)
+    return { ok: false, reason: 'ALREADY_INSURED' };
   const premium = calculateInsurancePremium(space.price ?? 0);
   if (player.money < premium)
     return { ok: false, reason: 'INSUFFICIENT_FUNDS' };
