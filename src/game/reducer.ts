@@ -1650,6 +1650,14 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
 
     // ── ローン拡張: 借入 ──
     case 'TAKE_LOAN': {
+      const currentPlayer = state.players[state.currentPlayerIndex];
+      if (
+        !currentPlayer ||
+        currentPlayer.id !== action.playerId ||
+        currentPlayer.isBankrupt
+      ) {
+        return state;
+      }
       const validation = validateTakeLoan(
         state,
         action.playerId,
@@ -1675,6 +1683,14 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
 
     // ── ローン拡張: 返済 ──
     case 'REPAY_LOAN': {
+      const currentPlayer = state.players[state.currentPlayerIndex];
+      if (
+        !currentPlayer ||
+        currentPlayer.id !== action.playerId ||
+        currentPlayer.isBankrupt
+      ) {
+        return state;
+      }
       const validation = validateRepayLoan(
         state,
         action.playerId,
@@ -1704,6 +1720,14 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     // ここでは寄付額を一時的にstateに保存する仕組みは設けず、
     // 即時に公共基金へ寄付として反映する（控除はGO計算で推算）。
     case 'DONATE': {
+      const currentPlayerForDonate = state.players[state.currentPlayerIndex];
+      if (
+        !currentPlayerForDonate ||
+        currentPlayerForDonate.id !== action.playerId ||
+        currentPlayerForDonate.isBankrupt
+      ) {
+        return state;
+      }
       if (!isProgressiveTaxEnabled(state)) return state;
       if (!Number.isInteger(action.amount) || action.amount <= 0) return state;
       const player = state.players.find((p) => p.id === action.playerId);
@@ -1719,12 +1743,13 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       const newPublicFund = (state.publicFund ?? 0) + action.amount;
       const redistributionAmount =
         calculatePublicFundRedistribution(newPublicFund);
-      const finalPublicFund = newPublicFund - redistributionAmount;
       const activePlayers = newPlayers.filter((p) => !p.isBankrupt);
       const perCapita =
         redistributionAmount > 0 && activePlayers.length > 0
           ? Math.floor(redistributionAmount / activePlayers.length)
           : 0;
+      const distributedTotal = perCapita * activePlayers.length;
+      const finalPublicFund = newPublicFund - distributedTotal;
       const finalPlayers =
         perCapita > 0
           ? newPlayers.map((p) =>
@@ -1732,8 +1757,8 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
             )
           : newPlayers;
       let donateMsg = `$${action.amount}を公共基金に寄付したよ！`;
-      if (redistributionAmount > 0)
-        donateMsg += ` 🎁公共基金から$${redistributionAmount}が再分配されたよ！`;
+      if (distributedTotal > 0)
+        donateMsg += ` 🎁公共基金から$${distributedTotal}が再分配されたよ！`;
       return {
         ...state,
         players: finalPlayers,
