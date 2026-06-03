@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import * as randomModule from '../random';
 import { createInitialGameState, gameReducer } from '../reducer';
 import {
   FIRE_PROBABILITY,
@@ -222,6 +223,57 @@ describe('reducer 保険統合', () => {
       state = { ...state, dice: { values: [1, 2], doubles: 0, rolled: true } };
       state = gameReducer(state, { type: 'END_TURN' });
       expect(state.turnCount).toBe(1);
+    });
+  });
+
+  describe('END_TURN: 火災発生シナリオ', () => {
+    afterEach(() => vi.restoreAllMocks());
+
+    function buyPropertyForPlayer(state: GameState): {
+      state: GameState;
+      propId: string;
+    } {
+      const withPosition = {
+        ...state,
+        players: state.players.map((p, i) =>
+          i === 0 ? { ...p, position: 1 } : p,
+        ),
+      };
+      const afterBuy = gameReducer(withPosition, { type: 'BUY_PROPERTY' });
+      return { state: afterBuy, propId: afterBuy.players[0].properties[0] };
+    }
+
+    it('END_TURN 時に火災が発生し物件が消滅する（保険あり）', () => {
+      vi.spyOn(randomModule, 'getSecureRandomInt').mockReturnValue(1);
+      let state = startGame({ insurance: true });
+      const { state: withProp, propId } = buyPropertyForPlayer(state);
+      state = gameReducer(withProp, {
+        type: 'BUY_INSURANCE',
+        propertyId: propId,
+      });
+      const moneyBefore = state.players[0].money;
+      const space = state.board.find((s) => s.id === propId)!;
+      state = { ...state, dice: { values: [1, 2], doubles: 0, rolled: true } };
+      state = gameReducer(state, { type: 'END_TURN' });
+      expect(state.players[0].properties).not.toContain(propId);
+      expect(state.players[0].money).toBe(moneyBefore + (space.price ?? 0));
+      expect(state.insuranceState?.[propId]).toBeUndefined();
+    });
+
+    it('END_TURN 時に火災が発生し物件が消滅する（保険なし）', () => {
+      vi.spyOn(randomModule, 'getSecureRandomInt').mockReturnValue(1);
+      let state = startGame({ insurance: true });
+      const { state: withProp, propId } = buyPropertyForPlayer(state);
+      const moneyBefore = withProp.players[0].money;
+      const space = withProp.board.find((s) => s.id === propId)!;
+      const scrapValue = Math.floor((space.price ?? 0) * FIRE_SCRAP_RATE);
+      state = {
+        ...withProp,
+        dice: { values: [1, 2], doubles: 0, rolled: true },
+      };
+      state = gameReducer(state, { type: 'END_TURN' });
+      expect(state.players[0].properties).not.toContain(propId);
+      expect(state.players[0].money).toBe(moneyBefore + scrapValue);
     });
   });
 });
