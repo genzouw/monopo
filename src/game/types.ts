@@ -108,6 +108,7 @@ export type PropertyState = {
   houses: number; // 0-4, 5=ホテル
   isMortgaged: boolean;
   isInsured?: boolean; // Phase 3 拡張: 損害保険（掛け捨て・1ラウンド有効）
+  poisonPillActive?: boolean;
 };
 
 // ── 競売状態 ──

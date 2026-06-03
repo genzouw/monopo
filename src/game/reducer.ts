@@ -386,7 +386,10 @@ function handleLanding(state: GameState): GameState {
       });
 
       // P1.2 拡張: FORCE_BUY 可変乗数（3〜5倍）で買い取り可能かチェック（所持金が足りる場合のみ提示）
-      const forceBuyMultiplier = calculateForceBuyMultiplier(propState.houses);
+      const forceBuyMultiplier = calculateForceBuyMultiplier(
+        propState.houses,
+        propState.poisonPillActive,
+      );
       const forceBuyCost = Math.floor((space.price ?? 0) * forceBuyMultiplier);
       const forceBuyMultiplierDisplay = forceBuyMultiplier.toFixed(1);
       const playerAfterRent = newPlayers.find((p) => p.id === player.id)!;
@@ -1116,8 +1119,11 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       const propState = state.propertyStates[space.id];
       if (!propState?.ownerId || propState.ownerId === player.id) return state;
 
-      // P1.2 拡張: 開発度（家・ホテル数）に応じた可変乗数（3〜5倍）
-      const multiplier = calculateForceBuyMultiplier(propState.houses);
+      // P1.2 拡張: 開発度（家・ホテル数）に応じた可変乗数（3〜5倍）。ポイズンピル発動時は追加ボーナス
+      const multiplier = calculateForceBuyMultiplier(
+        propState.houses,
+        propState.poisonPillActive,
+      );
       const cost = Math.floor((space.price ?? 0) * multiplier);
       if (player.money < cost) return state;
 
@@ -1166,6 +1172,25 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
 
     case 'DECLINE_FORCE_BUY': {
       return { ...state, turnPhase: 'endTurn' };
+    }
+
+    // ── ACTIVATE_POISON_PILL (ポイズンピル防衛策の発動) ──
+    case 'ACTIVATE_POISON_PILL': {
+      const player = state.players[state.currentPlayerIndex];
+      const propState = state.propertyStates[action.propertyId];
+      if (
+        !propState ||
+        propState.ownerId !== player.id ||
+        propState.poisonPillActive
+      )
+        return state;
+      return {
+        ...state,
+        propertyStates: {
+          ...state.propertyStates,
+          [action.propertyId]: { ...propState, poisonPillActive: true },
+        },
+      };
     }
 
     // ── SELL_PROPERTY (オークション形式で売り出し) ──
