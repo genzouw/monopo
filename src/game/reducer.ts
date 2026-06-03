@@ -1694,8 +1694,6 @@ function applyInsuranceOnEndTurn(
   }
 
   // 火災チェック（毎ターン、全プレイヤーの全物件）
-  // 確認用に FIRE_PROBABILITY を参照（定数として使用）
-  void FIRE_PROBABILITY;
   const fireMessages: string[] = [];
   const updatedPlayers = players.map((p) => {
     if (p.isBankrupt) return p;
