@@ -50,6 +50,10 @@ import {
   validateTakeLoan,
   validateRepayLoan,
 } from './systems/loan';
+import {
+  applyBlackSwanDisaster,
+  validateBuyInsurance,
+} from './systems/insurance';
 import { getSecureRandom } from './random';
 
 // ── 定数 ──
@@ -570,6 +574,24 @@ function applyCardEffect(state: GameState, card: Card): GameState {
         newState = updateCurrentPlayer(newState, { position: nearestPos });
       }
       return handleLanding(newState);
+    }
+
+    case 'blackSwanDisaster': {
+      const newPropertyStates = applyBlackSwanDisaster(
+        state.propertyStates,
+        action.colorGroup,
+        state.board,
+      );
+      const affected = state.board
+        .filter((s) => s.color === action.colorGroup)
+        .map((s) => s.name)
+        .join('・');
+      return {
+        ...state,
+        propertyStates: newPropertyStates,
+        turnPhase: 'endTurn',
+        message: `🔥ブラックスワン！${affected}エリアに災害が発生したよ！`,
+      };
     }
 
     default:
@@ -1625,6 +1647,34 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         ...state,
         players: newPlayers,
         message: `$${action.amount}のローンをへんさいしたよ！`,
+      };
+    }
+
+    // ── Phase 3 拡張: 損害保険 ──
+    case 'BUY_INSURANCE': {
+      const result = validateBuyInsurance(
+        state,
+        action.playerId,
+        action.propertyId,
+      );
+      if (!result.ok) return state;
+      const space = state.board.find((s) => s.id === action.propertyId);
+      const newPlayers = state.players.map((p) => {
+        if (p.id !== action.playerId) return p;
+        return { ...p, money: p.money - result.premium };
+      });
+      const newPropertyStates = {
+        ...state.propertyStates,
+        [action.propertyId]: {
+          ...state.propertyStates[action.propertyId],
+          isInsured: true,
+        },
+      };
+      return {
+        ...state,
+        players: newPlayers,
+        propertyStates: newPropertyStates,
+        message: `${space?.name ?? '物件'}におまもりけんをかけたよ！$${result.premium}はらったよ`,
       };
     }
 
