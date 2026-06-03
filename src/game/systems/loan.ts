@@ -143,7 +143,7 @@ function _calcAssets(
   state: GameState,
   player: (typeof state.players)[0],
 ): number {
-  let total = player.money;
+  let total = Math.max(0, player.money - (player.loanBalance ?? 0));
   for (const propId of player.properties) {
     const propState = state.propertyStates[propId];
     const space = state.board.find((s) => s.id === propId);
