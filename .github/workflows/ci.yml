@@ -143,11 +143,14 @@ jobs:
           BANNED_FILES=$(find . -type f \( \
             -name ".env" -o -name ".env.*" \
             -o -name "*.pem" -o -name "*.key" \
-            -o -name "*credentials*.json" -o -name "*credentials*.yml" -o -name "*credentials*.yaml" \
+            -o -name "*credentials*.json" -o -name "*credentials*.yml" -o -name "*credentials*.yaml" -o -name "*credentials*.env" \
+            -o -name "*secret*.json" -o -name "*secret*.yml" -o -name "*secret*.yaml" -o -name "*secret*.env" \
+            -o -name "*.npmrc" -o -name ".netrc" -o -name "*.p12" -o -name "*.pfx" -o -name "*.keystore" \
+            -o -name "*.sqlite" -o -name "*.sqlite3" -o -name "*.db" \
             -o -name "*service-account*.json" -o -name "*serviceaccount*.json" \
             -o -name "*.tfstate" -o -name "*.tfstate.backup" \
             -o -path "*/.cursor/*" -o -path "*/.claude/*" -o -path "*/.aider*/*" \
-            -o -path "*/.continue/*" -o -path "*/.jules/*" \
+            -o -path "*/.continue/*" -o -path "*/.jules/*" -o -path "*/.cline/*" \
             \) -not -name ".env.example" -not -path "*/node_modules/*" -not -path "*/.git/*" || true)
 
           if [ -n "$BANNED_FILES" ]; then
