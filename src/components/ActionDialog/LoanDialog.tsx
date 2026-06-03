@@ -45,6 +45,7 @@ export default function LoanDialog({
   const variableRate = getLoanInterestRate(state, currentPlayer, 'variable');
   const fixedRate = FIXED_LOAN_RATE;
   const currentRate = loanType === 'fixed' ? fixedRate : variableRate;
+  const formatRate = (rate: number) => `${Math.round(rate * 1000) / 10}`;
 
   const parsedBorrow = parseInt(borrowAmount, 10);
   const parsedRepay = parseInt(repayAmount, 10);
@@ -96,10 +97,12 @@ export default function LoanDialog({
         {currentPlayer.creditScore !== undefined && (
           <div className={styles.propertyPrice}>
             信用スコア: {currentPlayer.creditScore} ／ 金利調整:{' '}
-            {variableRate !==
-            LOAN_INTEREST_RATES[state.economyStatus ?? 'normal']
-              ? `${variableRate * 100}%（スコア割引適用）`
-              : `${variableRate * 100}%`}
+            {Math.abs(
+              variableRate -
+                LOAN_INTEREST_RATES[state.economyStatus ?? 'normal'],
+            ) > 1e-9
+              ? `${formatRate(variableRate)}%（スコア割引適用）`
+              : `${formatRate(variableRate)}%`}
           </div>
         )}
 
@@ -117,16 +120,17 @@ export default function LoanDialog({
                     style={{ marginLeft: 4 }}
                   >
                     <option value="variable">
-                      変動金利（景気: {economyLabel} / {variableRate * 100}%）
+                      変動金利（景気: {economyLabel} /{' '}
+                      {formatRate(variableRate)}%）
                     </option>
                     <option value="fixed">
-                      固定金利（{fixedRate * 100}%・景気に左右されない）
+                      固定金利（{formatRate(fixedRate)}%・景気に左右されない）
                     </option>
                   </select>
                 </label>
               </div>
               <div className={styles.buildItemInfo}>
-                GOマス通過時に利息（元本×{currentRate * 100}
+                GOマス通過時に利息（元本×{formatRate(currentRate)}
                 %）が引き落とされるよ
               </div>
               <div className={styles.buildItemActions}>
