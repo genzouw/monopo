@@ -11,8 +11,8 @@
   - **必須**: 開発環境には [gitleaks](https://github.com/gitleaks/gitleaks) をインストールしてください。（例: `brew install gitleaks` または GitHub のリリースページからダウンロード）
 - **`.gitignore` と `.gitattributes` による除外・保護**:
   - `.env`, `.env.*` (ただし `.env.example` は除く)
-  - `*.pem`, `*.key`, `id_rsa`, `id_ed25519`, `id_ecdsa`, `id_dsa`, `*credentials*.json` 等
-  - AI エージェントの作業跡（`.cursor/`, `.claude/`, `.aider*` 等）はローカル環境特有の秘密情報が含まれるリスクがあるため除外しています。
+  - `*.pem`, `*.key`, `id_rsa`, `id_ed25519`, `id_ecdsa`, `id_dsa`, `*credentials*.json`, `*secret*.json`, `*.npmrc`, `.netrc`, DBファイル(`*.sqlite` 等) 等
+  - AI エージェントの作業跡（`.cursor/`, `.claude/`, `.aider*`, `.cline/` 等）はローカル環境特有の秘密情報が含まれるリスクがあるため除外しています。
   - **さらに、`.gitattributes` により、これらの秘密情報ファイルが誤って `git add` された場合でも、diff の中身がレビュー画面・ログ・PR 上で表示されない（`-diff` によりバイナリ扱いとなり `Binary files differ` 表示）よう、またリポジトリのアーカイブに含まれないよう（`export-ignore`）設定し、二重に保護しています。**
 
 ## 2. CI 検知（リポジトリ防御）

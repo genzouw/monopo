@@ -18,7 +18,7 @@ else
 fi
 
 # Block banned files from being committed (Defense in depth against .env/keys/AI workspaces)
-banned_files=$(git diff --cached --name-only | grep -iE '(\.env$|\.env\..*|.*\.pem$|.*\.key$|credentials\.(json|ya?ml|env)$|service-?account.*\.(json|ya?ml|env)$|\.tfstate.*|^\.cursor/|^\.claude/|^\.aider.*|^\.continue/|^\.jules/)' | grep -vE '\.env\.example$') || true
+banned_files=$(git diff --cached --name-only | grep -iE '(\.env$|\.env\..*|.*\.pem$|.*\.key$|credentials\.(json|ya?ml|env)$|.*secret.*\.(json|ya?ml|env)$|\.npmrc$|\.netrc$|.*\.(p12|pfx|keystore|sqlite|sqlite3|db)$|service-?account.*\.(json|ya?ml|env)$|\.tfstate.*|^\.cursor/|^\.claude/|^\.aider.*|^\.continue/|^\.jules/|^\.cline/)' | grep -vE '\.env\.example$') || true
 
 if [ -n "$banned_files" ]; then
   echo "❌ Error: Attempted to commit banned sensitive files or AI workspaces:"
