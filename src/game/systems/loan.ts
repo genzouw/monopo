@@ -85,6 +85,7 @@ export type LoanRepayReason =
   | 'INVALID_AMOUNT'
   | 'NO_LOAN'
   | 'INSUFFICIENT_FUNDS'
+  | 'OVERPAYMENT'
   | 'PLAYER_NOT_FOUND';
 
 export type LoanRepayValidation =
@@ -130,6 +131,8 @@ export function validateRepayLoan(
   const player = state.players.find((p) => p.id === playerId);
   if (!player) return { ok: false, reason: 'PLAYER_NOT_FOUND' };
   if ((player.loanBalance ?? 0) <= 0) return { ok: false, reason: 'NO_LOAN' };
+  if (amount > (player.loanBalance ?? 0))
+    return { ok: false, reason: 'OVERPAYMENT' };
   if (player.money < amount) return { ok: false, reason: 'INSUFFICIENT_FUNDS' };
   return { ok: true };
 }
