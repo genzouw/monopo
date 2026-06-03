@@ -4,7 +4,11 @@
 
 import type { EconomyStatus, GameState, Player } from '../types';
 import { calculateTotalAssets } from '../rules';
-import { calculateCreditScoreDiscount, isCreditScoreEnabled } from './credit';
+import {
+  CREDIT_SCORE_INITIAL,
+  calculateCreditScoreDiscount,
+  isCreditScoreEnabled,
+} from './credit';
 
 export type LoanType = 'fixed' | 'variable';
 
@@ -84,7 +88,9 @@ export function getLoanInterestRate(
 
   if (!isCreditScoreEnabled(state)) return baseRate;
 
-  const discount = calculateCreditScoreDiscount(player.creditScore ?? 500);
+  const discount = calculateCreditScoreDiscount(
+    player.creditScore ?? CREDIT_SCORE_INITIAL,
+  );
   // 浮動小数点誤差を避けるため小数点4桁で丸める
   return Math.max(0, Math.round((baseRate + discount) * 10000) / 10000);
 }
