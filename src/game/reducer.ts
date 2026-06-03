@@ -43,6 +43,13 @@ import {
   calculatePublicFundRedistribution,
   isProgressiveTaxEnabled,
 } from './systems/taxation';
+import {
+  calculateInterest,
+  getLoanInterestRate,
+  isLoanEnabled,
+  validateTakeLoan,
+  validateRepayLoan,
+} from './systems/loan';
 import { getSecureRandom } from './random';
 
 // ── 定数 ──
@@ -119,10 +126,24 @@ function distributeSocialDividend(
     }
   }
 
+  // Phase 3 拡張: ローン利息の自動引落（loan ON 時のみ）
+  let interestOwed = 0;
+  if (isLoanEnabled(state)) {
+    const currentPlayer = state.players[state.currentPlayerIndex];
+    const loanBalance = currentPlayer.loanBalance ?? 0;
+    if (loanBalance > 0) {
+      interestOwed = calculateInterest(loanBalance, getLoanInterestRate(state));
+    }
+  }
+
   const players = state.players.map((p, index) => {
     if (p.isBankrupt) return p;
     if (index === state.currentPlayerIndex) {
-      return { ...p, position: newPos, money: p.money + selfBonus };
+      return {
+        ...p,
+        position: newPos,
+        money: p.money + selfBonus - interestOwed,
+      };
     }
     if (redistributionTargetId && p.id === redistributionTargetId) {
       return { ...p, money: p.money + othersBonus + redistribution };
@@ -1567,6 +1588,44 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         -action.shares,
         result.proceeds,
       );
+    }
+
+    // ── Phase 3 拡張: 変動金利ローン ──
+    case 'TAKE_LOAN': {
+      const result = validateTakeLoan(state, action.playerId, action.amount);
+      if (!result.ok) return state;
+      const newPlayers = state.players.map((p) => {
+        if (p.id !== action.playerId) return p;
+        return {
+          ...p,
+          money: p.money + action.amount,
+          loanBalance: (p.loanBalance ?? 0) + action.amount,
+        };
+      });
+      return {
+        ...state,
+        players: newPlayers,
+        message: `ぎんこうから$${action.amount}かりたよ！りそくに気をつけてね`,
+      };
+    }
+
+    case 'REPAY_LOAN': {
+      const result = validateRepayLoan(state, action.playerId, action.amount);
+      if (!result.ok) return state;
+      const newPlayers = state.players.map((p) => {
+        if (p.id !== action.playerId) return p;
+        const newBalance = Math.max(0, (p.loanBalance ?? 0) - action.amount);
+        return {
+          ...p,
+          money: p.money - action.amount,
+          loanBalance: newBalance,
+        };
+      });
+      return {
+        ...state,
+        players: newPlayers,
+        message: `$${action.amount}のローンをへんさいしたよ！`,
+      };
     }
 
     default:

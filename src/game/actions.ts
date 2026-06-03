@@ -40,4 +40,7 @@ export type GameAction =
   | { type: 'OPEN_STOCK_DIALOG' }
   | { type: 'CLOSE_STOCK_DIALOG' }
   | { type: 'BUY_STOCK'; color: ColorGroup; shares: number }
-  | { type: 'SELL_STOCK'; color: ColorGroup; shares: number };
+  | { type: 'SELL_STOCK'; color: ColorGroup; shares: number }
+  // Phase 3 拡張: 変動金利ローン
+  | { type: 'TAKE_LOAN'; playerId: string; amount: number }
+  | { type: 'REPAY_LOAN'; playerId: string; amount: number };

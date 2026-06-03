@@ -57,6 +57,8 @@ export type Player = {
   isBankrupt: boolean;
   // P1 拡張: 持株（color → 持株数）。featureFlags.stocks が無効のときは undefined
   stocks?: Partial<Record<ColorGroup, number>>;
+  // Phase 3 拡張: ローン残高（features.loan が有効なときのみ意味を持つ）
+  loanBalance?: number;
 };
 
 // ── P2-a 拡張: 景気ステータス ──
@@ -68,6 +70,7 @@ export type FeatureFlags = {
   // 株価は需要供給モデル（売買で動的変動）＋家・ホテル建設で連動上昇。
   macroEconomy?: boolean; // Phase 2-a: マクロ経済サイクル（好況・通常・不況・金融危機の4状態を遷移）
   progressiveTax?: boolean; // Phase 3: 累進課税・公共基金・再分配（GOマス通過時に資産額に応じた税を徴収）
+  loan?: boolean; // Phase 3: 変動金利ローン（銀行からの借入・景気連動金利・GOマス通過時自動引落）
 };
 
 // ── P1 拡張: エリア株（カラーグループ株） ──
