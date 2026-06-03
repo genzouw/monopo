@@ -222,6 +222,7 @@ export default function TradeDialog({
               onClick={() =>
                 setOfferMoney((prev) => clamp(prev + 10, currentPlayer.money))
               }
+              aria-label="10ドル追加"
             >
               +$10
             </button>
@@ -231,6 +232,7 @@ export default function TradeDialog({
               onClick={() =>
                 setOfferMoney((prev) => clamp(prev + 100, currentPlayer.money))
               }
+              aria-label="100ドル追加"
             >
               +$100
             </button>
@@ -238,6 +240,7 @@ export default function TradeDialog({
               type="button"
               className={styles.moneyQuickButtonClear}
               onClick={() => setOfferMoney(0)}
+              aria-label="金額をクリア"
             >
               クリア
             </button>
@@ -313,6 +316,7 @@ export default function TradeDialog({
               onClick={() =>
                 setRequestMoney((prev) => clamp(prev + 10, targetPlayer.money))
               }
+              aria-label="10ドル追加"
             >
               +$10
             </button>
@@ -322,6 +326,7 @@ export default function TradeDialog({
               onClick={() =>
                 setRequestMoney((prev) => clamp(prev + 100, targetPlayer.money))
               }
+              aria-label="100ドル追加"
             >
               +$100
             </button>
@@ -329,6 +334,7 @@ export default function TradeDialog({
               type="button"
               className={styles.moneyQuickButtonClear}
               onClick={() => setRequestMoney(0)}
+              aria-label="金額をクリア"
             >
               クリア
             </button>
