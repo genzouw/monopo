@@ -33,6 +33,7 @@ export type GameAction =
   | { type: 'ROLL_FOR_JAIL' }
   | { type: 'FORCE_BUY' }
   | { type: 'DECLINE_FORCE_BUY' }
+  | { type: 'ACTIVATE_POISON_PILL'; propertyId: string }
   | { type: 'DECLARE_BANKRUPTCY'; creditorId: string | null }
   | { type: 'END_TURN' }
   | { type: 'PAY_TAX' }

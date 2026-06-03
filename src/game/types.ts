@@ -101,6 +101,7 @@ export type PropertyState = {
   ownerId: string | null;
   houses: number; // 0-4, 5=ホテル
   isMortgaged: boolean;
+  poisonPillActive?: boolean;
 };
 
 // ── 競売状態 ──
