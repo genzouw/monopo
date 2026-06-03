@@ -59,11 +59,15 @@ export type Player = {
   stocks?: Partial<Record<ColorGroup, number>>;
 };
 
+// ── P2-a 拡張: 景気ステータス ──
+export type EconomyStatus = 'boom' | 'normal' | 'recession' | 'crisis';
+
 // ── P1 拡張: 機能フラグ（OFF時は既存挙動完全互換） ──
 export type FeatureFlags = {
   stocks?: boolean; // エリア株売買・配当（応援カード）。
   // 株価は需要供給モデル（売買で動的変動）＋家・ホテル建設で連動上昇。
   insurance?: boolean; // P2-c 拡張: 不動産保険（火災リスク・保険料・補填）
+  macroEconomy?: boolean; // Phase 2-a: マクロ経済サイクル（好況・通常・不況・金融危機の4状態を遷移）
 };
 
 // ── P1 拡張: エリア株（カラーグループ株） ──
@@ -175,8 +179,10 @@ export type GameState = {
   stockMarket?: Partial<Record<ColorGroup, ColorGroupStock>>;
   // P2-c 拡張: 保険加入状態（propertyId → 加入中か）。features.insurance が有効なときのみ意味を持つ
   insuranceState?: Record<string, boolean>;
-  // P2-c 拡張: ゲーム開始からの累積ターン数（保険料10ターン徴収判定に使用）
+  // ターン数（保険料10ターン徴収判定・景気更新周期の計算に使用）
   turnCount?: number;
+  // P2-a 拡張: 景気ステータス（features.macroEconomy が有効なときのみ意味を持つ）
+  economyStatus?: EconomyStatus;
 };
 
 // ── ファクトリ関数 ──

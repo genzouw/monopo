@@ -19,6 +19,9 @@ function getGridPosition(position: number): { row: number; col: number } {
   return { row: position - 30 + 1, col: 11 };
 }
 
+// Single shared reference for empty spaces — keeps MemoizedMiniSpace props referentially equal, allowing React.memo to skip re-renders.
+const EMPTY_PLAYERS: readonly Player[] = [];
+
 const MiniMap = memo(function MiniMap({
   board,
   propertyStates,
@@ -28,17 +31,14 @@ const MiniMap = memo(function MiniMap({
 }: MiniMapProps) {
   // ⚡ Bolt: group players by position once (O(N)) to avoid O(N*M) nested filtering over 40 spaces.
   const playersByPosition = useMemo(() => {
-    const grouped: Record<number, Player[]> = {};
-    for (const space of board) {
-      grouped[space.position] = [];
-    }
+    const grouped: Partial<Record<number, Player[]>> = {};
     for (const p of players) {
-      if (!p.isBankrupt && grouped[p.position]) {
-        grouped[p.position].push(p);
+      if (!p.isBankrupt) {
+        (grouped[p.position] ??= []).push(p);
       }
     }
     return grouped;
-  }, [players, board]);
+  }, [players]);
 
   // ⚡ Bolt: 各マスでの O(N) 探索を避けるため、プレイヤーID辞書を一度だけ構築する。
   const playersById = useMemo(() => {
@@ -54,7 +54,8 @@ const MiniMap = memo(function MiniMap({
       <div className={styles.miniMapBoard}>
         {board.map((space) => {
           const { row, col } = getGridPosition(space.position);
-          const playersHere = playersByPosition[space.position];
+          const playersHere =
+            playersByPosition[space.position] ?? EMPTY_PLAYERS;
           const propState = propertyStates[space.id];
           const owner = propState?.ownerId
             ? playersById[propState.ownerId]
