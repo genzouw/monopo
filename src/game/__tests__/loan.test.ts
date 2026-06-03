@@ -248,14 +248,14 @@ describe('loan', () => {
       const state = makeState();
       // 総資産: money(1000) + mortgageValue(100) = 1100
       // 借入上限: floor(1100 * 0.5) = 550
-      expect(validateTakeLoan(state, 'p1', 500, 'variable')).toEqual({
+      expect(validateTakeLoan(state, 'p1', 500)).toEqual({
         ok: true,
       });
     });
 
     it('LOAN_DISABLED: loan機能が無効', () => {
       const state = makeState({ features: { loan: false } });
-      expect(validateTakeLoan(state, 'p1', 100, 'variable')).toEqual({
+      expect(validateTakeLoan(state, 'p1', 100)).toEqual({
         ok: false,
         reason: 'LOAN_DISABLED',
       });
@@ -263,7 +263,7 @@ describe('loan', () => {
 
     it('INVALID_AMOUNT: 金額が0以下', () => {
       const state = makeState();
-      expect(validateTakeLoan(state, 'p1', 0, 'variable')).toEqual({
+      expect(validateTakeLoan(state, 'p1', 0)).toEqual({
         ok: false,
         reason: 'INVALID_AMOUNT',
       });
@@ -271,7 +271,7 @@ describe('loan', () => {
 
     it('INVALID_AMOUNT: 金額が非整数', () => {
       const state = makeState();
-      expect(validateTakeLoan(state, 'p1', 1.5, 'variable')).toEqual({
+      expect(validateTakeLoan(state, 'p1', 1.5)).toEqual({
         ok: false,
         reason: 'INVALID_AMOUNT',
       });
@@ -280,7 +280,7 @@ describe('loan', () => {
     it('EXCEEDS_LIMIT: 借入上限超過', () => {
       const state = makeState();
       // 総資産1100、上限550
-      expect(validateTakeLoan(state, 'p1', 600, 'variable')).toEqual({
+      expect(validateTakeLoan(state, 'p1', 600)).toEqual({
         ok: false,
         reason: 'EXCEEDS_LIMIT',
       });
@@ -288,7 +288,7 @@ describe('loan', () => {
 
     it('PLAYER_NOT_FOUND: 存在しないプレイヤー', () => {
       const state = makeState();
-      expect(validateTakeLoan(state, 'unknown', 100, 'variable')).toEqual({
+      expect(validateTakeLoan(state, 'unknown', 100)).toEqual({
         ok: false,
         reason: 'PLAYER_NOT_FOUND',
       });
