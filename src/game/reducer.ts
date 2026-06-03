@@ -1,5 +1,6 @@
 import type {
   ColorGroup,
+  EconomyStatus,
   GameState,
   Player,
   Card,
@@ -22,6 +23,7 @@ import { getSecureRandomInt } from './random';
 import {
   HOUSE_PRICE_BOOST,
   PRICE_DELTA_PER_SHARE,
+  calculateForceBuyMultiplier,
   calculateNextPrice,
   createInitialStockMarket,
   distributeDividends,
@@ -29,6 +31,14 @@ import {
   validateStockBuy,
   validateStockSell,
 } from './economy';
+import {
+  applyEconomyFactor,
+  applyFinancialCrisisToStocks,
+  isMacroEconomyEnabled,
+  shouldUpdateEconomy,
+  transitionEconomy,
+} from './systems/macroEconomy';
+import { getSecureRandom } from './random';
 
 // ── 定数 ──
 
@@ -46,15 +56,33 @@ export const SOCIAL_DIVIDEND_OTHERS = 50;
 
 // ── ヘルパー関数 ──
 
-function distributeSocialDividend(state: GameState, newPos: number): Player[] {
-  return state.players.map((p, index) => {
+type SocialDividendResult = {
+  players: Player[];
+  selfBonus: number;
+  othersBonus: number;
+};
+
+function distributeSocialDividend(
+  state: GameState,
+  newPos: number,
+): SocialDividendResult {
+  // P2-a 拡張: macroEconomy 有効時は GO 通過ボーナスにも景気乗数を適用する
+  // (Issue #167 受け入れ基準: 家賃・GO 収入・株価が economy_factor で補正される)
+  const useEconomy = isMacroEconomyEnabled(state) && state.economyStatus;
+  const selfBonus = useEconomy
+    ? applyEconomyFactor(SOCIAL_DIVIDEND_SELF, state.economyStatus!)
+    : SOCIAL_DIVIDEND_SELF;
+  const othersBonus = useEconomy
+    ? applyEconomyFactor(SOCIAL_DIVIDEND_OTHERS, state.economyStatus!)
+    : SOCIAL_DIVIDEND_OTHERS;
+  const players = state.players.map((p, index) => {
     if (p.isBankrupt) return p;
     if (index === state.currentPlayerIndex) {
-      return { ...p, position: newPos, money: p.money + SOCIAL_DIVIDEND_SELF };
-    } else {
-      return { ...p, money: p.money + SOCIAL_DIVIDEND_OTHERS };
+      return { ...p, position: newPos, money: p.money + selfBonus };
     }
+    return { ...p, money: p.money + othersBonus };
   });
+  return { players, selfBonus, othersBonus };
 }
 
 export function rollDice(): [number, number] {
@@ -243,12 +271,17 @@ function handleLanding(state: GameState): GameState {
 
       // 他のプレイヤーが持っている → 家賃を払う
       const owner = state.players.find((p) => p.id === propState.ownerId)!;
-      const rent = calculateRent(
+      const baseRent = calculateRent(
         space.id,
         state.propertyStates,
         state.board,
         state.dice.values,
       );
+      // P2-a 拡張: 景気乗数を家賃に適用（macroEconomy OFF時は通常家賃のまま）
+      const rent =
+        isMacroEconomyEnabled(state) && state.economyStatus
+          ? applyEconomyFactor(baseRent, state.economyStatus)
+          : baseRent;
 
       // P1 拡張: 株式が有効なら家賃の一部を配当として株主へ配分
       // プレイヤーの総資産を超える家賃に対して配当を計算すると、破産時に
@@ -280,15 +313,17 @@ function handleLanding(state: GameState): GameState {
         return p;
       });
 
-      // 5倍買い可能かチェック（所持金が足りる場合のみ提示）
-      const forceBuyCost = (space.price ?? 0) * 5;
+      // P1.2 拡張: FORCE_BUY 可変乗数（3〜5倍）で買い取り可能かチェック（所持金が足りる場合のみ提示）
+      const forceBuyMultiplier = calculateForceBuyMultiplier(propState.houses);
+      const forceBuyCost = Math.floor((space.price ?? 0) * forceBuyMultiplier);
+      const forceBuyMultiplierDisplay = forceBuyMultiplier.toFixed(1);
       const playerAfterRent = newPlayers.find((p) => p.id === player.id)!;
       if (forceBuyCost > 0 && playerAfterRent.money >= forceBuyCost) {
         return {
           ...state,
           players: newPlayers,
           turnPhase: 'forceBuy',
-          message: `${owner.name}に$${rent}のとまり賃をはらったよ。$${forceBuyCost}で5ばいがいする？`,
+          message: `${owner.name}に$${rent}のとまり賃をはらったよ。$${forceBuyCost}で${forceBuyMultiplierDisplay}ばいがいする？`,
         };
       }
 
@@ -320,10 +355,11 @@ function applyCardEffect(state: GameState, card: Card): GameState {
 
       let newState = { ...state };
       if (passedGo) {
+        const dividend = distributeSocialDividend(state, newPos);
         newState = {
           ...newState,
-          players: distributeSocialDividend(state, newPos),
-          message: `GOをとおりすぎた！みんなに$${SOCIAL_DIVIDEND_OTHERS}ずつ、自分は$${SOCIAL_DIVIDEND_SELF}の社会配当をもらったよ！`,
+          players: dividend.players,
+          message: `GOをとおりすぎた！みんなに$${dividend.othersBonus}ずつ、自分は$${dividend.selfBonus}の社会配当をもらったよ！`,
         };
       } else {
         newState = updateCurrentPlayer(newState, {
@@ -339,10 +375,11 @@ function applyCardEffect(state: GameState, card: Card): GameState {
       const passedGo = action.spaces > 0 && newPos < player.position;
       let newState = { ...state };
       if (passedGo) {
+        const dividend = distributeSocialDividend(state, newPos);
         newState = {
           ...newState,
-          players: distributeSocialDividend(state, newPos),
-          message: `GOをとおりすぎた！みんなに$${SOCIAL_DIVIDEND_OTHERS}ずつ、自分は$${SOCIAL_DIVIDEND_SELF}の社会配当をもらったよ！`,
+          players: dividend.players,
+          message: `GOをとおりすぎた！みんなに$${dividend.othersBonus}ずつ、自分は$${dividend.selfBonus}の社会配当をもらったよ！`,
         };
       } else {
         newState = updateCurrentPlayer(newState, { position: newPos });
@@ -452,10 +489,11 @@ function applyCardEffect(state: GameState, card: Card): GameState {
       const passedGo = nearestPos < player.position;
       let newState = { ...state };
       if (passedGo) {
+        const dividend = distributeSocialDividend(state, nearestPos);
         newState = {
           ...newState,
-          players: distributeSocialDividend(state, nearestPos),
-          message: `GOをとおりすぎた！みんなに$${SOCIAL_DIVIDEND_OTHERS}ずつ、自分は$${SOCIAL_DIVIDEND_SELF}の社会配当をもらったよ！`,
+          players: dividend.players,
+          message: `GOをとおりすぎた！みんなに$${dividend.othersBonus}ずつ、自分は$${dividend.selfBonus}の社会配当をもらったよ！`,
         };
       } else {
         newState = updateCurrentPlayer(newState, { position: nearestPos });
@@ -561,6 +599,9 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         winnerId: null,
         features: action.features,
         stockMarket,
+        // P2-a 拡張: ターン数・景気ステータスを初期化
+        turnCount: 0,
+        economyStatus: action.features?.macroEconomy ? 'normal' : undefined,
       };
     }
 
@@ -617,10 +658,11 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
 
       let newState = { ...state };
       if (passedGo && !player.inJail) {
+        const dividend = distributeSocialDividend(state, newPos);
         newState = {
           ...newState,
-          players: distributeSocialDividend(state, newPos),
-          message: `GOをとおりすぎた！みんなに$${SOCIAL_DIVIDEND_OTHERS}ずつ、自分は$${SOCIAL_DIVIDEND_SELF}の社会配当をもらったよ！`,
+          players: dividend.players,
+          message: `GOをとおりすぎた！みんなに$${dividend.othersBonus}ずつ、自分は$${dividend.selfBonus}の社会配当をもらったよ！`,
         };
       } else {
         newState = updateCurrentPlayer(newState, {
@@ -971,14 +1013,16 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       };
     }
 
-    // ── FORCE_BUY (5倍買い) ──
+    // ── FORCE_BUY (P1.2拡張: 3〜5倍可変買い) ──
     case 'FORCE_BUY': {
       const player = state.players[state.currentPlayerIndex];
       const space = state.board[player.position]!;
       const propState = state.propertyStates[space.id];
       if (!propState?.ownerId || propState.ownerId === player.id) return state;
 
-      const cost = (space.price ?? 0) * 5;
+      // P1.2 拡張: 開発度（家・ホテル数）に応じた可変乗数（3〜5倍）
+      const multiplier = calculateForceBuyMultiplier(propState.houses);
+      const cost = Math.floor((space.price ?? 0) * multiplier);
       if (player.money < cost) return state;
 
       const ownerId = propState.ownerId;
@@ -1014,12 +1058,13 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         [space.id]: { ownerId: player.id, houses: 0, isMortgaged: false },
       };
 
+      const multiplierDisplay = multiplier.toFixed(1);
       return {
         ...state,
         players: newPlayers,
         propertyStates: newPropertyStates,
         turnPhase: 'endTurn',
-        message: `${player.name}が${space.name}を5ばいがいしたよ！（${owner.name}に$${toOwner}${houseSellBack > 0 ? `+おうち分$${houseSellBack}` : ''}）`,
+        message: `${player.name}が${space.name}を${multiplierDisplay}ばいがいしたよ！（${owner.name}に$${toOwner}${houseSellBack > 0 ? `+おうち分$${houseSellBack}` : ''}）`,
       };
     }
 
@@ -1372,14 +1417,53 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       );
       const nextPlayer = state.players[nextIndex];
 
+      // P2-a 拡張: ターン数インクリメントと景気サイクル更新
+      const newTurnCount = (state.turnCount ?? 0) + 1;
+      let newEconomyStatus = state.economyStatus;
+      let newStockMarket = state.stockMarket;
+      let economyMessage = '';
+
+      if (isMacroEconomyEnabled(state) && newEconomyStatus) {
+        if (shouldUpdateEconomy(newTurnCount)) {
+          const prevStatus = newEconomyStatus;
+          newEconomyStatus = transitionEconomy(
+            newEconomyStatus,
+            getSecureRandom(),
+          );
+          // 金融危機に突入した場合: 株式機能 ON のときだけ全株価を 50% 減＋暴落メッセージ。
+          // 株式機能 OFF のときは存在しない株価暴落をアナウンスしないよう、汎用文言にする。
+          if (newEconomyStatus === 'crisis' && prevStatus !== 'crisis') {
+            if (isStocksEnabled(state)) {
+              newStockMarket = applyFinancialCrisisToStocks(newStockMarket);
+              economyMessage = ' ⚠️金融危機！株価が暴落したよ！';
+            } else {
+              economyMessage = ' ⚠️金融危機！景気が急変したよ！';
+            }
+          } else if (newEconomyStatus !== prevStatus) {
+            const statusNames: Record<EconomyStatus, string> = {
+              boom: '好況',
+              normal: '通常',
+              recession: '不況',
+              crisis: '金融危機',
+            };
+            economyMessage = ` 📊景気が${statusNames[newEconomyStatus]}になったよ！`;
+          }
+        }
+      }
+
       return {
         ...state,
         currentPlayerIndex: nextIndex,
         turnPhase: 'roll',
         dice: { values: [1, 1], doubles: 0, rolled: false },
-        message: nextPlayer.inJail
-          ? `${nextPlayer.name}のばんだよ！刑務所にいるよ`
-          : `${nextPlayer.name}のばんだよ！サイコロをふろう！`,
+        turnCount: newTurnCount,
+        economyStatus: newEconomyStatus,
+        stockMarket: newStockMarket,
+        message:
+          (nextPlayer.inJail
+            ? `${nextPlayer.name}のばんだよ！刑務所にいるよ`
+            : `${nextPlayer.name}のばんだよ！サイコロをふろう！`) +
+          economyMessage,
       };
     }
 
