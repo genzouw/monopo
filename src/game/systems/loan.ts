@@ -3,6 +3,7 @@
 // 既存ゲーム挙動を破壊しないよう、本ファイルの関数はすべて副作用なしの計算関数として実装する。
 
 import type { EconomyStatus, GameState, Player } from '../types';
+import { calculateTotalAssets } from '../rules';
 import { calculateCreditScoreDiscount, isCreditScoreEnabled } from './credit';
 
 export type LoanType = 'fixed' | 'variable';
@@ -154,18 +155,9 @@ export function validateRepayLoan(
   return { ok: true };
 }
 
-// 内部ヘルパー: Player の簡易総資産計算
 function _calcAssets(
   state: GameState,
   player: (typeof state.players)[0],
 ): number {
-  let total = player.money;
-  for (const propId of player.properties) {
-    const propState = state.propertyStates[propId];
-    const space = state.board.find((s) => s.id === propId);
-    if (space && !propState?.isMortgaged) total += space.mortgageValue ?? 0;
-    if (propState && propState.houses > 0)
-      total += Math.floor(((space?.houseCost ?? 0) * propState.houses) / 2);
-  }
-  return total;
+  return calculateTotalAssets(player, state.propertyStates, state.board);
 }
