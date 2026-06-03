@@ -143,7 +143,7 @@ jobs:
           BANNED_FILES=$(find . -type f \( \
             -name ".env" -o -name ".env.*" \
             -o -name "*.pem" -o -name "*.key" \
-            -o -name "*credentials*.json" -o -name "*credentials*.yml" -o -name "*credentials*.yaml" \
+            -o -name "*credentials*.json" -o -name "*credentials*.yml" -o -name "*credentials*.yaml" -o -name "*credentials*.env" \
             -o -name "*secret*.json" -o -name "*secret*.yml" -o -name "*secret*.yaml" -o -name "*secret*.env" \
             -o -name "*.npmrc" -o -name ".netrc" -o -name "*.p12" -o -name "*.pfx" -o -name "*.keystore" \
             -o -name "*.sqlite" -o -name "*.sqlite3" -o -name "*.db" \
