@@ -177,3 +177,30 @@ export function validateStockSell(
   const proceeds = market.pricePerShare * shares;
   return { ok: true, proceeds };
 }
+
+// Phase 1.2 / Phase 3-c 拡張: FORCE_BUY の可変乗数計算（3〜5倍）
+// 物件の開発度（家・ホテルの数）に応じて買収コストが上昇する。
+// 家なし=3倍、ホテル=5倍。ポイズンピル的効果: 増資すると買収が高くなる。
+export const FORCE_BUY_MULTIPLIER_MIN = 3;
+export const FORCE_BUY_MULTIPLIER_MAX = 5;
+
+/**
+ * FORCE_BUY（強制買収）の可変乗数を計算する。
+ *
+ * 開発度（家・ホテルの数）に応じて 3〜5 倍へ線形補間する。
+ * `houses` は整数 0..5 にクランプされ（0–4 = 家の数、5 = ホテル）、
+ * `FORCE_BUY_MULTIPLIER_MIN`（3）から `FORCE_BUY_MULTIPLIER_MAX`（5）の
+ * 範囲で値を返す。範囲外の入力は端点に正規化されるため、
+ * reducer 側の金額計算でそのまま利用できる。
+ *
+ * @param houses 物件の開発度（0..5、整数を想定）。範囲外は 0/5 にクランプされる。
+ * @returns 買収倍率（通常 3〜5）。`houses=0` で 3、`houses=5` で 5、その間は線形補間。
+ */
+export function calculateForceBuyMultiplier(houses: number): number {
+  // houses: 0-4が家、5がホテル
+  const normalized = Math.max(0, Math.min(houses, 5));
+  return (
+    FORCE_BUY_MULTIPLIER_MIN +
+    ((FORCE_BUY_MULTIPLIER_MAX - FORCE_BUY_MULTIPLIER_MIN) * normalized) / 5
+  );
+}

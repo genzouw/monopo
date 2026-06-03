@@ -65,12 +65,16 @@ export type Player = {
   loan?: LoanState;
 };
 
+// ── P2-a 拡張: 景気ステータス ──
+export type EconomyStatus = 'boom' | 'normal' | 'recession' | 'crisis';
+
 // ── P1 拡張: 機能フラグ（OFF時は既存挙動完全互換） ──
 export type FeatureFlags = {
   stocks?: boolean; // エリア株売買・配当（応援カード）。
   // 株価は需要供給モデル（売買で動的変動）＋家・ホテル建設で連動上昇。
   altAssets?: boolean; // P3 拡張: 新アセットクラス（暗号資産・VC・ESG）。
   loan?: boolean; // P3-a 拡張: 変動金利ローン・クレジットスコア。
+  macroEconomy?: boolean; // Phase 2-a: マクロ経済サイクル（好況・通常・不況・金融危機の4状態を遷移）
 };
 
 // ── P1 拡張: エリア株（カラーグループ株） ──
@@ -207,8 +211,10 @@ export type GameState = {
   features?: FeatureFlags;
   // P1 拡張: 株式市場（features.stocks が有効なときのみ意味を持つ）
   stockMarket?: Partial<Record<ColorGroup, ColorGroupStock>>;
-  // P3 拡張: グローバルターンカウンター（END_TURN ごとに +1）
+  // ターン数（景気更新周期・VCインベストメント成熟・ESG配当判定に使用）
   turnCount?: number;
+  // P2-a 拡張: 景気ステータス（features.macroEconomy が有効なときのみ意味を持つ）
+  economyStatus?: EconomyStatus;
   // P3-a 拡張: 基準金利（features.loan が有効なときのみ意味を持つ）
   baseRate?: number;
 };

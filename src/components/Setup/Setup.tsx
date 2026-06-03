@@ -28,6 +28,12 @@ const FEATURE_TOGGLES: Array<{
     description:
       '色ごとに「おうえんカード」を売り買いできるよ。買うとねだんが上がって、売ると下がるよ。家をたてると人気が上がるよ',
   },
+  {
+    key: 'macroEconomy',
+    label: '🌐 けいきサイクル（マクロ経済）',
+    description:
+      'ゲーム中に「好況」「不況」「金融危機」などの景気が変わるよ。景気がよいと家賃が増えて、悪いと減るよ',
+  },
 ];
 const DEFAULT_NAMES = [
   'プレイヤー1',
