@@ -63,6 +63,8 @@ export type Player = {
   loanBalance?: number;
   // ローン拡張: 借入時の金利タイプ（'fixed' = 固定, 'variable' = 変動）
   loanType?: 'fixed' | 'variable';
+  // 累進課税拡張: 次のGO通過時に控除される寄付累積額。features.progressiveTax が有効なときのみ意味を持つ
+  pendingDonation?: number;
 };
 
 // ── P2-a 拡張: 景気ステータス ──

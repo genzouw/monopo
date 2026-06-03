@@ -92,7 +92,6 @@ type SocialDividendExtResult = SocialDividendResult & {
 function distributeSocialDividend(
   state: GameState,
   newPos: number,
-  donationAmount = 0,
 ): SocialDividendExtResult {
   // P2-a 拡張: macroEconomy 有効時は GO 通過ボーナスにも景気乗数を適用する
   const useEconomy = isMacroEconomyEnabled(state) && state.economyStatus;
@@ -104,6 +103,8 @@ function distributeSocialDividend(
     : SOCIAL_DIVIDEND_OTHERS;
 
   const currentPlayer = state.players[state.currentPlayerIndex];
+  // DONATE アクションで蓄積された寄付額を GO 通過時に控除として適用し、クリアする
+  const donationAmount = currentPlayer.pendingDonation ?? 0;
 
   // 累進課税: 現在プレイヤーのGOボーナスから課税（寄付控除後）
   let taxPaid = 0;
@@ -162,10 +163,7 @@ function distributeSocialDividend(
           interestPaid +
           perCapitaRedistribution,
         creditScore: newCreditScore,
-        loanBalance: Math.max(
-          0,
-          (p.loanBalance ?? 0) - 0, // 利息は残高に加算しない（引落のみ）
-        ),
+        pendingDonation: 0,
       };
     }
     return { ...p, money: p.money + othersBonus + perCapitaRedistribution };
@@ -1709,7 +1707,11 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       if (!player || player.money < action.amount) return state;
       const newPlayers = state.players.map((p) => {
         if (p.id !== action.playerId) return p;
-        return { ...p, money: p.money - action.amount };
+        return {
+          ...p,
+          money: p.money - action.amount,
+          pendingDonation: (p.pendingDonation ?? 0) + action.amount,
+        };
       });
       const newPublicFund = (state.publicFund ?? 0) + action.amount;
       const redistributionAmount =
