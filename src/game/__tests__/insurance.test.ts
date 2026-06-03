@@ -275,5 +275,29 @@ describe('reducer 保険統合', () => {
       expect(state.players[0].properties).not.toContain(propId);
       expect(state.players[0].money).toBe(moneyBefore + scrapValue);
     });
+
+    it('保険料残高不足時に保険が全解除されマイナス残高にならない', () => {
+      vi.spyOn(randomModule, 'getSecureRandomInt').mockReturnValue(99);
+      let state = startGame({ insurance: true });
+      const { state: withProp, propId } = buyPropertyForPlayer(state);
+      state = gameReducer(withProp, {
+        type: 'BUY_INSURANCE',
+        propertyId: propId,
+      });
+      // 残高を0に設定して保険料が払えない状態にする
+      state = {
+        ...state,
+        players: state.players.map((p, i) =>
+          i === 0 ? { ...p, money: 0 } : p,
+        ),
+        turnCount: 9,
+      };
+      state = { ...state, dice: { values: [1, 2], doubles: 0, rolled: true } };
+      state = gameReducer(state, { type: 'END_TURN' });
+      // 保険が解除されている
+      expect(state.insuranceState?.[propId]).toBeUndefined();
+      // 残高はマイナスにならない
+      expect(state.players[0].money).toBeGreaterThanOrEqual(0);
+    });
   });
 });
