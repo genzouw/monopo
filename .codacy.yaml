@@ -16,6 +16,7 @@ exclude_paths:
   - 'src/components/ActionDialog/AuctionDialog.tsx'
   - 'src/components/GameBoard/GameBoard.tsx'
   - 'src/components/Board/FocusView.tsx'
+  - 'src/components/Board/MiniMap.tsx'
   - 'src/components/Board/SpaceCard.tsx'
   - 'src/components/ActionDialog/StockDialog.tsx'
   - 'src/components/ActionDialog/InvestDialog.tsx'
