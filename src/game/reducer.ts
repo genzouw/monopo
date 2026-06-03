@@ -1636,10 +1636,11 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       if (!result.ok) return state;
       const newPlayers = state.players.map((p) => {
         if (p.id !== action.playerId) return p;
-        const newBalance = Math.max(0, (p.loanBalance ?? 0) - action.amount);
+        const repayAmount = Math.min(action.amount, p.loanBalance ?? 0);
+        const newBalance = (p.loanBalance ?? 0) - repayAmount;
         return {
           ...p,
-          money: p.money - action.amount,
+          money: p.money - repayAmount,
           loanBalance: newBalance,
         };
       });
