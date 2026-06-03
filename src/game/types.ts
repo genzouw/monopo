@@ -179,7 +179,7 @@ export type GameState = {
   stockMarket?: Partial<Record<ColorGroup, ColorGroupStock>>;
   // P2-c 拡張: 保険加入状態（propertyId → 加入中か）。features.insurance が有効なときのみ意味を持つ
   insuranceState?: Record<string, boolean>;
-  // ターン数（保険料10ターン徴収判定・景気更新周期の計算に使用）
+  // P2-a/P2-c 拡張: ゲーム開始からの累積ターン数
   turnCount?: number;
   // P2-a 拡張: 景気ステータス（features.macroEconomy が有効なときのみ意味を持つ）
   economyStatus?: EconomyStatus;

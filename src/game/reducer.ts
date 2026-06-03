@@ -19,7 +19,7 @@ import {
   validateTradeOffer,
   calculateTotalAssets,
 } from './rules';
-import { getSecureRandom, getSecureRandomInt } from './random';
+import { getSecureRandomInt } from './random';
 import {
   HOUSE_PRICE_BOOST,
   PRICE_DELTA_PER_SHARE,
@@ -31,7 +31,6 @@ import {
   validateStockBuy,
   validateStockSell,
 } from './economy';
-import {
   FIRE_PROBABILITY,
   calculateFirePayout,
   calculatePremium,
@@ -46,6 +45,7 @@ import {
   shouldUpdateEconomy,
   transitionEconomy,
 } from './systems/macroEconomy';
+import { getSecureRandom } from './random';
 
 // ── 定数 ──
 
@@ -610,6 +610,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         features: action.features,
         stockMarket,
         insuranceState,
+        // P2-a 拡張: ターン数・景気ステータスを初期化
         turnCount: 0,
         economyStatus: action.features?.macroEconomy ? 'normal' : undefined,
       };
