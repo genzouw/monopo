@@ -1650,7 +1650,6 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         state,
         action.playerId,
         action.amount,
-        action.loanType,
       );
       if (!validation.ok) return state;
       const newPlayers = state.players.map((p) => {

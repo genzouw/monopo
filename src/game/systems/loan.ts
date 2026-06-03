@@ -120,7 +120,6 @@ export function validateTakeLoan(
   state: GameState,
   playerId: string,
   amount: number,
-  _loanType: LoanType,
 ): LoanTakeValidation {
   if (!isLoanEnabled(state)) return { ok: false, reason: 'LOAN_DISABLED' };
   if (!Number.isInteger(amount) || amount <= 0)
