@@ -26,6 +26,7 @@ import TradeDialog from '../ActionDialog/TradeDialog';
 import BankruptDialog from '../ActionDialog/BankruptDialog';
 import ForceBuyDialog from '../ActionDialog/ForceBuyDialog';
 import StockDialog from '../ActionDialog/StockDialog';
+import LoanDialog from '../ActionDialog/LoanDialog';
 import { useSound } from '../../sound/useSound';
 import styles from './GameBoard.module.css';
 
@@ -220,6 +221,9 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
   // P1 拡張: 株式ダイアログ
   const showStockDialog = state.turnPhase === 'stock' && !!state.stockMarket;
   const stocksEnabled = state.features?.stocks === true;
+  // ローン拡張
+  const loanEnabled = state.features?.loan === true;
+  const [showLoanDialog, setShowLoanDialog] = useState(false);
   const canSubAction =
     state.turnPhase === 'endTurn' || state.turnPhase === 'roll';
 
@@ -384,6 +388,16 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                   📈 おうえんカード
                 </Button>
               )}
+              {loanEnabled && (
+                <Button
+                  size="small"
+                  variant="secondary"
+                  className={styles.subActionButton}
+                  onClick={() => setShowLoanDialog(true)}
+                >
+                  🏦 ローン
+                </Button>
+              )}
             </>
           )}
         </div>
@@ -454,6 +468,31 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           onSellHouse={handleSellHouse}
           onClose={() => dispatch({ type: 'CLOSE_SELL_DIALOG' })}
           forced={state.turnPhase === 'forceSell'}
+        />
+      )}
+
+      {showLoanDialog && loanEnabled && (
+        <LoanDialog
+          state={state}
+          currentPlayer={currentPlayer}
+          onTakeLoan={(amount, loanType) => {
+            dispatch({
+              type: 'TAKE_LOAN',
+              playerId: currentPlayer.id,
+              amount,
+              loanType,
+            });
+            setShowLoanDialog(false);
+          }}
+          onRepayLoan={(amount) => {
+            dispatch({
+              type: 'REPAY_LOAN',
+              playerId: currentPlayer.id,
+              amount,
+            });
+            setShowLoanDialog(false);
+          }}
+          onClose={() => setShowLoanDialog(false)}
         />
       )}
 

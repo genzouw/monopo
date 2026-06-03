@@ -1,0 +1,213 @@
+import { useState } from 'react';
+import type { GameState, Player } from '../../game/types';
+import type { LoanType } from '../../game/systems/loan';
+import {
+  calculateMaxLoanAmount,
+  FIXED_LOAN_RATE,
+  getLoanInterestRate,
+  LOAN_INTEREST_RATES,
+} from '../../game/systems/loan';
+import { calculateTotalAssets } from '../../game/rules';
+import Dialog from '../common/Dialog';
+import Button from '../common/Button';
+import styles from './ActionDialog.module.css';
+
+type LoanDialogProps = {
+  state: GameState;
+  currentPlayer: Player;
+  onTakeLoan: (amount: number, loanType: LoanType) => void;
+  onRepayLoan: (amount: number) => void;
+  onClose: () => void;
+};
+
+export default function LoanDialog({
+  state,
+  currentPlayer,
+  onTakeLoan,
+  onRepayLoan,
+  onClose,
+}: LoanDialogProps) {
+  const [loanType, setLoanType] = useState<LoanType>('variable');
+  const [borrowAmount, setBorrowAmount] = useState('');
+  const [repayAmount, setRepayAmount] = useState('');
+
+  const totalAssets = calculateTotalAssets(
+    currentPlayer,
+    state.propertyStates,
+    state.board,
+  );
+  const maxBorrow = calculateMaxLoanAmount(
+    totalAssets,
+    currentPlayer.loanBalance ?? 0,
+  );
+  const loanBalance = currentPlayer.loanBalance ?? 0;
+
+  const variableRate = getLoanInterestRate(state, currentPlayer, 'variable');
+  const fixedRate = FIXED_LOAN_RATE;
+  const currentRate = loanType === 'fixed' ? fixedRate : variableRate;
+
+  const parsedBorrow = parseInt(borrowAmount, 10);
+  const parsedRepay = parseInt(repayAmount, 10);
+  const canBorrow =
+    Number.isInteger(parsedBorrow) &&
+    parsedBorrow > 0 &&
+    parsedBorrow <= maxBorrow;
+  const canRepay =
+    Number.isInteger(parsedRepay) &&
+    parsedRepay > 0 &&
+    parsedRepay <= loanBalance &&
+    parsedRepay <= currentPlayer.money;
+
+  const economyLabel =
+    state.economyStatus === 'boom'
+      ? '好況'
+      : state.economyStatus === 'normal'
+        ? '通常'
+        : state.economyStatus === 'recession'
+          ? '不況'
+          : state.economyStatus === 'crisis'
+            ? '金融危機'
+            : '—';
+
+  return (
+    <Dialog
+      title="🏦 ローン（銀行から借りる）"
+      onClose={onClose}
+      actions={
+        <Button variant="secondary" onClick={onClose}>
+          とじる
+        </Button>
+      }
+    >
+      <div className={styles.propertyInfo}>
+        <div className={styles.propertyPrice}>
+          もってるおかね: ${currentPlayer.money.toLocaleString()}
+        </div>
+        <div className={styles.propertyPrice}>
+          そうしさん: ${totalAssets.toLocaleString()} ／ かりられる上限: $
+          {maxBorrow.toLocaleString()}
+        </div>
+        {loanBalance > 0 && (
+          <div className={styles.propertyPrice}>
+            ローン残高: ${loanBalance.toLocaleString()}（
+            {currentPlayer.loanType === 'fixed' ? '固定金利' : '変動金利'}）
+          </div>
+        )}
+        {currentPlayer.creditScore !== undefined && (
+          <div className={styles.propertyPrice}>
+            信用スコア: {currentPlayer.creditScore} ／ 金利調整:{' '}
+            {variableRate !==
+            LOAN_INTEREST_RATES[state.economyStatus ?? 'normal']
+              ? `${variableRate * 100}%（スコア割引適用）`
+              : `${variableRate * 100}%`}
+          </div>
+        )}
+
+        {/* 借入セクション */}
+        {maxBorrow > 0 && (
+          <div className={styles.buildItem} style={{ marginTop: 12 }}>
+            <div className={styles.buildItemContent}>
+              <div className={styles.buildItemName}>💰 借りる</div>
+              <div className={styles.buildItemInfo}>
+                <label>
+                  金利タイプ:&nbsp;
+                  <select
+                    value={loanType}
+                    onChange={(e) => setLoanType(e.target.value as LoanType)}
+                    style={{ marginLeft: 4 }}
+                  >
+                    <option value="variable">
+                      変動金利（景気: {economyLabel} / {variableRate * 100}%）
+                    </option>
+                    <option value="fixed">
+                      固定金利（{fixedRate * 100}%・景気に左右されない）
+                    </option>
+                  </select>
+                </label>
+              </div>
+              <div className={styles.buildItemInfo}>
+                GOマス通過時に利息（元本×{currentRate * 100}
+                %）が引き落とされるよ
+              </div>
+              <div className={styles.buildItemActions}>
+                <input
+                  type="number"
+                  min={1}
+                  max={maxBorrow}
+                  value={borrowAmount}
+                  onChange={(e) => setBorrowAmount(e.target.value)}
+                  placeholder={`最大 $${maxBorrow}`}
+                  style={{ width: 120 }}
+                  aria-label="借入金額"
+                />
+                <Button
+                  size="small"
+                  onClick={() => {
+                    if (canBorrow) {
+                      onTakeLoan(parsedBorrow, loanType);
+                      setBorrowAmount('');
+                    }
+                  }}
+                  disabled={!canBorrow}
+                >
+                  かりる
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 返済セクション */}
+        {loanBalance > 0 && (
+          <div className={styles.buildItem} style={{ marginTop: 12 }}>
+            <div className={styles.buildItemContent}>
+              <div className={styles.buildItemName}>💳 返済する</div>
+              <div className={styles.buildItemActions}>
+                <input
+                  type="number"
+                  min={1}
+                  max={Math.min(loanBalance, currentPlayer.money)}
+                  value={repayAmount}
+                  onChange={(e) => setRepayAmount(e.target.value)}
+                  placeholder={`残高 $${loanBalance}`}
+                  style={{ width: 120 }}
+                  aria-label="返済金額"
+                />
+                <Button
+                  size="small"
+                  variant="secondary"
+                  onClick={() => {
+                    if (canRepay) {
+                      onRepayLoan(parsedRepay);
+                      setRepayAmount('');
+                    }
+                  }}
+                  disabled={!canRepay}
+                >
+                  返済する
+                </Button>
+              </div>
+              {parsedRepay > currentPlayer.money && (
+                <div className={styles.noMoneyHintTight}>
+                  おかねがたりないよ
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {maxBorrow === 0 && loanBalance === 0 && (
+          <div
+            style={{
+              textAlign: 'center',
+              padding: 16,
+              color: 'var(--color-text-light)',
+            }}
+          >
+            借入可能なそうしさんが足りないよ
+          </div>
+        )}
+      </div>
+    </Dialog>
+  );
+}
