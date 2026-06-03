@@ -1082,7 +1082,12 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     case 'ACTIVATE_POISON_PILL': {
       const player = state.players[state.currentPlayerIndex];
       const propState = state.propertyStates[action.propertyId];
-      if (!propState || propState.ownerId !== player.id) return state;
+      if (
+        !propState ||
+        propState.ownerId !== player.id ||
+        propState.poisonPillActive
+      )
+        return state;
       return {
         ...state,
         propertyStates: {
