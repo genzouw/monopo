@@ -108,7 +108,6 @@ function distributeSocialDividend(
 
   // 累進課税: 現在プレイヤーのGOボーナスから課税（寄付控除後）
   let taxPaid = 0;
-  let actualDonation = 0;
   let newPublicFund = state.publicFund ?? 0;
   let redistributionAmount = 0;
 
@@ -120,10 +119,16 @@ function distributeSocialDividend(
     );
     const taxableIncome = calculateTaxableIncome(selfBonus, donationAmount);
     taxPaid = calculateProgressiveTax(taxableIncome, totalAssets);
-    actualDonation = selfBonus - taxableIncome; // 実際の控除額
-    newPublicFund += taxPaid + actualDonation;
+    newPublicFund += taxPaid;
+    const activePlayers = state.players.filter((p) => !p.isBankrupt);
     redistributionAmount = calculatePublicFundRedistribution(newPublicFund);
-    if (redistributionAmount > 0) newPublicFund -= redistributionAmount;
+    const perCapitaForRedist =
+      redistributionAmount > 0 && activePlayers.length > 0
+        ? Math.floor(redistributionAmount / activePlayers.length)
+        : 0;
+    const distributedTotal = perCapitaForRedist * activePlayers.length;
+    if (distributedTotal > 0) newPublicFund -= distributedTotal;
+    redistributionAmount = distributedTotal;
   }
 
   // ローン利息: GO通過時に自動引落
@@ -159,7 +164,6 @@ function distributeSocialDividend(
           p.money +
           selfBonus -
           taxPaid -
-          actualDonation -
           interestPaid +
           perCapitaRedistribution,
         creditScore: newCreditScore,
