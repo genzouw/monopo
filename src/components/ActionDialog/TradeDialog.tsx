@@ -23,6 +23,9 @@ const LABELS = {
   noOfferProperties: 'わたせる土地がないよ',
   noRequestProperties: 'もらえる土地がないよ',
   moneyLabel: 'おかね: $',
+  add10: '10ドル追加',
+  add100: '100ドル追加',
+  clearMoney: '金額をクリア',
 } as const;
 
 const COLOR_MAP: Record<ColorGroup, string> = {
@@ -222,6 +225,7 @@ export default function TradeDialog({
               onClick={() =>
                 setOfferMoney((prev) => clamp(prev + 10, currentPlayer.money))
               }
+              aria-label={LABELS.add10}
             >
               +$10
             </button>
@@ -231,6 +235,7 @@ export default function TradeDialog({
               onClick={() =>
                 setOfferMoney((prev) => clamp(prev + 100, currentPlayer.money))
               }
+              aria-label={LABELS.add100}
             >
               +$100
             </button>
@@ -238,6 +243,7 @@ export default function TradeDialog({
               type="button"
               className={styles.moneyQuickButtonClear}
               onClick={() => setOfferMoney(0)}
+              aria-label={LABELS.clearMoney}
             >
               クリア
             </button>
@@ -313,6 +319,7 @@ export default function TradeDialog({
               onClick={() =>
                 setRequestMoney((prev) => clamp(prev + 10, targetPlayer.money))
               }
+              aria-label={LABELS.add10}
             >
               +$10
             </button>
@@ -322,6 +329,7 @@ export default function TradeDialog({
               onClick={() =>
                 setRequestMoney((prev) => clamp(prev + 100, targetPlayer.money))
               }
+              aria-label={LABELS.add100}
             >
               +$100
             </button>
@@ -329,6 +337,7 @@ export default function TradeDialog({
               type="button"
               className={styles.moneyQuickButtonClear}
               onClick={() => setRequestMoney(0)}
+              aria-label={LABELS.clearMoney}
             >
               クリア
             </button>
