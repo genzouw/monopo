@@ -3,6 +3,14 @@ title = "monopo Custom Gitleaks Rules"
 [extend]
 useDefault = true
 
+[allowlist]
+paths = [
+    '''package-lock\.json''',
+    '''pnpm-lock\.yaml''',
+    '''yarn\.lock''',
+    '''\.lock$'''
+]
+
 [[rules]]
 id = "monopo-pii-email"
 description = "個人情報 (PII) - メールアドレスのハードコード検知"
