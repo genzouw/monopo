@@ -6,7 +6,7 @@ useDefault = true
 [[rules]]
 id = "monopo-pii-email"
 description = "個人情報 (PII) - メールアドレスのハードコード検知"
-regex = '''(?i)[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}'''
+regex = '''(?i)\b[a-z0-9][a-z0-9._%+\-]*[a-z0-9]@[a-z0-9](?:[a-z0-9\-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9\-]*[a-z0-9])?)*\.[a-z]{2,}\b'''
 tags = ["pii", "email"]
 secretGroup = 0
 entropy = 0.0
