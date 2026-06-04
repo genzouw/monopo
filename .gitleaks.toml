@@ -12,8 +12,8 @@ secretGroup = 0
 entropy = 0.0
 [rules.allowlist]
 regexes = [
-    '''(?i)example\.(com|org|net)''',
-    '''(?i)test\.(com|org|net)''',
-    '''(?i)dummy\.(com|org|net)''',
-    '''(?i)genzouw@gmail\.com'''
+    '''(?i)@example\.(com|org|net)$''',
+    '''(?i)@test\.(com|org|net)$''',
+    '''(?i)@dummy\.(com|org|net)$''',
+    '''(?i)@.*\.invalid$'''
 ]
