@@ -1,0 +1,19 @@
+title = "monopo Custom Gitleaks Rules"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "monopo-pii-email"
+description = "個人情報 (PII) - メールアドレスのハードコード検知"
+regex = '''(?i)[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}'''
+tags = ["pii", "email"]
+secretGroup = 0
+entropy = 0.0
+[rules.allowlist]
+regexes = [
+    '''(?i)example\.(com|org|net)''',
+    '''(?i)test\.(com|org|net)''',
+    '''(?i)dummy\.(com|org|net)''',
+    '''(?i)genzouw@gmail\.com'''
+]
