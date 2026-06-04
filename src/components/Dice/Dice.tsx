@@ -15,6 +15,8 @@ export default function Dice({ values, rolling, onRollComplete }: DiceProps) {
     null,
   );
   const callbackRef = useRef(onRollComplete);
+  const prevIsAnimatingRef = useRef(false);
+  const [shouldAnnounce, setShouldAnnounce] = useState(false);
 
   useEffect(() => {
     callbackRef.current = onRollComplete;
@@ -42,6 +44,15 @@ export default function Dice({ values, rolling, onRollComplete }: DiceProps) {
   const isAnimating = rolling || randomValues !== null;
   const displayValues = randomValues ?? values;
   const isDoubles = values[0] === values[1];
+
+  useEffect(() => {
+    if (prevIsAnimatingRef.current && !isAnimating) {
+      setShouldAnnounce(true);
+    } else if (isAnimating) {
+      setShouldAnnounce(false);
+    }
+    prevIsAnimatingRef.current = isAnimating;
+  }, [isAnimating]);
   return (
     <div>
       <div className={styles.diceContainer} aria-hidden="true">
@@ -76,7 +87,7 @@ export default function Dice({ values, rolling, onRollComplete }: DiceProps) {
           border: 0,
         }}
       >
-        {!isAnimating
+        {shouldAnnounce
           ? `さいころの目は ${values[0]} と ${values[1]} です。${isDoubles ? 'ゾロ目！' : ''}`
           : ''}
       </div>
