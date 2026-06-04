@@ -16,7 +16,6 @@ export default function Dice({ values, rolling, onRollComplete }: DiceProps) {
   );
   const callbackRef = useRef(onRollComplete);
   const prevIsAnimatingRef = useRef(false);
-  const [shouldAnnounce, setShouldAnnounce] = useState(false);
 
   useEffect(() => {
     callbackRef.current = onRollComplete;
@@ -45,14 +44,8 @@ export default function Dice({ values, rolling, onRollComplete }: DiceProps) {
   const displayValues = randomValues ?? values;
   const isDoubles = values[0] === values[1];
 
-  useEffect(() => {
-    if (prevIsAnimatingRef.current && !isAnimating) {
-      setShouldAnnounce(true);
-    } else if (isAnimating) {
-      setShouldAnnounce(false);
-    }
-    prevIsAnimatingRef.current = isAnimating;
-  }, [isAnimating]);
+  const shouldAnnounce = prevIsAnimatingRef.current && !isAnimating;
+  prevIsAnimatingRef.current = isAnimating;
   return (
     <div>
       <div className={styles.diceContainer} aria-hidden="true">
