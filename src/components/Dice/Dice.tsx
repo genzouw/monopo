@@ -64,7 +64,6 @@ export default function Dice({ values, rolling, onRollComplete }: DiceProps) {
       {/* スクリーンリーダー用のアナウンス */}
       <div
         role="status"
-        aria-live="polite"
         style={{
           position: 'absolute',
           width: '1px',
