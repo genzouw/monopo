@@ -4,12 +4,16 @@ import { BOARD_SPACES } from '../board';
 import { createInitialGameState, gameReducer } from '../reducer';
 import {
   DIVIDEND_RATE_PCT,
+  FORCE_BUY_MULTIPLIER_MAX,
+  FORCE_BUY_MULTIPLIER_MIN,
+  FORCE_BUY_POISON_PILL_BONUS,
   HOUSE_PRICE_BOOST,
   PRICE_DELTA_PER_SHARE,
   STOCK_INITIAL_PRICE,
   STOCK_MIN_PRICE,
   STOCK_TOTAL_SHARES,
   calculateDividendPool,
+  calculateForceBuyMultiplier,
   calculateNextPrice,
   createInitialStockMarket,
   distributeDividends,
@@ -370,6 +374,46 @@ describe('reducer P1 拡張', () => {
       const next = gameReducer(state, { type: 'CLOSE_STOCK_DIALOG' });
       expect(next.turnPhase).toBe('endTurn');
     });
+  });
+});
+
+// ── calculateForceBuyMultiplier ──
+
+describe('calculateForceBuyMultiplier', () => {
+  it('家なし(0)で最小乗数を返す', () => {
+    expect(calculateForceBuyMultiplier(0)).toBe(FORCE_BUY_MULTIPLIER_MIN);
+  });
+
+  it('ホテル(5)で最大乗数を返す', () => {
+    expect(calculateForceBuyMultiplier(5)).toBe(FORCE_BUY_MULTIPLIER_MAX);
+  });
+
+  it('家2つで線形補間した乗数を返す', () => {
+    // 3 + (5-3)*2/5 = 3.8
+    expect(calculateForceBuyMultiplier(2)).toBeCloseTo(3.8);
+  });
+
+  it('範囲外の値は端点にクランプされる', () => {
+    expect(calculateForceBuyMultiplier(-1)).toBe(FORCE_BUY_MULTIPLIER_MIN);
+    expect(calculateForceBuyMultiplier(99)).toBe(FORCE_BUY_MULTIPLIER_MAX);
+  });
+
+  it('ポイズンピル有効時は乗数にボーナスが加算される', () => {
+    expect(calculateForceBuyMultiplier(0, true)).toBe(
+      FORCE_BUY_MULTIPLIER_MIN + FORCE_BUY_POISON_PILL_BONUS,
+    );
+  });
+
+  it('ポイズンピル有効時はホテルでも最大+ボーナスを返す', () => {
+    expect(calculateForceBuyMultiplier(5, true)).toBe(
+      FORCE_BUY_MULTIPLIER_MAX + FORCE_BUY_POISON_PILL_BONUS,
+    );
+  });
+
+  it('ポイズンピル無効(false)はデフォルトと同じ動作', () => {
+    expect(calculateForceBuyMultiplier(0, false)).toBe(
+      FORCE_BUY_MULTIPLIER_MIN,
+    );
   });
 });
 

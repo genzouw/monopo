@@ -2,7 +2,7 @@
 # https://docs.coderabbit.ai/reference/configuration
 
 language: 'ja-JP'
-early_access: false
+early_access: true
 enable_free_tier: true
 
 reviews:
