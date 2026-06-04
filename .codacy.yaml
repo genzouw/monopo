@@ -20,6 +20,7 @@ exclude_paths:
   - 'src/components/Board/SpaceCard.tsx'
   - 'src/components/ActionDialog/StockDialog.tsx'
   - 'src/components/ActionDialog/InvestDialog.tsx'
+  - 'src/components/ActionDialog/TradeDialog.tsx'
   - 'src/game/economy.ts'
   - 'src/game/reducer.ts'
   - 'src/game/storage.ts'
