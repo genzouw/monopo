@@ -10,14 +10,19 @@ jobs:
     if: github.event.label.name == 'request ai research'
     runs-on: ubuntu-latest
     steps:
-      - name: Tavily Search
+      - name: Tavily Search and AI Plan Generation
         uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9.0.0
         env:
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+          OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
         with:
           script: |
-            const query = context.payload.issue.title;
-            const response = await fetch('https://api.tavily.com/search', {
+            const title = context.payload.issue.title;
+            const issueBody = context.payload.issue.body || '';
+            const query = title;
+
+            // 1. Tavily Search
+            const tavilyRes = await fetch('https://api.tavily.com/search', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -27,11 +32,39 @@ jobs:
                 include_answer: true,
               }),
             });
-            const data = await response.json();
-            let body = `### AI Research Results\n\n${data.answer || 'No summary available.'}\n\n#### Sources\n`;
-            if(data.results) {
-               data.results.forEach(r => { body += `- [${r.title}](${r.url})\n`; });
+            const searchData = await tavilyRes.json();
+
+            // 2. OpenAI Generation
+            const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のIssueの要件とWeb検索結果をもとに、プロジェクトの具体的な実装計画を日本語で作成してください。
+            プロジェクト要件:
+            - 名称には「monopoly」ではなく必ず「monopo」を使用する。
+            - パッケージマネージャには必ずBunを使用する。
+
+            Issueタイトル: ${title}
+            Issue本文: ${issueBody}
+            検索結果の要約: ${searchData.answer || '要約なし'}
+            `;
+
+            const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.OPENAI_KEY}`
+              },
+              body: JSON.stringify({
+                model: 'gpt-4o',
+                messages: [{ role: 'user', content: prompt }]
+              })
+            });
+
+            const openaiData = await openaiRes.json();
+            const plan = openaiData.choices?.[0]?.message?.content || '実装計画の生成に失敗しました。';
+
+            let body = `### 🤖 AI リサーチ結果 & 実装計画\n\n${plan}\n\n#### 参考ソース\n`;
+            if(searchData.results) {
+               searchData.results.forEach(r => { body += `- [${r.title}](${r.url})\n`; });
             }
+
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
