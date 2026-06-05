@@ -2,7 +2,7 @@
 # https://docs.coderabbit.ai/reference/configuration
 
 language: 'ja-JP'
-early_access: false
+early_access: true
 enable_free_tier: true
 
 reviews:
@@ -15,6 +15,10 @@ reviews:
   # 繰り返し適用されてノイズが増えるため、広範な指示は instructions に集約する。
   instructions: |
     変更がプロジェクト全体に与える影響や、アーキテクチャの観点など、広いスコープからコードレビューを行ってください。必ず日本語でコメントしてください。
+    プロジェクト固有の制約として以下のルールが守られているか確認してください:
+    - UIテキスト、ドキュメント、コメントはすべて日本語で記述されていること。
+    - プロジェクト全体で「monopoly（モノポリ）」ではなく必ず「monopo（モノポ）」という名称が使用されていること。
+    - パッケージマネージャとして npm / yarn / pnpm ではなく、必ず Bun が使用されていること。
     メインブランチにマージされた場合に Cloud Run / Cloudflare Pages 上の本番環境にデプロイされることを考慮し、以下の観点を強調し、重要視して必ずレビューに盛り込んでください:
     - 実行環境へのアクセス方法（認証情報、API キー、DB 接続文字列、内部 URL など）がコードやログから漏洩していないこと。
     - 実行環境に不正にアクセスするための攻撃手法や脆弱性（インジェクション、認可不足、不適切な権限設定、CORS / CSRF / Secure Cookie / Secure Headers の設定崩れなど）が入り込んでいないこと。
