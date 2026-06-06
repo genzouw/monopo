@@ -4,7 +4,6 @@ on:
     types: [labeled]
 permissions:
   issues: write
-  contents: read
   models: read
 jobs:
   research:
