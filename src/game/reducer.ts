@@ -1700,7 +1700,7 @@ function applyInsuranceOnEndTurn(
   newTurnCount: number,
 ): GameState {
   let players = [...state.players];
-  let propertyStates = { ...state.propertyStates };
+  const propertyStates = { ...state.propertyStates };
   const insuranceState = { ...(state.insuranceState ?? {}) };
   const messages: string[] = [];
 
@@ -1746,10 +1746,8 @@ function applyInsuranceOnEndTurn(
       const payout = calculateFirePayout(space.price ?? 0, insured);
       moneyDelta += payout;
       destroyedProps.push(propId);
-      propertyStates = {
-        ...propertyStates,
-        [propId]: { ownerId: null, houses: 0, isMortgaged: false },
-      };
+      // propertyStates は関数先頭で既にシャローコピー済みのため、ループ内ではインプレース更新で割り当てを抑える
+      propertyStates[propId] = { ownerId: null, houses: 0, isMortgaged: false };
       // 保険加入状態から除去
       delete insuranceState[propId];
       fireMessages.push(
