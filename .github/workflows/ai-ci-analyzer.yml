@@ -2,7 +2,7 @@ name: AI CI Failure Analyzer
 
 on:
   workflow_run:
-    workflows: ["CI"]
+    workflows: ['CI']
     types:
       - completed
 
