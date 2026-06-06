@@ -32,7 +32,7 @@ jobs:
         id: actionlint
         run: |
           set -euo pipefail
-          VERSION=1.7.7
+          VERSION=1.7.12
           TARBALL="actionlint_${VERSION}_linux_amd64.tar.gz"
           curl -fsSL -o "/tmp/${TARBALL}" "https://github.com/rhysd/actionlint/releases/download/v${VERSION}/${TARBALL}"
           curl -fsSL -o /tmp/checksums.txt "https://github.com/rhysd/actionlint/releases/download/v${VERSION}/actionlint_${VERSION}_checksums.txt"
