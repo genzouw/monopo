@@ -16,8 +16,12 @@ jobs:
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
         with:
           script: |
+            // トークン上限超過とコスト増を防ぐため、プロンプトに埋め込む値は文字数で truncate する
+            const MAX_ISSUE_BODY_CHARS = 4000;
+            const MAX_SEARCH_ANSWER_CHARS = 2000;
+
             const title = context.payload.issue.title;
-            const issueBody = context.payload.issue.body || '';
+            const issueBody = (context.payload.issue.body || '').slice(0, MAX_ISSUE_BODY_CHARS);
             const query = title;
 
             // 1. Tavily Search
@@ -31,7 +35,18 @@ jobs:
                 include_answer: true,
               }),
             });
-            const searchData = await tavilyRes.json();
+
+            let searchData = { answer: '要約なし', results: [] };
+            if (tavilyRes.ok) {
+              try {
+                searchData = await tavilyRes.json();
+              } catch (e) {
+                console.log('Failed to parse Tavily response as JSON:', e);
+              }
+            } else {
+              console.log(`Tavily request failed: ${tavilyRes.status} ${tavilyRes.statusText}`);
+            }
+            const searchAnswer = (searchData.answer || '要約なし').slice(0, MAX_SEARCH_ANSWER_CHARS);
 
             // 2. GitHub Models による実装計画の生成 (公開リポジトリで無料)
             const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のIssueの要件とWeb検索結果をもとに、プロジェクトの具体的な実装計画を日本語で作成してください。
@@ -41,7 +56,7 @@ jobs:
 
             Issueタイトル: ${title}
             Issue本文: ${issueBody}
-            検索結果の要約: ${searchData.answer || '要約なし'}
+            検索結果の要約: ${searchAnswer}
             `;
 
             const aiRes = await fetch('https://models.github.ai/inference/chat/completions', {
@@ -56,8 +71,19 @@ jobs:
               })
             });
 
-            const aiData = await aiRes.json();
-            const plan = aiData.choices?.[0]?.message?.content || '実装計画の生成に失敗しました。';
+            let plan = '実装計画の生成に失敗しました。';
+            if (aiRes.ok) {
+              try {
+                const aiData = await aiRes.json();
+                plan = aiData.choices?.[0]?.message?.content || plan;
+              } catch (e) {
+                console.log('Failed to parse GitHub Models response as JSON:', e);
+              }
+            } else {
+              const errorBody = await aiRes.text().catch(() => '<failed to read body>');
+              console.log(`GitHub Models request failed: ${aiRes.status} ${aiRes.statusText}`);
+              console.log('Response body:', errorBody);
+            }
 
             let body = `### 🤖 AI リサーチ結果 & 実装計画\n\n${plan}\n\n#### 参考ソース\n`;
             if(searchData.results) {
