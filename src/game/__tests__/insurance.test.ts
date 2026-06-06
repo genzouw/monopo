@@ -203,6 +203,46 @@ describe('reducer 保険統合', () => {
       expect(after.players[1].money).toBe(moneyBefore);
       expect(after.insuranceState?.[propId]).toBeUndefined();
     });
+
+    it('火災リスクのない鉄道（railroad）には保険加入できない', () => {
+      // たろう(index=0)を ひがし鉄道(position=5) に置いて購入
+      let state = startGame({ insurance: true });
+      state = {
+        ...state,
+        players: state.players.map((p, i) =>
+          i === 0 ? { ...p, position: 5 } : p,
+        ),
+      };
+      state = gameReducer(state, { type: 'BUY_PROPERTY' });
+      const propId = state.players[0].properties[0];
+      const moneyBefore = state.players[0].money;
+      const after = gameReducer(state, {
+        type: 'BUY_INSURANCE',
+        propertyId: propId,
+      });
+      expect(after.players[0].money).toBe(moneyBefore);
+      expect(after.insuranceState?.[propId]).toBeUndefined();
+    });
+
+    it('火災リスクのない公共施設（utility）には保険加入できない', () => {
+      // たろう(index=0)を でんりょく会社(position=12) に置いて購入
+      let state = startGame({ insurance: true });
+      state = {
+        ...state,
+        players: state.players.map((p, i) =>
+          i === 0 ? { ...p, position: 12 } : p,
+        ),
+      };
+      state = gameReducer(state, { type: 'BUY_PROPERTY' });
+      const propId = state.players[0].properties[0];
+      const moneyBefore = state.players[0].money;
+      const after = gameReducer(state, {
+        type: 'BUY_INSURANCE',
+        propertyId: propId,
+      });
+      expect(after.players[0].money).toBe(moneyBefore);
+      expect(after.insuranceState?.[propId]).toBeUndefined();
+    });
   });
 
   describe('END_TURN: turnCount インクリメント', () => {

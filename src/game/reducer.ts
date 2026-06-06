@@ -1573,11 +1573,13 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       const propState = state.propertyStates[action.propertyId];
       // 自分が所有している物件のみ保険加入可
       if (!propState || propState.ownerId !== player.id) return state;
+      // 火災リスクのある不動産（property）のみ保険対象。鉄道・公共施設は除外
+      const space = getSpaceById(action.propertyId, state.board);
+      if (!space || space.type !== 'property') return state;
       // すでに加入済みなら変更なし
       if (isPropertyInsured(state.insuranceState, action.propertyId))
         return state;
-      const space = getSpaceById(action.propertyId, state.board);
-      const premium = calculatePremium(space?.price ?? 0);
+      const premium = calculatePremium(space.price ?? 0);
       // 保険料が払えない場合は加入不可
       if (player.money < premium) return state;
       const newInsuranceState = {
