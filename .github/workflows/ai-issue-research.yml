@@ -5,6 +5,7 @@ on:
 permissions:
   issues: write
   contents: read
+  models: read
 jobs:
   research:
     if: github.event.label.name == 'request ai research'
@@ -14,7 +15,6 @@ jobs:
         uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9.0.0
         env:
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
-          OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
         with:
           script: |
             const title = context.payload.issue.title;
@@ -34,7 +34,7 @@ jobs:
             });
             const searchData = await tavilyRes.json();
 
-            // 2. OpenAI Generation
+            // 2. GitHub Models による実装計画の生成 (公開リポジトリで無料)
             const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のIssueの要件とWeb検索結果をもとに、プロジェクトの具体的な実装計画を日本語で作成してください。
             プロジェクト要件:
             - 名称には「monopoly」ではなく必ず「monopo」を使用する。
@@ -45,20 +45,20 @@ jobs:
             検索結果の要約: ${searchData.answer || '要約なし'}
             `;
 
-            const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+            const aiRes = await fetch('https://models.github.ai/inference/chat/completions', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.OPENAI_KEY}`
+                'Authorization': `Bearer ${process.env.GITHUB_TOKEN}`
               },
               body: JSON.stringify({
-                model: 'gpt-4o',
+                model: 'openai/gpt-4o-mini',
                 messages: [{ role: 'user', content: prompt }]
               })
             });
 
-            const openaiData = await openaiRes.json();
-            const plan = openaiData.choices?.[0]?.message?.content || '実装計画の生成に失敗しました。';
+            const aiData = await aiRes.json();
+            const plan = aiData.choices?.[0]?.message?.content || '実装計画の生成に失敗しました。';
 
             let body = `### 🤖 AI リサーチ結果 & 実装計画\n\n${plan}\n\n#### 参考ソース\n`;
             if(searchData.results) {
