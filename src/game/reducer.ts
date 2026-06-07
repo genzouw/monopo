@@ -1625,7 +1625,6 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       );
     }
 
-<<<<<<< HEAD
     // ── P3 拡張: 新アセットクラス（暗号資産・VC・ESG） ──
     case 'OPEN_ALT_ASSET_DIALOG': {
       if (!state.features?.altAssets) return state;
