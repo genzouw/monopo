@@ -114,6 +114,10 @@ export function loadSetupConfig(): SetupConfig | null {
         f.insurance = config.features.insurance;
       if (typeof config.features.macroEconomy === 'boolean')
         f.macroEconomy = config.features.macroEconomy;
+      if (typeof config.features.progressiveTax === 'boolean')
+        f.progressiveTax = config.features.progressiveTax;
+      if (typeof config.features.loan === 'boolean')
+        f.loan = config.features.loan;
       features = f;
     }
     return {

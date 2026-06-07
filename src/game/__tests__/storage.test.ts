@@ -392,16 +392,44 @@ describe('saveSetupConfig / loadSetupConfig', () => {
     expect(loaded?.features).toEqual({ macroEconomy: true });
   });
 
+  // Phase 3 拡張: progressiveTax フラグの保存・復元
+  it('features.progressiveTax を保存して復元できる', () => {
+    saveSetupConfig({
+      ...validConfig,
+      features: { progressiveTax: true },
+    });
+    const loaded = loadSetupConfig();
+    expect(loaded?.features).toEqual({ progressiveTax: true });
+  });
+
+  // Phase 3 拡張: loan フラグの保存・復元
+  it('features.loan を保存して復元できる', () => {
+    saveSetupConfig({
+      ...validConfig,
+      features: { loan: true },
+    });
+    const loaded = loadSetupConfig();
+    expect(loaded?.features).toEqual({ loan: true });
+  });
+
   it('features の複数フラグを同時に保存・復元できる', () => {
     saveSetupConfig({
       ...validConfig,
-      features: { stocks: true, insurance: true, macroEconomy: false },
+      features: {
+        stocks: true,
+        insurance: true,
+        macroEconomy: false,
+        progressiveTax: true,
+        loan: true,
+      },
     });
     const loaded = loadSetupConfig();
     expect(loaded?.features).toEqual({
       stocks: true,
       insurance: true,
       macroEconomy: false,
+      progressiveTax: true,
+      loan: true,
     });
   });
 });
