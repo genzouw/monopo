@@ -41,4 +41,7 @@ export type GameAction =
   | { type: 'OPEN_STOCK_DIALOG' }
   | { type: 'CLOSE_STOCK_DIALOG' }
   | { type: 'BUY_STOCK'; color: ColorGroup; shares: number }
-  | { type: 'SELL_STOCK'; color: ColorGroup; shares: number };
+  | { type: 'SELL_STOCK'; color: ColorGroup; shares: number }
+  // P2-c 拡張: 不動産保険（火災リスク・保険料・補填）
+  | { type: 'BUY_INSURANCE'; propertyId: string }
+  | { type: 'CANCEL_INSURANCE'; propertyId: string };
