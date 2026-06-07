@@ -1,0 +1,76 @@
+name: AI Dependency Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+
+jobs:
+  review:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Analyze Dependabot PR
+        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9.0.0
+        env:
+          GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            if (!pr) {
+              console.log('No PR payload found.');
+              return;
+            }
+
+            const title = pr.title;
+            const body = pr.body || '';
+            const prNumber = pr.number;
+
+            const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のDependabotによる依存関係更新のプルリクエストを分析し、更新内容の要約と、潜在的な破壊的変更やリスク、確認すべきポイントを日本語で提示してください。
+            プロジェクト要件:
+            - 名称には「monopoly」ではなく必ず「monopo」を使用する。
+            - パッケージマネージャには必ずBunを使用する。
+
+            PRタイトル: ${title}
+            PR本文: ${body.substring(0, 3000)}`;
+
+            // GitHub Models (公開リポジトリで無料・OpenAI互換API)
+            const response = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
+              },
+              body: JSON.stringify({
+                model: 'openai/gpt-4o-mini',
+                messages: [{ role: 'user', content: prompt }]
+              })
+            });
+
+            if (!response.ok) {
+              const errorBody = await response.text().catch(() => '<failed to read body>');
+              console.log(`GitHub Models API error: ${response.status} ${response.statusText}`);
+              console.log('Response body:', errorBody);
+              return;
+            }
+
+            const data = await response.json();
+            const analysis = data.choices?.[0]?.message?.content;
+
+            if (!analysis) {
+              console.log('No analysis returned from GitHub Models.', JSON.stringify(data));
+              return;
+            }
+
+            const commentBody = `### 🤖 AI 依存関係レビュー\n\n${analysis}`;
+
+            await github.rest.issues.createComment({
+              issue_number: prNumber,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: commentBody
+            });
