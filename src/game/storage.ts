@@ -110,6 +110,10 @@ export function loadSetupConfig(): SetupConfig | null {
       const f: FeatureFlags = {};
       if (typeof config.features.stocks === 'boolean')
         f.stocks = config.features.stocks;
+      if (typeof config.features.insurance === 'boolean')
+        f.insurance = config.features.insurance;
+      if (typeof config.features.macroEconomy === 'boolean')
+        f.macroEconomy = config.features.macroEconomy;
       features = f;
     }
     return {

@@ -45,5 +45,6 @@ export type GameAction =
   // Phase 3 拡張: 変動金利ローン
   | { type: 'TAKE_LOAN'; playerId: string; amount: number }
   | { type: 'REPAY_LOAN'; playerId: string; amount: number }
-  // Phase 3 拡張: 損害保険
-  | { type: 'BUY_INSURANCE'; playerId: string; propertyId: string };
+  // P2-c 拡張: 不動産保険（火災リスク・保険料・補填）
+  | { type: 'BUY_INSURANCE'; propertyId: string }
+  | { type: 'CANCEL_INSURANCE'; propertyId: string };

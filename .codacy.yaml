@@ -23,6 +23,7 @@ exclude_paths:
   - 'src/components/ActionDialog/TradeDialog.tsx'
   - 'src/components/Dice/Dice.tsx'
   - 'src/game/economy.ts'
+  - 'src/game/insurance.ts'
   - 'src/game/reducer.ts'
   - 'src/game/storage.ts'
   - 'src/components/Setup/Setup.tsx'
