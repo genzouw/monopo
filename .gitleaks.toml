@@ -42,7 +42,7 @@ regexes = [
 [[rules]]
 id = "monopo-cloud-id"
 description = "クラウドリソース識別子 (AWS Account ID, GCP Project ID) の露出"
-regex = '''(?i)(?:aws_account_id|account_id|project_id|gcp_project)[\s]*[:=][\s]*["']?(?:\d{12}|[a-z0-9](?:[-a-z0-9]{0,28}[a-z0-9])?)["']?'''
+regex = '''(?i)(?:(?:aws_account_id|account_id)[\s]*[:=][\s]*["']?\d{12}["']?|(?:gcp_project|project_id)[\s]*[:=][\s]*["']?[a-z][a-z0-9-]{5,29}["']?)'''
 tags = ["cloud", "identifier"]
 secretGroup = 0
 entropy = 0.0
