@@ -5,6 +5,7 @@ on:
 permissions:
   issues: write
   models: read
+
 jobs:
   research:
     if: github.event.label.name == 'request ai research'
@@ -13,6 +14,7 @@ jobs:
       - name: Tavily Search and AI Plan Generation
         uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9.0.0
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
         with:
           script: |
@@ -59,6 +61,8 @@ jobs:
             検索結果の要約: ${searchAnswer}
             `;
 
+            // GitHub Models (公開リポジトリで無料・OpenAI互換API)
+            // permissions.models: read + GITHUB_TOKEN で認証可能 (追加シークレット不要)
             const aiRes = await fetch('https://models.github.ai/inference/chat/completions', {
               method: 'POST',
               headers: {
