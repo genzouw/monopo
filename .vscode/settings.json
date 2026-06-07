@@ -8,6 +8,18 @@
     "**/*credentials*.yml": true,
     "**/*credentials*.yaml": true,
     "**/*credentials*.env": true,
+    "**/*secret*.json": true,
+    "**/*secret*.yml": true,
+    "**/*secret*.yaml": true,
+    "**/*secret*.env": true,
+    "**/*.npmrc": true,
+    "**/.netrc": true,
+    "**/*.p12": true,
+    "**/*.pfx": true,
+    "**/*.keystore": true,
+    "**/*.sqlite": true,
+    "**/*.sqlite3": true,
+    "**/*.db": true,
     "**/*service-account*.json": true,
     "**/*serviceaccount*.json": true,
     "**/*.tfstate*": true,
@@ -15,7 +27,8 @@
     "**/.claude/**": true,
     "**/.aider*/**": true,
     "**/.continue/**": true,
-    "**/.jules/**": true
+    "**/.jules/**": true,
+    "**/.cline/**": true
   },
   "search.exclude": {
     "**/.env": true,
@@ -26,6 +39,18 @@
     "**/*credentials*.yml": true,
     "**/*credentials*.yaml": true,
     "**/*credentials*.env": true,
+    "**/*secret*.json": true,
+    "**/*secret*.yml": true,
+    "**/*secret*.yaml": true,
+    "**/*secret*.env": true,
+    "**/*.npmrc": true,
+    "**/.netrc": true,
+    "**/*.p12": true,
+    "**/*.pfx": true,
+    "**/*.keystore": true,
+    "**/*.sqlite": true,
+    "**/*.sqlite3": true,
+    "**/*.db": true,
     "**/*service-account*.json": true,
     "**/*serviceaccount*.json": true,
     "**/*.tfstate*": true,
@@ -33,6 +58,7 @@
     "**/.claude/**": true,
     "**/.aider*/**": true,
     "**/.continue/**": true,
-    "**/.jules/**": true
+    "**/.jules/**": true,
+    "**/.cline/**": true
   }
 }

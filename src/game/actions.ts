@@ -33,6 +33,7 @@ export type GameAction =
   | { type: 'ROLL_FOR_JAIL' }
   | { type: 'FORCE_BUY' }
   | { type: 'DECLINE_FORCE_BUY' }
+  | { type: 'ACTIVATE_POISON_PILL'; propertyId: string }
   | { type: 'DECLARE_BANKRUPTCY'; creditorId: string | null }
   | { type: 'END_TURN' }
   | { type: 'PAY_TAX' }
@@ -50,4 +51,7 @@ export type GameAction =
     }
   | { type: 'REPAY_LOAN'; playerId: string; amount: number }
   // 累進課税拡張: 節税アクション（GOマス通過時に寄付で課税所得を控除）
-  | { type: 'DONATE'; playerId: string; amount: number };
+  | { type: 'DONATE'; playerId: string; amount: number }
+  // P2-c 拡張: 不動産保険（火災リスク・保険料・補填）
+  | { type: 'BUY_INSURANCE'; propertyId: string }
+  | { type: 'CANCEL_INSURANCE'; propertyId: string };

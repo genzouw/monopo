@@ -39,6 +39,18 @@ coverage
 *credentials*.yml
 *credentials*.yaml
 *credentials*.env
+*secret*.json
+*secret*.yml
+*secret*.yaml
+*secret*.env
+*.npmrc
+.netrc
+*.p12
+*.pfx
+*.keystore
+*.sqlite
+*.sqlite3
+*.db
 id_rsa
 id_ed25519
 id_ecdsa
@@ -52,3 +64,4 @@ id_dsa
 .claude/
 .aider*
 .continue/
+.cline/

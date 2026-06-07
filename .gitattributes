@@ -9,6 +9,18 @@
 *credentials*.yml -diff export-ignore
 *credentials*.yaml -diff export-ignore
 *credentials*.env -diff export-ignore
+*secret*.json -diff export-ignore
+*secret*.yml -diff export-ignore
+*secret*.yaml -diff export-ignore
+*secret*.env -diff export-ignore
+*.npmrc -diff export-ignore
+.netrc -diff export-ignore
+*.p12 -diff export-ignore
+*.pfx -diff export-ignore
+*.keystore -diff export-ignore
+*.sqlite -diff export-ignore
+*.sqlite3 -diff export-ignore
+*.db -diff export-ignore
 *service-account*.json -diff export-ignore
 *serviceaccount*.json -diff export-ignore
 *.tfstate* -diff export-ignore
@@ -19,3 +31,4 @@
 .aider*/** -diff export-ignore
 .continue/** -diff export-ignore
 .jules/** -diff export-ignore
+.cline/** -diff export-ignore

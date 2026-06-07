@@ -24,7 +24,7 @@ jobs:
     name: actionlint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           persist-credentials: false
 
@@ -32,7 +32,7 @@ jobs:
         id: actionlint
         run: |
           set -euo pipefail
-          VERSION=1.7.7
+          VERSION=1.7.12
           TARBALL="actionlint_${VERSION}_linux_amd64.tar.gz"
           curl -fsSL -o "/tmp/${TARBALL}" "https://github.com/rhysd/actionlint/releases/download/v${VERSION}/${TARBALL}"
           curl -fsSL -o /tmp/checksums.txt "https://github.com/rhysd/actionlint/releases/download/v${VERSION}/actionlint_${VERSION}_checksums.txt"

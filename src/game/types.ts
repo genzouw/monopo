@@ -73,6 +73,7 @@ export type EconomyStatus = 'boom' | 'normal' | 'recession' | 'crisis';
 // ── P1 拡張: 機能フラグ（OFF時は既存挙動完全互換） ──
 export type FeatureFlags = {
   stocks?: boolean; // エリア株売買・配当（応援カード）。株価は需要供給モデル＋家建設連動。
+  insurance?: boolean; // P2-c 拡張: 不動産保険（火災リスク・保険料・補填）
   macroEconomy?: boolean; // Phase 2-a: マクロ経済サイクル（好況・通常・不況・金融危機の4状態）
   creditScore?: boolean; // 信用スコア（借入金利優遇・物件購入制限）
   loan?: boolean; // 変動/固定金利ローン（銀行借入・景気連動金利・GOマス利息引落）
@@ -111,6 +112,7 @@ export type PropertyState = {
   ownerId: string | null;
   houses: number; // 0-4, 5=ホテル
   isMortgaged: boolean;
+  poisonPillActive?: boolean;
 };
 
 // ── 競売状態 ──
@@ -186,7 +188,9 @@ export type GameState = {
   features?: FeatureFlags;
   // P1 拡張: 株式市場（features.stocks が有効なときのみ意味を持つ）
   stockMarket?: Partial<Record<ColorGroup, ColorGroupStock>>;
-  // P2-a 拡張: ターン数（景気更新周期の計算に使用）
+  // P2-c 拡張: 保険加入状態（propertyId → 加入中か）。features.insurance が有効なときのみ意味を持つ
+  insuranceState?: Record<string, boolean>;
+  // P2-a/P2-c 拡張: ゲーム開始からの累積ターン数
   turnCount?: number;
   // P2-a 拡張: 景気ステータス（features.macroEconomy が有効なときのみ意味を持つ）
   economyStatus?: EconomyStatus;
