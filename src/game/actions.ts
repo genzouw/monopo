@@ -33,6 +33,7 @@ export type GameAction =
   | { type: 'ROLL_FOR_JAIL' }
   | { type: 'FORCE_BUY' }
   | { type: 'DECLINE_FORCE_BUY' }
+  | { type: 'ACTIVATE_POISON_PILL'; propertyId: string }
   | { type: 'DECLARE_BANKRUPTCY'; creditorId: string | null }
   | { type: 'END_TURN' }
   | { type: 'PAY_TAX' }
@@ -51,4 +52,7 @@ export type GameAction =
   | { type: 'SELL_ESG'; index: number }
   // P3-a 拡張: 変動金利ローン
   | { type: 'TAKE_LOAN'; amount: number }
-  | { type: 'REPAY_LOAN' };
+  | { type: 'REPAY_LOAN' }
+  // P2-c 拡張: 不動産保険（火災リスク・保険料・補填）
+  | { type: 'BUY_INSURANCE'; propertyId: string }
+  | { type: 'CANCEL_INSURANCE'; propertyId: string };

@@ -155,9 +155,9 @@ describe('FINISH_MOVING - handleLanding 各種マス', () => {
     expect(next.turnPhase).toBe('endTurn');
   });
 
-  it('5倍買い可能な額のとき forceBuy フェーズに入る', () => {
+  it('3倍以上買い可能な額のとき forceBuy フェーズに入る', () => {
     let state = startedGame();
-    // baltic (price=60, 5倍=300) を player-1 が所有、player-0 は十分なお金あり
+    // baltic (price=60, 3倍=180) を player-1 が所有、player-0 は十分なお金あり
     state = withPropertyOwner(state, 'baltic', 'player-1');
     state = withCurrentPlayer(state, { position: 0, money: 1000 });
     state = {
@@ -386,7 +386,7 @@ describe('BUILD_HOUSE / SELL_HOUSE', () => {
 // ── FORCE_BUY / DECLINE_FORCE_BUY ──
 
 describe('FORCE_BUY / DECLINE_FORCE_BUY', () => {
-  it('5倍買いで物件を奪える', () => {
+  it('3倍買い（家なし）で物件を奪える', () => {
     let state = startedGame();
     state = withPropertyOwner(state, 'mediterranean', 'player-1');
     state = {
@@ -409,6 +409,31 @@ describe('FORCE_BUY / DECLINE_FORCE_BUY', () => {
     expect(next.turnPhase).toBe('endTurn');
   });
 
+  it('ポイズンピル有効物件の3倍買いはボーナス乗数が適用される', () => {
+    let state = startedGame();
+    state = withPropertyOwner(state, 'mediterranean', 'player-1', {
+      poisonPillActive: true,
+    });
+    state = {
+      ...state,
+      players: state.players.map((p) =>
+        p.id === 'player-1'
+          ? { ...p, properties: ['mediterranean'] }
+          : p.id === 'player-0'
+            ? { ...p, position: 1, money: 2000 }
+            : p,
+      ),
+      turnPhase: 'forceBuy',
+    };
+    const next = gameReducer(state, { type: 'FORCE_BUY' });
+    // ポイズンピル有効: 家なし乗数3倍 + ボーナス1 = 4倍
+    // cost = floor(60 * 4.0) = 240, toOwner = floor(240 * 60%) = 144
+    expect(next.players[0].money).toBe(1760);
+    expect(next.players[1].money).toBe(1644);
+    expect(next.players[0].properties).toContain('mediterranean');
+    expect(next.turnPhase).toBe('endTurn');
+  });
+
   it('DECLINE_FORCE_BUY で endTurn に戻る', () => {
     const state = startedGame();
     const next = gameReducer(
@@ -416,6 +441,45 @@ describe('FORCE_BUY / DECLINE_FORCE_BUY', () => {
       { type: 'DECLINE_FORCE_BUY' },
     );
     expect(next.turnPhase).toBe('endTurn');
+  });
+});
+
+// ── ACTIVATE_POISON_PILL ──
+
+describe('ACTIVATE_POISON_PILL', () => {
+  it('所有物件にポイズンピルを発動できる', () => {
+    let state = startedGame();
+    state = withPropertyOwner(state, 'mediterranean', 'player-0');
+    state = {
+      ...state,
+      players: state.players.map((p) =>
+        p.id === 'player-0' ? { ...p, properties: ['mediterranean'] } : p,
+      ),
+      turnPhase: 'action',
+    };
+    const next = gameReducer(state, {
+      type: 'ACTIVATE_POISON_PILL',
+      propertyId: 'mediterranean',
+    });
+    expect(next.propertyStates['mediterranean'].poisonPillActive).toBe(true);
+    expect(next.turnPhase).toBe('action');
+  });
+
+  it('他プレイヤーの物件にはポイズンピルを発動できない', () => {
+    let state = startedGame();
+    state = withPropertyOwner(state, 'mediterranean', 'player-1');
+    state = {
+      ...state,
+      players: state.players.map((p) =>
+        p.id === 'player-1' ? { ...p, properties: ['mediterranean'] } : p,
+      ),
+      turnPhase: 'action',
+    };
+    const next = gameReducer(state, {
+      type: 'ACTIVATE_POISON_PILL',
+      propertyId: 'mediterranean',
+    });
+    expect(next.propertyStates['mediterranean'].poisonPillActive).toBeFalsy();
   });
 });
 

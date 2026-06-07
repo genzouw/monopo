@@ -51,6 +51,14 @@ import {
   liquidateNonPropertyAssets,
 } from './systems/loan';
 import {
+  FIRE_PROBABILITY,
+  calculateFirePayout,
+  calculatePremium,
+  isInsuranceEnabled,
+  isPropertyInsured,
+  shouldCollectPremium,
+} from './insurance';
+import {
   applyEconomyFactor,
   applyFinancialCrisisToStocks,
   isMacroEconomyEnabled,
@@ -361,7 +369,10 @@ function handleLanding(state: GameState): GameState {
       });
 
       // P1.2 拡張: FORCE_BUY 可変乗数（3〜5倍）で買い取り可能かチェック（所持金が足りる場合のみ提示）
-      const forceBuyMultiplier = calculateForceBuyMultiplier(propState.houses);
+      const forceBuyMultiplier = calculateForceBuyMultiplier(
+        propState.houses,
+        propState.poisonPillActive,
+      );
       const forceBuyCost = Math.floor((space.price ?? 0) * forceBuyMultiplier);
       const forceBuyMultiplierDisplay = forceBuyMultiplier.toFixed(1);
       const playerAfterRent = newPlayers.find((p) => p.id === player.id)!;
@@ -630,6 +641,8 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         : undefined;
       // P3-a 拡張: ローン機能 ON のときだけ基準金利を初期化
       const baseRate = action.features?.loan ? BASE_RATE_INITIAL : undefined;
+      // P2-c 拡張: 保険機能 ON のときだけ保険加入状態を初期化（OFF時は undefined）
+      const insuranceState = action.features?.insurance ? {} : undefined;
       return {
         ...state,
         phase: 'playing',
@@ -650,6 +663,8 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         features: action.features,
         stockMarket,
         baseRate,
+        insuranceState,
+        // P2-a 拡張: ターン数・景気ステータスを初期化
         turnCount: 0,
         economyStatus: action.features?.macroEconomy ? 'normal' : undefined,
       };
@@ -1070,8 +1085,11 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       const propState = state.propertyStates[space.id];
       if (!propState?.ownerId || propState.ownerId === player.id) return state;
 
-      // P1.2 拡張: 開発度（家・ホテル数）に応じた可変乗数（3〜5倍）
-      const multiplier = calculateForceBuyMultiplier(propState.houses);
+      // P1.2 拡張: 開発度（家・ホテル数）に応じた可変乗数（3〜5倍）。ポイズンピル発動時は追加ボーナス
+      const multiplier = calculateForceBuyMultiplier(
+        propState.houses,
+        propState.poisonPillActive,
+      );
       const cost = Math.floor((space.price ?? 0) * multiplier);
       if (player.money < cost) return state;
 
@@ -1120,6 +1138,25 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
 
     case 'DECLINE_FORCE_BUY': {
       return { ...state, turnPhase: 'endTurn' };
+    }
+
+    // ── ACTIVATE_POISON_PILL (ポイズンピル防衛策の発動) ──
+    case 'ACTIVATE_POISON_PILL': {
+      const player = state.players[state.currentPlayerIndex];
+      const propState = state.propertyStates[action.propertyId];
+      if (
+        !propState ||
+        propState.ownerId !== player.id ||
+        propState.poisonPillActive
+      )
+        return state;
+      return {
+        ...state,
+        propertyStates: {
+          ...state.propertyStates,
+          [action.propertyId]: { ...propState, poisonPillActive: true },
+        },
+      };
     }
 
     // ── SELL_PROPERTY (オークション形式で売り出し) ──
@@ -1514,8 +1551,17 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         }
       }
 
+      // P2-c 拡張: 保険システム（featureFlag OFF 時は完全スキップ）
+      let stateAfterInsurance = stateAfterAlt;
+      if (isInsuranceEnabled(stateAfterAlt)) {
+        stateAfterInsurance = applyInsuranceOnEndTurn(
+          stateAfterAlt,
+          nextTurnCount,
+        );
+      }
+
       return {
-        ...stateAfterAlt,
+        ...stateAfterInsurance,
         currentPlayerIndex: nextIndex,
         turnPhase: 'roll',
         turnCount: nextTurnCount,
@@ -1579,6 +1625,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       );
     }
 
+<<<<<<< HEAD
     // ── P3 拡張: 新アセットクラス（暗号資産・VC・ESG） ──
     case 'OPEN_ALT_ASSET_DIALOG': {
       if (!state.features?.altAssets) return state;
@@ -1663,6 +1710,52 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     case 'TAKE_LOAN':
     case 'REPAY_LOAN':
       return applyLoanAction(state, action);
+
+    // ── P2-c 拡張: 不動産保険 ──
+    case 'BUY_INSURANCE': {
+      if (!isInsuranceEnabled(state)) return state;
+      const player = state.players[state.currentPlayerIndex];
+      const propState = state.propertyStates[action.propertyId];
+      // 自分が所有している物件のみ保険加入可
+      if (!propState || propState.ownerId !== player.id) return state;
+      // 火災リスクのある不動産（property）のみ保険対象。鉄道・公共施設は除外
+      const space = getSpaceById(action.propertyId, state.board);
+      if (!space || space.type !== 'property') return state;
+      // すでに加入済みなら変更なし
+      if (isPropertyInsured(state.insuranceState, action.propertyId))
+        return state;
+      const premium = calculatePremium(space.price ?? 0);
+      // 保険料が払えない場合は加入不可
+      if (player.money < premium) return state;
+      const newInsuranceState = {
+        ...state.insuranceState,
+        [action.propertyId]: true,
+      };
+      const newState = updateCurrentPlayer(state, {
+        money: player.money - premium,
+      });
+      return {
+        ...newState,
+        insuranceState: newInsuranceState,
+        message: `${space?.name ?? action.propertyId}に保険をかけたよ！$${premium}の保険料をはらったよ`,
+      };
+    }
+    case 'CANCEL_INSURANCE': {
+      if (!isInsuranceEnabled(state)) return state;
+      const player = state.players[state.currentPlayerIndex];
+      const propState = state.propertyStates[action.propertyId];
+      if (!propState || propState.ownerId !== player.id) return state;
+      if (!isPropertyInsured(state.insuranceState, action.propertyId))
+        return state;
+      const rest: Record<string, boolean> = { ...(state.insuranceState ?? {}) };
+      delete rest[action.propertyId];
+      const space = getSpaceById(action.propertyId, state.board);
+      return {
+        ...state,
+        insuranceState: rest,
+        message: `${space?.name ?? action.propertyId}の保険をかいじょしたよ`,
+      };
+    }
 
     default:
       return state;
@@ -1823,5 +1916,88 @@ function applyAltAssetsEndTurn(
     ...state,
     players,
     message: messages.length > 0 ? messages.join(' ') : state.message,
+  };
+}
+
+// ── P2-c ヘルパー: END_TURN 時の保険処理 ──
+// 1. 10ターン節目なら加入中物件の保険料を徴収
+// 2. 全プレイヤーの物件に対して火災チェック（2%）
+// 発火した物件は消滅し、保険あり→評価額返金、なし→スクラップ分返金
+function applyInsuranceOnEndTurn(
+  state: GameState,
+  newTurnCount: number,
+): GameState {
+  let players = [...state.players];
+  const propertyStates = { ...state.propertyStates };
+  const insuranceState = { ...(state.insuranceState ?? {}) };
+  const messages: string[] = [];
+
+  // 保険料徴収（10ターン節目のみ）
+  if (shouldCollectPremium(newTurnCount)) {
+    players = players.map((p) => {
+      if (p.isBankrupt) return p;
+      let totalPremium = 0;
+      for (const propId of p.properties) {
+        if (!isPropertyInsured(insuranceState, propId)) continue;
+        const space = getSpaceById(propId, state.board);
+        totalPremium += calculatePremium(space?.price ?? 0);
+      }
+      if (totalPremium === 0) return p;
+      if (p.money < totalPremium) {
+        for (const propId of p.properties) {
+          if (isPropertyInsured(insuranceState, propId)) {
+            delete insuranceState[propId];
+          }
+        }
+        messages.push(`${p.name}の保険料が払えず、保険が解除されたよ`);
+        return p;
+      }
+      messages.push(`${p.name}の保険料$${totalPremium}を徴収したよ`);
+      return { ...p, money: p.money - totalPremium };
+    });
+  }
+
+  // 火災チェック（毎ターン、全プレイヤーの全物件）
+  const fireMessages: string[] = [];
+  const updatedPlayers = players.map((p) => {
+    if (p.isBankrupt) return p;
+    let moneyDelta = 0;
+    const destroyedProps: string[] = [];
+    for (const propId of p.properties) {
+      const space = getSpaceById(propId, state.board);
+      // 不動産（property）のみ火災対象
+      if (!space || space.type !== 'property') continue;
+      const roll = getSecureRandomInt(1, 100);
+      if (roll > FIRE_PROBABILITY * 100) continue;
+      // 火災発生
+      const insured = isPropertyInsured(insuranceState, propId);
+      const payout = calculateFirePayout(space.price ?? 0, insured);
+      moneyDelta += payout;
+      destroyedProps.push(propId);
+      // propertyStates は関数先頭で既にシャローコピー済みのため、ループ内ではインプレース更新で割り当てを抑える
+      propertyStates[propId] = { ownerId: null, houses: 0, isMortgaged: false };
+      // 保険加入状態から除去
+      delete insuranceState[propId];
+      fireMessages.push(
+        insured
+          ? `🔥 ${p.name}の${space.name}で火災！保険で$${payout}補填されたよ`
+          : `🔥 ${p.name}の${space.name}で火災！保険なしでスクラップ$${payout}だよ…`,
+      );
+    }
+    if (destroyedProps.length === 0) return p;
+    return {
+      ...p,
+      money: p.money + moneyDelta,
+      properties: p.properties.filter((id) => !destroyedProps.includes(id)),
+    };
+  });
+
+  const allMessages = [...messages, ...fireMessages];
+  return {
+    ...state,
+    players: updatedPlayers,
+    propertyStates,
+    insuranceState,
+    message: allMessages.length > 0 ? allMessages.join(' / ') : state.message,
   };
 }

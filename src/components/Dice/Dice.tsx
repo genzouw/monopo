@@ -14,6 +14,7 @@ export default function Dice({ values, rolling, onRollComplete }: DiceProps) {
   const [randomValues, setRandomValues] = useState<[number, number] | null>(
     null,
   );
+  const [shouldAnnounce, setShouldAnnounce] = useState(false);
   const callbackRef = useRef(onRollComplete);
 
   useEffect(() => {
@@ -28,6 +29,7 @@ export default function Dice({ values, rolling, onRollComplete }: DiceProps) {
       if (count >= 8) {
         clearInterval(interval);
         setRandomValues(null);
+        setShouldAnnounce(true);
         callbackRef.current?.();
       } else {
         setRandomValues([getSecureRandomInt(1, 6), getSecureRandomInt(1, 6)]);
@@ -42,9 +44,10 @@ export default function Dice({ values, rolling, onRollComplete }: DiceProps) {
   const isAnimating = rolling || randomValues !== null;
   const displayValues = randomValues ?? values;
   const isDoubles = values[0] === values[1];
+
   return (
     <div>
-      <div className={styles.diceContainer}>
+      <div className={styles.diceContainer} aria-hidden="true">
         <div
           className={`${styles.die} ${isAnimating ? styles.rolling : ''} ${isDoubles && !isAnimating ? styles.doubles : ''}`}
         >
@@ -57,8 +60,29 @@ export default function Dice({ values, rolling, onRollComplete }: DiceProps) {
         </div>
       </div>
       {!isAnimating && isDoubles && (
-        <div className={styles.diceResult}>ゾロ目！</div>
+        <div className={styles.diceResult} aria-hidden="true">
+          ゾロ目！
+        </div>
       )}
+      {/* スクリーンリーダー用のアナウンス */}
+      <div
+        role="status"
+        style={{
+          position: 'absolute',
+          width: '1px',
+          height: '1px',
+          padding: 0,
+          margin: '-1px',
+          overflow: 'hidden',
+          clip: 'rect(0, 0, 0, 0)',
+          whiteSpace: 'nowrap',
+          border: 0,
+        }}
+      >
+        {!isAnimating && shouldAnnounce
+          ? `さいころの目は ${values[0]} と ${values[1]} です。${isDoubles ? 'ゾロ目！' : ''}`
+          : ''}
+      </div>
     </div>
   );
 }

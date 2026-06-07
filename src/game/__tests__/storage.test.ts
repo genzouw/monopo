@@ -371,4 +371,37 @@ describe('saveSetupConfig / loadSetupConfig', () => {
     const loaded = loadSetupConfig();
     expect(loaded?.features).toEqual({});
   });
+
+  // P2-c 拡張: insurance フラグの保存・復元
+  it('features.insurance を保存して復元できる', () => {
+    saveSetupConfig({
+      ...validConfig,
+      features: { insurance: true },
+    });
+    const loaded = loadSetupConfig();
+    expect(loaded?.features).toEqual({ insurance: true });
+  });
+
+  // P2-a 拡張: macroEconomy フラグの保存・復元
+  it('features.macroEconomy を保存して復元できる', () => {
+    saveSetupConfig({
+      ...validConfig,
+      features: { macroEconomy: true },
+    });
+    const loaded = loadSetupConfig();
+    expect(loaded?.features).toEqual({ macroEconomy: true });
+  });
+
+  it('features の複数フラグを同時に保存・復元できる', () => {
+    saveSetupConfig({
+      ...validConfig,
+      features: { stocks: true, insurance: true, macroEconomy: false },
+    });
+    const loaded = loadSetupConfig();
+    expect(loaded?.features).toEqual({
+      stocks: true,
+      insurance: true,
+      macroEconomy: false,
+    });
+  });
 });
