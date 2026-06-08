@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Analyze CI Failure and Comment
         uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           script: |
             const run_id = context.payload.workflow_run.id;
@@ -79,6 +81,7 @@ jobs:
             簡潔にマークダウン形式で回答してください。\n\nログ:\n${logSnippet}`;
 
             // GitHub Models (公開リポジトリで無料・OpenAI互換API)
+            // permissions.models: read + GITHUB_TOKEN で認証可能 (追加シークレット不要)
             const response = await fetch('https://models.github.ai/inference/chat/completions', {
               method: 'POST',
               headers: {

@@ -57,6 +57,8 @@ export type Player = {
   isBankrupt: boolean;
   // P1 拡張: 持株（color → 持株数）。featureFlags.stocks が無効のときは undefined
   stocks?: Partial<Record<ColorGroup, number>>;
+  // Phase 3 拡張: ローン残高（features.loan が有効なときのみ意味を持つ）
+  loanBalance?: number;
 };
 
 // ── P2-a 拡張: 景気ステータス ──
@@ -68,6 +70,8 @@ export type FeatureFlags = {
   // 株価は需要供給モデル（売買で動的変動）＋家・ホテル建設で連動上昇。
   insurance?: boolean; // P2-c 拡張: 不動産保険（火災リスク・保険料・補填）
   macroEconomy?: boolean; // Phase 2-a: マクロ経済サイクル（好況・通常・不況・金融危機の4状態を遷移）
+  progressiveTax?: boolean; // Phase 3: 累進課税・公共基金・再分配（GOマス通過時に資産額に応じた税を徴収）
+  loan?: boolean; // Phase 3: 変動金利ローン（銀行からの借入・景気連動金利・GOマス通過時自動引落）
 };
 
 // ── P1 拡張: エリア株（カラーグループ株） ──
@@ -88,7 +92,8 @@ export type CardAction =
   | { type: 'jail' }
   | { type: 'jailFree' }
   | { type: 'repair'; perHouse: number; perHotel: number }
-  | { type: 'moveNearest'; spaceType: 'railroad' | 'utility' };
+  | { type: 'moveNearest'; spaceType: 'railroad' | 'utility' }
+  | { type: 'blackSwanDisaster'; colorGroup: ColorGroup };
 
 export type Card = {
   id: string;
@@ -102,6 +107,7 @@ export type PropertyState = {
   ownerId: string | null;
   houses: number; // 0-4, 5=ホテル
   isMortgaged: boolean;
+  isInsured?: boolean; // Phase 3 拡張: 損害保険（掛け捨て・1ラウンド有効）
   poisonPillActive?: boolean;
 };
 
@@ -184,6 +190,8 @@ export type GameState = {
   turnCount?: number;
   // P2-a 拡張: 景気ステータス（features.macroEconomy が有効なときのみ意味を持つ）
   economyStatus?: EconomyStatus;
+  // Phase 3 拡張: 累進課税で徴収した税を蓄積する公共基金（features.progressiveTax が有効なときのみ意味を持つ）
+  publicFund?: number;
 };
 
 // ── ファクトリ関数 ──
