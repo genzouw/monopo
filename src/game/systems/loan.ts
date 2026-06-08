@@ -1,81 +1,164 @@
-// P3-a 拡張: 変動金利ローン・クレジットスコアの純粋関数層
-// economy.ts / altAssets.ts と同様に副作用なしで実装する。
-// reducer.ts は applyLoanAction / applyLoanEndTurn の2つだけを呼ぶ薄いラッパーに徹する。
+// Phase 3: 変動金利ローンシステムの純粋計算関数層
+// reducer.ts を肥大化させないため、ローンロジックはここに集約する。
+// macroEconomy と連携して景気ステータスに応じた変動金利を適用する。
+// 既存ゲーム挙動を破壊しないよう、本ファイルの関数はすべて副作用なしの計算関数として実装する。
 
-import { mulberry32 } from '../random';
-import { calculateTotalAssets } from '../rules';
 import { sellCrypto } from './altAssets';
-import type { GameState, LoanState, Player } from '../types';
-import type { ColorGroup, ColorGroupStock } from '../types';
-import type { GameAction } from '../actions';
+import type {
+  ColorGroup,
+  ColorGroupStock,
+  EconomyStatus,
+  GameState,
+  Player,
+} from '../types';
 
-// ── 定数 ──
+// 景気ステータスごとの金利（GOマス通過時に元本へ乗じる）
+export const LOAN_INTEREST_RATES: Record<EconomyStatus, number> = {
+  boom: 0.05,
+  normal: 0.1,
+  recession: 0.15,
+  crisis: 0.25,
+};
 
-export const BASE_RATE_INITIAL = 0.05; // 初期基準金利 5%
-export const BASE_RATE_MIN = 0.01; // 最低 1%
-export const BASE_RATE_MAX = 0.3; // 最高 30%
-export const BASE_RATE_UPDATE_INTERVAL = 5; // 毎5ターンで変動
-export const LOAN_SPREAD = 0.02; // スプレッド 2%
-export const LOAN_PERIODS = 10; // 返済回数（ターン数）
+// macroEconomy が無効のときに使用する固定金利
+export const DEFAULT_LOAN_INTEREST_RATE = 0.1;
 
-// ── 純粋計算関数 ──
+// 総資産に対する借入限度額の比率（50%まで借りられる）
+export const MAX_LOAN_TO_ASSET_RATIO = 0.5;
 
-// クレジットスコアファクター: 物件所有率に応じた金利上乗せ係数
-// ownershipRatio < 0.25 → 1.5（低信用）
-// 0.25 ≤ ratio ≤ 0.50 → 1.0（標準）
-// ratio > 0.50 → 0.7（高信用）
-export function calculateCreditScoreFactor(ownershipRatio: number): number {
-  if (ownershipRatio < 0.25) return 1.5;
-  if (ownershipRatio <= 0.5) return 1.0;
-  return 0.7;
+/**
+ * ローン機能が有効かどうかを判定する。
+ */
+export function isLoanEnabled(state: GameState): boolean {
+  return state.features?.loan === true;
 }
 
-// 借入金利 = base_rate + spread × credit_score_factor
-export function calculateLoanInterestRate(
-  baseRate: number,
-  creditScoreFactor: number,
+/**
+ * 元本と金利から利息額を計算する（切り捨て）。
+ *
+ * @param principal 元本残高。
+ * @param rate 金利（0〜1 の小数）。
+ * @returns 利息額（floor）。
+ */
+export function calculateInterest(principal: number, rate: number): number {
+  if (principal <= 0 || rate <= 0) return 0;
+  return Math.floor(principal * rate);
+}
+
+/**
+ * 総資産と既存ローン残高から、追加借入可能な上限額を計算する。
+ *
+ * 上限 = floor(totalAssets * MAX_LOAN_TO_ASSET_RATIO) - currentLoanBalance。
+ * 結果が 0 未満の場合は 0 にクランプする。
+ *
+ * @param totalAssets プレイヤーの総資産（現金＋物件価値）。
+ * @param currentLoanBalance 現在のローン残高（デフォルト 0）。
+ * @returns 追加で借り入れ可能な上限額。
+ */
+export function calculateMaxLoanAmount(
+  totalAssets: number,
+  currentLoanBalance = 0,
 ): number {
-  return baseRate + LOAN_SPREAD * creditScoreFactor;
+  if (totalAssets <= 0) return 0;
+  const cap = Math.floor(totalAssets * MAX_LOAN_TO_ASSET_RATIO);
+  return Math.max(0, cap - currentLoanBalance);
 }
 
-// 借入上限 = 総資産 × 50%（切り捨て）
-export function calculateMaxLoan(totalAssetValue: number): number {
-  return Math.floor(totalAssetValue * 0.5);
-}
-
-// 元利均等返済額（切り上げ）
-// PMT = P × r(1+r)^n / ((1+r)^n - 1)
-// r=0 のフォールバック: P/n（切り上げ）
-export function calculateMonthlyPayment(
-  principal: number,
-  annualRate: number,
-  periods: number,
-): number {
-  if (principal <= 0) return 0;
-  if (annualRate === 0) return Math.ceil(principal / periods);
-  const r = annualRate;
-  const factor = Math.pow(1 + r, periods);
-  return Math.ceil((principal * r * factor) / (factor - 1));
-}
-
-// 基準金利変動: turnCount が BASE_RATE_UPDATE_INTERVAL の倍数のときのみ更新
-// mulberry32 シードで再現可能な ±1〜3% 変動、[BASE_RATE_MIN, BASE_RATE_MAX] にクランプ
-export function calculateNextBaseRate(
-  currentRate: number,
-  turnCount: number,
-): number {
-  if (turnCount === 0 || turnCount % BASE_RATE_UPDATE_INTERVAL !== 0) {
-    return currentRate;
+/**
+ * 現在の景気ステータスに応じた金利を返す。
+ * macroEconomy が無効または economyStatus が未設定の場合は DEFAULT_LOAN_INTEREST_RATE を返す。
+ */
+export function getLoanInterestRate(state: GameState): number {
+  if (state.features?.macroEconomy && state.economyStatus) {
+    return LOAN_INTEREST_RATES[state.economyStatus];
   }
-  const seed = (turnCount * 7_919) >>> 0;
-  const rng = mulberry32(seed);
-  const raw1 = rng(); // 変動幅: 1, 2, or 3%
-  const raw2 = rng(); // 方向: 上昇 or 下降
-  const changeSteps = Math.floor(raw1 * 3) + 1; // 1, 2, 3
-  const change = changeSteps * 0.01;
-  const direction = raw2 < 0.5 ? -1 : 1;
-  const newRate = currentRate + direction * change;
-  return Math.max(BASE_RATE_MIN, Math.min(BASE_RATE_MAX, newRate));
+  return DEFAULT_LOAN_INTEREST_RATE;
+}
+
+// ── バリデーション型 ──
+
+export type LoanTakeReason =
+  | 'LOAN_DISABLED'
+  | 'INVALID_AMOUNT'
+  | 'EXCEEDS_LIMIT'
+  | 'PLAYER_NOT_FOUND';
+
+export type LoanTakeValidation =
+  | { ok: true }
+  | { ok: false; reason: LoanTakeReason };
+
+export type LoanRepayReason =
+  | 'LOAN_DISABLED'
+  | 'INVALID_AMOUNT'
+  | 'NO_LOAN'
+  | 'INSUFFICIENT_FUNDS'
+  | 'OVERPAYMENT'
+  | 'PLAYER_NOT_FOUND';
+
+export type LoanRepayValidation =
+  | { ok: true }
+  | { ok: false; reason: LoanRepayReason };
+
+/**
+ * 借入バリデーション。
+ * totalAssets は呼び出し側で calculateTotalAssets を使って計算して渡す。
+ */
+export function validateTakeLoan(
+  state: GameState,
+  playerId: string,
+  amount: number,
+): LoanTakeValidation {
+  if (!isLoanEnabled(state)) return { ok: false, reason: 'LOAN_DISABLED' };
+  if (!Number.isInteger(amount) || amount <= 0)
+    return { ok: false, reason: 'INVALID_AMOUNT' };
+  const player = state.players.find((p) => p.id === playerId);
+  if (!player) return { ok: false, reason: 'PLAYER_NOT_FOUND' };
+
+  // 総資産を簡易計算（money + 物件抵当価値の合計）
+  const totalAssets = _calcAssets(state, player);
+  const maxAdditional = calculateMaxLoanAmount(
+    totalAssets,
+    player.loanBalance ?? 0,
+  );
+  if (amount > maxAdditional) return { ok: false, reason: 'EXCEEDS_LIMIT' };
+  return { ok: true };
+}
+
+/**
+ * 返済バリデーション。
+ */
+export function validateRepayLoan(
+  state: GameState,
+  playerId: string,
+  amount: number,
+): LoanRepayValidation {
+  if (!isLoanEnabled(state)) return { ok: false, reason: 'LOAN_DISABLED' };
+  if (!Number.isInteger(amount) || amount <= 0)
+    return { ok: false, reason: 'INVALID_AMOUNT' };
+  const player = state.players.find((p) => p.id === playerId);
+  if (!player) return { ok: false, reason: 'PLAYER_NOT_FOUND' };
+  if ((player.loanBalance ?? 0) <= 0) return { ok: false, reason: 'NO_LOAN' };
+  if (amount > (player.loanBalance ?? 0))
+    return { ok: false, reason: 'OVERPAYMENT' };
+  if (player.money < amount) return { ok: false, reason: 'INSUFFICIENT_FUNDS' };
+  return { ok: true };
+}
+
+// 内部ヘルパー: Player の簡易総資産計算（rules.ts の循環依存を避けるためシンプル実装）
+// reducer.ts 側では calculateTotalAssets を使う
+function _calcAssets(
+  state: GameState,
+  player: (typeof state.players)[0],
+): number {
+  let total = Math.max(0, player.money - (player.loanBalance ?? 0));
+  for (const propId of player.properties) {
+    const propState = state.propertyStates[propId];
+    const space = state.board.find((s) => s.id === propId);
+    if (space && !propState?.isMortgaged) total += space.mortgageValue ?? 0;
+    if (propState && propState.houses > 0)
+      total += Math.floor(((space?.houseCost ?? 0) * propState.houses) / 2);
+  }
+  return total;
 }
 
 // ── 破産時の非不動産資産清算（優先順位: ①暗号資産→②VC→③株式） ──
@@ -116,159 +199,4 @@ export function liquidateNonPropertyAssets(
     updatedPlayer: { ...updated, money: updated.money + proceeds },
     proceeds,
   };
-}
-
-// ── 1回分のローン返済を適用する内部ヘルパー ──
-function applyOneRepayment(player: Player): Player {
-  const loan = player.loan;
-  if (!loan) return player;
-
-  // 元利均等返済の利息分と元本分を計算
-  const interestPayment = Math.floor(loan.principal * loan.annualRate);
-  const principalPayment = Math.max(0, loan.monthlyPayment - interestPayment);
-  const newPrincipal = Math.max(0, loan.principal - principalPayment);
-  const newRemainingPayments = loan.remainingPayments - 1;
-
-  if (newRemainingPayments <= 0 || newPrincipal <= 0) {
-    // 完済: 残元本と最後の利息分を一括精算
-    const finalPayment = loan.principal + interestPayment;
-    return { ...player, money: player.money - finalPayment, loan: undefined };
-  }
-
-  return {
-    ...player,
-    money: player.money - loan.monthlyPayment,
-    loan: {
-      ...loan,
-      principal: newPrincipal,
-      remainingPayments: newRemainingPayments,
-    },
-  };
-}
-
-// ── 単一エントリポイント: TAKE_LOAN / REPAY_LOAN アクションの処理 ──
-export function applyLoanAction(
-  state: GameState,
-  action: GameAction,
-): GameState {
-  switch (action.type) {
-    case 'TAKE_LOAN': {
-      if (!state.features?.loan) return state;
-      const player = state.players[state.currentPlayerIndex];
-      if (!player || player.isBankrupt) return state;
-      if (action.amount <= 0) return state;
-      if (player.loan) return state; // 既存ローンがある場合は追加借入不可
-
-      // 借入上限チェック（calculateTotalAssets は rules.ts から）
-      const totalAssets = calculateTotalAssets(
-        player,
-        state.propertyStates,
-        state.board,
-      );
-      const maxLoan = calculateMaxLoan(totalAssets);
-      if (action.amount > maxLoan) return state;
-
-      // クレジットスコア計算（物件所有率）
-      const totalProperties = state.board.filter(
-        (s) =>
-          s.type === 'property' ||
-          s.type === 'railroad' ||
-          s.type === 'utility',
-      ).length;
-      const ownershipRatio =
-        totalProperties > 0 ? player.properties.length / totalProperties : 0;
-      const creditScoreFactor = calculateCreditScoreFactor(ownershipRatio);
-
-      const baseRate = state.baseRate ?? BASE_RATE_INITIAL;
-      const annualRate = calculateLoanInterestRate(baseRate, creditScoreFactor);
-      const monthlyPayment = calculateMonthlyPayment(
-        action.amount,
-        annualRate,
-        LOAN_PERIODS,
-      );
-
-      const loan: LoanState = {
-        principal: action.amount,
-        annualRate,
-        monthlyPayment,
-        remainingPayments: LOAN_PERIODS,
-      };
-
-      const newPlayers = state.players.map((p, i) =>
-        i === state.currentPlayerIndex
-          ? { ...p, money: p.money + action.amount, loan }
-          : p,
-      );
-
-      return { ...state, players: newPlayers };
-    }
-
-    case 'REPAY_LOAN': {
-      if (!state.features?.loan) return state;
-      const player = state.players[state.currentPlayerIndex];
-      if (!player || !player.loan) return state;
-
-      const newPlayers = state.players.map((p, i) =>
-        i === state.currentPlayerIndex ? applyOneRepayment(p) : p,
-      );
-      return { ...state, players: newPlayers };
-    }
-
-    default:
-      return state;
-  }
-}
-
-// ── 単一エントリポイント: END_TURN 時のローン処理 ──
-// 1. 基準金利変動（BASE_RATE_UPDATE_INTERVAL ターンごと）
-// 2. 変動時は全プレイヤーのローン金利・返済額を再計算
-// 3. 現在プレイヤーのローン返済を1回実行
-export function applyLoanEndTurn(
-  state: GameState,
-  nextTurnCount: number,
-): GameState {
-  const currentBaseRate = state.baseRate ?? BASE_RATE_INITIAL;
-  const newBaseRate = calculateNextBaseRate(currentBaseRate, nextTurnCount);
-  const baseRateChanged = newBaseRate !== currentBaseRate;
-
-  const totalProperties = state.board.filter(
-    (s) =>
-      s.type === 'property' || s.type === 'railroad' || s.type === 'utility',
-  ).length;
-
-  const newPlayers = state.players.map((p, i) => {
-    if (p.isBankrupt || !p.loan) return p;
-
-    let loan = p.loan;
-
-    // 基準金利変動時: ローン金利と返済額を再計算
-    if (baseRateChanged) {
-      const ownershipRatio =
-        totalProperties > 0 ? p.properties.length / totalProperties : 0;
-      const creditScoreFactor = calculateCreditScoreFactor(ownershipRatio);
-      const newAnnualRate = calculateLoanInterestRate(
-        newBaseRate,
-        creditScoreFactor,
-      );
-      const newMonthlyPayment = calculateMonthlyPayment(
-        loan.principal,
-        newAnnualRate,
-        loan.remainingPayments,
-      );
-      loan = {
-        ...loan,
-        annualRate: newAnnualRate,
-        monthlyPayment: newMonthlyPayment,
-      };
-    }
-
-    // 現在プレイヤーのみ返済実行（他プレイヤーは金利更新のみ）
-    if (i === state.currentPlayerIndex) {
-      return applyOneRepayment({ ...p, loan });
-    }
-
-    return { ...p, loan };
-  });
-
-  return { ...state, baseRate: newBaseRate, players: newPlayers };
 }

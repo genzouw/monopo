@@ -50,9 +50,9 @@ export type GameAction =
   | { type: 'INVEST_VC'; amount: number }
   | { type: 'BUY_ESG'; amount: number }
   | { type: 'SELL_ESG'; index: number }
-  // P3-a 拡張: 変動金利ローン
-  | { type: 'TAKE_LOAN'; amount: number }
-  | { type: 'REPAY_LOAN' }
+  // Phase 3 拡張: 変動金利ローン
+  | { type: 'TAKE_LOAN'; playerId: string; amount: number }
+  | { type: 'REPAY_LOAN'; playerId: string; amount: number }
   // P2-c 拡張: 不動産保険（火災リスク・保険料・補填）
   | { type: 'BUY_INSURANCE'; propertyId: string }
   | { type: 'CANCEL_INSURANCE'; propertyId: string };

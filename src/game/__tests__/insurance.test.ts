@@ -12,6 +12,11 @@ import {
   isPropertyInsured,
   shouldCollectPremium,
 } from '../insurance';
+import {
+  INSURANCE_PREMIUM_RATE,
+  calculateInsurancePremium,
+  validateBuyInsurance,
+} from '../systems/insurance';
 import type { GameState } from '../types';
 
 function startGame(features?: { insurance?: boolean }): GameState {
@@ -111,6 +116,79 @@ describe('insurance.ts 純粋関数', () => {
   });
 });
 
+// ── systems/insurance 固有の純粋関数 ──
+
+describe('INSURANCE_PREMIUM_RATE', () => {
+  it('0より大きく1未満の値', () => {
+    expect(INSURANCE_PREMIUM_RATE).toBeGreaterThan(0);
+    expect(INSURANCE_PREMIUM_RATE).toBeLessThan(1);
+  });
+});
+
+describe('calculateInsurancePremium', () => {
+  it('物件価格に対する保険料を計算する（切り捨て）', () => {
+    const premium = calculateInsurancePremium(200);
+    expect(premium).toBeGreaterThan(0);
+    expect(premium).toBeLessThan(200);
+  });
+
+  it('物件価格0のとき保険料は0', () => {
+    expect(calculateInsurancePremium(0)).toBe(0);
+  });
+
+  it('保険料は物件価格を超えない', () => {
+    expect(calculateInsurancePremium(100)).toBeLessThanOrEqual(100);
+  });
+});
+
+describe('validateBuyInsurance', () => {
+  it('insurance無効時はINSURANCE_DISABLEDを返す', () => {
+    const state = startGame({ insurance: false });
+    const stateWithProp = {
+      ...state,
+      players: state.players.map((p, i) =>
+        i === 0 ? { ...p, properties: ['prop-brown-1'] } : p,
+      ),
+    };
+    const result = validateBuyInsurance(
+      stateWithProp,
+      stateWithProp.players[0].id,
+      'prop-brown-1',
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe('INSURANCE_DISABLED');
+  });
+
+  it('物件を所有していない場合はNOT_OWNERを返す', () => {
+    const state = startGame({ insurance: true });
+    const result = validateBuyInsurance(
+      state,
+      state.players[0].id,
+      'prop-brown-1',
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe('NOT_OWNER');
+  });
+
+  it('残金不足の場合はINSUFFICIENT_FUNDSを返す', () => {
+    const state = startGame({ insurance: true });
+    const propId = state.board.find((s) => s.type === 'property')!.id;
+    const stateWithPropNoMoney = {
+      ...state,
+      players: state.players.map((p, i) =>
+        i === 0 ? { ...p, money: 0, properties: [propId] } : p,
+      ),
+    };
+    const result = validateBuyInsurance(
+      stateWithPropNoMoney,
+      stateWithPropNoMoney.players[0].id,
+      propId,
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe('INSUFFICIENT_FUNDS');
+  });
+});
+
 // ── Reducer 統合テスト ──
 
 describe('reducer 保険統合', () => {
@@ -131,7 +209,6 @@ describe('reducer 保険統合', () => {
 
   describe('BUY_INSURANCE / CANCEL_INSURANCE', () => {
     function buyProperty(state: GameState): GameState {
-      // たろう(index=0)を Mediterranean Ave (position=1) に置いて購入
       const withPosition = {
         ...state,
         players: state.players.map((p, i) =>
@@ -190,7 +267,6 @@ describe('reducer 保険統合', () => {
       let state = startGame({ insurance: true });
       state = buyProperty(state);
       const propId = state.players[0].properties[0];
-      // はなこ(index=1)が操作しようとしても弾かれる
       const stateWithP2Turn = {
         ...state,
         currentPlayerIndex: 1,
@@ -205,7 +281,6 @@ describe('reducer 保険統合', () => {
     });
 
     it('火災リスクのない鉄道（railroad）には保険加入できない', () => {
-      // たろう(index=0)を ひがし鉄道(position=5) に置いて購入
       let state = startGame({ insurance: true });
       state = {
         ...state,
@@ -225,7 +300,6 @@ describe('reducer 保険統合', () => {
     });
 
     it('火災リスクのない公共施設（utility）には保険加入できない', () => {
-      // たろう(index=0)を でんりょく会社(position=12) に置いて購入
       let state = startGame({ insurance: true });
       state = {
         ...state,
@@ -249,7 +323,6 @@ describe('reducer 保険統合', () => {
     it('END_TURN のたびに turnCount が +1 される', () => {
       let state = startGame({ insurance: true });
       expect(state.turnCount).toBe(0);
-      // ダイスを振った状態にしてから END_TURN
       state = { ...state, dice: { values: [1, 2], doubles: 0, rolled: true } };
       state = gameReducer(state, { type: 'END_TURN' });
       expect(state.turnCount).toBe(1);
@@ -324,7 +397,6 @@ describe('reducer 保険統合', () => {
         type: 'BUY_INSURANCE',
         propertyId: propId,
       });
-      // 残高を0に設定して保険料が払えない状態にする
       state = {
         ...state,
         players: state.players.map((p, i) =>
@@ -334,10 +406,76 @@ describe('reducer 保険統合', () => {
       };
       state = { ...state, dice: { values: [1, 2], doubles: 0, rolled: true } };
       state = gameReducer(state, { type: 'END_TURN' });
-      // 保険が解除されている
       expect(state.insuranceState?.[propId]).toBeUndefined();
-      // 残高はマイナスにならない
       expect(state.players[0].money).toBeGreaterThanOrEqual(0);
+    });
+  });
+
+  describe('blackSwanDisaster カード', () => {
+    it('blackSwanDisasterカード: 未保険物件は家が1つ失われる', () => {
+      const state = startGame({ insurance: true });
+      const propId = state.board.find(
+        (s) => s.type === 'property' && s.color === 'brown',
+      )!.id;
+      const stateWithHouse = {
+        ...state,
+        players: state.players.map((p, i) =>
+          i === 0 ? { ...p, properties: [propId] } : p,
+        ),
+        propertyStates: {
+          ...state.propertyStates,
+          [propId]: {
+            ownerId: state.players[0].id,
+            houses: 2,
+            isMortgaged: false,
+          },
+        },
+        currentCard: {
+          id: 'disaster-test',
+          type: 'chance' as const,
+          text: '火災が発生！',
+          action: {
+            type: 'blackSwanDisaster' as const,
+            colorGroup: 'brown' as const,
+          },
+        },
+      };
+      const after = gameReducer(stateWithHouse, { type: 'DISMISS_CARD' });
+      expect(after.propertyStates[propId].houses).toBe(1);
+    });
+
+    it('blackSwanDisasterカード: 保険あり物件は家が失われない', () => {
+      const state = startGame({ insurance: true });
+      const propId = state.board.find(
+        (s) => s.type === 'property' && s.color === 'brown',
+      )!.id;
+      const stateWithInsurance = {
+        ...state,
+        players: state.players.map((p, i) =>
+          i === 0 ? { ...p, properties: [propId] } : p,
+        ),
+        propertyStates: {
+          ...state.propertyStates,
+          [propId]: {
+            ownerId: state.players[0].id,
+            houses: 2,
+            isMortgaged: false,
+            isInsured: true,
+          },
+        },
+        currentCard: {
+          id: 'disaster-test',
+          type: 'chance' as const,
+          text: '火災が発生！',
+          action: {
+            type: 'blackSwanDisaster' as const,
+            colorGroup: 'brown' as const,
+          },
+        },
+      };
+      const after = gameReducer(stateWithInsurance, { type: 'DISMISS_CARD' });
+      expect(after.propertyStates[propId].houses).toBe(2);
+      expect(after.propertyStates[propId].isInsured).toBe(false);
     });
   });
 });

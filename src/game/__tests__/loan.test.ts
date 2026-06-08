@@ -1,379 +1,263 @@
 import { describe, it, expect } from 'vitest';
-import {
-  BASE_RATE_INITIAL,
-  BASE_RATE_MIN,
-  BASE_RATE_MAX,
-  LOAN_SPREAD,
-  LOAN_PERIODS,
-  calculateCreditScoreFactor,
-  calculateLoanInterestRate,
-  calculateMaxLoan,
-  calculateMonthlyPayment,
-  calculateNextBaseRate,
-  liquidateNonPropertyAssets,
-} from '../systems/loan';
-import { createInitialGameState, gameReducer } from '../reducer';
 import type { GameState } from '../types';
+import { createInitialGameState, gameReducer } from '../reducer';
+import {
+  LOAN_INTEREST_RATES,
+  DEFAULT_LOAN_INTEREST_RATE,
+  MAX_LOAN_TO_ASSET_RATIO,
+  calculateInterest,
+  calculateMaxLoanAmount,
+  isLoanEnabled,
+  validateTakeLoan,
+  validateRepayLoan,
+} from '../systems/loan';
+
+// ── テストヘルパー ──
 
 function startGame(features?: {
   loan?: boolean;
-  altAssets?: boolean;
+  macroEconomy?: boolean;
 }): GameState {
   return gameReducer(createInitialGameState(), {
     type: 'START_GAME',
     playerNames: ['たろう', 'はなこ'],
     playerTokens: ['🚗', '🎩'],
-    features,
+    features: features ?? {},
   });
 }
 
-// ── クレジットスコアファクター ──
+// ── 定数 ──
 
-describe('calculateCreditScoreFactor', () => {
-  it('所有25%未満でファクター1.5になる', () => {
-    expect(calculateCreditScoreFactor(0)).toBe(1.5);
-    expect(calculateCreditScoreFactor(0.1)).toBe(1.5);
-    expect(calculateCreditScoreFactor(0.249)).toBe(1.5);
+describe('LOAN_INTEREST_RATES', () => {
+  it('景気ステータスごとに金利が定義されている', () => {
+    expect(LOAN_INTEREST_RATES.boom).toBeDefined();
+    expect(LOAN_INTEREST_RATES.normal).toBeDefined();
+    expect(LOAN_INTEREST_RATES.recession).toBeDefined();
+    expect(LOAN_INTEREST_RATES.crisis).toBeDefined();
   });
 
-  it('所有25〜50%でファクター1.0になる', () => {
-    expect(calculateCreditScoreFactor(0.25)).toBe(1.0);
-    expect(calculateCreditScoreFactor(0.4)).toBe(1.0);
-    expect(calculateCreditScoreFactor(0.5)).toBe(1.0);
+  it('危機時の金利が通常より高い', () => {
+    expect(LOAN_INTEREST_RATES.crisis).toBeGreaterThan(
+      LOAN_INTEREST_RATES.normal,
+    );
   });
 
-  it('所有50%超でファクター0.7になる', () => {
-    expect(calculateCreditScoreFactor(0.501)).toBe(0.7);
-    expect(calculateCreditScoreFactor(1.0)).toBe(0.7);
-  });
-});
-
-// ── 借入金利計算 ──
-
-describe('calculateLoanInterestRate', () => {
-  it('借入金利 = base_rate + spread * credit_score_factor', () => {
-    // base=5%, spread=2%, factor=1.5 → 5%+3%=8%
-    expect(calculateLoanInterestRate(0.05, 1.5)).toBeCloseTo(0.08);
-    // base=5%, spread=2%, factor=1.0 → 5%+2%=7%
-    expect(calculateLoanInterestRate(0.05, 1.0)).toBeCloseTo(0.07);
-    // base=5%, spread=2%, factor=0.7 → 5%+1.4%=6.4%
-    expect(calculateLoanInterestRate(0.05, 0.7)).toBeCloseTo(0.064);
-  });
-});
-
-// ── 借入上限 ──
-
-describe('calculateMaxLoan', () => {
-  it('借入上限は総資産の50%（切り捨て）', () => {
-    expect(calculateMaxLoan(1000)).toBe(500);
-    expect(calculateMaxLoan(3000)).toBe(1500);
-    expect(calculateMaxLoan(101)).toBe(50);
-    expect(calculateMaxLoan(1500)).toBe(750);
-  });
-});
-
-// ── 元利均等返済額 ──
-
-describe('calculateMonthlyPayment', () => {
-  it('元利均等返済額を正確に計算する', () => {
-    // P=1000, r=7%, n=10: PMT ≈ 142 (切り上げ)
-    const pmt = calculateMonthlyPayment(1000, 0.07, 10);
-    expect(pmt).toBeGreaterThanOrEqual(142);
-    expect(pmt).toBeLessThanOrEqual(145);
+  it('好況時の金利が通常より低くないか同等', () => {
+    expect(LOAN_INTEREST_RATES.boom).toBeLessThanOrEqual(
+      LOAN_INTEREST_RATES.normal,
+    );
   });
 
-  it('金利ゼロの場合は元本を均等分割する（切り上げ）', () => {
-    expect(calculateMonthlyPayment(1000, 0, 10)).toBe(100);
-    expect(calculateMonthlyPayment(1001, 0, 10)).toBe(101);
-  });
-
-  it('元本ゼロの場合は返済額ゼロ', () => {
-    expect(calculateMonthlyPayment(0, 0.07, 10)).toBe(0);
-  });
-});
-
-// ── 基準金利変動 ──
-
-describe('calculateNextBaseRate', () => {
-  it('5の倍数ターンでのみ変動する', () => {
-    const rate = BASE_RATE_INITIAL;
-    expect(calculateNextBaseRate(rate, 1)).toBe(rate);
-    expect(calculateNextBaseRate(rate, 2)).toBe(rate);
-    expect(calculateNextBaseRate(rate, 3)).toBe(rate);
-    expect(calculateNextBaseRate(rate, 4)).toBe(rate);
-    const newRate = calculateNextBaseRate(rate, 5);
-    expect(newRate).not.toBe(rate);
-  });
-
-  it('変動後も1%〜30%の範囲に収まる', () => {
-    let rate = BASE_RATE_INITIAL;
-    for (let turn = 1; turn <= 100; turn++) {
-      rate = calculateNextBaseRate(rate, turn);
-      expect(rate).toBeGreaterThanOrEqual(BASE_RATE_MIN);
-      expect(rate).toBeLessThanOrEqual(BASE_RATE_MAX);
+  it('全ての金利は 0 以上 1 未満', () => {
+    for (const rate of Object.values(LOAN_INTEREST_RATES)) {
+      expect(rate).toBeGreaterThanOrEqual(0);
+      expect(rate).toBeLessThan(1);
     }
   });
+});
 
-  it('同じターン数・同じ金利では同じ結果になる（再現性）', () => {
-    const r1 = calculateNextBaseRate(0.05, 5);
-    const r2 = calculateNextBaseRate(0.05, 5);
-    expect(r1).toBe(r2);
-  });
-
-  it('変動幅は±1〜3%', () => {
-    const initial = 0.05;
-    const newRate = calculateNextBaseRate(initial, 5);
-    const diff = Math.abs(newRate - initial);
-    expect(diff).toBeGreaterThanOrEqual(0.01 - 1e-10);
-    expect(diff).toBeLessThanOrEqual(0.03 + 1e-10);
+describe('MAX_LOAN_TO_ASSET_RATIO', () => {
+  it('0より大きく1以下の値', () => {
+    expect(MAX_LOAN_TO_ASSET_RATIO).toBeGreaterThan(0);
+    expect(MAX_LOAN_TO_ASSET_RATIO).toBeLessThanOrEqual(1);
   });
 });
 
-// ── 破産時の非不動産資産清算（優先順位テスト） ──
+// ── calculateInterest ──
 
-describe('liquidateNonPropertyAssets', () => {
-  const basePlayer = {
-    id: 'player-0',
-    name: 'たろう',
-    token: '🚗' as const,
-    money: 0,
-    position: 0,
-    properties: [] as string[],
-    inJail: false,
-    jailTurns: 0,
-    getOutOfJailCards: 0,
-    isBankrupt: false,
-  };
-
-  it('①暗号資産が清算される', () => {
-    const player = {
-      ...basePlayer,
-      cryptoHolding: { units: 1.0, initialPrice: 1000, currentPrice: 1200 },
-    };
-    const { updatedPlayer, proceeds } = liquidateNonPropertyAssets(
-      player,
-      undefined,
-    );
-    expect(proceeds).toBe(1200);
-    expect(updatedPlayer.cryptoHolding).toBeUndefined();
-    expect(updatedPlayer.money).toBe(1200);
+describe('calculateInterest', () => {
+  it('元本と金利から利息を計算する（切り捨て）', () => {
+    // 1000 * 0.1 = 100
+    expect(calculateInterest(1000, 0.1)).toBe(100);
   });
 
-  it('②VC投資が清算される（投資額を回収）', () => {
-    const player = {
-      ...basePlayer,
-      vcInvestments: [
-        { amount: 300, investedTurn: 0 },
-        { amount: 200, investedTurn: 1 },
-      ],
-    };
-    const { updatedPlayer, proceeds } = liquidateNonPropertyAssets(
-      player,
-      undefined,
-    );
-    expect(proceeds).toBe(500);
-    expect(updatedPlayer.vcInvestments).toBeUndefined();
-    expect(updatedPlayer.money).toBe(500);
+  it('端数は切り捨て', () => {
+    // 101 * 0.1 = 10.1 → 10
+    expect(calculateInterest(101, 0.1)).toBe(10);
   });
 
-  it('③株式が市場価格で清算される', () => {
-    const player = {
-      ...basePlayer,
-      stocks: { brown: 5 } as Record<string, number>,
-    };
-    const stockMarket = {
-      brown: {
-        color: 'brown' as const,
-        pricePerShare: 100,
-        totalShares: 100,
-        bankShares: 95,
-      },
-    };
-    const { updatedPlayer, proceeds } = liquidateNonPropertyAssets(
-      player,
-      stockMarket,
-    );
-    expect(proceeds).toBe(500);
-    expect(updatedPlayer.stocks).toBeUndefined();
-    expect(updatedPlayer.money).toBe(500);
+  it('元本0のとき利息は0', () => {
+    expect(calculateInterest(0, 0.2)).toBe(0);
   });
 
-  it('清算後にすべての非不動産資産が削除される', () => {
-    const player = {
-      ...basePlayer,
-      money: 100,
-      cryptoHolding: { units: 1.0, initialPrice: 1000, currentPrice: 500 },
-      vcInvestments: [{ amount: 200, investedTurn: 0 }],
-    };
-    const { updatedPlayer } = liquidateNonPropertyAssets(player, undefined);
-    expect(updatedPlayer.cryptoHolding).toBeUndefined();
-    expect(updatedPlayer.vcInvestments).toBeUndefined();
-    expect(updatedPlayer.money).toBe(800); // 100 + 500 + 200
-  });
-
-  it('非不動産資産がなければ proceeds=0 を返す', () => {
-    const { proceeds } = liquidateNonPropertyAssets(basePlayer, undefined);
-    expect(proceeds).toBe(0);
+  it('金利0のとき利息は0', () => {
+    expect(calculateInterest(1000, 0)).toBe(0);
   });
 });
 
-// ── Reducer 統合テスト: TAKE_LOAN ──
+// ── calculateMaxLoanAmount ──
 
-describe('reducer: TAKE_LOAN', () => {
-  it('ローンを借り入れると資金が増えてLoanStateが設定される', () => {
+describe('calculateMaxLoanAmount', () => {
+  it('総資産に対して借入限度額を計算する', () => {
+    const max = calculateMaxLoanAmount(2000);
+    // 2000 * MAX_LOAN_TO_ASSET_RATIO以下
+    expect(max).toBeLessThanOrEqual(Math.floor(2000 * MAX_LOAN_TO_ASSET_RATIO));
+    expect(max).toBeGreaterThan(0);
+  });
+
+  it('既存ローン残高を差し引いた上限を返す', () => {
+    const withoutLoan = calculateMaxLoanAmount(2000, 0);
+    const withLoan = calculateMaxLoanAmount(2000, 200);
+    expect(withLoan).toBeLessThan(withoutLoan);
+  });
+
+  it('既存ローンが上限に達している場合は0を返す', () => {
+    const maxDebt = Math.floor(2000 * MAX_LOAN_TO_ASSET_RATIO);
+    expect(calculateMaxLoanAmount(2000, maxDebt)).toBe(0);
+  });
+
+  it('総資産0のとき0を返す', () => {
+    expect(calculateMaxLoanAmount(0)).toBe(0);
+  });
+});
+
+// ── isLoanEnabled ──
+
+describe('isLoanEnabled', () => {
+  it('features.loanがtrueのとき有効', () => {
     const state = startGame({ loan: true });
-    const after = gameReducer(state, { type: 'TAKE_LOAN', amount: 500 });
-    expect(after.players[0].money).toBe(2000); // 1500 + 500
-    expect(after.players[0].loan).toBeDefined();
-    expect(after.players[0].loan!.principal).toBe(500);
-    expect(after.players[0].loan!.remainingPayments).toBe(LOAN_PERIODS);
+    expect(isLoanEnabled(state)).toBe(true);
   });
 
-  it('loan機能がOFFならTAKE_LOANが無視される', () => {
+  it('features.loanがfalseのとき無効', () => {
+    const state = startGame({ loan: false });
+    expect(isLoanEnabled(state)).toBe(false);
+  });
+
+  it('featuresが未定義のとき無効', () => {
     const state = startGame();
-    const after = gameReducer(state, { type: 'TAKE_LOAN', amount: 500 });
-    expect(after.players[0].loan).toBeUndefined();
-    expect(after.players[0].money).toBe(1500);
-  });
-
-  it('借入上限（総資産の50%）を超える場合は無視される', () => {
-    const state = startGame({ loan: true });
-    // 初期資産 $1500 → 上限 $750
-    const after = gameReducer(state, { type: 'TAKE_LOAN', amount: 10000 });
-    expect(after.players[0].loan).toBeUndefined();
-    expect(after.players[0].money).toBe(1500);
-  });
-
-  it('クレジットスコアに応じた借入金利が設定される（物件なし=最高金利）', () => {
-    const state = startGame({ loan: true });
-    // 物件なし → 所有率0% → factor=1.5 → rate = 5% + 2%×1.5 = 8%
-    const after = gameReducer(state, { type: 'TAKE_LOAN', amount: 500 });
-    expect(after.players[0].loan!.annualRate).toBeCloseTo(0.08);
-  });
-
-  it('既存ローンがある場合は追加借入できない', () => {
-    const state = startGame({ loan: true });
-    const withLoan = gameReducer(state, { type: 'TAKE_LOAN', amount: 300 });
-    const again = gameReducer(withLoan, { type: 'TAKE_LOAN', amount: 200 });
-    // ローン状態は変わらない
-    expect(again.players[0].loan!.principal).toBe(300);
-    expect(again.players[0].money).toBe(withLoan.players[0].money);
+    expect(isLoanEnabled(state)).toBe(false);
   });
 });
 
-// ── Reducer 統合テスト: REPAY_LOAN ──
+// ── validateTakeLoan ──
 
-describe('reducer: REPAY_LOAN', () => {
-  it('REPAY_LOANで1回分の返済が行われる', () => {
+describe('validateTakeLoan', () => {
+  it('ローン無効時はLOAN_DISABLED を返す', () => {
+    const state = startGame({ loan: false });
+    const result = validateTakeLoan(state, state.players[0].id, 100);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe('LOAN_DISABLED');
+  });
+
+  it('借入額が0以下はINVALID_AMOUNT を返す', () => {
     const state = startGame({ loan: true });
-    const withLoan = gameReducer(state, { type: 'TAKE_LOAN', amount: 500 });
-    const before = withLoan.players[0];
-    const after = gameReducer(withLoan, { type: 'REPAY_LOAN' });
-    const player = after.players[0];
+    const result = validateTakeLoan(state, state.players[0].id, 0);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe('INVALID_AMOUNT');
+  });
 
-    expect(player.money).toBeLessThan(before.money);
-    expect(player.loan).toBeDefined();
-    expect(player.loan!.remainingPayments).toBe(
-      before.loan!.remainingPayments - 1,
+  it('借入限度額を超える場合はEXCEEDS_LIMIT を返す', () => {
+    const state = startGame({ loan: true });
+    // 初期資産1500、限度額 = floor(1500 * MAX_LOAN_TO_ASSET_RATIO)
+    const limit = Math.floor(1500 * MAX_LOAN_TO_ASSET_RATIO);
+    const result = validateTakeLoan(state, state.players[0].id, limit + 1);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe('EXCEEDS_LIMIT');
+  });
+
+  it('有効な借入はok:trueを返す', () => {
+    const state = startGame({ loan: true });
+    const result = validateTakeLoan(state, state.players[0].id, 100);
+    expect(result.ok).toBe(true);
+  });
+});
+
+// ── validateRepayLoan ──
+
+describe('validateRepayLoan', () => {
+  it('ローン無効時はLOAN_DISABLED を返す', () => {
+    const state = startGame({ loan: false });
+    const result = validateRepayLoan(state, state.players[0].id, 100);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe('LOAN_DISABLED');
+  });
+
+  it('返済額が0以下はINVALID_AMOUNT を返す', () => {
+    const state = startGame({ loan: true });
+    const result = validateRepayLoan(state, state.players[0].id, 0);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe('INVALID_AMOUNT');
+  });
+
+  it('ローン残高がない場合はNO_LOAN を返す', () => {
+    const state = startGame({ loan: true });
+    const result = validateRepayLoan(state, state.players[0].id, 100);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe('NO_LOAN');
+  });
+
+  it('所持金が不足している場合はINSUFFICIENT_FUNDS を返す', () => {
+    const state = startGame({ loan: true });
+    // 借入後にお金を0にして返済を試みる
+    const withLoan = {
+      ...state,
+      players: state.players.map((p, i) =>
+        i === 0 ? { ...p, money: 0, loanBalance: 500 } : p,
+      ),
+    };
+    const result = validateRepayLoan(withLoan, withLoan.players[0].id, 100);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe('INSUFFICIENT_FUNDS');
+  });
+});
+
+// ── reducer統合: TAKE_LOAN / REPAY_LOAN アクション ──
+
+describe('ローン統合テスト（reducer）', () => {
+  it('TAKE_LOAN: プレイヤーの所持金が増加し、ローン残高が設定される', () => {
+    const state = startGame({ loan: true });
+    const after = gameReducer(state, {
+      type: 'TAKE_LOAN',
+      playerId: state.players[0].id,
+      amount: 200,
+    });
+    expect(after.players[0].money).toBe(1500 + 200);
+    expect(after.players[0].loanBalance).toBe(200);
+  });
+
+  it('REPAY_LOAN: プレイヤーの所持金が減少し、ローン残高が減る', () => {
+    const state = startGame({ loan: true });
+    const withLoan = gameReducer(state, {
+      type: 'TAKE_LOAN',
+      playerId: state.players[0].id,
+      amount: 200,
+    });
+    const after = gameReducer(withLoan, {
+      type: 'REPAY_LOAN',
+      playerId: withLoan.players[0].id,
+      amount: 100,
+    });
+    expect(after.players[0].money).toBe(1500 + 200 - 100);
+    expect(after.players[0].loanBalance).toBe(100);
+  });
+
+  it('GOマス通過時にローン残高から利息が自動引落される', () => {
+    const state = startGame({ loan: true });
+    // 初期資産1500、上限=floor(1500*0.5)=750 なので500を借入
+    const borrowAmount = 500;
+    const withLoan = gameReducer(state, {
+      type: 'TAKE_LOAN',
+      playerId: state.players[0].id,
+      amount: borrowAmount,
+    });
+    expect(withLoan.players[0].loanBalance).toBe(borrowAmount);
+    // position=39 → FINISH_MOVING でGO通過
+    const withPos = {
+      ...withLoan,
+      players: withLoan.players.map((p, i) =>
+        i === 0 ? { ...p, position: 39 } : p,
+      ),
+      dice: { values: [1, 1] as [number, number], doubles: 0, rolled: true },
+    };
+    const after = gameReducer(withPos, { type: 'FINISH_MOVING' });
+    // 社会配当150を受け取り、利息が自動引落される
+    const interestExpected = calculateInterest(
+      borrowAmount,
+      DEFAULT_LOAN_INTEREST_RATE,
     );
-  });
-
-  it('ローンがなければREPAY_LOANが無視される', () => {
-    const state = startGame({ loan: true });
-    const after = gameReducer(state, { type: 'REPAY_LOAN' });
-    expect(after.players[0].money).toBe(1500);
-  });
-
-  it('loan機能がOFFならREPAY_LOANが無視される', () => {
-    const state = startGame();
-    const after = gameReducer(state, { type: 'REPAY_LOAN' });
-    expect(after.players[0].money).toBe(1500);
-  });
-});
-
-// ── Reducer 統合テスト: 変動金利が5ターンごとに変化する ──
-
-describe('reducer: 変動金利が5ターンごとに変化する', () => {
-  it('ゲーム開始時にbaseRateが初期値(5%)で設定される', () => {
-    const state = startGame({ loan: true });
-    expect(state.baseRate).toBe(BASE_RATE_INITIAL);
-  });
-
-  it('5ターン後にbaseRateが変動する', () => {
-    let state = startGame({ loan: true });
-
-    for (let i = 0; i < 5; i++) {
-      state = gameReducer(state, { type: 'END_TURN' });
-    }
-
-    const expectedRate = calculateNextBaseRate(BASE_RATE_INITIAL, 5);
-    expect(state.baseRate).toBeCloseTo(expectedRate);
-    expect(state.baseRate).not.toBe(BASE_RATE_INITIAL);
-  });
-
-  it('5の倍数でないターンはbaseRateが変動しない', () => {
-    let state = startGame({ loan: true });
-    const initialRate = state.baseRate!;
-
-    for (let i = 0; i < 4; i++) {
-      state = gameReducer(state, { type: 'END_TURN' });
-    }
-
-    expect(state.baseRate).toBe(initialRate);
-  });
-});
-
-// ── Reducer 統合テスト: END_TURNでローン返済が自動実行される ──
-
-describe('reducer: END_TURNで現在プレイヤーのローンが自動返済される', () => {
-  it('END_TURN後に残返済回数が1減る', () => {
-    let state = startGame({ loan: true });
-    state = gameReducer(state, { type: 'TAKE_LOAN', amount: 500 });
-    const loanBefore = state.players[0].loan!;
-
-    state = gameReducer(state, { type: 'END_TURN' });
-
-    const player0 = state.players.find((p) => p.id === 'player-0')!;
-    expect(player0.loan).toBeDefined();
-    expect(player0.loan!.remainingPayments).toBe(
-      loanBefore.remainingPayments - 1,
+    expect(after.players[0].money).toBe(
+      1500 + borrowAmount + 150 - interestExpected,
     );
-  });
-
-  it('返済完了後にloanがundefinedになる', () => {
-    let state = startGame({ loan: true });
-    state = gameReducer(state, { type: 'TAKE_LOAN', amount: 100 });
-
-    // LOAN_PERIODS 回 END_TURN（2プレイヤーなのでプレイヤー0は LOAN_PERIODS * 2 回分）
-    for (let i = 0; i < LOAN_PERIODS * 2; i++) {
-      state = gameReducer(state, { type: 'END_TURN' });
-    }
-
-    const player0 = state.players.find((p) => p.id === 'player-0')!;
-    expect(player0.loan).toBeUndefined();
-  });
-});
-
-// ── 定数の確認 ──
-
-describe('loan 定数', () => {
-  it('基準金利の初期値は5%', () => {
-    expect(BASE_RATE_INITIAL).toBeCloseTo(0.05);
-  });
-
-  it('基準金利の下限は1%', () => {
-    expect(BASE_RATE_MIN).toBeCloseTo(0.01);
-  });
-
-  it('基準金利の上限は30%', () => {
-    expect(BASE_RATE_MAX).toBeCloseTo(0.3);
-  });
-
-  it('スプレッドは2%', () => {
-    expect(LOAN_SPREAD).toBeCloseTo(0.02);
-  });
-
-  it('返済回数は10回', () => {
-    expect(LOAN_PERIODS).toBe(10);
   });
 });
