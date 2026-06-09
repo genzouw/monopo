@@ -36,6 +36,9 @@
 
 - **機能:** 中央銀行（システム）が定期的に「好景気/不景気」のフェーズや「政策金利」を発表します。金利が上がると物件の価格が下がり、借入コストが増加します。
 - **教育的効果:** 現実世界における金利変動が株価や不動産価格に与える影響（マクロ経済のダイナミズム）を肌で感じられます。
+- **既存実装との接続方針:** 既存の `src/game/systems/macroEconomy.ts`（`ECONOMY_TRANSITION_MATRIX` / `transitionEconomy` による景気フェーズ遷移、`applyEconomyFactor` による景気乗数適用、`applyFinancialCrisisToStocks` による株価影響）を拡張します。政策金利・インフレ率の実装は以下の2方針から選択します：
+  - **(A) 派生指標方式:** 既存の景気フェーズ・乗数から `policyRate` / `inflationRate` を算出し `reducer.ts` に公開する（既存 state を変更せず最小影響）。
+  - **(B) 明示フィールド拡張方式:** `macroEconomy` の state に `policyRate` / `inflationRate` を追加し、`transitionEconomy` / `applyEconomyFactor` / `applyFinancialCrisisToStocks` で更新・通知する（より明示的だが変更箇所が多い）。
 
 ### D. スタートアップ投資（エンジェル投資）
 
