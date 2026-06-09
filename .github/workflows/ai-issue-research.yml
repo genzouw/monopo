@@ -4,7 +4,6 @@ on:
     types: [labeled]
 permissions:
   issues: write
-  models: read
 
 jobs:
   research:
@@ -15,6 +14,7 @@ jobs:
         uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
         with:
           script: |
@@ -62,15 +62,15 @@ jobs:
             `;
 
             // GitHub Models (公開リポジトリで無料・OpenAI互換API)
-            // permissions.models: read + GITHUB_TOKEN で認証可能 (追加シークレット不要)
-            const aiRes = await fetch('https://models.github.ai/inference/chat/completions', {
+            // GH_MODELS_TOKEN で認証
+            const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.GITHUB_TOKEN}`
+                'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
               },
               body: JSON.stringify({
-                model: 'openai/gpt-4o-mini',
+                model: 'gpt-4o-mini',
                 messages: [{ role: 'user', content: prompt }]
               })
             });
