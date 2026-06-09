@@ -40,10 +40,13 @@ jobs:
           tar -xzf "/tmp/${TARBALL}" -C /tmp actionlint
           echo "executable=/tmp/actionlint" >> "$GITHUB_OUTPUT"
 
-      - name: Install shellcheck
+      - name: Install dependencies (shellcheck, pyflakes)
         run: |
           sudo apt-get update
-          sudo apt-get install -y shellcheck
+          sudo apt-get install -y shellcheck pyflakes3
+          if [ ! -e /usr/bin/pyflakes ]; then
+            sudo ln -s /usr/bin/pyflakes3 /usr/bin/pyflakes
+          fi
 
       - name: Run actionlint
         run: |

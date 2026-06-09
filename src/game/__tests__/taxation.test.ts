@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { GameState } from '../types';
+import { createInitialGameState, gameReducer } from '../reducer';
 import {
   PROGRESSIVE_TAX_BRACKETS,
   PUBLIC_FUND_REDISTRIBUTION_THRESHOLD,
@@ -13,6 +14,19 @@ import {
 const makeState = (enabled: boolean): Pick<GameState, 'features'> => ({
   features: { progressiveTax: enabled },
 });
+
+// ── テストヘルパー ──
+
+function startGame(features?: { progressiveTax?: boolean }): GameState {
+  return gameReducer(createInitialGameState(), {
+    type: 'START_GAME',
+    playerNames: ['たろう', 'はなこ'],
+    playerTokens: ['🚗', '🎩'],
+    features: features ?? {},
+  });
+}
+
+// ── 定数 ──
 
 describe('taxation', () => {
   describe('定数', () => {
@@ -125,5 +139,71 @@ describe('taxation', () => {
     it('端数は切り捨て', () => {
       expect(calculatePublicFundRedistribution(501)).toBe(250);
     });
+  });
+});
+
+// ── reducer統合: 累進課税によるGO通過ボーナス変化 ──
+
+describe('累進課税統合テスト（reducer）', () => {
+  function moveToGo(state: GameState): GameState {
+    // position=39 → FINISH_MOVING でGOを通過させる
+    const withPos = {
+      ...state,
+      players: state.players.map((p, i) =>
+        i === 0 ? { ...p, position: 39 } : p,
+      ),
+      dice: { values: [1, 1] as [number, number], doubles: 0, rolled: true },
+    };
+    return gameReducer(withPos, { type: 'FINISH_MOVING' });
+  }
+
+  it('progressiveTax OFF: 資産が多くても一定額の社会配当を受け取る', () => {
+    const state = startGame({ progressiveTax: false });
+    const richState = {
+      ...state,
+      players: state.players.map((p, i) =>
+        i === 0 ? { ...p, money: 15000 } : p,
+      ),
+    };
+    const before = richState.players[0].money;
+    const after = moveToGo(richState).players[0].money;
+    // 資産多くても通常配当（150）もらえる
+    expect(after - before).toBeGreaterThanOrEqual(150);
+  });
+
+  it('progressiveTax ON: 資産が少ない（3000未満）プレイヤーは税額0', () => {
+    const state = startGame({ progressiveTax: true });
+    // 初期資産1500 → 3000未満なので税率0
+    const before = state.players[0].money;
+    const after = moveToGo(state).players[0].money;
+    expect(after - before).toBeGreaterThanOrEqual(150);
+  });
+
+  it('progressiveTax ON: 資産が多い（10000超）プレイヤーは40%課税される', () => {
+    const state = startGame({ progressiveTax: true });
+    const richState = {
+      ...state,
+      players: state.players.map((p, i) =>
+        i === 0 ? { ...p, money: 15000 } : p,
+      ),
+    };
+    const before = richState.players[0].money;
+    const after = moveToGo(richState).players[0].money;
+    // macroEconomy OFFなので基準配当=150, 税=floor(150*0.4)=60, 手取り=90
+    expect(after - before).toBeGreaterThanOrEqual(88);
+    expect(after - before).toBeLessThan(150);
+  });
+
+  it('progressiveTax ON: 徴収された税は公共基金に蓄積される', () => {
+    const state = startGame({ progressiveTax: true });
+    const richState = {
+      ...state,
+      players: state.players.map((p, i) =>
+        i === 0 ? { ...p, money: 15000 } : p,
+      ),
+    };
+    const after = moveToGo(richState);
+    // 税金がpublicFundに蓄積されている
+    expect(after.publicFund).toBeGreaterThan(0);
   });
 });

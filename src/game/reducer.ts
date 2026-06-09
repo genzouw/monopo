@@ -54,18 +54,19 @@ import {
   CREDIT_SCORE_INITIAL,
 } from './systems/credit';
 import {
+  calculateProgressiveTax,
+  calculatePublicFundRedistribution,
+  calculateTaxableIncome,
+  isProgressiveTaxEnabled,
+} from './systems/taxation';
+import {
   calculateInterest,
   getLoanInterestRate,
   isLoanEnabled,
   validateTakeLoan,
   validateRepayLoan,
 } from './systems/loan';
-import {
-  calculateProgressiveTax,
-  calculatePublicFundRedistribution,
-  calculateTaxableIncome,
-  isProgressiveTaxEnabled,
-} from './systems/taxation';
+import { applyBlackSwanDisaster } from './systems/insurance';
 import { getSecureRandom } from './random';
 
 // ── 定数 ──
@@ -88,6 +89,7 @@ type SocialDividendResult = {
   players: Player[];
   selfBonus: number;
   othersBonus: number;
+  newPublicFund: number;
 };
 
 type SocialDividendExtResult = SocialDividendResult & {
@@ -103,7 +105,7 @@ function distributeSocialDividend(
 ): SocialDividendExtResult {
   // P2-a 拡張: macroEconomy 有効時は GO 通過ボーナスにも景気乗数を適用する
   const useEconomy = isMacroEconomyEnabled(state) && state.economyStatus;
-  const selfBonus = useEconomy
+  const selfBonusBase = useEconomy
     ? applyEconomyFactor(SOCIAL_DIVIDEND_SELF, state.economyStatus!)
     : SOCIAL_DIVIDEND_SELF;
   const othersBonus = useEconomy
@@ -125,7 +127,7 @@ function distributeSocialDividend(
       state.propertyStates,
       state.board,
     );
-    const taxableIncome = calculateTaxableIncome(selfBonus, donationAmount);
+    const taxableIncome = calculateTaxableIncome(selfBonusBase, donationAmount);
     taxPaid = calculateProgressiveTax(taxableIncome, totalAssets);
     newPublicFund += taxPaid;
     const activePlayers = state.players.filter((p) => !p.isBankrupt);
@@ -156,6 +158,8 @@ function distributeSocialDividend(
     redistributionAmount > 0 && activePlayers.length > 0
       ? Math.floor(redistributionAmount / activePlayers.length)
       : 0;
+
+  const selfBonus = selfBonusBase;
 
   const players = state.players.map((p, index) => {
     if (p.isBankrupt) return p;
@@ -469,6 +473,7 @@ function applyCardEffect(state: GameState, card: Card): GameState {
         newState = {
           ...newState,
           players: dividend.players,
+          publicFund: dividend.newPublicFund,
           message: `GOをとおりすぎた！みんなに$${dividend.othersBonus}ずつ、自分は$${dividend.selfBonus}の社会配当をもらったよ！`,
         };
       } else {
@@ -489,6 +494,7 @@ function applyCardEffect(state: GameState, card: Card): GameState {
         newState = {
           ...newState,
           players: dividend.players,
+          publicFund: dividend.newPublicFund,
           message: `GOをとおりすぎた！みんなに$${dividend.othersBonus}ずつ、自分は$${dividend.selfBonus}の社会配当をもらったよ！`,
         };
       } else {
@@ -603,12 +609,31 @@ function applyCardEffect(state: GameState, card: Card): GameState {
         newState = {
           ...newState,
           players: dividend.players,
+          publicFund: dividend.newPublicFund,
           message: `GOをとおりすぎた！みんなに$${dividend.othersBonus}ずつ、自分は$${dividend.selfBonus}の社会配当をもらったよ！`,
         };
       } else {
         newState = updateCurrentPlayer(newState, { position: nearestPos });
       }
       return handleLanding(newState);
+    }
+
+    case 'blackSwanDisaster': {
+      const newPropertyStates = applyBlackSwanDisaster(
+        state.propertyStates,
+        action.colorGroup,
+        state.board,
+      );
+      const affected = state.board
+        .filter((s) => s.color === action.colorGroup)
+        .map((s) => s.name)
+        .join('・');
+      return {
+        ...state,
+        propertyStates: newPropertyStates,
+        turnPhase: 'endTurn',
+        message: `🔥ブラックスワン！${affected}エリアに災害が発生したよ！`,
+      };
     }
 
     default:

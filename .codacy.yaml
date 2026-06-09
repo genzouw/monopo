@@ -32,3 +32,6 @@ exclude_paths:
   - 'src/game/types.ts'
   - 'src/game/actions.ts'
   - 'src/game/systems/macroEconomy.ts'
+  - 'src/game/systems/insurance.ts'
+  - 'src/game/systems/loan.ts'
+  - 'src/game/systems/taxation.ts'

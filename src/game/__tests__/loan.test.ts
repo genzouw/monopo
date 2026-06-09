@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { EconomyStatus, GameState } from '../types';
+import { createInitialGameState, gameReducer } from '../reducer';
 import {
   LOAN_INTEREST_RATES,
   FIXED_LOAN_RATE,

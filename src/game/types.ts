@@ -74,7 +74,7 @@ export type EconomyStatus = 'boom' | 'normal' | 'recession' | 'crisis';
 export type FeatureFlags = {
   stocks?: boolean; // エリア株売買・配当（応援カード）。株価は需要供給モデル＋家建設連動。
   insurance?: boolean; // P2-c 拡張: 不動産保険（火災リスク・保険料・補填）
-  macroEconomy?: boolean; // Phase 2-a: マクロ経済サイクル（好況・通常・不況・金融危機の4状態）
+  macroEconomy?: boolean; // Phase 2-a: マクロ経済サイクル（好況・通常・不況・金融危機の4状態を遷移）
   creditScore?: boolean; // 信用スコア（借入金利優遇・物件購入制限）
   loan?: boolean; // 変動/固定金利ローン（銀行借入・景気連動金利・GOマス利息引落）
   progressiveTax?: boolean; // 累進課税・公共基金・再分配・節税アクション（寄付控除）
@@ -98,7 +98,8 @@ export type CardAction =
   | { type: 'jail' }
   | { type: 'jailFree' }
   | { type: 'repair'; perHouse: number; perHotel: number }
-  | { type: 'moveNearest'; spaceType: 'railroad' | 'utility' };
+  | { type: 'moveNearest'; spaceType: 'railroad' | 'utility' }
+  | { type: 'blackSwanDisaster'; colorGroup: ColorGroup };
 
 export type Card = {
   id: string;
@@ -112,6 +113,7 @@ export type PropertyState = {
   ownerId: string | null;
   houses: number; // 0-4, 5=ホテル
   isMortgaged: boolean;
+  isInsured?: boolean; // Phase 3 拡張: 損害保険（掛け捨て・1ラウンド有効）
   poisonPillActive?: boolean;
 };
 
@@ -194,7 +196,7 @@ export type GameState = {
   turnCount?: number;
   // P2-a 拡張: 景気ステータス（features.macroEconomy が有効なときのみ意味を持つ）
   economyStatus?: EconomyStatus;
-  // 累進課税拡張: 寄付で徴収した税を蓄積する公共基金（features.progressiveTax が有効なときのみ）
+  // 累進課税拡張: 累進課税で徴収した税を蓄積する公共基金（features.progressiveTax が有効なときのみ意味を持つ）
   publicFund?: number;
 };
 
