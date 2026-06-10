@@ -44,8 +44,10 @@
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
-.countButton:disabled {
+.countButton:disabled,
+.countButton[aria-disabled='true'] {
   opacity: 0.3;
+  cursor: not-allowed;
 }
 .playerList {
   width: 100%;

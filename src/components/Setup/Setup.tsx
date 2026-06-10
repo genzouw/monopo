@@ -155,8 +155,8 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
       <div className={styles.playerCount}>
         <button
           className={styles.countButton}
-          onClick={() => setPlayerCount((c) => c - 1)}
-          disabled={playerCount <= MIN_PLAYERS}
+          onClick={() => playerCount > MIN_PLAYERS && setPlayerCount((c) => c - 1)}
+          aria-disabled={playerCount <= MIN_PLAYERS}
           aria-label="プレイヤーを減らす"
           aria-describedby={
             playerCount <= MIN_PLAYERS
@@ -169,8 +169,8 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
         <span role="status">{playerCount}人であそぶ</span>
         <button
           className={styles.countButton}
-          onClick={() => setPlayerCount((c) => c + 1)}
-          disabled={playerCount >= MAX_PLAYERS}
+          onClick={() => playerCount < MAX_PLAYERS && setPlayerCount((c) => c + 1)}
+          aria-disabled={playerCount >= MAX_PLAYERS}
           aria-label="プレイヤーを増やす"
           aria-describedby={
             playerCount >= MAX_PLAYERS
