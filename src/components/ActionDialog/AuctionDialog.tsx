@@ -61,7 +61,8 @@ export default function AuctionDialog({
         <Button
           size="small"
           onClick={() => onBid(10)}
-          disabled={
+          aria-label="10ドル追加"
+          aria-disabled={
             !activePlayer || activePlayer.money < auction.currentBid + 10
           }
           aria-describedby={
@@ -75,7 +76,8 @@ export default function AuctionDialog({
         <Button
           size="small"
           onClick={() => onBid(50)}
-          disabled={
+          aria-label="50ドル追加"
+          aria-disabled={
             !activePlayer || activePlayer.money < auction.currentBid + 50
           }
           aria-describedby={
@@ -89,7 +91,8 @@ export default function AuctionDialog({
         <Button
           size="small"
           onClick={() => onBid(MAX_BID_INCREMENT)}
-          disabled={
+          aria-label={`${MAX_BID_INCREMENT}ドル追加`}
+          aria-disabled={
             !activePlayer ||
             activePlayer.money < auction.currentBid + MAX_BID_INCREMENT
           }
