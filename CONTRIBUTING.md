@@ -80,6 +80,7 @@ bun run test
 - **gitleaks の必須化**: コミット時に pre-commit フックでローカルスキャンを行います。事前に `gitleaks` をインストールしてください。
 - **エディタの安全設定**: `.vscode/settings.json` により、`.env` や鍵ファイル、AI エージェントの作業ディレクトリ（`.cursor/`, `.claude/` など）を検索・ファイルツリーから除外し、画面共有時や AI による自動読み込みによる漏洩を防いでいます。
 - **.gitattributes 保護**: 秘密情報ファイルの差分表示をブロック (`-diff`) しています。
+- **pre-commit framework の利用**: さらなる検証のため、`pre-commit` framework を利用しています。ローカル環境に `pre-commit` をインストールし (`pip install pre-commit` または `brew install pre-commit`)、`pre-commit install` を実行しておくことを推奨します。
 
 ---
 
