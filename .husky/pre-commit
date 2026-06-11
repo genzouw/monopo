@@ -4,6 +4,13 @@ set -e
 # Run lint-staged using bunx
 bunx lint-staged
 
+# Run pre-commit hooks (trailing-whitespace, check-yaml, detect-private-key, etc.)
+# Note: Run via Husky to avoid conflicts from `pre-commit install` overwriting .git/hooks/pre-commit
+if command -v pre-commit > /dev/null 2>&1; then
+  echo "🔍 Running pre-commit hooks..."
+  pre-commit run --hook-stage commit
+fi
+
 # Run gitleaks local check to prevent committing secrets
 if command -v gitleaks > /dev/null 2>&1; then
   echo "🔒 Running local gitleaks check..."
