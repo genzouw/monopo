@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useId } from 'react';
 import type { AuctionState, Player } from '../../game/types';
 import { BOARD_SPACES } from '../../game/board';
 import { getSpaceById } from '../../game/rules';
@@ -31,6 +31,7 @@ export default function AuctionDialog({
     return dict;
   }, [players]);
 
+  const noMoneyHintId = useId();
   const space = getSpaceById(auction.propertyId, BOARD_SPACES);
   const currentBidder = auction.currentBidderId
     ? playersById[auction.currentBidderId]
@@ -67,7 +68,7 @@ export default function AuctionDialog({
           }
           aria-describedby={
             activePlayer && activePlayer.money < auction.currentBid + 10
-              ? 'auction-no-money-hint'
+              ? noMoneyHintId
               : undefined
           }
         >
@@ -82,7 +83,7 @@ export default function AuctionDialog({
           }
           aria-describedby={
             activePlayer && activePlayer.money < auction.currentBid + 50
-              ? 'auction-no-money-hint'
+              ? noMoneyHintId
               : undefined
           }
         >
@@ -99,7 +100,7 @@ export default function AuctionDialog({
           aria-describedby={
             activePlayer &&
             activePlayer.money < auction.currentBid + MAX_BID_INCREMENT
-              ? 'auction-no-money-hint'
+              ? noMoneyHintId
               : undefined
           }
         >
@@ -111,11 +112,7 @@ export default function AuctionDialog({
       </div>
       {activePlayer &&
         activePlayer.money < auction.currentBid + MAX_BID_INCREMENT && (
-          <div
-            id="auction-no-money-hint"
-            className={styles.noMoneyHint}
-            role="status"
-          >
+          <div id={noMoneyHintId} className={styles.noMoneyHint} role="status">
             {NO_MONEY_HINT_TEXT}
           </div>
         )}
