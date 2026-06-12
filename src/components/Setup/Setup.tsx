@@ -301,13 +301,13 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
         }}
         aria-disabled={!canStart}
         title={!canStart ? START_GUIDE_MSG : undefined}
-        aria-describedby={!canStart ? 'start-hint' : undefined}
+        aria-describedby={!canStart ? `${baseId}-start-hint` : undefined}
       >
         ゲームスタート！
       </Button>
       {!canStart && (
         <p
-          id="start-hint"
+          id={`${baseId}-start-hint`}
           className={styles.startHint}
           role="status"
           aria-live="polite"
