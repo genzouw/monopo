@@ -1,0 +1,29 @@
+name: PR Agent
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  issue_comment:
+    types: [created, edited]
+
+permissions:
+  pull-requests: write
+  issues: write
+  contents: read
+
+jobs:
+  pr_agent:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.sender.type != 'Bot' }}
+    steps:
+      - id: pr-agent
+        # Qodo Merge (旧PR-Agent) を使用して、PRのレビューや要約を自動化します。
+        # qodo-ai/qodo-merge の特定リビジョン (SHA) をピン留めしてセキュリティと再現性を確保します。
+        uses: qodo-ai/qodo-merge@31d7dd027968e5fad1f9cbb074be047c4869058e
+        env:
+          # メモリの要件に基づき、リポジトリに設定済みの OPENAI_KEY を使用します。
+          OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Qodo Merge の Issue 検索機能 (RAG) 用。
+          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+          PINECONE_ENVIRONMENT: ${{ secrets.PINECONE_ENVIRONMENT }}
