@@ -155,8 +155,14 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
       <div className={styles.playerCount}>
         <button
           className={styles.countButton}
-          onClick={() => setPlayerCount((c) => c - 1)}
-          disabled={playerCount <= MIN_PLAYERS}
+          onClick={(e) => {
+            if (playerCount <= MIN_PLAYERS) {
+              e.preventDefault();
+              return;
+            }
+            setPlayerCount((c) => c - 1);
+          }}
+          aria-disabled={playerCount <= MIN_PLAYERS}
           aria-label="プレイヤーを減らす"
           aria-describedby={
             playerCount <= MIN_PLAYERS
@@ -169,8 +175,14 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
         <span role="status">{playerCount}人であそぶ</span>
         <button
           className={styles.countButton}
-          onClick={() => setPlayerCount((c) => c + 1)}
-          disabled={playerCount >= MAX_PLAYERS}
+          onClick={(e) => {
+            if (playerCount >= MAX_PLAYERS) {
+              e.preventDefault();
+              return;
+            }
+            setPlayerCount((c) => c + 1);
+          }}
+          aria-disabled={playerCount >= MAX_PLAYERS}
           aria-label="プレイヤーを増やす"
           aria-describedby={
             playerCount >= MAX_PLAYERS
@@ -274,14 +286,18 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
       <Button
         size="large"
         className={styles.startButton}
-        onClick={() =>
+        onClick={(e) => {
+          if (!canStart) {
+            e.preventDefault();
+            return;
+          }
           onStart(
             names.slice(0, playerCount),
             selectedTokens.slice(0, playerCount),
             features,
-          )
-        }
-        disabled={!canStart}
+          );
+        }}
+        aria-disabled={!canStart}
         title={!canStart ? START_GUIDE_MSG : undefined}
         aria-describedby={!canStart ? 'start-hint' : undefined}
       >
