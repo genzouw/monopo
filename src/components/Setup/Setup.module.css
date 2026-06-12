@@ -97,7 +97,8 @@
 .startButton {
   margin-top: 16px;
 }
-.startButton:disabled {
+.startButton:disabled,
+.startButton[aria-disabled='true'] {
   opacity: 0.5;
   cursor: not-allowed;
 }
