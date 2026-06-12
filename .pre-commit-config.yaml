@@ -16,4 +16,4 @@ repos:
     hooks:
       - id: detect-secrets
         args: ['--baseline', '.secrets.baseline']
-        exclude: package\.json|bun\.lock|package-lock\.json
+        exclude: (^|/)(package\.json|bun\.lockb?|package-lock\.json)$
