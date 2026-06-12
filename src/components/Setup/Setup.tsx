@@ -288,17 +288,13 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
       <Button
         size="large"
         className={styles.startButton}
-        onClick={(e) => {
-          if (!canStart) {
-            e.preventDefault();
-            return;
-          }
+        onClick={() =>
           onStart(
             names.slice(0, playerCount),
             selectedTokens.slice(0, playerCount),
             features,
-          );
-        }}
+          )
+        }
         aria-disabled={!canStart}
         title={!canStart ? START_GUIDE_MSG : undefined}
         aria-describedby={!canStart ? `${baseId}-start-hint` : undefined}
