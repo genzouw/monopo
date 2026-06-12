@@ -158,6 +158,7 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
           onClick={(e) => {
             if (playerCount <= MIN_PLAYERS) {
               e.preventDefault();
+              e.stopPropagation();
               return;
             }
             setPlayerCount((c) => c - 1);
@@ -178,6 +179,7 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
           onClick={(e) => {
             if (playerCount >= MAX_PLAYERS) {
               e.preventDefault();
+              e.stopPropagation();
               return;
             }
             setPlayerCount((c) => c + 1);
