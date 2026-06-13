@@ -9,7 +9,8 @@ paths = [
     '''pnpm-lock\.yaml''',
     '''yarn\.lock''',
     '''\.lock$''',
-    '''^SECURITY\.md$'''
+    '''^SECURITY\.md$''',
+    '''\.secrets\.baseline'''
 ]
 
 [[rules]]

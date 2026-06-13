@@ -56,4 +56,4 @@ CI の監査ワークフロー (`.github/workflows/permissions-audit.yml`) に�
 ## AIツールのセキュリティ
 
 本プロジェクトでは PRレビューやIssue解析などのCI/CDに生成AIを組み込んでいます。
-Qodo Merge (PR Agent) やその他の自動化ツールは、安全のため常にGitHub Actionsの `uses:` ステップでコミットハッシュ(SHA)をピン留めし、プロンプトインジェクションやデータ漏洩等のAI特有のセキュリティリスクを考慮しています。
+AIコードレビューツール（PR-Agent / CodeRabbitなど）やその他の自動化ツールは、安全のため常にGitHub Actionsの `uses:` ステップでコミットハッシュ（SHA）をピン留めし、プロンプトインジェクションやデータ漏洩等のAI特有のセキュリティリスクを低減する対策をとっています。
