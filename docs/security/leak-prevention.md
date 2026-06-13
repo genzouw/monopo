@@ -52,3 +52,8 @@
 CI の各ワークフロー (`.github/workflows/*.yml`) では、予期せぬスクリプト実行や悪意ある Action からリポジトリを保護するため、**トップレベルでの `permissions` の明示を必須**としています。
 未指定の場合、GitHub のデフォルト設定によっては過剰な権限（例: リポジトリの書き換え権限）が与えられる可能性があります。
 CI の監査ワークフロー (`.github/workflows/permissions-audit.yml`) にて、全ワークフローファイルが `permissions:` を明示しているかを検査し、漏洩防止の基盤として「最小権限の原則 (Principle of Least Privilege)」を徹底しています。
+
+## AIツールのセキュリティ
+
+本プロジェクトでは PRレビューやIssue解析などのCI/CDに生成AIを組み込んでいます。
+Qodo Merge (PR Agent) やその他の自動化ツールは、安全のため常にGitHub Actionsの `uses:` ステップでコミットハッシュ(SHA)をピン留めし、プロンプトインジェクションやデータ漏洩等のAI特有のセキュリティリスクを考慮しています。
