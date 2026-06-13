@@ -15,7 +15,7 @@
   - AI エージェントの作業跡（`.cursor/`, `.claude/`, `.aider*`, `.cline/` 等）はローカル環境特有の秘密情報が含まれるリスクがあるため除外しています。
   - **さらに、`.gitattributes` により、これらの秘密情報ファイルが誤って `git add` された場合でも、diff の中身がレビュー画面・ログ・PR 上で表示されない（`-diff` によりバイナリ扱いとなり `Binary files differ` 表示）よう、またリポジトリのアーカイブに含まれないよう（`export-ignore`）設定し、二重に保護しています。**
 - **`pre-commit` framework**: `.pre-commit-config.yaml` による標準的なフック（秘密鍵の検知、YAML構文チェックなど）を利用してコミット前の安全性をさらに高めています。
-  - **`detect-secrets`**: `pre-commit` のフックとして `Yelp/detect-secrets` を導入し、ベースライン（`.secrets.baseline`）に基づくシークレットのハードコード検知を追加しています。
+  - **`detect-secrets`**: `pre-commit` のフックとして `Yelp/detect-secrets` を導入し、ベースライン（`.secrets.baseline`）に基づくシークレットのハードコード検知を追加しています。誤検知が発生した場合は、ローカル環境に `detect-secrets` をインストール（例: `pip install detect-secrets`）し、`detect-secrets audit .secrets.baseline` を実行してベースラインを更新してください。
 
 ## 2. CI 検知（リポジトリ防御）
 
