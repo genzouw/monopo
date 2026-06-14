@@ -44,6 +44,9 @@ type BuildDialogProps = {
 
 const HOUSE_LABELS = ['なし', '🏠', '🏠🏠', '🏠🏠🏠', '🏠🏠🏠🏠', '🏨'];
 
+/**
+ * 家の建築・売却アクションを行うダイアログ。
+ */
 export default function BuildDialog({
   currentPlayer,
   board,
