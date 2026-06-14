@@ -52,6 +52,7 @@ bun run dev
 - `bun run lint`: ESLint を使用してコードの静的解析を行います
 - `bun run format`: Prettier を使用してコードのフォーマットを行います
 - `bun run typecheck`: TypeScript の型チェックを実行します
+- セキュリティ・健全性: `osv-scanner` および `ossf/scorecard-action` を利用して依存関係とリポジトリ設定の脆弱性を自動スキャンしています。
 - `bun run sync:ai-guidelines`: AI コーディングアシスタント向け設定ファイル（`.cursorrules` / `.github/copilot-instructions.md` など）を `docs/ai-guidelines.md` から再生成します
 - `bun run sync:ai-guidelines:check`: 上記の同期状態を検証します（CI で利用、差分があれば非 0 終了）
 
