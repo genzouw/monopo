@@ -85,7 +85,7 @@ export default function StockDialog({
               <Button
                 size="small"
                 onClick={() => canBuy && onBuy(color, SHARES_PER_TRADE)}
-                disabled={!canBuy}
+                aria-disabled={!canBuy}
                 aria-describedby={!canBuy ? buyDescId : undefined}
               >
                 かう (+1)
@@ -94,7 +94,7 @@ export default function StockDialog({
                 size="small"
                 variant="secondary"
                 onClick={() => canSell && onSell(color, SHARES_PER_TRADE)}
-                disabled={!canSell}
+                aria-disabled={!canSell}
               >
                 うる (-1)
               </Button>
