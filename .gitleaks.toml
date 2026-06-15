@@ -10,7 +10,7 @@ paths = [
     '''yarn\.lock''',
     '''\.lock$''',
     '''^SECURITY\.md$''',
-    '''\.secrets\.baseline'''
+    '''\.secrets\.baseline$'''
 ]
 
 [[rules]]
