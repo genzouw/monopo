@@ -17,48 +17,14 @@ jobs:
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
       - name: AI Issue Triage
-        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9.0.0
-        env:
-          GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
+        uses: github/ai-assessment-comment-labeler@e3bedc38cfffa9179fe4cee8f7ecc93bffb3fee7 # v1.0.1
         with:
-          script: |
-            const title = context.payload.issue.title;
-            const issueBody = (context.payload.issue.body || '').slice(0, 4000);
-
-            const prompt = `あなたは経験豊富なオープンソースのメンテナーです。以下のIssueを評価し、情報の不足がないか確認してください。
-            必要な情報: 期待される動作、実際の動作、再現手順。
-            情報が不足している場合は追加情報を求める丁寧なコメントを書いてください。
-            十分に情報が揃っている場合は、コメントは不要です。
-            最後に必ず、以下のいずれかのステータスを返してください: [Assessment: Actionable], [Assessment: Needs Info], [Assessment: Invalid]
-
-            Issueタイトル: ${title}
-            Issue本文: ${issueBody}`;
-
-            const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
-              },
-              body: JSON.stringify({
-                model: 'gpt-4o-mini',
-                messages: [{ role: 'user', content: prompt }]
-              })
-            });
-
-            if (!aiRes.ok) {
-              console.log('API Request Failed');
-              return;
-            }
-
-            const aiData = await aiRes.json();
-            const result = aiData.choices?.[0]?.message?.content || '';
-
-            if (!result.includes('コメントは不要です') && result.length > 0) {
-              await github.rest.issues.createComment({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: `### 🤖 AI Issue トリアージ\n\n${result}`
-              });
-            }
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ai_review_label: 'request ai review'
+          issue_number: ${{ github.event.issue.number }}
+          issue_body: ${{ github.event.issue.body }}
+          prompts_directory: '.github/prompts'
+          labels_to_prompts_mapping: 'request ai review,triage.prompt.yml'
+          model: 'o3-mini'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_KEY }}
