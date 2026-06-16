@@ -18,6 +18,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
         with:
           script: |
             const pr = context.payload.pull_request;
@@ -30,10 +31,31 @@ jobs:
             const body = pr.body || '';
             const prNumber = pr.number;
 
+            const tavilyRes = await fetch('https://api.tavily.com/search', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                api_key: process.env.TAVILY_API_KEY,
+                query: `breaking changes release notes: ${title}`,
+                search_depth: 'basic',
+                include_answer: true,
+              }),
+            });
+            let searchAnswer = '要約なし';
+            if (tavilyRes.ok) {
+              try {
+                const searchData = await tavilyRes.json();
+                searchAnswer = (searchData.answer || '要約なし').slice(0, 2000);
+              } catch (e) {}
+            }
+
             const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のDependabotによる依存関係更新のプルリクエストを分析し、更新内容の要約と、潜在的な破壊的変更やリスク、確認すべきポイントを日本語で提示してください。
             プロジェクト要件:
             - 名称には「monopoly」ではなく必ず「monopo」を使用する。
             - パッケージマネージャには必ずBunを使用する。
+
+            Web検索による関連情報:
+            ${searchAnswer}
 
             PRタイトル: ${title}
             PR本文: ${body.substring(0, 3000)}`;
