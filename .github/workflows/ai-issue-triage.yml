@@ -25,6 +25,6 @@ jobs:
           issue_body: ${{ github.event.issue.body }}
           prompts_directory: '.github/prompts'
           labels_to_prompts_mapping: 'request ai review,triage.prompt.yml'
-          model: 'gpt-4o'
+          model: 'o3-mini'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_KEY }}
