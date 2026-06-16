@@ -8,6 +8,7 @@ React + TypeScript + Vite で構築された Web ベースのボードゲーム�
 - 複数人でのローカルプレイに対応
 - ゲームの状態の自動保存と再開機能
 - React + Vite による高速な動作と快適な開発体験
+- セキュリティ・健全性の自動スキャン: CI/CD にて `osv-scanner` および `ossf/scorecard-action` を利用して依存関係とリポジトリ設定の脆弱性を継続的にスキャンしています
 
 ## 技術スタック (Tech Stack)
 
