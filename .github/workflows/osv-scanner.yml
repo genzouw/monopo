@@ -31,6 +31,11 @@ jobs:
 
       - name: Run OSV-Scanner
         uses: google/osv-scanner-action/osv-scanner-action@9a498708959aeaef5ef730655706c5a1df1edbc2 # v2.3.8
+        # 既存依存パッケージへの新規 CVE 登録（特に定期スキャン実行）で
+        # CI 全体が落ちるのを防ぐため continue-on-error を有効化している。
+        # 検出された脆弱性は次ステップで SARIF として GitHub Security タブへ
+        # アップロードされ可視性は維持される。脆弱性検知の信頼性を高めたい場合は
+        # この設定を見直すこと（依存更新運用の安定化後に再評価予定）。
         continue-on-error: true
         with:
           scan-args: |-
