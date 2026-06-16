@@ -20,7 +20,7 @@
     - **ベースラインファイル (`.secrets.baseline`)**: リポジトリ直下に配置し、バージョン管理下に含めます。初回生成は `detect-secrets scan > .secrets.baseline`、更新は `detect-secrets scan --baseline .secrets.baseline` で行います。
     - **未検証検出 (`is_verified: false`) の扱い**: ベースラインへのコミット前に対象箇所を目視確認してください。誤検知（GitHub Actions secrets 参照など）の場合は該当行に `# pragma: allowlist secret` コメントを追加してから再スキャンし、エントリを削除します。実際のシークレットの場合は即座にローテーション（無効化・再発行）を行ってください。
     - **検出の限界**: 低エントロピーの短いパスワードや独自フォーマットの秘密情報は検知困難な場合があります。`gitleaks` との多層防御で補完しています。
-    - **トラブルシューティング**: 誤検知が出た場合は `# pragma: allowlist secret` コメントをその行末に追加するか、`detect-secrets scan --baseline .secrets.baseline` でベースラインを更新して既知の誤検知として登録してください。
+    - **トラブルシューティング**: 誤検知が出た場合は `# pragma: allowlist secret` コメントをその行末に追加するか、`detect-secrets scan --baseline .secrets.baseline` でベースラインを更新して既知の誤検知として登録してください。また、ローカル環境に `detect-secrets` をインストール（例: `pip install detect-secrets`）後、`detect-secrets audit .secrets.baseline` を実行してインタラクティブに誤検知を確認・登録することもできます。
 
 ## 2. CI 検知（リポジトリ防御）
 

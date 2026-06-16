@@ -27,6 +27,9 @@ const COLOR_LABEL: Record<ColorGroup, string> = {
 
 const SHARES_PER_TRADE = 1;
 
+/**
+ * 株（おうえんカード）の購入・売却を行うダイアログ。
+ */
 export default function StockDialog({
   currentPlayer,
   stockMarket,
@@ -66,6 +69,7 @@ export default function StockDialog({
               ? 'うりきれだよ'
               : '';
           const buyDescId = `${baseId}-${color}-buy`;
+          const sellDescId = `${baseId}-${color}-sell`;
           return (
             <div key={color} className={styles.propertyInfo}>
               <div className={styles.propertyName}>{COLOR_LABEL[color]}</div>
@@ -82,10 +86,19 @@ export default function StockDialog({
                   {buyDisabledReason}
                 </div>
               )}
+              {!canSell && (
+                <div
+                  id={sellDescId}
+                  role="status"
+                  className={styles.noMoneyHintTight}
+                >
+                  もっていないよ
+                </div>
+              )}
               <Button
                 size="small"
-                onClick={() => canBuy && onBuy(color, SHARES_PER_TRADE)}
-                disabled={!canBuy}
+                onClick={() => onBuy(color, SHARES_PER_TRADE)}
+                aria-disabled={!canBuy}
                 aria-describedby={!canBuy ? buyDescId : undefined}
               >
                 かう (+1)
@@ -93,8 +106,9 @@ export default function StockDialog({
               <Button
                 size="small"
                 variant="secondary"
-                onClick={() => canSell && onSell(color, SHARES_PER_TRADE)}
-                disabled={!canSell}
+                onClick={() => onSell(color, SHARES_PER_TRADE)}
+                aria-disabled={!canSell}
+                aria-describedby={!canSell ? sellDescId : undefined}
               >
                 うる (-1)
               </Button>

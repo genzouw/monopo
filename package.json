@@ -58,5 +58,9 @@
     "*.json": [
       "prettier --write"
     ]
+  },
+  "overrides": {
+    "vite": "^8.0.16",
+    "@babel/core": "^7.29.6"
   }
 }

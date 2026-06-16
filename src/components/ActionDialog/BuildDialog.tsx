@@ -44,6 +44,9 @@ type BuildDialogProps = {
 
 const HOUSE_LABELS = ['なし', '🏠', '🏠🏠', '🏠🏠🏠', '🏠🏠🏠🏠', '🏨'];
 
+/**
+ * 家の建築・売却アクションを行うダイアログ。
+ */
 export default function BuildDialog({
   currentPlayer,
   board,
@@ -125,7 +128,7 @@ export default function BuildDialog({
                   <Button
                     size="small"
                     onClick={() => onBuild(space.id)}
-                    disabled={!canBuild || !canAffordBuild}
+                    aria-disabled={!canBuild || !canAffordBuild}
                     aria-describedby={
                       !canBuild || !canAffordBuild
                         ? `${hintIdBase}-build-${space.id}`
@@ -149,7 +152,7 @@ export default function BuildDialog({
                     size="small"
                     variant="secondary"
                     onClick={() => onSell(space.id)}
-                    disabled={!canSell}
+                    aria-disabled={!canSell}
                     aria-describedby={
                       !canSell ? `${hintIdBase}-sell-${space.id}` : undefined
                     }
