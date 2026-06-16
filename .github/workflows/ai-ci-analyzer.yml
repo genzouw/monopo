@@ -21,6 +21,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
         with:
           script: |
             const run_id = context.payload.workflow_run.id;
@@ -76,9 +77,37 @@ jobs:
               return;
             }
 
-            const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のCI失敗ログを分析し、エラーの根本原因と具体的な修正案を日本語で提示してください。
+            const query = `CI error fix: ${failedJobs.map(j => j.name).join(' ')} ${logSnippet.slice(-200).replace(/\n/g, ' ')}`;
+            const tavilyRes = await fetch('https://api.tavily.com/search', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                api_key: process.env.TAVILY_API_KEY,
+                query: query.slice(0, 400),
+                search_depth: 'basic',
+                include_answer: true,
+              }),
+            });
+
+            let searchAnswer = '検索結果の要約なし';
+            if (tavilyRes.ok) {
+              try {
+                const searchData = await tavilyRes.json();
+                searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
+              } catch (e) {
+                console.log('Failed to parse Tavily response');
+              }
+            }
+
+            const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のCI失敗ログとWeb検索結果を分析し、エラーの根本原因と具体的な修正案を日本語で提示してください。
             プロジェクトではパッケージマネージャにBunを使用し、名称には「monopoly」ではなく「monopo」を使用しています。
-            簡潔にマークダウン形式で回答してください。\n\nログ:\n${logSnippet}`;
+            簡潔にマークダウン形式で回答してください。
+
+            Web検索によるヒント:
+            ${searchAnswer}
+
+            ログ:
+            ${logSnippet}`;
 
             // GitHub Models (公開リポジトリで無料・OpenAI互換API)
             // GH_MODELS_TOKEN で認証
@@ -89,7 +118,7 @@ jobs:
                 'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
               },
               body: JSON.stringify({
-                model: 'gpt-4o-mini',
+                model: 'o3-mini',
                 messages: [{ role: 'user', content: prompt }]
               })
             });
