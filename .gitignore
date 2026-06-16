@@ -65,3 +65,9 @@ id_dsa
 .aider*
 .continue/
 .cline/
+
+# Security tool binaries (downloaded during setup, must not be committed)
+gitleaks*
+detect-secrets*
+trufflehog*
+*.tar.gz
