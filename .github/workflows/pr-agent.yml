@@ -21,7 +21,7 @@ jobs:
 
       - name: PR Agent
         # 公開リポジトリでも動作させるため、GitHub Actions経由で Qodo Merge を実行する設定です。
-        uses: qodo-ai/pr-agent@31d7dd027968e5fad1f9cbb074be047c4869058e # main
+        uses: qodo-ai/pr-agent@e639d10a4df023b90668ec35796c2457c5f5db8d # main
         env:
           OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
