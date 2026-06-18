@@ -215,6 +215,9 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
           これ以上増やせません
         </span>
       )}
+      <div className={styles.subtitle}>
+        アイコンをタップしてコマをえらべるよ
+      </div>
       <div className={styles.playerList}>
         {Array.from({ length: playerCount }).map((_, i) => (
           <div key={i} className={styles.playerRow}>
@@ -253,9 +256,32 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
           </div>
         ))}
       </div>
-      <div className={styles.subtitle}>
-        アイコンをタップしてコマをえらべるよ
-      </div>
+
+      <Button
+        size="large"
+        className={styles.startButton}
+        onClick={() =>
+          onStart(
+            names.slice(0, playerCount),
+            selectedTokens.slice(0, playerCount),
+            features,
+          )
+        }
+        aria-disabled={!canStart}
+        title={!canStart ? START_GUIDE_MSG : undefined}
+        aria-describedby={!canStart ? `${baseId}-start-hint` : undefined}
+      >
+        ゲームスタート！
+      </Button>
+      {!canStart && (
+        <p
+          id={`${baseId}-start-hint`}
+          className={styles.startHint}
+          role="status"
+        >
+          {START_GUIDE_MSG}
+        </p>
+      )}
 
       {/* P1 拡張: 機能トグル */}
       <fieldset className={styles.featureSection}>
@@ -284,33 +310,6 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
           );
         })}
       </fieldset>
-
-      <Button
-        size="large"
-        className={styles.startButton}
-        onClick={() =>
-          onStart(
-            names.slice(0, playerCount),
-            selectedTokens.slice(0, playerCount),
-            features,
-          )
-        }
-        aria-disabled={!canStart}
-        title={!canStart ? START_GUIDE_MSG : undefined}
-        aria-describedby={!canStart ? `${baseId}-start-hint` : undefined}
-      >
-        ゲームスタート！
-      </Button>
-      {!canStart && (
-        <p
-          id={`${baseId}-start-hint`}
-          className={styles.startHint}
-          role="status"
-          aria-live="polite"
-        >
-          {START_GUIDE_MSG}
-        </p>
-      )}
     </div>
   );
 }
