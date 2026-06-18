@@ -34,3 +34,10 @@
 .jailBadge {
   font-size: 12px;
 }
+.playerChip[aria-disabled='true'] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.playerChip[aria-disabled='true']:active {
+  pointer-events: none;
+}

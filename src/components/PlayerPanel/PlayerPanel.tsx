@@ -29,8 +29,13 @@ const PlayerPanel = memo(function PlayerPanel({
           aria-current={idx === currentPlayerIndex ? 'true' : 'false'}
           aria-disabled={!onPlayerClick}
           className={`${styles.playerChip} ${idx === currentPlayerIndex ? styles.playerChipActive : ''} ${player.isBankrupt ? styles.playerChipBankrupt : ''}`}
-          disabled={!onPlayerClick}
-          onClick={() => onPlayerClick?.(player.id)}
+          onClick={(e) => {
+            if (!onPlayerClick) {
+              e.preventDefault();
+              return;
+            }
+            onPlayerClick(player.id);
+          }}
           style={{ background: getOwnerBg(player.id) }}
           title={onPlayerClick ? `${player.name}の詳細を見る` : undefined}
         >
