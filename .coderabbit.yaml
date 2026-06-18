@@ -6,6 +6,14 @@ early_access: true
 enable_free_tier: true
 
 reviews:
+  planning:
+    enabled: true
+    auto_planning:
+      enabled: true
+      labels:
+        - feature
+        - enhancement
+        - bug
   # 個人運営だが、main マージ後に Cloud Run / Cloudflare Pages の本番環境へ
   # 自動デプロイされる前提のため検出漏れを避けたい。"assertive" で検出感度を
   # 高めに維持し、ノイズが過剰になった場合は "chill" に戻すことも検討する。
@@ -96,4 +104,8 @@ chat:
 knowledge_base:
   opt_out: false
   web_search:
+    enabled: true
+
+issue_enrichment:
+  auto_enrich:
     enabled: true
