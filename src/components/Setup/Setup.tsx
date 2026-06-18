@@ -215,6 +215,9 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
           これ以上増やせません
         </span>
       )}
+      <div className={styles.subtitle}>
+        アイコンをタップしてコマをえらべるよ
+      </div>
       <div className={styles.playerList}>
         {Array.from({ length: playerCount }).map((_, i) => (
           <div key={i} className={styles.playerRow}>
@@ -280,10 +283,6 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
           {START_GUIDE_MSG}
         </p>
       )}
-
-      <div className={styles.subtitle}>
-        アイコンをタップしてコマをえらべるよ
-      </div>
 
       {/* P1 拡張: 機能トグル */}
       <fieldset className={styles.featureSection}>
