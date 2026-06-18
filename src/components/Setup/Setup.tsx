@@ -278,7 +278,6 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
           id={`${baseId}-start-hint`}
           className={styles.startHint}
           role="status"
-          aria-live="polite"
         >
           {START_GUIDE_MSG}
         </p>
