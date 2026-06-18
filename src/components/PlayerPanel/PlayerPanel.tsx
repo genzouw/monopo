@@ -32,6 +32,7 @@ const PlayerPanel = memo(function PlayerPanel({
           onClick={(e) => {
             if (!onPlayerClick) {
               e.preventDefault();
+              e.stopPropagation();
               return;
             }
             onPlayerClick(player.id);
