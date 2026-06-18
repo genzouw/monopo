@@ -135,7 +135,7 @@ export default function TradeDialog({
           <div className={styles.tradeActionButtons}>
             <Button
               onClick={handlePropose}
-              disabled={isTradeEmpty}
+              aria-disabled={isTradeEmpty}
               aria-describedby={isTradeEmpty ? tradeEmptyHintId : undefined}
             >
               {LABELS.propose}
