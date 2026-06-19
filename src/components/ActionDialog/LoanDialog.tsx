@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import type { GameState, Player } from '../../game/types';
 import type { LoanType } from '../../game/systems/loan';
 import {
@@ -30,6 +30,8 @@ export default function LoanDialog({
   const [loanType, setLoanType] = useState<LoanType>('variable');
   const [borrowAmount, setBorrowAmount] = useState('');
   const [repayAmount, setRepayAmount] = useState('');
+  const borrowHintId = useId();
+  const repayHintId = useId();
 
   const totalAssets = calculateTotalAssets(
     currentPlayer,
@@ -153,13 +155,19 @@ export default function LoanDialog({
                     }
                   }}
                   aria-disabled={!canBorrow}
-                  aria-describedby={!canBorrow ? 'loan-borrow-hint' : undefined}
+                  aria-describedby={
+                    !canBorrow && borrowAmount !== '' ? borrowHintId : undefined
+                  }
                 >
                   かりる
                 </Button>
               </div>
               {!canBorrow && borrowAmount !== '' && (
-                <div id="loan-borrow-hint" className={styles.noMoneyHintTight}>
+                <div
+                  id={borrowHintId}
+                  className={styles.noMoneyHintTight}
+                  role="status"
+                >
                   かりられる上限をこえているか、正しくないよ
                 </div>
               )}
@@ -193,14 +201,18 @@ export default function LoanDialog({
                     }
                   }}
                   aria-disabled={!canRepay}
-                  aria-describedby={!canRepay ? 'loan-repay-hint' : undefined}
+                  aria-describedby={
+                    !canRepay && repayAmount !== '' ? repayHintId : undefined
+                  }
                 >
                   返済する
                 </Button>
               </div>
-              {(!canRepay && repayAmount !== '') && (
+              {!canRepay && repayAmount !== '' && (
                 <div id="loan-repay-hint" className={styles.noMoneyHintTight}>
-                  {parsedRepay > currentPlayer.money ? 'おかねがたりないよ' : '正しく入力してね'}
+                  {parsedRepay > currentPlayer.money
+                    ? 'おかねがたりないよ'
+                    : '正しく入力してね'}
                 </div>
               )}
             </div>
