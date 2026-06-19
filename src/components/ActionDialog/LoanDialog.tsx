@@ -152,11 +152,17 @@ export default function LoanDialog({
                       setBorrowAmount('');
                     }
                   }}
-                  disabled={!canBorrow}
+                  aria-disabled={!canBorrow}
+                  aria-describedby={!canBorrow ? 'loan-borrow-hint' : undefined}
                 >
                   かりる
                 </Button>
               </div>
+              {!canBorrow && borrowAmount !== '' && (
+                <div id="loan-borrow-hint" className={styles.noMoneyHintTight}>
+                  かりられる上限をこえているか、正しくないよ
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -186,14 +192,15 @@ export default function LoanDialog({
                       setRepayAmount('');
                     }
                   }}
-                  disabled={!canRepay}
+                  aria-disabled={!canRepay}
+                  aria-describedby={!canRepay ? 'loan-repay-hint' : undefined}
                 >
                   返済する
                 </Button>
               </div>
-              {parsedRepay > currentPlayer.money && (
-                <div className={styles.noMoneyHintTight}>
-                  おかねがたりないよ
+              {(!canRepay && repayAmount !== '') && (
+                <div id="loan-repay-hint" className={styles.noMoneyHintTight}>
+                  {parsedRepay > currentPlayer.money ? 'おかねがたりないよ' : '正しく入力してね'}
                 </div>
               )}
             </div>
