@@ -7,16 +7,25 @@
 
 <!-- このPRが何を解決するか / 何を追加するかを1〜3行で。 -->
 
+### 💡 What
+
+<!-- 追加・修正した内容 -->
+
+### 🎯 Why
+
+<!-- なぜこの変更が必要か -->
+
+### 📸 Before/After
+
+<!-- UI変更がある場合はスクリーンショットを貼付してください。 -->
+
+### ♿ Accessibility
+
+<!-- アクセシビリティへの配慮事項（例: aria-labelの追加など） -->
+
 ## 関連 Issue / 設計ドキュメント
 
 <!-- 例: Closes #123, Refs docs/superpowers/specs/xxx.md -->
-
-## 変更内容
-
-<!-- 主要な変更点を箇条書きで。 -->
-
--
--
 
 ## 動作確認
 
@@ -42,7 +51,11 @@
 ## AIツール・CI/CD連携に関する手動セットアップ（必要な場合のみ）
 
 <!--
-新しく追加した AI ツールや CI/CD サービスに手動のセットアップ（API キーや GitHub Secrets の登録など）が必要な場合、以下に記載してください。
+新しく追加した AI ツールや CI/CD サービスに手動のセットアップ（API キーや GitHub Secrets の登録など）が必要な場合、マージする前に以下に記載してください。
 例:
-- [ ] `GITHUB_TOKEN` の権限確認（`pull-requests: write` が必要）
+- [ ] CodeRabbit GitHub App のインストール
+- [ ] Sweep AI GitHub App のインストール
+- [ ] Qodo Merge GitHub App のインストール
+- [ ] GitHub Models アクセスのための `GH_MODELS_TOKEN` の Secret 登録
+- [ ] Tavily API アクセスのための `TAVILY_API_KEY` の Secret 登録
 -->

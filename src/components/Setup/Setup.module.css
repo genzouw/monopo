@@ -1,9 +1,14 @@
 .setup {
   height: 100%;
+  /* 内容がビューポートより縦長の場合に縦スクロールを許可する */
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
+  /* 内容が溢れたときは上端を切らず flex-start に退避する (safe) */
+  /* safe center 非対応ブラウザ向けに通常の center を先に記述してフォールバックする */
   justify-content: center;
+  justify-content: safe center;
   padding: 24px;
   gap: 24px;
 }
@@ -44,8 +49,10 @@
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
-.countButton:disabled {
+.countButton:disabled,
+.countButton[aria-disabled='true'] {
   opacity: 0.3;
+  cursor: not-allowed;
 }
 .playerList {
   width: 100%;
@@ -95,7 +102,8 @@
 .startButton {
   margin-top: 16px;
 }
-.startButton:disabled {
+.startButton:disabled,
+.startButton[aria-disabled='true'] {
   opacity: 0.5;
   cursor: not-allowed;
 }

@@ -24,7 +24,7 @@ jobs:
     name: Trivy filesystem scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
 
@@ -41,15 +41,23 @@ jobs:
           tar -xzf "${TARBALL}" trivy
           sudo install -m 0755 trivy /usr/local/bin/trivy
 
-      - name: Run Trivy (vulnerabilities + misconfig)
+      - name: Run Trivy (vulnerabilities)
         run: |
           trivy fs \
             --format sarif \
             --output trivy-fs.sarif \
             --severity CRITICAL,HIGH \
             --ignore-unfixed \
-            --scanners vuln,misconfig,secret \
+            --scanners vuln \
             --exit-code 0 \
+            .
+
+      - name: Run Trivy (misconfig & secret)
+        run: |
+          trivy fs \
+            --severity CRITICAL,HIGH \
+            --scanners misconfig,secret \
+            --exit-code 1 \
             .
 
       - name: Upload SARIF to GitHub Security

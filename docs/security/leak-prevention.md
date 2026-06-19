@@ -15,6 +15,12 @@
   - AI エージェントの作業跡（`.cursor/`, `.claude/`, `.aider*`, `.cline/` 等）はローカル環境特有の秘密情報が含まれるリスクがあるため除外しています。
   - **さらに、`.gitattributes` により、これらの秘密情報ファイルが誤って `git add` された場合でも、diff の中身がレビュー画面・ログ・PR 上で表示されない（`-diff` によりバイナリ扱いとなり `Binary files differ` 表示）よう、またリポジトリのアーカイブに含まれないよう（`export-ignore`）設定し、二重に保護しています。**
 - **`pre-commit` framework**: `.pre-commit-config.yaml` による標準的なフック（秘密鍵の検知、YAML構文チェックなど）を利用してコミット前の安全性をさらに高めています。
+  - **`detect-secrets`**: `gitleaks` を補完し、エントロピーベースで未知の高乱数なシークレットや独自フォーマットのトークンを検知します。
+    - **セットアップ**: `pre-commit install` 実行時に自動的にインストールされます。追加の手動インストールは不要です。
+    - **ベースラインファイル (`.secrets.baseline`)**: リポジトリ直下に配置し、バージョン管理下に含めます。初回生成は `detect-secrets scan > .secrets.baseline`、更新は `detect-secrets scan --baseline .secrets.baseline` で行います。
+    - **未検証検出 (`is_verified: false`) の扱い**: ベースラインへのコミット前に対象箇所を目視確認してください。誤検知（GitHub Actions secrets 参照など）の場合は該当行に `# pragma: allowlist secret` コメントを追加してから再スキャンし、エントリを削除します。実際のシークレットの場合は即座にローテーション（無効化・再発行）を行ってください。
+    - **検出の限界**: 低エントロピーの短いパスワードや独自フォーマットの秘密情報は検知困難な場合があります。`gitleaks` との多層防御で補完しています。
+    - **トラブルシューティング**: 誤検知が出た場合は `# pragma: allowlist secret` コメントをその行末に追加するか、`detect-secrets scan --baseline .secrets.baseline` でベースラインを更新して既知の誤検知として登録してください。また、ローカル環境に `detect-secrets` をインストール（例: `pip install detect-secrets`）後、`detect-secrets audit .secrets.baseline` を実行してインタラクティブに誤検知を確認・登録することもできます。
 
 ## 2. CI 検知（リポジトリ防御）
 
@@ -26,7 +32,7 @@
 - **TruffleHog ワークフロー (`.github/workflows/trufflehog.yml`)**:
   - `gitleaks` を補完する形で、実際に外部プロバイダ API に対して有効性を検証できたシークレット（有効性検証済み）のみを検知します（`--only-verified`）。誤検知を減らしつつ、漏洩したキーが現在も利用可能かどうかの重大なリスクを即座にブロックします。
 - **Trivy ワークフロー (`.github/workflows/trivy.yml`)**:
-  - パッケージの脆弱性や IaC の設定ミスに加え、シークレットのスキャン (`secret` スキャナ) も実施し、多角的に検知します。
+  - パッケージの脆弱性や IaC の設定ミスに加え、シークレットのスキャン (`secret` スキャナ) も実施し、多角的に検知します。設定ミスやシークレットが検知された場合は CI をブロック（`--exit-code 1`）しますが、パッケージの脆弱性検知時は開発の利便性を考慮しブロックしません（`--exit-code 0`）。
 - **CodeQL ワークフロー (`.github/workflows/codeql.yml`)**:
   - `security-extended` および `security-and-quality` クエリを使用して、データフロー解析によるシークレットのハードコード検知や品質チェックなど、高度な静的解析を行います。
 - **権限 (Permissions) の最小化**:

@@ -1,26 +1,28 @@
-name: AI Issue Plan
+name: AI Test Generator
 
 on:
   issues:
-    types: [opened]
+    types: [labeled]
 
 permissions:
   issues: write
 
 jobs:
-  plan:
+  generate-tests:
+    if: github.event.label.name == 'request ai tests'
     runs-on: ubuntu-latest
     steps:
-      - name: Generate Issue Implementation Plan
+      - name: Generate Tests and Comment
         uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9.0.0
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
         with:
           script: |
             const title = context.payload.issue.title;
             const issueBody = (context.payload.issue.body || '').slice(0, 4000);
 
-            const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のIssueの内容をもとに、実装に必要なファイルのリストと大まかなタスクリスト（たたき台）を日本語で作成してください。
+            const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のIssueの内容をもとに、Vitest を使用したテストコードのモック・実装案を日本語の解説とともに作成してください。
             プロジェクト要件:
             - 名称には「monopoly」ではなく必ず「monopo」を使用する。
             - パッケージマネージャには必ずBunを使用する。
@@ -41,7 +43,7 @@ jobs:
               })
             });
 
-            let plan = 'タスクリストの生成に失敗しました。';
+            let plan = 'テストコードの生成に失敗しました。';
             if (aiRes.ok) {
               try {
                 const aiData = await aiRes.json();
@@ -49,13 +51,9 @@ jobs:
               } catch (e) {
                 console.log('Failed to parse GitHub Models response as JSON:', e);
               }
-            } else {
-              const errorBody = await aiRes.text().catch(() => '<failed to read body>');
-              console.log(`GitHub Models request failed: ${aiRes.status} ${aiRes.statusText}`);
-              console.log('Response body:', errorBody);
             }
 
-            const body = `### 🤖 AI 実装計画 (たたき台)\n\n${plan}`;
+            const body = `### 🤖 AI 自動テストコード生成提案\n\n${plan}`;
 
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
