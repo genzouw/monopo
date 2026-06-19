@@ -6,6 +6,14 @@ early_access: true
 enable_free_tier: true
 
 reviews:
+  planning:
+    enabled: true
+    auto_planning:
+      enabled: true
+      labels:
+        - feature
+        - enhancement
+        - bug
   # 個人運営だが、main マージ後に Cloud Run / Cloudflare Pages の本番環境へ
   # 自動デプロイされる前提のため検出漏れを避けたい。"assertive" で検出感度を
   # 高めに維持し、ノイズが過剰になった場合は "chill" に戻すことも検討する。
@@ -23,6 +31,8 @@ reviews:
     - 実行環境へのアクセス方法（認証情報、API キー、DB 接続文字列、内部 URL など）がコードやログから漏洩していないこと。
     - 実行環境に不正にアクセスするための攻撃手法や脆弱性（インジェクション、認可不足、不適切な権限設定、CORS / CSRF / Secure Cookie / Secure Headers の設定崩れなど）が入り込んでいないこと。
     - 生成AIツールやLLM連携において、プロンプトインジェクション、外部データの安全な検証(RAGの汚染等)、および機密情報の漏洩リスクが適切に対策されていること。
+    - 最新のAI推論モデルを活用し、生成されたコードや改善提案の取り込みに対しては、必ずローカルでのテスト実行と目視によるレビューを促すコメントを含めること。
+    - プロジェクト全体のドックストリングカバレッジ80.00%の閾値を維持するため、新規または変更された関数・コンポーネントには必ずJSDocコメントを記述すること。
 
   # CodeRabbit を bot reviewer として動作させる。問題なしと判断した PR に対して
   # Approve ステータスを返す。個人運営での self-merge 運用 (PR 作成者は自分の
@@ -95,4 +105,8 @@ chat:
 knowledge_base:
   opt_out: false
   web_search:
+    enabled: true
+
+issue_enrichment:
+  auto_enrich:
     enabled: true

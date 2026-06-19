@@ -79,6 +79,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
     isPurchasable && !state.propertyStates[currentSpace.id]?.ownerId;
 
   const handleRoll = () => {
+    if (isRolling) return;
     // Capture position before dispatch changes state
     positionRef.current = currentPlayer.position;
     play('diceRoll');
@@ -168,6 +169,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
   };
 
   const handleRollForJail = () => {
+    if (isRolling) return;
     // 脱出時のアニメーションのため、現在位置をキャプチャ
     positionRef.current = currentPlayer.position;
     play('diceRoll');
@@ -308,7 +310,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
               <Button
                 size="large"
                 onClick={handleRoll}
-                disabled={isRolling}
+                aria-disabled={isRolling}
                 aria-describedby={isRolling ? rollingHintId : undefined}
               >
                 🎲 さいころをふる！
