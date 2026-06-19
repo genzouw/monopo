@@ -61,8 +61,14 @@ export type Player = {
   cryptoHolding?: CryptoHolding;
   vcInvestments?: VCInvestment[];
   esgHoldings?: ESGHolding[];
-  // Phase 3 拡張: ローン残高（features.loan が有効なときのみ意味を持つ）
+  // 信用スコア拡張: 0-850。features.creditScore が有効なときのみ意味を持つ
+  creditScore?: number;
+  // ローン拡張: ローン残高。features.loan が有効なときのみ意味を持つ
   loanBalance?: number;
+  // ローン拡張: 借入時の金利タイプ（'fixed' = 固定, 'variable' = 変動）
+  loanType?: 'fixed' | 'variable';
+  // 累進課税拡張: 次のGO通過時に控除される寄付累積額。features.progressiveTax が有効なときのみ意味を持つ
+  pendingDonation?: number;
 };
 
 // ── P2-a 拡張: 景気ステータス ──
@@ -75,8 +81,9 @@ export type FeatureFlags = {
   altAssets?: boolean; // P3 拡張: 新アセットクラス（暗号資産・VC・ESG）。
   insurance?: boolean; // P2-c 拡張: 不動産保険（火災リスク・保険料・補填）
   macroEconomy?: boolean; // Phase 2-a: マクロ経済サイクル（好況・通常・不況・金融危機の4状態を遷移）
-  progressiveTax?: boolean; // Phase 3: 累進課税・公共基金・再分配（GOマス通過時に資産額に応じた税を徴収）
-  loan?: boolean; // Phase 3: 変動金利ローン（銀行からの借入・景気連動金利・GOマス通過時自動引落）
+  creditScore?: boolean; // 信用スコア（借入金利優遇・物件購入制限）
+  loan?: boolean; // 変動/固定金利ローン（銀行借入・景気連動金利・GOマス利息引落）
+  progressiveTax?: boolean; // 累進課税・公共基金・再分配・節税アクション（寄付控除）
 };
 
 // ── P1 拡張: エリア株（カラーグループ株） ──
@@ -222,7 +229,7 @@ export type GameState = {
   turnCount?: number;
   // P2-a 拡張: 景気ステータス（features.macroEconomy が有効なときのみ意味を持つ）
   economyStatus?: EconomyStatus;
-  // Phase 3 拡張: 累進課税で徴収した税を蓄積する公共基金（features.progressiveTax が有効なときのみ意味を持つ）
+  // 累進課税拡張: 累進課税で徴収した税を蓄積する公共基金（features.progressiveTax が有効なときのみ意味を持つ）
   publicFund?: number;
 };
 

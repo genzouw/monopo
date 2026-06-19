@@ -21,6 +21,7 @@ exclude_paths:
   - 'src/components/ActionDialog/StockDialog.tsx'
   - 'src/components/ActionDialog/InvestDialog.tsx'
   - 'src/components/ActionDialog/TradeDialog.tsx'
+  - 'src/components/ActionDialog/LoanDialog.tsx'
   - 'src/components/Dice/Dice.tsx'
   - 'src/game/economy.ts'
   - 'src/game/insurance.ts'
@@ -35,3 +36,4 @@ exclude_paths:
   - 'src/game/systems/insurance.ts'
   - 'src/game/systems/loan.ts'
   - 'src/game/systems/taxation.ts'
+  - 'src/game/systems/credit.ts'

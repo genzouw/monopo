@@ -50,9 +50,16 @@ export type GameAction =
   | { type: 'INVEST_VC'; amount: number }
   | { type: 'BUY_ESG'; amount: number }
   | { type: 'SELL_ESG'; index: number }
-  // Phase 3 拡張: 変動金利ローン
-  | { type: 'TAKE_LOAN'; playerId: string; amount: number }
+  // ローン拡張: 変動/固定金利ローン
+  | {
+      type: 'TAKE_LOAN';
+      playerId: string;
+      amount: number;
+      loanType: 'fixed' | 'variable';
+    }
   | { type: 'REPAY_LOAN'; playerId: string; amount: number }
+  // 累進課税拡張: 節税アクション（GOマス通過時に寄付で課税所得を控除）
+  | { type: 'DONATE'; playerId: string; amount: number }
   // P2-c 拡張: 不動産保険（火災リスク・保険料・補填）
   | { type: 'BUY_INSURANCE'; propertyId: string }
   | { type: 'CANCEL_INSURANCE'; propertyId: string };

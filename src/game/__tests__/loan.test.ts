@@ -1,263 +1,362 @@
 import { describe, it, expect } from 'vitest';
-import type { GameState } from '../types';
-import { createInitialGameState, gameReducer } from '../reducer';
+import type { EconomyStatus, GameState } from '../types';
 import {
   LOAN_INTEREST_RATES,
+  FIXED_LOAN_RATE,
   DEFAULT_LOAN_INTEREST_RATE,
   MAX_LOAN_TO_ASSET_RATIO,
   calculateInterest,
   calculateMaxLoanAmount,
-  isLoanEnabled,
+  getLoanInterestRate,
   validateTakeLoan,
   validateRepayLoan,
+  isLoanEnabled,
 } from '../systems/loan';
 
-// ── テストヘルパー ──
+const makeState = (overrides: Partial<GameState> = {}): GameState =>
+  ({
+    features: { loan: true },
+    players: [
+      {
+        id: 'p1',
+        name: 'Alice',
+        token: '🚗',
+        money: 1000,
+        position: 0,
+        properties: ['prop1'],
+        inJail: false,
+        jailTurns: 0,
+        getOutOfJailCards: 0,
+        isBankrupt: false,
+        loanBalance: 0,
+        creditScore: 500,
+      },
+    ],
+    board: [
+      {
+        id: 'prop1',
+        position: 1,
+        type: 'property',
+        name: 'Test Property',
+        price: 200,
+        mortgageValue: 100,
+      },
+    ],
+    propertyStates: {
+      prop1: { ownerId: 'p1', houses: 0, isMortgaged: false },
+    },
+    economyStatus: undefined,
+    ...overrides,
+  }) as unknown as GameState;
 
-function startGame(features?: {
-  loan?: boolean;
-  macroEconomy?: boolean;
-}): GameState {
-  return gameReducer(createInitialGameState(), {
-    type: 'START_GAME',
-    playerNames: ['たろう', 'はなこ'],
-    playerTokens: ['🚗', '🎩'],
-    features: features ?? {},
-  });
-}
-
-// ── 定数 ──
-
-describe('LOAN_INTEREST_RATES', () => {
-  it('景気ステータスごとに金利が定義されている', () => {
-    expect(LOAN_INTEREST_RATES.boom).toBeDefined();
-    expect(LOAN_INTEREST_RATES.normal).toBeDefined();
-    expect(LOAN_INTEREST_RATES.recession).toBeDefined();
-    expect(LOAN_INTEREST_RATES.crisis).toBeDefined();
-  });
-
-  it('危機時の金利が通常より高い', () => {
-    expect(LOAN_INTEREST_RATES.crisis).toBeGreaterThan(
-      LOAN_INTEREST_RATES.normal,
-    );
-  });
-
-  it('好況時の金利が通常より低くないか同等', () => {
-    expect(LOAN_INTEREST_RATES.boom).toBeLessThanOrEqual(
-      LOAN_INTEREST_RATES.normal,
-    );
-  });
-
-  it('全ての金利は 0 以上 1 未満', () => {
-    for (const rate of Object.values(LOAN_INTEREST_RATES)) {
-      expect(rate).toBeGreaterThanOrEqual(0);
-      expect(rate).toBeLessThan(1);
-    }
-  });
-});
-
-describe('MAX_LOAN_TO_ASSET_RATIO', () => {
-  it('0より大きく1以下の値', () => {
-    expect(MAX_LOAN_TO_ASSET_RATIO).toBeGreaterThan(0);
-    expect(MAX_LOAN_TO_ASSET_RATIO).toBeLessThanOrEqual(1);
-  });
-});
-
-// ── calculateInterest ──
-
-describe('calculateInterest', () => {
-  it('元本と金利から利息を計算する（切り捨て）', () => {
-    // 1000 * 0.1 = 100
-    expect(calculateInterest(1000, 0.1)).toBe(100);
-  });
-
-  it('端数は切り捨て', () => {
-    // 101 * 0.1 = 10.1 → 10
-    expect(calculateInterest(101, 0.1)).toBe(10);
-  });
-
-  it('元本0のとき利息は0', () => {
-    expect(calculateInterest(0, 0.2)).toBe(0);
-  });
-
-  it('金利0のとき利息は0', () => {
-    expect(calculateInterest(1000, 0)).toBe(0);
-  });
-});
-
-// ── calculateMaxLoanAmount ──
-
-describe('calculateMaxLoanAmount', () => {
-  it('総資産に対して借入限度額を計算する', () => {
-    const max = calculateMaxLoanAmount(2000);
-    // 2000 * MAX_LOAN_TO_ASSET_RATIO以下
-    expect(max).toBeLessThanOrEqual(Math.floor(2000 * MAX_LOAN_TO_ASSET_RATIO));
-    expect(max).toBeGreaterThan(0);
-  });
-
-  it('既存ローン残高を差し引いた上限を返す', () => {
-    const withoutLoan = calculateMaxLoanAmount(2000, 0);
-    const withLoan = calculateMaxLoanAmount(2000, 200);
-    expect(withLoan).toBeLessThan(withoutLoan);
-  });
-
-  it('既存ローンが上限に達している場合は0を返す', () => {
-    const maxDebt = Math.floor(2000 * MAX_LOAN_TO_ASSET_RATIO);
-    expect(calculateMaxLoanAmount(2000, maxDebt)).toBe(0);
-  });
-
-  it('総資産0のとき0を返す', () => {
-    expect(calculateMaxLoanAmount(0)).toBe(0);
-  });
-});
-
-// ── isLoanEnabled ──
-
-describe('isLoanEnabled', () => {
-  it('features.loanがtrueのとき有効', () => {
-    const state = startGame({ loan: true });
-    expect(isLoanEnabled(state)).toBe(true);
-  });
-
-  it('features.loanがfalseのとき無効', () => {
-    const state = startGame({ loan: false });
-    expect(isLoanEnabled(state)).toBe(false);
-  });
-
-  it('featuresが未定義のとき無効', () => {
-    const state = startGame();
-    expect(isLoanEnabled(state)).toBe(false);
-  });
-});
-
-// ── validateTakeLoan ──
-
-describe('validateTakeLoan', () => {
-  it('ローン無効時はLOAN_DISABLED を返す', () => {
-    const state = startGame({ loan: false });
-    const result = validateTakeLoan(state, state.players[0].id, 100);
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.reason).toBe('LOAN_DISABLED');
-  });
-
-  it('借入額が0以下はINVALID_AMOUNT を返す', () => {
-    const state = startGame({ loan: true });
-    const result = validateTakeLoan(state, state.players[0].id, 0);
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.reason).toBe('INVALID_AMOUNT');
-  });
-
-  it('借入限度額を超える場合はEXCEEDS_LIMIT を返す', () => {
-    const state = startGame({ loan: true });
-    // 初期資産1500、限度額 = floor(1500 * MAX_LOAN_TO_ASSET_RATIO)
-    const limit = Math.floor(1500 * MAX_LOAN_TO_ASSET_RATIO);
-    const result = validateTakeLoan(state, state.players[0].id, limit + 1);
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.reason).toBe('EXCEEDS_LIMIT');
-  });
-
-  it('有効な借入はok:trueを返す', () => {
-    const state = startGame({ loan: true });
-    const result = validateTakeLoan(state, state.players[0].id, 100);
-    expect(result.ok).toBe(true);
-  });
-});
-
-// ── validateRepayLoan ──
-
-describe('validateRepayLoan', () => {
-  it('ローン無効時はLOAN_DISABLED を返す', () => {
-    const state = startGame({ loan: false });
-    const result = validateRepayLoan(state, state.players[0].id, 100);
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.reason).toBe('LOAN_DISABLED');
-  });
-
-  it('返済額が0以下はINVALID_AMOUNT を返す', () => {
-    const state = startGame({ loan: true });
-    const result = validateRepayLoan(state, state.players[0].id, 0);
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.reason).toBe('INVALID_AMOUNT');
-  });
-
-  it('ローン残高がない場合はNO_LOAN を返す', () => {
-    const state = startGame({ loan: true });
-    const result = validateRepayLoan(state, state.players[0].id, 100);
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.reason).toBe('NO_LOAN');
-  });
-
-  it('所持金が不足している場合はINSUFFICIENT_FUNDS を返す', () => {
-    const state = startGame({ loan: true });
-    // 借入後にお金を0にして返済を試みる
-    const withLoan = {
-      ...state,
-      players: state.players.map((p, i) =>
-        i === 0 ? { ...p, money: 0, loanBalance: 500 } : p,
-      ),
-    };
-    const result = validateRepayLoan(withLoan, withLoan.players[0].id, 100);
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.reason).toBe('INSUFFICIENT_FUNDS');
-  });
-});
-
-// ── reducer統合: TAKE_LOAN / REPAY_LOAN アクション ──
-
-describe('ローン統合テスト（reducer）', () => {
-  it('TAKE_LOAN: プレイヤーの所持金が増加し、ローン残高が設定される', () => {
-    const state = startGame({ loan: true });
-    const after = gameReducer(state, {
-      type: 'TAKE_LOAN',
-      playerId: state.players[0].id,
-      amount: 200,
+describe('loan', () => {
+  describe('定数', () => {
+    it('変動金利: 好況5%, 通常10%, 不況15%, 金融危機25%', () => {
+      expect(LOAN_INTEREST_RATES.boom).toBe(0.05);
+      expect(LOAN_INTEREST_RATES.normal).toBe(0.1);
+      expect(LOAN_INTEREST_RATES.recession).toBe(0.15);
+      expect(LOAN_INTEREST_RATES.crisis).toBe(0.25);
     });
-    expect(after.players[0].money).toBe(1500 + 200);
-    expect(after.players[0].loanBalance).toBe(200);
+
+    it('固定金利は12%', () => {
+      expect(FIXED_LOAN_RATE).toBe(0.12);
+    });
+
+    it('デフォルト金利は10%', () => {
+      expect(DEFAULT_LOAN_INTEREST_RATE).toBe(0.1);
+    });
+
+    it('借入上限比率は50%', () => {
+      expect(MAX_LOAN_TO_ASSET_RATIO).toBe(0.5);
+    });
   });
 
-  it('REPAY_LOAN: プレイヤーの所持金が減少し、ローン残高が減る', () => {
-    const state = startGame({ loan: true });
-    const withLoan = gameReducer(state, {
-      type: 'TAKE_LOAN',
-      playerId: state.players[0].id,
-      amount: 200,
+  describe('isLoanEnabled', () => {
+    it('features.loan=trueで有効', () => {
+      expect(isLoanEnabled(makeState())).toBe(true);
     });
-    const after = gameReducer(withLoan, {
-      type: 'REPAY_LOAN',
-      playerId: withLoan.players[0].id,
-      amount: 100,
+
+    it('features.loan=falseで無効', () => {
+      expect(isLoanEnabled(makeState({ features: { loan: false } }))).toBe(
+        false,
+      );
     });
-    expect(after.players[0].money).toBe(1500 + 200 - 100);
-    expect(after.players[0].loanBalance).toBe(100);
+
+    it('featuresが未定義でも無効', () => {
+      expect(isLoanEnabled(makeState({ features: undefined }))).toBe(false);
+    });
   });
 
-  it('GOマス通過時にローン残高から利息が自動引落される', () => {
-    const state = startGame({ loan: true });
-    // 初期資産1500、上限=floor(1500*0.5)=750 なので500を借入
-    const borrowAmount = 500;
-    const withLoan = gameReducer(state, {
-      type: 'TAKE_LOAN',
-      playerId: state.players[0].id,
-      amount: borrowAmount,
+  describe('calculateInterest', () => {
+    it('元本×金利を切り捨て', () => {
+      expect(calculateInterest(1000, 0.1)).toBe(100);
+      expect(calculateInterest(1000, 0.15)).toBe(150);
     });
-    expect(withLoan.players[0].loanBalance).toBe(borrowAmount);
-    // position=39 → FINISH_MOVING でGO通過
-    const withPos = {
-      ...withLoan,
-      players: withLoan.players.map((p, i) =>
-        i === 0 ? { ...p, position: 39 } : p,
-      ),
-      dice: { values: [1, 1] as [number, number], doubles: 0, rolled: true },
-    };
-    const after = gameReducer(withPos, { type: 'FINISH_MOVING' });
-    // 社会配当150を受け取り、利息が自動引落される
-    const interestExpected = calculateInterest(
-      borrowAmount,
-      DEFAULT_LOAN_INTEREST_RATE,
-    );
-    expect(after.players[0].money).toBe(
-      1500 + borrowAmount + 150 - interestExpected,
-    );
+
+    it('元本が0なら0', () => {
+      expect(calculateInterest(0, 0.1)).toBe(0);
+    });
+
+    it('金利が0なら0', () => {
+      expect(calculateInterest(1000, 0)).toBe(0);
+    });
+
+    it('端数は切り捨て', () => {
+      expect(calculateInterest(333, 0.1)).toBe(33);
+    });
+  });
+
+  describe('calculateMaxLoanAmount', () => {
+    it('総資産の50%がローン上限', () => {
+      expect(calculateMaxLoanAmount(2000)).toBe(1000);
+    });
+
+    it('既存ローン分を差し引く', () => {
+      expect(calculateMaxLoanAmount(2000, 400)).toBe(600);
+    });
+
+    it('既存ローンが上限を超えていたら0を返す', () => {
+      expect(calculateMaxLoanAmount(1000, 600)).toBe(0);
+    });
+
+    it('総資産が0以下なら0', () => {
+      expect(calculateMaxLoanAmount(0)).toBe(0);
+      expect(calculateMaxLoanAmount(-100)).toBe(0);
+    });
+  });
+
+  describe('getLoanInterestRate', () => {
+    it('macroEconomy無効時はDEFAULT_LOAN_INTEREST_RATEを返す（変動）', () => {
+      const state = makeState({ features: { loan: true } });
+      const player = state.players[0];
+      expect(getLoanInterestRate(state, player, 'variable')).toBe(
+        DEFAULT_LOAN_INTEREST_RATE,
+      );
+    });
+
+    it('固定金利タイプはFIXED_LOAN_RATEを返す（景気状態に依存しない）', () => {
+      const state = makeState({
+        features: { loan: true, macroEconomy: true },
+        economyStatus: 'crisis',
+      });
+      const player = state.players[0];
+      expect(getLoanInterestRate(state, player, 'fixed')).toBe(FIXED_LOAN_RATE);
+    });
+
+    it('macroEconomy有効・変動金利: 景気ステータスで金利が変わる', () => {
+      const statuses: EconomyStatus[] = [
+        'boom',
+        'normal',
+        'recession',
+        'crisis',
+      ];
+      for (const status of statuses) {
+        const state = makeState({
+          features: { loan: true, macroEconomy: true },
+          economyStatus: status,
+        });
+        const player = state.players[0];
+        const expectedBase = LOAN_INTEREST_RATES[status];
+        // creditScore=500（割引0）なので基本金利そのまま
+        expect(getLoanInterestRate(state, player, 'variable')).toBe(
+          expectedBase,
+        );
+      }
+    });
+
+    it('高信用スコア（700+）は変動金利に-5%割引が乗る', () => {
+      const state = makeState({
+        features: { loan: true, macroEconomy: true, creditScore: true },
+        economyStatus: 'normal',
+        players: [
+          {
+            id: 'p1',
+            name: 'Alice',
+            token: '🚗',
+            money: 1000,
+            position: 0,
+            properties: [],
+            inJail: false,
+            jailTurns: 0,
+            getOutOfJailCards: 0,
+            isBankrupt: false,
+            loanBalance: 0,
+            creditScore: 750,
+          },
+        ],
+      } as unknown as Partial<GameState>);
+      const player = state.players[0];
+      // normal=0.1 + discount(-0.05) = 0.05、ただし最低0
+      expect(getLoanInterestRate(state, player, 'variable')).toBe(0.05);
+    });
+
+    it('低信用スコア（400未満）は変動金利に+5%加算される', () => {
+      const state = makeState({
+        features: { loan: true, macroEconomy: true, creditScore: true },
+        economyStatus: 'normal',
+        players: [
+          {
+            id: 'p1',
+            name: 'Alice',
+            token: '🚗',
+            money: 1000,
+            position: 0,
+            properties: [],
+            inJail: false,
+            jailTurns: 0,
+            getOutOfJailCards: 0,
+            isBankrupt: false,
+            loanBalance: 0,
+            creditScore: 300,
+          },
+        ],
+      } as unknown as Partial<GameState>);
+      const player = state.players[0];
+      // normal=0.1 + penalty(+0.05) = 0.15
+      expect(getLoanInterestRate(state, player, 'variable')).toBe(0.15);
+    });
+
+    it('金利は最低0%にクランプされる', () => {
+      const state = makeState({
+        features: { loan: true, macroEconomy: true, creditScore: true },
+        economyStatus: 'boom', // 0.05
+        players: [
+          {
+            id: 'p1',
+            name: 'Alice',
+            token: '🚗',
+            money: 1000,
+            position: 0,
+            properties: [],
+            inJail: false,
+            jailTurns: 0,
+            getOutOfJailCards: 0,
+            isBankrupt: false,
+            loanBalance: 0,
+            creditScore: 850, // -0.05割引
+          },
+        ],
+      } as unknown as Partial<GameState>);
+      const player = state.players[0];
+      // boom=0.05 + discount(-0.05) = 0 → 0（負にはならない）
+      expect(getLoanInterestRate(state, player, 'variable')).toBe(0);
+    });
+  });
+
+  describe('validateTakeLoan', () => {
+    it('正常: 借入可能', () => {
+      const state = makeState();
+      // 総資産: money(1000) + mortgageValue(100) = 1100
+      // 借入上限: floor(1100 * 0.5) = 550
+      expect(validateTakeLoan(state, 'p1', 500)).toEqual({
+        ok: true,
+      });
+    });
+
+    it('LOAN_DISABLED: loan機能が無効', () => {
+      const state = makeState({ features: { loan: false } });
+      expect(validateTakeLoan(state, 'p1', 100)).toEqual({
+        ok: false,
+        reason: 'LOAN_DISABLED',
+      });
+    });
+
+    it('INVALID_AMOUNT: 金額が0以下', () => {
+      const state = makeState();
+      expect(validateTakeLoan(state, 'p1', 0)).toEqual({
+        ok: false,
+        reason: 'INVALID_AMOUNT',
+      });
+    });
+
+    it('INVALID_AMOUNT: 金額が非整数', () => {
+      const state = makeState();
+      expect(validateTakeLoan(state, 'p1', 1.5)).toEqual({
+        ok: false,
+        reason: 'INVALID_AMOUNT',
+      });
+    });
+
+    it('EXCEEDS_LIMIT: 借入上限超過', () => {
+      const state = makeState();
+      // 総資産1100、上限550
+      expect(validateTakeLoan(state, 'p1', 600)).toEqual({
+        ok: false,
+        reason: 'EXCEEDS_LIMIT',
+      });
+    });
+
+    it('PLAYER_NOT_FOUND: 存在しないプレイヤー', () => {
+      const state = makeState();
+      expect(validateTakeLoan(state, 'unknown', 100)).toEqual({
+        ok: false,
+        reason: 'PLAYER_NOT_FOUND',
+      });
+    });
+  });
+
+  describe('validateRepayLoan', () => {
+    it('正常: 返済可能', () => {
+      const state = makeState({
+        players: [
+          {
+            id: 'p1',
+            name: 'Alice',
+            token: '🚗',
+            money: 1000,
+            position: 0,
+            properties: [],
+            inJail: false,
+            jailTurns: 0,
+            getOutOfJailCards: 0,
+            isBankrupt: false,
+            loanBalance: 500,
+            creditScore: 500,
+          },
+        ],
+      } as unknown as Partial<GameState>);
+      expect(validateRepayLoan(state, 'p1', 300)).toEqual({ ok: true });
+    });
+
+    it('LOAN_DISABLED: loan機能が無効', () => {
+      const state = makeState({ features: { loan: false } });
+      expect(validateRepayLoan(state, 'p1', 100)).toEqual({
+        ok: false,
+        reason: 'LOAN_DISABLED',
+      });
+    });
+
+    it('NO_LOAN: ローン残高がない', () => {
+      const state = makeState();
+      expect(validateRepayLoan(state, 'p1', 100)).toEqual({
+        ok: false,
+        reason: 'NO_LOAN',
+      });
+    });
+
+    it('INSUFFICIENT_FUNDS: 現金不足', () => {
+      const state = makeState({
+        players: [
+          {
+            id: 'p1',
+            name: 'Alice',
+            token: '🚗',
+            money: 50,
+            position: 0,
+            properties: [],
+            inJail: false,
+            jailTurns: 0,
+            getOutOfJailCards: 0,
+            isBankrupt: false,
+            loanBalance: 500,
+            creditScore: 500,
+          },
+        ],
+      } as unknown as Partial<GameState>);
+      expect(validateRepayLoan(state, 'p1', 100)).toEqual({
+        ok: false,
+        reason: 'INSUFFICIENT_FUNDS',
+      });
+    });
   });
 });

@@ -4,10 +4,16 @@ import { createInitialGameState, gameReducer } from '../reducer';
 import {
   PROGRESSIVE_TAX_BRACKETS,
   PUBLIC_FUND_REDISTRIBUTION_THRESHOLD,
+  MAX_DONATION_RATE,
   calculateProgressiveTax,
+  calculateTaxableIncome,
   calculatePublicFundRedistribution,
   isProgressiveTaxEnabled,
 } from '../systems/taxation';
+
+const makeState = (enabled: boolean): Pick<GameState, 'features'> => ({
+  features: { progressiveTax: enabled },
+});
 
 // ── テストヘルパー ──
 
@@ -22,116 +28,117 @@ function startGame(features?: { progressiveTax?: boolean }): GameState {
 
 // ── 定数 ──
 
-describe('PROGRESSIVE_TAX_BRACKETS', () => {
-  it('4段階のブラケットが定義されている', () => {
-    expect(PROGRESSIVE_TAX_BRACKETS).toHaveLength(4);
-  });
+describe('taxation', () => {
+  describe('定数', () => {
+    it('公共基金再分配閾値は500', () => {
+      expect(PUBLIC_FUND_REDISTRIBUTION_THRESHOLD).toBe(500);
+    });
 
-  it('最初のブラケットは資産3000未満で税率0', () => {
-    expect(PROGRESSIVE_TAX_BRACKETS[0]).toMatchObject({
-      threshold: 3000,
-      rate: 0,
+    it('最大寄付率は30%', () => {
+      expect(MAX_DONATION_RATE).toBe(0.3);
+    });
+
+    it('累進税率ブラケットが存在する', () => {
+      expect(PROGRESSIVE_TAX_BRACKETS.length).toBeGreaterThan(0);
     });
   });
 
-  it('最後のブラケットはInfinityで税率40%', () => {
-    const last = PROGRESSIVE_TAX_BRACKETS[PROGRESSIVE_TAX_BRACKETS.length - 1];
-    expect(last.threshold).toBe(Infinity);
-    expect(last.rate).toBe(0.4);
-  });
+  describe('isProgressiveTaxEnabled', () => {
+    it('features.progressiveTax=trueで有効', () => {
+      expect(isProgressiveTaxEnabled(makeState(true) as GameState)).toBe(true);
+    });
 
-  it('thresholdは昇順になっている', () => {
-    for (let i = 1; i < PROGRESSIVE_TAX_BRACKETS.length; i++) {
-      expect(PROGRESSIVE_TAX_BRACKETS[i].threshold).toBeGreaterThan(
-        PROGRESSIVE_TAX_BRACKETS[i - 1].threshold,
+    it('features.progressiveTax=falseで無効', () => {
+      expect(isProgressiveTaxEnabled(makeState(false) as GameState)).toBe(
+        false,
       );
-    }
-  });
-});
+    });
 
-// ── calculateProgressiveTax ──
-
-describe('calculateProgressiveTax', () => {
-  it('総資産3000未満は税額0', () => {
-    expect(calculateProgressiveTax(150, 2999)).toBe(0);
-    expect(calculateProgressiveTax(150, 0)).toBe(0);
+    it('featuresが未定義でも無効', () => {
+      expect(isProgressiveTaxEnabled({} as GameState)).toBe(false);
+    });
   });
 
-  it('総資産3000以上6000未満は10%', () => {
-    // 社会配当150, 資産4000 → 税額 = floor(150 * 0.1) = 15
-    expect(calculateProgressiveTax(150, 4000)).toBe(15);
-    expect(calculateProgressiveTax(150, 3000)).toBe(15);
+  describe('calculateTaxableIncome', () => {
+    it('寄付がなければ配当そのまま', () => {
+      expect(calculateTaxableIncome(200, 0)).toBe(200);
+    });
+
+    it('寄付額が課税対象収入から控除される', () => {
+      expect(calculateTaxableIncome(200, 60)).toBe(140);
+    });
+
+    it('寄付額が最大寄付率(30%)を超える場合は上限でキャップ', () => {
+      // 200 * 30% = 60が上限、70寄付しようとしても60しか控除されない
+      expect(calculateTaxableIncome(200, 70)).toBe(140);
+    });
+
+    it('配当が0なら0', () => {
+      expect(calculateTaxableIncome(0, 0)).toBe(0);
+    });
+
+    it('配当が負なら0', () => {
+      expect(calculateTaxableIncome(-100, 0)).toBe(0);
+    });
   });
 
-  it('総資産6000以上10000未満は25%', () => {
-    // 社会配当150, 資産7000 → 税額 = floor(150 * 0.25) = 37
-    expect(calculateProgressiveTax(150, 7000)).toBe(37);
+  describe('calculateProgressiveTax', () => {
+    it('総資産3000未満: 税率0%', () => {
+      expect(calculateProgressiveTax(200, 2999)).toBe(0);
+      expect(calculateProgressiveTax(200, 0)).toBe(0);
+    });
+
+    it('総資産3000-6000未満: 税率10%', () => {
+      expect(calculateProgressiveTax(200, 3000)).toBe(20);
+      expect(calculateProgressiveTax(200, 5999)).toBe(20);
+    });
+
+    it('総資産6000-10000未満: 税率25%', () => {
+      expect(calculateProgressiveTax(200, 6000)).toBe(50);
+      expect(calculateProgressiveTax(200, 9999)).toBe(50);
+    });
+
+    it('総資産10000以上: 税率40%', () => {
+      expect(calculateProgressiveTax(200, 10000)).toBe(80);
+      expect(calculateProgressiveTax(200, 99999)).toBe(80);
+    });
+
+    it('配当が0なら税額0', () => {
+      expect(calculateProgressiveTax(0, 50000)).toBe(0);
+    });
+
+    it('配当が負なら税額0', () => {
+      expect(calculateProgressiveTax(-100, 50000)).toBe(0);
+    });
+
+    it('端数は切り捨て', () => {
+      // 333 * 10% = 33.3 → 33
+      expect(calculateProgressiveTax(333, 3000)).toBe(33);
+    });
+
+    it('寄付控除後の課税所得に税率が適用される', () => {
+      // taxableIncome: calculateTaxableIncome(200, 60) = 140
+      // totalAssets 3000以上: 10% → 14
+      expect(
+        calculateProgressiveTax(calculateTaxableIncome(200, 60), 3000),
+      ).toBe(14);
+    });
   });
 
-  it('総資産10000以上は40%', () => {
-    // 社会配当150, 資産12000 → 税額 = floor(150 * 0.4) = 60
-    expect(calculateProgressiveTax(150, 12000)).toBe(60);
-  });
+  describe('calculatePublicFundRedistribution', () => {
+    it('公共基金が閾値未満なら再分配なし', () => {
+      expect(calculatePublicFundRedistribution(499)).toBe(0);
+      expect(calculatePublicFundRedistribution(0)).toBe(0);
+    });
 
-  it('社会配当が0のとき税額は0', () => {
-    expect(calculateProgressiveTax(0, 15000)).toBe(0);
-  });
+    it('公共基金が閾値以上なら半額を再分配', () => {
+      expect(calculatePublicFundRedistribution(500)).toBe(250);
+      expect(calculatePublicFundRedistribution(1000)).toBe(500);
+    });
 
-  it('税額は切り捨て（floor）される', () => {
-    // 社会配当100, 資産4000 → 100 * 0.1 = 10.0 → 10
-    expect(calculateProgressiveTax(100, 4000)).toBe(10);
-    // 社会配当101, 資産4000 → 101 * 0.1 = 10.1 → 10
-    expect(calculateProgressiveTax(101, 4000)).toBe(10);
-  });
-
-  it('税額は社会配当を超えない', () => {
-    const dividend = 50;
-    const tax = calculateProgressiveTax(dividend, 20000);
-    expect(tax).toBeLessThanOrEqual(dividend);
-  });
-});
-
-// ── calculatePublicFundRedistribution ──
-
-describe('calculatePublicFundRedistribution', () => {
-  it('公共基金が閾値未満は0を返す', () => {
-    expect(
-      calculatePublicFundRedistribution(
-        PUBLIC_FUND_REDISTRIBUTION_THRESHOLD - 1,
-      ),
-    ).toBe(0);
-  });
-
-  it('公共基金が閾値以上なら再分配額を返す', () => {
-    const result = calculatePublicFundRedistribution(
-      PUBLIC_FUND_REDISTRIBUTION_THRESHOLD,
-    );
-    expect(result).toBeGreaterThan(0);
-  });
-
-  it('再分配額は公共基金を超えない', () => {
-    const fund = 600;
-    const result = calculatePublicFundRedistribution(fund);
-    expect(result).toBeLessThanOrEqual(fund);
-  });
-});
-
-// ── isProgressiveTaxEnabled ──
-
-describe('isProgressiveTaxEnabled', () => {
-  it('features.progressiveTaxがtrueのとき有効', () => {
-    const state = startGame({ progressiveTax: true });
-    expect(isProgressiveTaxEnabled(state)).toBe(true);
-  });
-
-  it('features.progressiveTaxがfalseのとき無効', () => {
-    const state = startGame({ progressiveTax: false });
-    expect(isProgressiveTaxEnabled(state)).toBe(false);
-  });
-
-  it('featuresが未定義のとき無効', () => {
-    const state = startGame();
-    expect(isProgressiveTaxEnabled(state)).toBe(false);
+    it('端数は切り捨て', () => {
+      expect(calculatePublicFundRedistribution(501)).toBe(250);
+    });
   });
 });
 
