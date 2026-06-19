@@ -42,6 +42,14 @@ export type GameAction =
   | { type: 'CLOSE_STOCK_DIALOG' }
   | { type: 'BUY_STOCK'; color: ColorGroup; shares: number }
   | { type: 'SELL_STOCK'; color: ColorGroup; shares: number }
+  // P3 拡張: 新アセットクラス（暗号資産・VC・ESG）
+  | { type: 'OPEN_ALT_ASSET_DIALOG' }
+  | { type: 'CLOSE_ALT_ASSET_DIALOG' }
+  | { type: 'BUY_CRYPTO'; amount: number }
+  | { type: 'SELL_CRYPTO' }
+  | { type: 'INVEST_VC'; amount: number }
+  | { type: 'BUY_ESG'; amount: number }
+  | { type: 'SELL_ESG'; index: number }
   // ローン拡張: 変動/固定金利ローン
   | {
       type: 'TAKE_LOAN';

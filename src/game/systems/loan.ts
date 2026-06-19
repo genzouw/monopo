@@ -2,7 +2,14 @@
 // 固定金利 vs 変動金利（景気連動）の選択と、信用スコアによる金利調整を実装する。
 // 既存ゲーム挙動を破壊しないよう、本ファイルの関数はすべて副作用なしの計算関数として実装する。
 
-import type { EconomyStatus, GameState, Player } from '../types';
+import { sellCrypto } from './altAssets';
+import type {
+  ColorGroup,
+  ColorGroupStock,
+  EconomyStatus,
+  GameState,
+  Player,
+} from '../types';
 import { calculateTotalAssets } from '../rules';
 import {
   CREDIT_SCORE_INITIAL,
@@ -165,4 +172,44 @@ function _calcAssets(
   player: (typeof state.players)[0],
 ): number {
   return calculateTotalAssets(player, state.propertyStates, state.board);
+}
+
+// ── 破産時の非不動産資産清算（優先順位: ①暗号資産→②VC→③株式） ──
+// 不動産は既存の forceSell/DECLARE_BANKRUPTCY フローで処理するため対象外
+export function liquidateNonPropertyAssets(
+  player: Player,
+  stockMarket: Partial<Record<ColorGroup, ColorGroupStock>> | undefined,
+): { updatedPlayer: Player; proceeds: number } {
+  let proceeds = 0;
+  let updated = { ...player };
+
+  // ① 暗号資産
+  if (updated.cryptoHolding) {
+    proceeds += sellCrypto(updated.cryptoHolding);
+    updated = { ...updated, cryptoHolding: undefined };
+  }
+
+  // ② スタートアップVC（未精算分は投資額をそのまま回収）
+  if (updated.vcInvestments && updated.vcInvestments.length > 0) {
+    for (const vc of updated.vcInvestments) {
+      proceeds += vc.amount;
+    }
+    updated = { ...updated, vcInvestments: undefined };
+  }
+
+  // ③ 株式（現在の市場価格で換金）
+  if (updated.stocks && stockMarket) {
+    for (const [color, shares] of Object.entries(updated.stocks)) {
+      const market = stockMarket[color as ColorGroup];
+      if (market && shares && shares > 0) {
+        proceeds += market.pricePerShare * shares;
+      }
+    }
+    updated = { ...updated, stocks: undefined };
+  }
+
+  return {
+    updatedPlayer: { ...updated, money: updated.money + proceeds },
+    proceeds,
+  };
 }

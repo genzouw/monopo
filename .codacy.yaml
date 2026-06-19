@@ -27,6 +27,7 @@ exclude_paths:
   - 'src/game/insurance.ts'
   - 'src/game/reducer.ts'
   - 'src/game/storage.ts'
+  - 'src/game/random.ts'
   - 'src/components/Setup/Setup.tsx'
   - 'src/App.tsx'
   - 'src/components/common/Dialog.tsx'
@@ -37,3 +38,4 @@ exclude_paths:
   - 'src/game/systems/loan.ts'
   - 'src/game/systems/taxation.ts'
   - 'src/game/systems/credit.ts'
+  - 'src/game/systems/altAssets.ts'
