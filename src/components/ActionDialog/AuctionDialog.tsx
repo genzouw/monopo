@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useId } from 'react';
 import type { AuctionState, Player } from '../../game/types';
 import { BOARD_SPACES } from '../../game/board';
 import { getSpaceById } from '../../game/rules';
@@ -31,6 +31,7 @@ export default function AuctionDialog({
     return dict;
   }, [players]);
 
+  const noMoneyHintId = useId();
   const space = getSpaceById(auction.propertyId, BOARD_SPACES);
   const currentBidder = auction.currentBidderId
     ? playersById[auction.currentBidderId]
@@ -61,12 +62,13 @@ export default function AuctionDialog({
         <Button
           size="small"
           onClick={() => onBid(10)}
-          disabled={
+          aria-label="10ドル追加"
+          aria-disabled={
             !activePlayer || activePlayer.money < auction.currentBid + 10
           }
           aria-describedby={
             activePlayer && activePlayer.money < auction.currentBid + 10
-              ? 'auction-no-money-hint'
+              ? noMoneyHintId
               : undefined
           }
         >
@@ -75,12 +77,13 @@ export default function AuctionDialog({
         <Button
           size="small"
           onClick={() => onBid(50)}
-          disabled={
+          aria-label="50ドル追加"
+          aria-disabled={
             !activePlayer || activePlayer.money < auction.currentBid + 50
           }
           aria-describedby={
             activePlayer && activePlayer.money < auction.currentBid + 50
-              ? 'auction-no-money-hint'
+              ? noMoneyHintId
               : undefined
           }
         >
@@ -89,14 +92,15 @@ export default function AuctionDialog({
         <Button
           size="small"
           onClick={() => onBid(MAX_BID_INCREMENT)}
-          disabled={
+          aria-label={`${MAX_BID_INCREMENT}ドル追加`}
+          aria-disabled={
             !activePlayer ||
             activePlayer.money < auction.currentBid + MAX_BID_INCREMENT
           }
           aria-describedby={
             activePlayer &&
             activePlayer.money < auction.currentBid + MAX_BID_INCREMENT
-              ? 'auction-no-money-hint'
+              ? noMoneyHintId
               : undefined
           }
         >
@@ -108,11 +112,7 @@ export default function AuctionDialog({
       </div>
       {activePlayer &&
         activePlayer.money < auction.currentBid + MAX_BID_INCREMENT && (
-          <div
-            id="auction-no-money-hint"
-            className={styles.noMoneyHint}
-            role="status"
-          >
+          <div id={noMoneyHintId} className={styles.noMoneyHint} role="status">
             {NO_MONEY_HINT_TEXT}
           </div>
         )}

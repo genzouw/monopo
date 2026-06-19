@@ -41,15 +41,23 @@ jobs:
           tar -xzf "${TARBALL}" trivy
           sudo install -m 0755 trivy /usr/local/bin/trivy
 
-      - name: Run Trivy (vulnerabilities + misconfig)
+      - name: Run Trivy (vulnerabilities)
         run: |
           trivy fs \
             --format sarif \
             --output trivy-fs.sarif \
             --severity CRITICAL,HIGH \
             --ignore-unfixed \
-            --scanners vuln,misconfig,secret \
+            --scanners vuln \
             --exit-code 0 \
+            .
+
+      - name: Run Trivy (misconfig & secret)
+        run: |
+          trivy fs \
+            --severity CRITICAL,HIGH \
+            --scanners misconfig,secret \
+            --exit-code 1 \
             .
 
       - name: Upload SARIF to GitHub Security

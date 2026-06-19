@@ -155,8 +155,15 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
       <div className={styles.playerCount}>
         <button
           className={styles.countButton}
-          onClick={() => setPlayerCount((c) => c - 1)}
-          disabled={playerCount <= MIN_PLAYERS}
+          onClick={(e) => {
+            if (playerCount <= MIN_PLAYERS) {
+              e.preventDefault();
+              e.stopPropagation();
+              return;
+            }
+            setPlayerCount((c) => c - 1);
+          }}
+          aria-disabled={playerCount <= MIN_PLAYERS}
           aria-label="プレイヤーを減らす"
           aria-describedby={
             playerCount <= MIN_PLAYERS
@@ -169,8 +176,15 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
         <span role="status">{playerCount}人であそぶ</span>
         <button
           className={styles.countButton}
-          onClick={() => setPlayerCount((c) => c + 1)}
-          disabled={playerCount >= MAX_PLAYERS}
+          onClick={(e) => {
+            if (playerCount >= MAX_PLAYERS) {
+              e.preventDefault();
+              e.stopPropagation();
+              return;
+            }
+            setPlayerCount((c) => c + 1);
+          }}
+          aria-disabled={playerCount >= MAX_PLAYERS}
           aria-label="プレイヤーを増やす"
           aria-describedby={
             playerCount >= MAX_PLAYERS
@@ -201,6 +215,9 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
           これ以上増やせません
         </span>
       )}
+      <div className={styles.subtitle}>
+        アイコンをタップしてコマをえらべるよ
+      </div>
       <div className={styles.playerList}>
         {Array.from({ length: playerCount }).map((_, i) => (
           <div key={i} className={styles.playerRow}>
@@ -239,9 +256,32 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
           </div>
         ))}
       </div>
-      <div className={styles.subtitle}>
-        アイコンをタップしてコマをえらべるよ
-      </div>
+
+      <Button
+        size="large"
+        className={styles.startButton}
+        onClick={() =>
+          onStart(
+            names.slice(0, playerCount),
+            selectedTokens.slice(0, playerCount),
+            features,
+          )
+        }
+        aria-disabled={!canStart}
+        title={!canStart ? START_GUIDE_MSG : undefined}
+        aria-describedby={!canStart ? `${baseId}-start-hint` : undefined}
+      >
+        ゲームスタート！
+      </Button>
+      {!canStart && (
+        <p
+          id={`${baseId}-start-hint`}
+          className={styles.startHint}
+          role="status"
+        >
+          {START_GUIDE_MSG}
+        </p>
+      )}
 
       {/* P1 拡張: 機能トグル */}
       <fieldset className={styles.featureSection}>
@@ -270,33 +310,6 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
           );
         })}
       </fieldset>
-
-      <Button
-        size="large"
-        className={styles.startButton}
-        onClick={() =>
-          onStart(
-            names.slice(0, playerCount),
-            selectedTokens.slice(0, playerCount),
-            features,
-          )
-        }
-        disabled={!canStart}
-        title={!canStart ? START_GUIDE_MSG : undefined}
-        aria-describedby={!canStart ? 'start-hint' : undefined}
-      >
-        ゲームスタート！
-      </Button>
-      {!canStart && (
-        <p
-          id="start-hint"
-          className={styles.startHint}
-          role="status"
-          aria-live="polite"
-        >
-          {START_GUIDE_MSG}
-        </p>
-      )}
     </div>
   );
 }
