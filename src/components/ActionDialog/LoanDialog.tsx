@@ -209,7 +209,7 @@ export default function LoanDialog({
                 </Button>
               </div>
               {!canRepay && repayAmount !== '' && (
-                <div id="loan-repay-hint" className={styles.noMoneyHintTight}>
+                <div id={repayHintId} className={styles.noMoneyHintTight}>
                   {parsedRepay > currentPlayer.money
                     ? 'おかねがたりないよ'
                     : '正しく入力してね'}
