@@ -47,8 +47,16 @@ import {
   transitionEconomy,
 } from './systems/macroEconomy';
 import {
+  calculateCreditScoreOnBankruptcy,
+  calculateCreditScoreOnPayment,
+  isCreditScoreEnabled,
+  isCreditScorePurchaseBlocked,
+  CREDIT_SCORE_INITIAL,
+} from './systems/credit';
+import {
   calculateProgressiveTax,
   calculatePublicFundRedistribution,
+  calculateTaxableIncome,
   isProgressiveTaxEnabled,
 } from './systems/taxation';
 import {
@@ -84,10 +92,17 @@ type SocialDividendResult = {
   newPublicFund: number;
 };
 
+type SocialDividendExtResult = SocialDividendResult & {
+  taxPaid: number;
+  interestPaid: number;
+  newPublicFund: number;
+  redistributionAmount: number;
+};
+
 function distributeSocialDividend(
   state: GameState,
   newPos: number,
-): SocialDividendResult {
+): SocialDividendExtResult {
   // P2-a 拡張: macroEconomy 有効時は GO 通過ボーナスにも景気乗数を適用する
   const useEconomy = isMacroEconomyEnabled(state) && state.economyStatus;
   const selfBonusBase = useEconomy
@@ -97,69 +112,88 @@ function distributeSocialDividend(
     ? applyEconomyFactor(SOCIAL_DIVIDEND_OTHERS, state.economyStatus!)
     : SOCIAL_DIVIDEND_OTHERS;
 
-  // Phase 3 拡張: 累進課税（progressiveTax ON 時のみ）
-  let selfBonus = selfBonusBase;
-  let taxCollected = 0;
+  const currentPlayer = state.players[state.currentPlayerIndex];
+  // DONATE アクションで蓄積された寄付額を GO 通過時に控除として適用し、クリアする
+  const donationAmount = currentPlayer.pendingDonation ?? 0;
+
+  // 累進課税: 現在プレイヤーのGOボーナスから課税（寄付控除後）
+  let taxPaid = 0;
+  let newPublicFund = state.publicFund ?? 0;
+  let redistributionAmount = 0;
+
   if (isProgressiveTaxEnabled(state)) {
-    const currentPlayer = state.players[state.currentPlayerIndex];
     const totalAssets = calculateTotalAssets(
       currentPlayer,
       state.propertyStates,
       state.board,
     );
-    taxCollected = calculateProgressiveTax(selfBonusBase, totalAssets);
-    selfBonus = selfBonusBase - taxCollected;
+    const taxableIncome = calculateTaxableIncome(selfBonusBase, donationAmount);
+    taxPaid = calculateProgressiveTax(taxableIncome, totalAssets);
+    newPublicFund += taxPaid;
+    const activePlayers = state.players.filter((p) => !p.isBankrupt);
+    redistributionAmount = calculatePublicFundRedistribution(newPublicFund);
+    const perCapitaForRedist =
+      redistributionAmount > 0 && activePlayers.length > 0
+        ? Math.floor(redistributionAmount / activePlayers.length)
+        : 0;
+    const distributedTotal = perCapitaForRedist * activePlayers.length;
+    if (distributedTotal > 0) newPublicFund -= distributedTotal;
+    redistributionAmount = distributedTotal;
   }
 
-  // 公共基金の更新と再分配
-  let newPublicFund = (state.publicFund ?? 0) + taxCollected;
-  const redistribution = isProgressiveTaxEnabled(state)
-    ? calculatePublicFundRedistribution(newPublicFund)
-    : 0;
-
-  // 再分配対象: 最も総資産の少ない非破産・非現在プレイヤー
-  let redistributionTargetId: string | null = null;
-  if (redistribution > 0) {
-    const eligible = state.players.filter(
-      (p, i) => !p.isBankrupt && i !== state.currentPlayerIndex,
+  // ローン利息: GO通過時に自動引落
+  let interestPaid = 0;
+  if (isLoanEnabled(state) && (currentPlayer.loanBalance ?? 0) > 0) {
+    const rate = getLoanInterestRate(
+      state,
+      currentPlayer,
+      currentPlayer.loanType ?? 'variable',
     );
-    if (eligible.length > 0) {
-      const poorest = eligible.reduce((min, p) => {
-        return calculateTotalAssets(p, state.propertyStates, state.board) <
-          calculateTotalAssets(min, state.propertyStates, state.board)
-          ? p
-          : min;
-      });
-      redistributionTargetId = poorest.id;
-      newPublicFund -= redistribution;
-    }
+    interestPaid = calculateInterest(currentPlayer.loanBalance ?? 0, rate);
   }
 
-  // Phase 3 拡張: ローン利息の自動引落（loan ON 時のみ）
-  let interestOwed = 0;
-  if (isLoanEnabled(state)) {
-    const currentPlayer = state.players[state.currentPlayerIndex];
-    const loanBalance = currentPlayer.loanBalance ?? 0;
-    if (loanBalance > 0) {
-      interestOwed = calculateInterest(loanBalance, getLoanInterestRate(state));
-    }
-  }
+  // プレイヤー資産の更新
+  const activePlayers = state.players.filter((p) => !p.isBankrupt);
+  const perCapitaRedistribution =
+    redistributionAmount > 0 && activePlayers.length > 0
+      ? Math.floor(redistributionAmount / activePlayers.length)
+      : 0;
+
+  const selfBonus = selfBonusBase;
 
   const players = state.players.map((p, index) => {
     if (p.isBankrupt) return p;
     if (index === state.currentPlayerIndex) {
+      // 信用スコア: GOボーナス受取でスコアアップ
+      const newCreditScore =
+        isCreditScoreEnabled(state) && p.creditScore !== undefined
+          ? calculateCreditScoreOnPayment(p.creditScore)
+          : p.creditScore;
       return {
         ...p,
         position: newPos,
-        money: p.money + selfBonus - interestOwed,
+        money:
+          p.money +
+          selfBonus -
+          taxPaid -
+          interestPaid +
+          perCapitaRedistribution,
+        creditScore: newCreditScore,
+        pendingDonation: 0,
       };
     }
-    if (redistributionTargetId && p.id === redistributionTargetId) {
-      return { ...p, money: p.money + othersBonus + redistribution };
-    }
-    return { ...p, money: p.money + othersBonus };
+    return { ...p, money: p.money + othersBonus + perCapitaRedistribution };
   });
-  return { players, selfBonus, othersBonus, newPublicFund };
+
+  return {
+    players,
+    selfBonus,
+    othersBonus,
+    taxPaid,
+    interestPaid,
+    newPublicFund,
+    redistributionAmount,
+  };
 }
 
 export function rollDice(): [number, number] {
@@ -676,6 +710,10 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         jailTurns: 0,
         getOutOfJailCards: 0,
         isBankrupt: false,
+        // 信用スコア拡張: 機能 ON の場合のみ初期値を付与（OFF時は undefined）
+        creditScore: action.features?.creditScore
+          ? CREDIT_SCORE_INITIAL
+          : undefined,
       }));
       const firstPlayer = players[0];
       // P1 拡張: 株式機能 ON のときだけ市場を初期化（OFF時は undefined のまま既存挙動）
@@ -707,7 +745,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         // P2-a 拡張: ターン数・景気ステータスを初期化
         turnCount: 0,
         economyStatus: action.features?.macroEconomy ? 'normal' : undefined,
-        // Phase 3 拡張: 公共基金を初期化（progressiveTax ON 時のみ）
+        // 累進課税拡張: 公共基金を初期化（progressiveTax ON 時のみ）
         publicFund: action.features?.progressiveTax ? 0 : undefined,
       };
     }
@@ -766,11 +804,20 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       let newState = { ...state };
       if (passedGo && !player.inJail) {
         const dividend = distributeSocialDividend(state, newPos);
+        let goMessage = `GOをとおりすぎた！みんなに$${dividend.othersBonus}ずつ、自分は$${dividend.selfBonus}の社会配当をもらったよ！`;
+        if (dividend.taxPaid > 0)
+          goMessage += ` 💰税金$${dividend.taxPaid}を公共基金に納めたよ。`;
+        if (dividend.interestPaid > 0)
+          goMessage += ` 🏦ローン利息$${dividend.interestPaid}を引き落としたよ。`;
+        if (dividend.redistributionAmount > 0)
+          goMessage += ` 🎁公共基金から$${dividend.redistributionAmount}が再分配されたよ！`;
         newState = {
           ...newState,
           players: dividend.players,
-          publicFund: dividend.newPublicFund,
-          message: `GOをとおりすぎた！みんなに$${dividend.othersBonus}ずつ、自分は$${dividend.selfBonus}の社会配当をもらったよ！`,
+          publicFund: isProgressiveTaxEnabled(state)
+            ? dividend.newPublicFund
+            : state.publicFund,
+          message: goMessage,
         };
       } else {
         newState = updateCurrentPlayer(newState, {
@@ -787,6 +834,18 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       const player = state.players[state.currentPlayerIndex];
       const space = state.board[player.position];
       if (!space || !space.price) return state;
+
+      // 信用スコア拡張: スコアが低い場合、高額物件の購入を制限
+      if (
+        isCreditScoreEnabled(state) &&
+        player.creditScore !== undefined &&
+        isCreditScorePurchaseBlocked(player.creditScore, space.price)
+      ) {
+        return {
+          ...state,
+          message: `信用スコアが低いため$${space.price}の物件は購入できないよ（現在のスコア: ${player.creditScore}）`,
+        };
+      }
 
       const newPropertyStates: Record<string, PropertyState> = {
         ...state.propertyStates,
@@ -1500,6 +1559,11 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
             isBankrupt: true,
             money: 0,
             properties: [],
+            // 信用スコア拡張: 破産でスコアが大幅に下がる
+            creditScore:
+              isCreditScoreEnabled(state) && p.creditScore !== undefined
+                ? calculateCreditScoreOnBankruptcy(p.creditScore)
+                : p.creditScore,
           };
         return p;
       });
@@ -1659,42 +1723,122 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       );
     }
 
-    // ── Phase 3 拡張: 変動金利ローン ──
+    // ── ローン拡張: 借入 ──
     case 'TAKE_LOAN': {
-      const result = validateTakeLoan(state, action.playerId, action.amount);
-      if (!result.ok) return state;
+      const currentPlayer = state.players[state.currentPlayerIndex];
+      if (
+        !currentPlayer ||
+        currentPlayer.id !== action.playerId ||
+        currentPlayer.isBankrupt
+      ) {
+        return state;
+      }
+      const validation = validateTakeLoan(
+        state,
+        action.playerId,
+        action.amount,
+      );
+      if (!validation.ok) return state;
       const newPlayers = state.players.map((p) => {
         if (p.id !== action.playerId) return p;
         return {
           ...p,
           money: p.money + action.amount,
           loanBalance: (p.loanBalance ?? 0) + action.amount,
+          loanType: action.loanType,
         };
       });
+      const rateLabel = action.loanType === 'fixed' ? '固定金利' : '変動金利';
       return {
         ...state,
         players: newPlayers,
-        message: `ぎんこうから$${action.amount}かりたよ！りそくに気をつけてね`,
+        message: `$${action.amount}を${rateLabel}で借りたよ！`,
       };
     }
 
+    // ── ローン拡張: 返済 ──
     case 'REPAY_LOAN': {
-      const result = validateRepayLoan(state, action.playerId, action.amount);
-      if (!result.ok) return state;
+      const currentPlayer = state.players[state.currentPlayerIndex];
+      if (
+        !currentPlayer ||
+        currentPlayer.id !== action.playerId ||
+        currentPlayer.isBankrupt
+      ) {
+        return state;
+      }
+      const validation = validateRepayLoan(
+        state,
+        action.playerId,
+        action.amount,
+      );
+      if (!validation.ok) return state;
       const newPlayers = state.players.map((p) => {
         if (p.id !== action.playerId) return p;
-        const repayAmount = Math.min(action.amount, p.loanBalance ?? 0);
-        const newBalance = (p.loanBalance ?? 0) - repayAmount;
+        const newBalance = Math.max(0, (p.loanBalance ?? 0) - action.amount);
         return {
           ...p,
-          money: p.money - repayAmount,
+          money: p.money - action.amount,
           loanBalance: newBalance,
+          loanType: newBalance === 0 ? undefined : p.loanType,
         };
       });
       return {
         ...state,
         players: newPlayers,
-        message: `$${action.amount}のローンをへんさいしたよ！`,
+        message: `ローンを$${action.amount}返済したよ！`,
+      };
+    }
+
+    // ── 累進課税拡張: 節税（寄付控除） ──
+    // 次のGO通過時にこの寄付額分を課税所得から控除する。
+    // 実際の控除はdistributeSocialDividend内で行われるため、
+    // ここでは寄付額を一時的にstateに保存する仕組みは設けず、
+    // 即時に公共基金へ寄付として反映する（控除はGO計算で推算）。
+    case 'DONATE': {
+      const currentPlayerForDonate = state.players[state.currentPlayerIndex];
+      if (
+        !currentPlayerForDonate ||
+        currentPlayerForDonate.id !== action.playerId ||
+        currentPlayerForDonate.isBankrupt
+      ) {
+        return state;
+      }
+      if (!isProgressiveTaxEnabled(state)) return state;
+      if (!Number.isInteger(action.amount) || action.amount <= 0) return state;
+      const player = state.players.find((p) => p.id === action.playerId);
+      if (!player || player.money < action.amount) return state;
+      const newPlayers = state.players.map((p) => {
+        if (p.id !== action.playerId) return p;
+        return {
+          ...p,
+          money: p.money - action.amount,
+          pendingDonation: (p.pendingDonation ?? 0) + action.amount,
+        };
+      });
+      const newPublicFund = (state.publicFund ?? 0) + action.amount;
+      const redistributionAmount =
+        calculatePublicFundRedistribution(newPublicFund);
+      const activePlayers = newPlayers.filter((p) => !p.isBankrupt);
+      const perCapita =
+        redistributionAmount > 0 && activePlayers.length > 0
+          ? Math.floor(redistributionAmount / activePlayers.length)
+          : 0;
+      const distributedTotal = perCapita * activePlayers.length;
+      const finalPublicFund = newPublicFund - distributedTotal;
+      const finalPlayers =
+        perCapita > 0
+          ? newPlayers.map((p) =>
+              p.isBankrupt ? p : { ...p, money: p.money + perCapita },
+            )
+          : newPlayers;
+      let donateMsg = `$${action.amount}を公共基金に寄付したよ！`;
+      if (distributedTotal > 0)
+        donateMsg += ` 🎁公共基金から$${distributedTotal}が再分配されたよ！`;
+      return {
+        ...state,
+        players: finalPlayers,
+        publicFund: finalPublicFund,
+        message: donateMsg,
       };
     }
 
