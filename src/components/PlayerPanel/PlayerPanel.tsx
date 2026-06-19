@@ -42,6 +42,24 @@ const PlayerPanel = memo(function PlayerPanel({
         >
           <span aria-hidden="true">{player.token}</span>
           <span aria-hidden="true">${player.money.toLocaleString()}</span>
+          {player.creditScore !== undefined && (
+            <span
+              className={styles.jailBadge}
+              aria-hidden="true"
+              title={`信用スコア: ${player.creditScore}`}
+            >
+              📊{player.creditScore}
+            </span>
+          )}
+          {(player.loanBalance ?? 0) > 0 && (
+            <span
+              className={styles.jailBadge}
+              aria-hidden="true"
+              title={`ローン残高: $${player.loanBalance}`}
+            >
+              🏦${player.loanBalance}
+            </span>
+          )}
           {player.inJail && (
             <span className={styles.jailBadge} aria-hidden="true">
               🔒

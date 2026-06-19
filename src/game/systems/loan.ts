@@ -1,11 +1,25 @@
-// Phase 3: 変動金利ローンシステムの純粋計算関数層
-// reducer.ts を肥大化させないため、ローンロジックはここに集約する。
-// macroEconomy と連携して景気ステータスに応じた変動金利を適用する。
+// 変動金利ローンシステムの純粋計算関数層
+// 固定金利 vs 変動金利（景気連動）の選択と、信用スコアによる金利調整を実装する。
 // 既存ゲーム挙動を破壊しないよう、本ファイルの関数はすべて副作用なしの計算関数として実装する。
 
-import type { EconomyStatus, GameState } from '../types';
+import { sellCrypto } from './altAssets';
+import type {
+  ColorGroup,
+  ColorGroupStock,
+  EconomyStatus,
+  GameState,
+  Player,
+} from '../types';
+import { calculateTotalAssets } from '../rules';
+import {
+  CREDIT_SCORE_INITIAL,
+  calculateCreditScoreDiscount,
+  isCreditScoreEnabled,
+} from './credit';
 
-// 景気ステータスごとの金利（GOマス通過時に元本へ乗じる）
+export type LoanType = 'fixed' | 'variable';
+
+// 変動金利: 景気ステータスごとの金利（GOマス通過時に元本へ乗じる）
 export const LOAN_INTEREST_RATES: Record<EconomyStatus, number> = {
   boom: 0.05,
   normal: 0.1,
@@ -13,7 +27,10 @@ export const LOAN_INTEREST_RATES: Record<EconomyStatus, number> = {
   crisis: 0.25,
 };
 
-// macroEconomy が無効のときに使用する固定金利
+// 固定金利（景気状態に依存しない、変動金利の通常時より高め）
+export const FIXED_LOAN_RATE = 0.12;
+
+// macroEconomy が無効のときに使用するデフォルト変動金利
 export const DEFAULT_LOAN_INTEREST_RATE = 0.1;
 
 // 総資産に対する借入限度額の比率（50%まで借りられる）
@@ -28,10 +45,6 @@ export function isLoanEnabled(state: GameState): boolean {
 
 /**
  * 元本と金利から利息額を計算する（切り捨て）。
- *
- * @param principal 元本残高。
- * @param rate 金利（0〜1 の小数）。
- * @returns 利息額（floor）。
  */
 export function calculateInterest(principal: number, rate: number): number {
   if (principal <= 0 || rate <= 0) return 0;
@@ -43,10 +56,6 @@ export function calculateInterest(principal: number, rate: number): number {
  *
  * 上限 = floor(totalAssets * MAX_LOAN_TO_ASSET_RATIO) - currentLoanBalance。
  * 結果が 0 未満の場合は 0 にクランプする。
- *
- * @param totalAssets プレイヤーの総資産（現金＋物件価値）。
- * @param currentLoanBalance 現在のローン残高（デフォルト 0）。
- * @returns 追加で借り入れ可能な上限額。
  */
 export function calculateMaxLoanAmount(
   totalAssets: number,
@@ -58,14 +67,39 @@ export function calculateMaxLoanAmount(
 }
 
 /**
- * 現在の景気ステータスに応じた金利を返す。
- * macroEconomy が無効または economyStatus が未設定の場合は DEFAULT_LOAN_INTEREST_RATE を返す。
+ * プレイヤーの信用スコアと景気状態を考慮した実効金利を返す。
+ *
+ * - 固定金利（'fixed'）: FIXED_LOAN_RATE を返す（景気・信用スコア不問）
+ * - 変動金利（'variable'）:
+ *   - macroEconomy が有効かつ economyStatus がある場合: LOAN_INTEREST_RATES[status] を基準に
+ *   - それ以外: DEFAULT_LOAN_INTEREST_RATE を基準に
+ *   - creditScore 機能が有効な場合: calculateCreditScoreDiscount で調整
+ *   - 最低 0 にクランプ（負金利なし）
+ *
+ * @param state 現在のゲーム状態。
+ * @param player 借入プレイヤー。
+ * @param loanType 'fixed' or 'variable'。
+ * @returns 実効金利（0以上）。
  */
-export function getLoanInterestRate(state: GameState): number {
-  if (state.features?.macroEconomy && state.economyStatus) {
-    return LOAN_INTEREST_RATES[state.economyStatus];
-  }
-  return DEFAULT_LOAN_INTEREST_RATE;
+export function getLoanInterestRate(
+  state: GameState,
+  player: Player,
+  loanType: LoanType,
+): number {
+  if (loanType === 'fixed') return FIXED_LOAN_RATE;
+
+  const baseRate =
+    state.features?.macroEconomy && state.economyStatus
+      ? LOAN_INTEREST_RATES[state.economyStatus]
+      : DEFAULT_LOAN_INTEREST_RATE;
+
+  if (!isCreditScoreEnabled(state)) return baseRate;
+
+  const discount = calculateCreditScoreDiscount(
+    player.creditScore ?? CREDIT_SCORE_INITIAL,
+  );
+  // 浮動小数点誤差を避けるため小数点4桁で丸める
+  return Math.max(0, Math.round((baseRate + discount) * 10000) / 10000);
 }
 
 // ── バリデーション型 ──
@@ -85,7 +119,6 @@ export type LoanRepayReason =
   | 'INVALID_AMOUNT'
   | 'NO_LOAN'
   | 'INSUFFICIENT_FUNDS'
-  | 'OVERPAYMENT'
   | 'PLAYER_NOT_FOUND';
 
 export type LoanRepayValidation =
@@ -94,7 +127,7 @@ export type LoanRepayValidation =
 
 /**
  * 借入バリデーション。
- * totalAssets は呼び出し側で calculateTotalAssets を使って計算して渡す。
+ * totalAssets は呼び出し側で計算せず内部で算出する（循環依存回避のシンプル実装）。
  */
 export function validateTakeLoan(
   state: GameState,
@@ -107,7 +140,6 @@ export function validateTakeLoan(
   const player = state.players.find((p) => p.id === playerId);
   if (!player) return { ok: false, reason: 'PLAYER_NOT_FOUND' };
 
-  // 総資産を簡易計算（money + 物件抵当価値の合計）
   const totalAssets = _calcAssets(state, player);
   const maxAdditional = calculateMaxLoanAmount(
     totalAssets,
@@ -131,25 +163,53 @@ export function validateRepayLoan(
   const player = state.players.find((p) => p.id === playerId);
   if (!player) return { ok: false, reason: 'PLAYER_NOT_FOUND' };
   if ((player.loanBalance ?? 0) <= 0) return { ok: false, reason: 'NO_LOAN' };
-  if (amount > (player.loanBalance ?? 0))
-    return { ok: false, reason: 'OVERPAYMENT' };
   if (player.money < amount) return { ok: false, reason: 'INSUFFICIENT_FUNDS' };
   return { ok: true };
 }
 
-// 内部ヘルパー: Player の簡易総資産計算（rules.ts の循環依存を避けるためシンプル実装）
-// reducer.ts 側では calculateTotalAssets を使う
 function _calcAssets(
   state: GameState,
   player: (typeof state.players)[0],
 ): number {
-  let total = Math.max(0, player.money - (player.loanBalance ?? 0));
-  for (const propId of player.properties) {
-    const propState = state.propertyStates[propId];
-    const space = state.board.find((s) => s.id === propId);
-    if (space && !propState?.isMortgaged) total += space.mortgageValue ?? 0;
-    if (propState && propState.houses > 0)
-      total += Math.floor(((space?.houseCost ?? 0) * propState.houses) / 2);
+  return calculateTotalAssets(player, state.propertyStates, state.board);
+}
+
+// ── 破産時の非不動産資産清算（優先順位: ①暗号資産→②VC→③株式） ──
+// 不動産は既存の forceSell/DECLARE_BANKRUPTCY フローで処理するため対象外
+export function liquidateNonPropertyAssets(
+  player: Player,
+  stockMarket: Partial<Record<ColorGroup, ColorGroupStock>> | undefined,
+): { updatedPlayer: Player; proceeds: number } {
+  let proceeds = 0;
+  let updated = { ...player };
+
+  // ① 暗号資産
+  if (updated.cryptoHolding) {
+    proceeds += sellCrypto(updated.cryptoHolding);
+    updated = { ...updated, cryptoHolding: undefined };
   }
-  return total;
+
+  // ② スタートアップVC（未精算分は投資額をそのまま回収）
+  if (updated.vcInvestments && updated.vcInvestments.length > 0) {
+    for (const vc of updated.vcInvestments) {
+      proceeds += vc.amount;
+    }
+    updated = { ...updated, vcInvestments: undefined };
+  }
+
+  // ③ 株式（現在の市場価格で換金）
+  if (updated.stocks && stockMarket) {
+    for (const [color, shares] of Object.entries(updated.stocks)) {
+      const market = stockMarket[color as ColorGroup];
+      if (market && shares && shares > 0) {
+        proceeds += market.pricePerShare * shares;
+      }
+    }
+    updated = { ...updated, stocks: undefined };
+  }
+
+  return {
+    updatedPlayer: { ...updated, money: updated.money + proceeds },
+    proceeds,
+  };
 }
