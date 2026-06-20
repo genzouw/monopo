@@ -159,13 +159,19 @@ export default function LoanDialog({
                     setBorrowAmount('');
                   }}
                   aria-disabled={!canBorrow}
-                  aria-describedby={!canBorrow ? borrowHintId : undefined}
+                  aria-describedby={
+                    !canBorrow && borrowAmount !== '' ? borrowHintId : undefined
+                  }
                 >
                   かりる
                 </Button>
               </div>
               {!canBorrow && borrowAmount !== '' && (
-                <div id={borrowHintId} className={styles.noMoneyHintTight} role="status">
+                <div
+                  id={borrowHintId}
+                  className={styles.noMoneyHintTight}
+                  role="status"
+                >
                   かりられる金額を正しく入力してね
                 </div>
               )}
@@ -201,14 +207,22 @@ export default function LoanDialog({
                     setRepayAmount('');
                   }}
                   aria-disabled={!canRepay}
-                  aria-describedby={!canRepay ? repayHintId : undefined}
+                  aria-describedby={
+                    !canRepay && repayAmount !== '' ? repayHintId : undefined
+                  }
                 >
                   返済する
                 </Button>
               </div>
               {!canRepay && repayAmount !== '' && (
-                <div id={repayHintId} className={styles.noMoneyHintTight} role="status">
-                  {parsedRepay > currentPlayer.money ? 'おかねがたりないよ' : '返済する金額を正しく入力してね'}
+                <div
+                  id={repayHintId}
+                  className={styles.noMoneyHintTight}
+                  role="status"
+                >
+                  {parsedRepay > currentPlayer.money
+                    ? 'おかねがたりないよ'
+                    : '返済する金額を正しく入力してね'}
                 </div>
               )}
             </div>
