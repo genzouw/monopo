@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import type { GameState, Player } from '../../game/types';
 import type { LoanType } from '../../game/systems/loan';
 import {
@@ -11,6 +11,8 @@ import { calculateTotalAssets } from '../../game/rules';
 import Dialog from '../common/Dialog';
 import Button from '../common/Button';
 import styles from './ActionDialog.module.css';
+
+const MAX_MONEY_INPUT_LENGTH = 6;
 
 type LoanDialogProps = {
   state: GameState;
@@ -27,6 +29,8 @@ export default function LoanDialog({
   onRepayLoan,
   onClose,
 }: LoanDialogProps) {
+  const borrowHintId = useId();
+  const repayHintId = useId();
   const [loanType, setLoanType] = useState<LoanType>('variable');
   const [borrowAmount, setBorrowAmount] = useState('');
   const [repayAmount, setRepayAmount] = useState('');
@@ -139,7 +143,10 @@ export default function LoanDialog({
                   min={1}
                   max={maxBorrow}
                   value={borrowAmount}
-                  onChange={(e) => setBorrowAmount(e.target.value)}
+                  onChange={(e) => {
+                    if (e.target.value.length > MAX_MONEY_INPUT_LENGTH) return;
+                    setBorrowAmount(e.target.value);
+                  }}
                   placeholder={`最大 $${maxBorrow}`}
                   style={{ width: 120 }}
                   aria-label="借入金額"
@@ -147,16 +154,21 @@ export default function LoanDialog({
                 <Button
                   size="small"
                   onClick={() => {
-                    if (canBorrow) {
-                      onTakeLoan(parsedBorrow, loanType);
-                      setBorrowAmount('');
-                    }
+                    if (!canBorrow) return;
+                    onTakeLoan(parsedBorrow, loanType);
+                    setBorrowAmount('');
                   }}
-                  disabled={!canBorrow}
+                  aria-disabled={!canBorrow}
+                  aria-describedby={!canBorrow ? borrowHintId : undefined}
                 >
                   かりる
                 </Button>
               </div>
+              {!canBorrow && borrowAmount !== '' && (
+                <div id={borrowHintId} className={styles.noMoneyHintTight} role="status">
+                  かりられる金額を正しく入力してね
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -172,7 +184,10 @@ export default function LoanDialog({
                   min={1}
                   max={Math.min(loanBalance, currentPlayer.money)}
                   value={repayAmount}
-                  onChange={(e) => setRepayAmount(e.target.value)}
+                  onChange={(e) => {
+                    if (e.target.value.length > MAX_MONEY_INPUT_LENGTH) return;
+                    setRepayAmount(e.target.value);
+                  }}
                   placeholder={`残高 $${loanBalance}`}
                   style={{ width: 120 }}
                   aria-label="返済金額"
@@ -181,19 +196,19 @@ export default function LoanDialog({
                   size="small"
                   variant="secondary"
                   onClick={() => {
-                    if (canRepay) {
-                      onRepayLoan(parsedRepay);
-                      setRepayAmount('');
-                    }
+                    if (!canRepay) return;
+                    onRepayLoan(parsedRepay);
+                    setRepayAmount('');
                   }}
-                  disabled={!canRepay}
+                  aria-disabled={!canRepay}
+                  aria-describedby={!canRepay ? repayHintId : undefined}
                 >
                   返済する
                 </Button>
               </div>
-              {parsedRepay > currentPlayer.money && (
-                <div className={styles.noMoneyHintTight}>
-                  おかねがたりないよ
+              {!canRepay && repayAmount !== '' && (
+                <div id={repayHintId} className={styles.noMoneyHintTight} role="status">
+                  {parsedRepay > currentPlayer.money ? 'おかねがたりないよ' : '返済する金額を正しく入力してね'}
                 </div>
               )}
             </div>
