@@ -144,8 +144,14 @@ export default function LoanDialog({
                   max={maxBorrow}
                   value={borrowAmount}
                   onChange={(e) => {
-                    if (e.target.value.length > MAX_MONEY_INPUT_LENGTH) return;
-                    setBorrowAmount(e.target.value);
+                    const val = e.target.value;
+                    if ([...val].length > MAX_MONEY_INPUT_LENGTH) {
+                      setBorrowAmount(
+                        [...val].slice(0, MAX_MONEY_INPUT_LENGTH).join(''),
+                      );
+                      return;
+                    }
+                    setBorrowAmount(val);
                   }}
                   placeholder={`最大 $${maxBorrow}`}
                   style={{ width: 120 }}
@@ -191,8 +197,14 @@ export default function LoanDialog({
                   max={Math.min(loanBalance, currentPlayer.money)}
                   value={repayAmount}
                   onChange={(e) => {
-                    if (e.target.value.length > MAX_MONEY_INPUT_LENGTH) return;
-                    setRepayAmount(e.target.value);
+                    const val = e.target.value;
+                    if ([...val].length > MAX_MONEY_INPUT_LENGTH) {
+                      setRepayAmount(
+                        [...val].slice(0, MAX_MONEY_INPUT_LENGTH).join(''),
+                      );
+                      return;
+                    }
+                    setRepayAmount(val);
                   }}
                   placeholder={`残高 $${loanBalance}`}
                   style={{ width: 120 }}
