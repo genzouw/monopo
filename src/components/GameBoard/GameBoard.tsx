@@ -200,11 +200,8 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
     dispatch({ type: 'DECLARE_BANKRUPTCY', creditorId: null });
   };
 
-  // ⚡ Bolt: memoize filtered players to prevent array recreation during frequent animation renders
-  const otherActivePlayers = useMemo(
-    () =>
-      state.players.filter((p) => p.id !== currentPlayer.id && !p.isBankrupt),
-    [state.players, currentPlayer.id],
+  const otherActivePlayers = state.players.filter(
+    (p) => p.id !== currentPlayer.id && !p.isBankrupt,
   );
 
   // Determine which dialog to show
