@@ -141,7 +141,7 @@ export default function LoanDialog({
                   value={borrowAmount}
                   onChange={(e) => {
                     const raw = e.target.value;
-                    if (raw.length <= 6) setBorrowAmount(raw);
+                    if ([...raw].length <= 6) setBorrowAmount(raw);
                   }}
                   placeholder={`最大 $${maxBorrow}`}
                   style={{ width: 120 }}
@@ -177,7 +177,7 @@ export default function LoanDialog({
                   value={repayAmount}
                   onChange={(e) => {
                     const raw = e.target.value;
-                    if (raw.length <= 6) setRepayAmount(raw);
+                    if ([...raw].length <= 6) setRepayAmount(raw);
                   }}
                   placeholder={`残高 $${loanBalance}`}
                   style={{ width: 120 }}
