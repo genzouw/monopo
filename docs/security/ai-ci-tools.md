@@ -16,6 +16,11 @@
    - ベクターデータベース（Pinecone等）を利用する場合、GitHubのリポジトリの Settings > Secrets and variables > Actions にて、`PINECONE_API_KEY` をシークレットとして登録してください。
    - `OPENAI_KEY` 等の必要なLLMのAPIキーも同様に登録されていることを確認してください。
 
+## RepomixによるAI向けコンテキストパックの設定
+
+`repomix.config.json` にて、コードベース全体をAI（LLM等）が読み込みやすい単一ファイルにパックするための設定を行いました。
+また、`.github/workflows/ai-repomix.yml` を追加し、リポジトリへのPush時に自動的にコンテキストファイル (`codebase.xml`) が生成され、GitHub Actionsのアーティファクトとしてアップロードされるようにしました。追加の手動のAPIキー設定等は不要です。
+
 ## Lighthouse CIの設定
 
 フロントエンドの品質向上ツールとして Lighthouse CI (`treosh/lighthouse-ci-action`) を導入しました。
