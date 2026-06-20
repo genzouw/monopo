@@ -139,7 +139,10 @@ export default function LoanDialog({
                   min={1}
                   max={maxBorrow}
                   value={borrowAmount}
-                  onChange={(e) => setBorrowAmount(e.target.value)}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    if ([...raw].length <= 6) setBorrowAmount(raw);
+                  }}
                   placeholder={`最大 $${maxBorrow}`}
                   style={{ width: 120 }}
                   aria-label="借入金額"
@@ -172,7 +175,10 @@ export default function LoanDialog({
                   min={1}
                   max={Math.min(loanBalance, currentPlayer.money)}
                   value={repayAmount}
-                  onChange={(e) => setRepayAmount(e.target.value)}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    if ([...raw].length <= 6) setRepayAmount(raw);
+                  }}
                   placeholder={`残高 $${loanBalance}`}
                   style={{ width: 120 }}
                   aria-label="返済金額"
