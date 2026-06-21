@@ -84,7 +84,7 @@ jobs:
               body: JSON.stringify({
                 api_key: process.env.TAVILY_API_KEY,
                 query: query.slice(0, 400),
-                search_depth: 'basic',
+                search_depth: 'advanced',
                 include_answer: true,
               }),
             });
