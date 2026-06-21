@@ -48,7 +48,8 @@
     "vitest": "^4.1.6"
   },
   "overrides": {
-    "@babel/core": ">=7.29.6"
+    "@babel/core": ">=7.29.6 <8",
+    "vite": "^8.0.16"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": [
@@ -58,9 +59,5 @@
     "*.json": [
       "prettier --write"
     ]
-  },
-  "overrides": {
-    "vite": "^8.0.16",
-    "@babel/core": "^7.29.6"
   }
 }

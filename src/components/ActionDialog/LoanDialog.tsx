@@ -12,6 +12,8 @@ import Dialog from '../common/Dialog';
 import Button from '../common/Button';
 import styles from './ActionDialog.module.css';
 
+const MAX_MONEY_INPUT_LENGTH = 6;
+
 type LoanDialogProps = {
   state: GameState;
   currentPlayer: Player;
@@ -27,11 +29,11 @@ export default function LoanDialog({
   onRepayLoan,
   onClose,
 }: LoanDialogProps) {
+  const borrowHintId = useId();
+  const repayHintId = useId();
   const [loanType, setLoanType] = useState<LoanType>('variable');
   const [borrowAmount, setBorrowAmount] = useState('');
   const [repayAmount, setRepayAmount] = useState('');
-  const borrowHintId = useId();
-  const repayHintId = useId();
 
   const totalAssets = calculateTotalAssets(
     currentPlayer,
@@ -141,7 +143,16 @@ export default function LoanDialog({
                   min={1}
                   max={maxBorrow}
                   value={borrowAmount}
-                  onChange={(e) => setBorrowAmount(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if ([...val].length > MAX_MONEY_INPUT_LENGTH) {
+                      setBorrowAmount(
+                        [...val].slice(0, MAX_MONEY_INPUT_LENGTH).join(''),
+                      );
+                      return;
+                    }
+                    setBorrowAmount(val);
+                  }}
                   placeholder={`最大 $${maxBorrow}`}
                   style={{ width: 120 }}
                   aria-label="借入金額"
@@ -149,10 +160,9 @@ export default function LoanDialog({
                 <Button
                   size="small"
                   onClick={() => {
-                    if (canBorrow) {
-                      onTakeLoan(parsedBorrow, loanType);
-                      setBorrowAmount('');
-                    }
+                    if (!canBorrow) return;
+                    onTakeLoan(parsedBorrow, loanType);
+                    setBorrowAmount('');
                   }}
                   aria-disabled={!canBorrow}
                   aria-describedby={
@@ -186,7 +196,16 @@ export default function LoanDialog({
                   min={1}
                   max={Math.min(loanBalance, currentPlayer.money)}
                   value={repayAmount}
-                  onChange={(e) => setRepayAmount(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if ([...val].length > MAX_MONEY_INPUT_LENGTH) {
+                      setRepayAmount(
+                        [...val].slice(0, MAX_MONEY_INPUT_LENGTH).join(''),
+                      );
+                      return;
+                    }
+                    setRepayAmount(val);
+                  }}
                   placeholder={`残高 $${loanBalance}`}
                   style={{ width: 120 }}
                   aria-label="返済金額"
@@ -195,10 +214,9 @@ export default function LoanDialog({
                   size="small"
                   variant="secondary"
                   onClick={() => {
-                    if (canRepay) {
-                      onRepayLoan(parsedRepay);
-                      setRepayAmount('');
-                    }
+                    if (!canRepay) return;
+                    onRepayLoan(parsedRepay);
+                    setRepayAmount('');
                   }}
                   aria-disabled={!canRepay}
                   aria-describedby={
@@ -209,10 +227,14 @@ export default function LoanDialog({
                 </Button>
               </div>
               {!canRepay && repayAmount !== '' && (
-                <div id={repayHintId} className={styles.noMoneyHintTight}>
+                <div
+                  id={repayHintId}
+                  className={styles.noMoneyHintTight}
+                  role="status"
+                >
                   {parsedRepay > currentPlayer.money
                     ? 'おかねがたりないよ'
-                    : '正しく入力してね'}
+                    : '返済する金額を正しく入力してね'}
                 </div>
               )}
             </div>
