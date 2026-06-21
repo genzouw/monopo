@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { EconomyStatus, GameState } from '../types';
+import type { EconomyStatus, GameState, Player } from '../types';
 import {
   LOAN_INTEREST_RATES,
   FIXED_LOAN_RATE,
@@ -8,6 +8,7 @@ import {
   calculateInterest,
   calculateMaxLoanAmount,
   getLoanInterestRate,
+  liquidateNonPropertyAssets,
   validateTakeLoan,
   validateRepayLoan,
   isLoanEnabled,
@@ -357,6 +358,47 @@ describe('loan', () => {
         ok: false,
         reason: 'INSUFFICIENT_FUNDS',
       });
+    });
+  });
+
+  describe('liquidateNonPropertyAssets（株式の実効株価換金）', () => {
+    const makePlayerWithStocks = (): Player => ({
+      id: 'p1',
+      name: 'Alice',
+      token: '🚗',
+      money: 0,
+      position: 0,
+      properties: [],
+      inJail: false,
+      jailTurns: 0,
+      getOutOfJailCards: 0,
+      isBankrupt: false,
+      stocks: { brown: 10 },
+    });
+    const stockMarket = {
+      brown: {
+        color: 'brown' as const,
+        pricePerShare: 100,
+        totalShares: 100,
+        bankShares: 90,
+      },
+    };
+
+    it('景気未指定なら基準価格で換金する（既存挙動互換）', () => {
+      const { proceeds } = liquidateNonPropertyAssets(
+        makePlayerWithStocks(),
+        stockMarket,
+      );
+      expect(proceeds).toBe(1000); // 100 × 10
+    });
+
+    it('金融危機時は実効株価（0.4倍）で換金額が下がる', () => {
+      const { proceeds } = liquidateNonPropertyAssets(
+        makePlayerWithStocks(),
+        stockMarket,
+        'crisis',
+      );
+      expect(proceeds).toBe(400); // 40 × 10
     });
   });
 });
