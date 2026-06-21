@@ -23,6 +23,7 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Determine refs
         id: refs
@@ -64,8 +65,11 @@ jobs:
 
       - name: Create release
         if: steps.refs.outputs.base_ref != ''
-        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3
-        with:
-          tag_name: ${{ steps.refs.outputs.head_ref }}
-          body: ${{ steps.notes.outputs.release-notes }}
-          draft: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEAD_REF: ${{ steps.refs.outputs.head_ref }}
+          RELEASE_NOTES: ${{ steps.notes.outputs.release-notes }}
+        run: |
+          gh release create "$HEAD_REF" \
+            --draft \
+            --notes "$RELEASE_NOTES"
