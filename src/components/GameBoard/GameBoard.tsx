@@ -1027,6 +1027,75 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                     </div>
                   ))}
                 </div>
+                {(state.features?.stocks || (detailPlayer.stocks && Object.keys(detailPlayer.stocks).length > 0)) && (
+                  <div style={{ marginTop: 4 }}>
+                    <div style={{ fontWeight: 700, marginBottom: 8 }}>
+                      📈 おうえんカード（株）
+                    </div>
+                    {(!detailPlayer.stocks || Object.values(detailPlayer.stocks).every((shares) => shares === 0)) ? (
+                      <div
+                        style={{
+                          color: 'var(--color-text-light)',
+                          fontSize: 14,
+                        }}
+                      >
+                        まだもっていないよ
+                      </div>
+                    ) : (
+                      Object.entries(detailPlayer.stocks)
+                        .filter(([, shares]) => (shares as number) > 0)
+                        .sort(([colorA], [colorB]) => {
+                          const ai = colorOrder.indexOf(colorA);
+                          const bi = colorOrder.indexOf(colorB);
+                          return ai - bi;
+                        })
+                        .map(([color, shares]) => {
+                          const COLOR_LABEL: Record<string, string> = {
+                            brown: '🟤 ちゃいろ',
+                            lightblue: '🩵 みずいろ',
+                            pink: '🩷 ピンク',
+                            orange: '🟠 オレンジ',
+                            red: '🔴 あか',
+                            yellow: '🟡 きいろ',
+                            green: '🟢 みどり',
+                            blue: '🔵 あお',
+                            railroad: '🚂 てつどう',
+                          };
+                          return (
+                            <div
+                              key={color}
+                              style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                padding: '4px 0',
+                                fontSize: 14,
+                                borderBottom: '1px solid #f0f0f0',
+                              }}
+                            >
+                              <span>
+                                {color !== 'railroad' && (
+                                  <span
+                                    style={{
+                                      display: 'inline-block',
+                                      width: 10,
+                                      height: 10,
+                                      borderRadius: 2,
+                                      backgroundColor: `var(--color-${color})`,
+                                      marginRight: 6,
+                                      verticalAlign: 'middle',
+                                    }}
+                                  />
+                                )}
+                                {COLOR_LABEL[color] || color}
+                              </span>
+                              <span>{shares}まい</span>
+                            </div>
+                          );
+                        })
+                    )}
+                  </div>
+                )}
               </div>
             </Dialog>
           );
