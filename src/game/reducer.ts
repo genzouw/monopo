@@ -1735,7 +1735,8 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     }
     case 'CLOSE_STOCK_DIALOG': {
       if (state.turnPhase !== 'stock') return state;
-      return { ...state, turnPhase: 'endTurn' };
+      const phase = state.dice.rolled ? 'endTurn' : 'roll';
+      return { ...state, turnPhase: phase };
     }
     case 'BUY_STOCK': {
       const player = state.players[state.currentPlayerIndex];
@@ -1779,7 +1780,8 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     }
     case 'CLOSE_ALT_ASSET_DIALOG': {
       if (state.turnPhase !== 'altAsset') return state;
-      return { ...state, turnPhase: 'endTurn' };
+      const phase = state.dice.rolled ? 'endTurn' : 'roll';
+      return { ...state, turnPhase: phase };
     }
     case 'BUY_CRYPTO': {
       if (!state.features?.altAssets) return state;

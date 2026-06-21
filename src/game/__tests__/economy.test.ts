@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { ColorGroup, GameState, Player } from '../types';
+import type { ColorGroup, FeatureFlags, GameState, Player } from '../types';
 import { BOARD_SPACES } from '../board';
 import { createInitialGameState, gameReducer } from '../reducer';
 import {
@@ -39,7 +39,7 @@ function makePlayer(overrides: Partial<Player> = {}): Player {
   };
 }
 
-function startGame(features?: { stocks?: boolean }): GameState {
+function startGame(features?: FeatureFlags): GameState {
   return gameReducer(createInitialGameState(), {
     type: 'START_GAME',
     playerNames: ['たろう', 'はなこ'],
@@ -425,10 +425,33 @@ describe('reducer P1 拡張', () => {
       expect(next.turnPhase).toBe('stock');
     });
 
-    it('CLOSE_STOCK_DIALOG: stock 状態時のみ endTurn へ遷移', () => {
+    it('CLOSE_STOCK_DIALOG: stock 状態時のみ roll/endTurn へ遷移', () => {
       let state = startGame({ stocks: true });
       state = gameReducer(state, { type: 'OPEN_STOCK_DIALOG' });
       const next = gameReducer(state, { type: 'CLOSE_STOCK_DIALOG' });
+      expect(next.turnPhase).toBe('roll'); // default starts with rolled: false
+    });
+
+    it('CLOSE_STOCK_DIALOG: rolled=true のとき endTurn へ遷移', () => {
+      let state = startGame({ stocks: true });
+      state = { ...state, dice: { ...state.dice, rolled: true } };
+      state = gameReducer(state, { type: 'OPEN_STOCK_DIALOG' });
+      const next = gameReducer(state, { type: 'CLOSE_STOCK_DIALOG' });
+      expect(next.turnPhase).toBe('endTurn');
+    });
+
+    it('CLOSE_ALT_ASSET_DIALOG: rolled=false のとき roll へ遷移', () => {
+      let state = startGame({ altAssets: true });
+      state = gameReducer(state, { type: 'OPEN_ALT_ASSET_DIALOG' });
+      const next = gameReducer(state, { type: 'CLOSE_ALT_ASSET_DIALOG' });
+      expect(next.turnPhase).toBe('roll');
+    });
+
+    it('CLOSE_ALT_ASSET_DIALOG: rolled=true のとき endTurn へ遷移', () => {
+      let state = startGame({ altAssets: true });
+      state = { ...state, dice: { ...state.dice, rolled: true } };
+      state = gameReducer(state, { type: 'OPEN_ALT_ASSET_DIALOG' });
+      const next = gameReducer(state, { type: 'CLOSE_ALT_ASSET_DIALOG' });
       expect(next.turnPhase).toBe('endTurn');
     });
   });
