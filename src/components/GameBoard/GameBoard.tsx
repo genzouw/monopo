@@ -502,6 +502,9 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
         <StockDialog
           currentPlayer={currentPlayer}
           stockMarket={state.stockMarket}
+          economyStatus={
+            state.features?.macroEconomy ? state.economyStatus : undefined
+          }
           onBuy={(color, shares) =>
             dispatch({ type: 'BUY_STOCK', color, shares })
           }
