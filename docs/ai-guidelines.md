@@ -34,4 +34,4 @@
 
 ## ツール・拡張機能
 
-- ローカルAIエージェントやAI-native IDE（Windsurf, Trae, Aider, Cline, Continue.devなど）を利用する際は、リポジトリ固有のルールを遵守し、作業ディレクトリ（`.aider*`、`.continue/` など）をコミットしないように注意してください。
+- ローカルAIエージェントやAI-native IDE（Windsurf, Trae, Aider, Cline, Continue.devなど）を利用する際は、リポジトリ固有のルールを遵守し、作業ディレクトリ（`.aider*`、`.continue/`、`.windsurf` など）をコミットしないように注意してください。
