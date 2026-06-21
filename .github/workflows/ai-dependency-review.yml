@@ -38,7 +38,7 @@ jobs:
               body: JSON.stringify({
                 api_key: process.env.TAVILY_API_KEY,
                 query: `breaking changes or release notes for: ${title}`,
-                search_depth: 'basic',
+                search_depth: 'advanced',
                 include_answer: true,
               }),
             });
