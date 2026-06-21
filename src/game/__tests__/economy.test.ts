@@ -368,11 +368,11 @@ describe('reducer P1 拡張', () => {
       expect(next.turnPhase).toBe('stock');
     });
 
-    it('CLOSE_STOCK_DIALOG: stock 状態時のみ endTurn へ遷移', () => {
+    it('CLOSE_STOCK_DIALOG: stock 状態時のみ roll/endTurn へ遷移', () => {
       let state = startGame({ stocks: true });
       state = gameReducer(state, { type: 'OPEN_STOCK_DIALOG' });
       const next = gameReducer(state, { type: 'CLOSE_STOCK_DIALOG' });
-      expect(next.turnPhase).toBe('endTurn');
+      expect(next.turnPhase).toBe('roll'); // default starts with rolled: false
     });
   });
 });
