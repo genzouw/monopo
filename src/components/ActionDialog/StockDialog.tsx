@@ -1,5 +1,11 @@
 import { useId } from 'react';
-import type { ColorGroup, ColorGroupStock, Player } from '../../game/types';
+import type {
+  ColorGroup,
+  ColorGroupStock,
+  EconomyStatus,
+  Player,
+} from '../../game/types';
+import { getEffectiveStockPrice } from '../../game/economy';
 import Dialog from '../common/Dialog';
 import Button from '../common/Button';
 import styles from './ActionDialog.module.css';
@@ -7,6 +13,8 @@ import styles from './ActionDialog.module.css';
 type StockDialogProps = {
   currentPlayer: Player;
   stockMarket: Partial<Record<ColorGroup, ColorGroupStock>>;
+  /** 景気を加味した実効株価を表示するための現在の景気ステータス（macroEconomy 無効時は未指定）。 */
+  economyStatus?: EconomyStatus;
   onBuy: (color: ColorGroup, shares: number) => void;
   onSell: (color: ColorGroup, shares: number) => void;
   onClose: () => void;
@@ -33,6 +41,7 @@ const SHARES_PER_TRADE = 1;
 export default function StockDialog({
   currentPlayer,
   stockMarket,
+  economyStatus,
   onBuy,
   onSell,
   onClose,
@@ -58,7 +67,10 @@ export default function StockDialog({
           const market = stockMarket[color];
           if (!market) return null;
           const owned = currentPlayer.stocks?.[color] ?? 0;
-          const price = market.pricePerShare;
+          const price = getEffectiveStockPrice(
+            market.pricePerShare,
+            economyStatus,
+          );
           const isMoneyShort = currentPlayer.money < price;
           const isBankShort = market.bankShares < SHARES_PER_TRADE;
           const canBuy = !isMoneyShort && !isBankShort;

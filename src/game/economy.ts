@@ -2,7 +2,17 @@
 // reducer.ts を肥大化させないため、株式・配当のロジックはここに集約する。
 // 既存ゲーム挙動を破壊しないよう、本ファイルの関数はすべて副作用なしの計算関数として実装する。
 
-import type { ColorGroup, ColorGroupStock, GameState, Player } from './types';
+import type {
+  ColorGroup,
+  ColorGroupStock,
+  EconomyStatus,
+  GameState,
+  Player,
+} from './types';
+import {
+  applyEconomyFactor,
+  isMacroEconomyEnabled,
+} from './systems/macroEconomy';
 
 // TODO: balance review — マジックナンバーは将来のバランス調整で見直す
 export const STOCK_INITIAL_PRICE = 100;
@@ -71,6 +81,29 @@ export function calculateNextPrice(
   priceDelta: number,
 ): number {
   return Math.max(currentPrice + priceDelta, STOCK_MIN_PRICE);
+}
+
+// 景気を加味した実効株価を返す純粋関数。
+//
+// `pricePerShare`（基準価格）は需給・建設のみで変動し景気の影響を受けない素の価格とし、
+// 売買・清算・表示で実際に用いる価格はここで景気乗数を掛けて算出する。
+// これにより不況・金融危機で下がった株価は、景気回復とともに乗数が戻り
+// 自動的に元の水準へ戻る（片道の暴落処理に頼らない対称的な設計）。
+// `status` 未指定（macroEconomy 無効）なら基準価格をそのまま返し、既存挙動と完全互換。
+export function getEffectiveStockPrice(
+  basePrice: number,
+  status?: EconomyStatus,
+): number {
+  if (!status) return basePrice;
+  return applyEconomyFactor(basePrice, status);
+}
+
+// ゲーム状態から株価評価に用いる景気ステータスを導出する。
+// macroEconomy 無効時は `undefined`（景気補正なし）を返す。
+export function getPricingEconomyStatus(
+  state: GameState,
+): EconomyStatus | undefined {
+  return isMacroEconomyEnabled(state) ? state.economyStatus : undefined;
 }
 
 // 家賃支払時の配当総額（家賃の DIVIDEND_RATE_PCT%）
@@ -143,7 +176,11 @@ export function validateStockBuy(
     return { ok: false, reason: 'INSUFFICIENT_BANK_SHARES' };
   const player = state.players.find((p) => p.id === playerId);
   if (!player) return { ok: false, reason: 'COLOR_UNKNOWN' };
-  const cost = market.pricePerShare * shares;
+  const price = getEffectiveStockPrice(
+    market.pricePerShare,
+    getPricingEconomyStatus(state),
+  );
+  const cost = price * shares;
   if (player.money < cost) return { ok: false, reason: 'INSUFFICIENT_FUNDS' };
   return { ok: true, cost };
 }
@@ -174,7 +211,11 @@ export function validateStockSell(
   if (!player) return { ok: false, reason: 'COLOR_UNKNOWN' };
   const owned = player.stocks?.[color] ?? 0;
   if (owned < shares) return { ok: false, reason: 'INSUFFICIENT_HOLDINGS' };
-  const proceeds = market.pricePerShare * shares;
+  const price = getEffectiveStockPrice(
+    market.pricePerShare,
+    getPricingEconomyStatus(state),
+  );
+  const proceeds = price * shares;
   return { ok: true, proceeds };
 }
 

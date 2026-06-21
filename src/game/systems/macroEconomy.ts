@@ -2,12 +2,7 @@
 // reducer.ts を肥大化させないため、景気遷移・乗数計算はここに集約する。
 // 既存ゲーム挙動を破壊しないよう、本ファイルの関数はすべて副作用なしの計算関数として実装する。
 
-import type {
-  ColorGroup,
-  ColorGroupStock,
-  EconomyStatus,
-  GameState,
-} from '../types';
+import type { EconomyStatus, GameState } from '../types';
 
 // 景気乗数（仕様: 好況=1.3、通常=1.0、不況=0.7、金融危機=0.4）
 export const ECONOMY_FACTORS: Record<EconomyStatus, number> = {
@@ -23,9 +18,6 @@ export const ECONOMY_FACTOR_MAX = 2.0;
 
 // 景気更新間隔（ターン数）
 export const ECONOMY_UPDATE_INTERVAL = 5;
-
-// 金融危機時の株価暴落倍率（仕様: 50% 減 = 0.5 倍）
-const CRISIS_STOCK_PRICE_MULTIPLIER = 0.5;
 
 // 景気遷移確率マトリクス: [現在の状態][次の状態] = 確率
 // 各行の合計 = 1.0。好況→金融危機、金融危機→好況への直接遷移は0。
@@ -122,36 +114,4 @@ export function shouldUpdateEconomy(turnCount: number): boolean {
  */
 export function isMacroEconomyEnabled(state: GameState): boolean {
   return state.features?.macroEconomy === true;
-}
-
-/**
- * 金融危機イベント: 全エリア株価を `CRISIS_STOCK_PRICE_MULTIPLIER` 倍（0.5 倍 = 50% 減）にした
- * 新しい株式市場を返す。
- *
- * 各色の `pricePerShare` を `Math.floor(price * CRISIS_STOCK_PRICE_MULTIPLIER)` で切り下げ、
- * 最低価格 1 でクランプする。元の `stockMarket` は変更せず、シャローコピーした新しい
- * オブジェクトを返す（イミュータブル性を保証）。
- * `stockMarket` が `undefined` の場合はそのまま `undefined` を返す。
- *
- * @param stockMarket 現在の株式市場（カラーグループ → 株情報のマップ）。`undefined` 可。
- * @returns 株価を 0.5 倍（最低 1）にした新しい株式市場。入力が `undefined` ならそのまま `undefined`。
- */
-export function applyFinancialCrisisToStocks(
-  stockMarket: Partial<Record<ColorGroup, ColorGroupStock>> | undefined,
-): Partial<Record<ColorGroup, ColorGroupStock>> | undefined {
-  if (!stockMarket) return stockMarket;
-  const newMarket = { ...stockMarket };
-  for (const color of Object.keys(newMarket) as ColorGroup[]) {
-    const stock = newMarket[color];
-    if (stock) {
-      newMarket[color] = {
-        ...stock,
-        pricePerShare: Math.max(
-          Math.floor(stock.pricePerShare * CRISIS_STOCK_PRICE_MULTIPLIER),
-          1,
-        ),
-      };
-    }
-  }
-  return newMarket;
 }

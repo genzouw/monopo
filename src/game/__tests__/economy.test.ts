@@ -17,6 +17,7 @@ import {
   calculateNextPrice,
   createInitialStockMarket,
   distributeDividends,
+  getEffectiveStockPrice,
   isStocksEnabled,
   validateStockBuy,
   validateStockSell,
@@ -186,6 +187,62 @@ describe('economy.ts 純粋関数', () => {
         ok: false,
         reason: 'INSUFFICIENT_HOLDINGS',
       });
+    });
+  });
+
+  describe('getEffectiveStockPrice', () => {
+    it('景気ステータス未指定なら基準価格をそのまま返す（既存挙動互換）', () => {
+      expect(getEffectiveStockPrice(100)).toBe(100);
+    });
+
+    it('通常時は基準価格と一致する', () => {
+      expect(getEffectiveStockPrice(100, 'normal')).toBe(100);
+    });
+
+    it('好況時は実効株価が上がり、金融危機時は下がる', () => {
+      expect(getEffectiveStockPrice(100, 'boom')).toBe(130);
+      expect(getEffectiveStockPrice(100, 'recession')).toBe(70);
+      expect(getEffectiveStockPrice(100, 'crisis')).toBe(40);
+    });
+
+    it('金融危機で下がった実効株価は景気回復で元の水準へ戻る（片道暴落の解消）', () => {
+      const base = 100;
+      const crashed = getEffectiveStockPrice(base, 'crisis');
+      const recovered = getEffectiveStockPrice(base, 'normal');
+      expect(crashed).toBeLessThan(base);
+      expect(recovered).toBe(base);
+    });
+  });
+
+  describe('景気連動の売買価格（macroEconomy 有効）', () => {
+    function economyState(status: GameState['economyStatus']): GameState {
+      const base = startGame({ stocks: true });
+      return {
+        ...base,
+        features: { ...base.features, stocks: true, macroEconomy: true },
+        economyStatus: status,
+      };
+    }
+
+    it('金融危機時は購入コストが基準価格より安くなる', () => {
+      const result = validateStockBuy(
+        economyState('crisis'),
+        'player-0',
+        'brown',
+        1,
+      );
+      // 基準 100 × crisis 0.4 = 40
+      expect(result).toEqual({ ok: true, cost: 40 });
+    });
+
+    it('景気回復（通常）で購入コストが基準価格へ戻る', () => {
+      const result = validateStockBuy(
+        economyState('normal'),
+        'player-0',
+        'brown',
+        1,
+      );
+      expect(result).toEqual({ ok: true, cost: STOCK_INITIAL_PRICE });
     });
   });
 
