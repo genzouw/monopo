@@ -9,6 +9,69 @@ type PlayerPanelProps = {
   onPlayerClick?: (playerId: string) => void;
 };
 
+type MemoizedPlayerChipProps = {
+  player: Player;
+  isActive: boolean;
+  onPlayerClick?: (playerId: string) => void;
+};
+
+const MemoizedPlayerChip = memo(function MemoizedPlayerChip({
+  player,
+  isActive,
+  onPlayerClick,
+}: MemoizedPlayerChipProps) {
+  return (
+    <button
+      type="button"
+      aria-label={
+        `${player.token} ${player.name} 所持金 ${player.money.toLocaleString()}ドル` +
+        (player.inJail ? ' 刑務所に入っています' : '') +
+        (player.isBankrupt ? ' 破産しています' : '') +
+        (onPlayerClick ? ' 詳細を見る' : '')
+      }
+      aria-current={isActive ? 'true' : 'false'}
+      aria-disabled={!onPlayerClick}
+      className={`${styles.playerChip} ${isActive ? styles.playerChipActive : ''} ${player.isBankrupt ? styles.playerChipBankrupt : ''}`}
+      onClick={(e) => {
+        if (!onPlayerClick) {
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
+        onPlayerClick(player.id);
+      }}
+      style={{ background: getOwnerBg(player.id) }}
+      title={onPlayerClick ? `${player.name}の詳細を見る` : undefined}
+    >
+      <span aria-hidden="true">{player.token}</span>
+      <span aria-hidden="true">${player.money.toLocaleString()}</span>
+      {player.creditScore !== undefined && (
+        <span
+          className={styles.jailBadge}
+          aria-hidden="true"
+          title={`信用スコア: ${player.creditScore}`}
+        >
+          📊{player.creditScore}
+        </span>
+      )}
+      {(player.loanBalance ?? 0) > 0 && (
+        <span
+          className={styles.jailBadge}
+          aria-hidden="true"
+          title={`ローン残高: $${player.loanBalance}`}
+        >
+          🏦${player.loanBalance}
+        </span>
+      )}
+      {player.inJail && (
+        <span className={styles.jailBadge} aria-hidden="true">
+          🔒
+        </span>
+      )}
+    </button>
+  );
+});
+
 const PlayerPanel = memo(function PlayerPanel({
   allPlayers,
   currentPlayerIndex,
@@ -17,55 +80,12 @@ const PlayerPanel = memo(function PlayerPanel({
   return (
     <div className={styles.allPlayers}>
       {allPlayers.map((player, idx) => (
-        <button
+        <MemoizedPlayerChip
           key={player.id}
-          type="button"
-          aria-label={
-            `${player.token} ${player.name} 所持金 ${player.money.toLocaleString()}ドル` +
-            (player.inJail ? ' 刑務所に入っています' : '') +
-            (player.isBankrupt ? ' 破産しています' : '') +
-            (onPlayerClick ? ' 詳細を見る' : '')
-          }
-          aria-current={idx === currentPlayerIndex ? 'true' : 'false'}
-          aria-disabled={!onPlayerClick}
-          className={`${styles.playerChip} ${idx === currentPlayerIndex ? styles.playerChipActive : ''} ${player.isBankrupt ? styles.playerChipBankrupt : ''}`}
-          onClick={(e) => {
-            if (!onPlayerClick) {
-              e.preventDefault();
-              e.stopPropagation();
-              return;
-            }
-            onPlayerClick(player.id);
-          }}
-          style={{ background: getOwnerBg(player.id) }}
-          title={onPlayerClick ? `${player.name}の詳細を見る` : undefined}
-        >
-          <span aria-hidden="true">{player.token}</span>
-          <span aria-hidden="true">${player.money.toLocaleString()}</span>
-          {player.creditScore !== undefined && (
-            <span
-              className={styles.jailBadge}
-              aria-hidden="true"
-              title={`信用スコア: ${player.creditScore}`}
-            >
-              📊{player.creditScore}
-            </span>
-          )}
-          {(player.loanBalance ?? 0) > 0 && (
-            <span
-              className={styles.jailBadge}
-              aria-hidden="true"
-              title={`ローン残高: $${player.loanBalance}`}
-            >
-              🏦${player.loanBalance}
-            </span>
-          )}
-          {player.inJail && (
-            <span className={styles.jailBadge} aria-hidden="true">
-              🔒
-            </span>
-          )}
-        </button>
+          player={player}
+          isActive={idx === currentPlayerIndex}
+          onPlayerClick={onPlayerClick}
+        />
       ))}
     </div>
   );
