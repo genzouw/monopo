@@ -35,6 +35,7 @@ const MemoizedPlayerChip = memo(function MemoizedPlayerChip({
       }
       aria-current={isActive ? 'true' : 'false'}
       aria-disabled={!onPlayerClick}
+      disabled={!onPlayerClick}
       className={[
         styles.playerChip,
         isActive && styles.playerChipActive,
@@ -42,13 +43,8 @@ const MemoizedPlayerChip = memo(function MemoizedPlayerChip({
       ]
         .filter(Boolean)
         .join(' ')}
-      onClick={(e) => {
-        if (!onPlayerClick) {
-          e.preventDefault();
-          e.stopPropagation();
-          return;
-        }
-        onPlayerClick(player.id);
+      onClick={() => {
+        onPlayerClick?.(player.id);
       }}
       style={{ background: getOwnerBg(player.id) }}
       title={onPlayerClick ? `${player.name}の詳細を見る` : undefined}
