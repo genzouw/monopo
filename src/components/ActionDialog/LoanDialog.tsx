@@ -178,7 +178,7 @@ export default function LoanDialog({
                   className={styles.noMoneyHintTight}
                   role="status"
                 >
-                  かりられる金額を正しく入力してね
+                  かりられる上限をこえているか、正しくないよ
                 </div>
               )}
             </div>
