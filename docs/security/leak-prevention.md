@@ -35,6 +35,8 @@
   - パッケージの脆弱性や IaC の設定ミスに加え、シークレットのスキャン (`secret` スキャナ) も実施し、多角的に検知します。設定ミスやシークレットが検知された場合は CI をブロック（`--exit-code 1`）しますが、パッケージの脆弱性検知時は開発の利便性を考慮しブロックしません（`--exit-code 0`）。
 - **CodeQL ワークフロー (`.github/workflows/codeql.yml`)**:
   - `security-extended` および `security-and-quality` クエリを使用して、データフロー解析によるシークレットのハードコード検知や品質チェックなど、高度な静的解析を行います。
+- **Zizmor ワークフロー (`.github/workflows/zizmor.yml`)**:
+  - `zizmor` を利用して、GitHub Actions ワークフロー自体の脆弱性（インジェクションリスクや不適切な権限設定など）を静的解析し、CI 設定を経由した情報漏洩を未然に防ぎます。
 - **権限 (Permissions) の最小化**:
   - CI の各ワークフロー (`.github/workflows/*.yml`) では `permissions` が明示されており、GitHub Actions が必要以上にリポジトリを書き換える権限を持たないように設計されています。
 
