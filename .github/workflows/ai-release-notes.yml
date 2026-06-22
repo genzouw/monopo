@@ -23,13 +23,19 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Determine refs
         id: refs
+        env:
+          GH_EVENT_NAME: ${{ github.event_name }}
+          INPUT_BASE_REF: ${{ github.event.inputs.base-ref }}
+          INPUT_HEAD_REF: ${{ github.event.inputs.head-ref }}
+          GIT_REF_NAME: ${{ github.ref_name }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            BASE_REF="${{ github.event.inputs.base-ref }}"
-            HEAD_REF="${{ github.event.inputs.head-ref }}"
+          if [ "$GH_EVENT_NAME" = "workflow_dispatch" ]; then
+            BASE_REF="${INPUT_BASE_REF}"
+            HEAD_REF="${INPUT_HEAD_REF}"
 
             if [ -z "$HEAD_REF" ]; then
               HEAD_REF=$(git describe --tags --abbrev=0)
@@ -39,7 +45,7 @@ jobs:
               BASE_REF=$(git describe --tags --abbrev=0 "$HEAD_REF^")
             fi
           else
-            HEAD_REF="${{ github.ref_name }}"
+            HEAD_REF="${GIT_REF_NAME}"
             BASE_REF=$(git describe --tags --abbrev=0 "$HEAD_REF^" 2>/dev/null || echo "")
           fi
 
@@ -59,8 +65,11 @@ jobs:
 
       - name: Create release
         if: steps.refs.outputs.base_ref != ''
-        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3
-        with:
-          tag_name: ${{ steps.refs.outputs.head_ref }}
-          body: ${{ steps.notes.outputs.release-notes }}
-          draft: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEAD_REF: ${{ steps.refs.outputs.head_ref }}
+          RELEASE_NOTES: ${{ steps.notes.outputs.release-notes }}
+        run: |
+          gh release create "$HEAD_REF" \
+            --draft \
+            --notes "$RELEASE_NOTES"

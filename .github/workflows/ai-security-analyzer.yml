@@ -1,6 +1,10 @@
 name: AI Security Analyzer
 
 on:
+  # zizmor: ignore[dangerous-triggers]
+  # セキュリティスキャン (Trivy / OSV) 完了後にログを解析し Issue 化する本ワークフローの
+  # 根幹トリガー。ジョブは権限を issues:write / contents:read / actions:read に限定し、
+  # PR のコード checkout やビルドは行わず、ログ閲覧と Issue 投稿のみに留めるため安全。
   workflow_run:
     workflows: ['Trivy Scan', 'OSV-Scanner']
     types:
