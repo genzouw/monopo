@@ -31,7 +31,13 @@ const MemoizedPlayerChip = memo(function MemoizedPlayerChip({
       }
       aria-current={isActive ? 'true' : 'false'}
       aria-disabled={!onPlayerClick}
-      className={`${styles.playerChip} ${isActive ? styles.playerChipActive : ''} ${player.isBankrupt ? styles.playerChipBankrupt : ''}`}
+      className={[
+        styles.playerChip,
+        isActive && styles.playerChipActive,
+        player.isBankrupt && styles.playerChipBankrupt,
+      ]
+        .filter(Boolean)
+        .join(' ')}
       onClick={(e) => {
         if (!onPlayerClick) {
           e.preventDefault();
