@@ -15,6 +15,10 @@ type MemoizedPlayerChipProps = {
   onPlayerClick?: (playerId: string) => void;
 };
 
+/**
+ * プレイヤーチップを描画するメモ化コンポーネント。
+ * `player` の状態と `isActive` に応じて見た目を切り替える。
+ */
 const MemoizedPlayerChip = memo(function MemoizedPlayerChip({
   player,
   isActive,
