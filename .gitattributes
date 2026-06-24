@@ -32,3 +32,6 @@
 .continue/** -diff export-ignore
 .jules/** -diff export-ignore
 .cline/** -diff export-ignore
+.windsurf/** -diff export-ignore
+.trae/** -diff export-ignore
+*-report.md -diff export-ignore
