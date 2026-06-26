@@ -17,7 +17,8 @@
     "test:watch": "vitest",
     "preview": "vite preview",
     "sync:ai-guidelines": "bun run scripts/sync-ai-guidelines.ts",
-    "sync:ai-guidelines:check": "bun run scripts/sync-ai-guidelines.ts --check"
+    "sync:ai-guidelines:check": "bun run scripts/sync-ai-guidelines.ts --check",
+    "prepare": "husky"
   },
   "dependencies": {
     "howler": "^2.2.4",
@@ -39,6 +40,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
+    "husky": "^9.1.7",
     "jsdom": "^29.1.1",
     "lint-staged": "^17.0.5",
     "prettier": "^3.8.3",
