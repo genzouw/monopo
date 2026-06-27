@@ -32,3 +32,5 @@
 .continue/** -diff export-ignore
 .jules/** -diff export-ignore
 .cline/** -diff export-ignore
+*.log -diff export-ignore
+ai-report-*.md -diff export-ignore
