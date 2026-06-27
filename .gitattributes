@@ -37,3 +37,4 @@
 .roo/** -diff export-ignore
 *.log -diff export-ignore
 *-report.md -diff export-ignore
+ai-report-*.md -diff export-ignore
