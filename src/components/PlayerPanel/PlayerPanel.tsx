@@ -44,7 +44,7 @@ const MemoizedPlayerChip = memo(function MemoizedPlayerChip({
         .join(' ')}
       onClick={(e) => {
         if (!onPlayerClick) {
-          e.preventDefault();
+          e.stopPropagation();
           return;
         }
         onPlayerClick(player.id);
