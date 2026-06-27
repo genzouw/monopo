@@ -29,8 +29,6 @@
     "**/.continue/**": true,
     "**/.jules/**": true,
     "**/.cline/**": true,
-    "**/*.log": true,
-    "**/*-report.md": true
   },
   "search.exclude": {
     "**/.env": true,
