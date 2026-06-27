@@ -24,15 +24,16 @@ const MemoizedPlayerChip = memo(function MemoizedPlayerChip({
   isActive,
   onPlayerClick,
 }: MemoizedPlayerChipProps) {
+  const playerLabel =
+    `${player.token} ${player.name} 所持金 ${player.money.toLocaleString()}ドル` +
+    (player.inJail ? ' 刑務所に入っています' : '') +
+    (player.isBankrupt ? ' 破産しています' : '') +
+    (onPlayerClick ? ' 詳細を見る' : ' 現在は選択できません');
+
   return (
     <button
       type="button"
-      aria-label={
-        `${player.token} ${player.name} 所持金 ${player.money.toLocaleString()}ドル` +
-        (player.inJail ? ' 刑務所に入っています' : '') +
-        (player.isBankrupt ? ' 破産しています' : '') +
-        (onPlayerClick ? ' 詳細を見る' : '')
-      }
+      aria-label={playerLabel}
       aria-current={isActive ? 'true' : 'false'}
       aria-disabled={!onPlayerClick}
       className={[
@@ -50,7 +51,7 @@ const MemoizedPlayerChip = memo(function MemoizedPlayerChip({
         onPlayerClick(player.id);
       }}
       style={{ background: getOwnerBg(player.id) }}
-      title={onPlayerClick ? `${player.name}の詳細を見る` : undefined}
+      title={playerLabel}
     >
       <span aria-hidden="true">{player.token}</span>
       <span aria-hidden="true">${player.money.toLocaleString()}</span>
