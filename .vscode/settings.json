@@ -32,6 +32,7 @@
     "**/.windsurf/**": true,
     "**/.trae/**": true,
     "**/.roo/**": true,
+    "**/*.log": true,
     "**/*-report.md": true
   },
   "search.exclude": {
@@ -67,6 +68,7 @@
     "**/.windsurf/**": true,
     "**/.trae/**": true,
     "**/.roo/**": true,
+    "**/*.log": true,
     "**/*-report.md": true
   }
 }
