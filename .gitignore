@@ -1,6 +1,7 @@
 # Logs
 logs
 *.log
+*-report.md
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -65,8 +66,9 @@ id_dsa
 .aider*
 .continue/
 .cline/
-.roo/
+.windsurf/
 .trae/
+.roo/
 
 # Security tool binaries (downloaded during setup, must not be committed)
 gitleaks*
