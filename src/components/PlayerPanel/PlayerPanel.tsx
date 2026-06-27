@@ -45,8 +45,11 @@ const MemoizedPlayerChip = memo(function MemoizedPlayerChip({
         ]
           .filter(Boolean)
           .join(' ')}
-        onClick={() => {
-          if (!onPlayerClick) return;
+        onClick={(e) => {
+          if (!onPlayerClick) {
+            e.stopPropagation();
+            return;
+          }
           onPlayerClick(player.id);
         }}
         style={{ background: getOwnerBg(player.id) }}
