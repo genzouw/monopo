@@ -42,13 +42,7 @@ const MemoizedPlayerChip = memo(function MemoizedPlayerChip({
       ]
         .filter(Boolean)
         .join(' ')}
-      onClick={(e) => {
-        if (!onPlayerClick) {
-          e.preventDefault();
-          return;
-        }
-        onPlayerClick(player.id);
-      }}
+      onClick={onPlayerClick ? () => onPlayerClick(player.id) : undefined}
       style={{ background: getOwnerBg(player.id) }}
       title={
         onPlayerClick ? `${player.name}の詳細を見る` : '現在は選択できません'
