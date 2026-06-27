@@ -2209,16 +2209,16 @@ function applyInsuranceOnEndTurn(
 ): GameState {
   let players = state.players;
   let propertyStates = state.propertyStates;
-  let insuranceState = state.insuranceState ?? {};
+  let insuranceState = state.insuranceState;
   let stateChanged = false;
   const messages: string[] = [];
 
-  const getMutableInsuranceState = () => {
-    if (insuranceState === (state.insuranceState ?? {})) {
-      insuranceState = { ...insuranceState };
+  const getMutableInsuranceState = (): Record<string, boolean> => {
+    if (insuranceState === state.insuranceState) {
+      insuranceState = insuranceState ? { ...insuranceState } : {};
       stateChanged = true;
     }
-    return insuranceState;
+    return insuranceState ?? {};
   };
 
   const getMutablePropertyStates = () => {
@@ -2282,7 +2282,11 @@ function applyInsuranceOnEndTurn(
       destroyedProps.push(propId);
 
       const mutPropertyStates = getMutablePropertyStates();
-      mutPropertyStates[propId] = { ownerId: null, houses: 0, isMortgaged: false };
+      mutPropertyStates[propId] = {
+        ownerId: null,
+        houses: 0,
+        isMortgaged: false,
+      };
 
       const mutInsuranceState = getMutableInsuranceState();
       delete mutInsuranceState[propId];
