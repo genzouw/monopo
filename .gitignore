@@ -65,6 +65,10 @@ id_dsa
 .aider*
 .continue/
 .cline/
+.windsurf/
+.trae/
+.roo/
+*-report.md
 
 # Security tool binaries (downloaded during setup, must not be committed)
 gitleaks*
