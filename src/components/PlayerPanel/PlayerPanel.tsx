@@ -43,7 +43,13 @@ const MemoizedPlayerChip = memo(function MemoizedPlayerChip({
       ]
         .filter(Boolean)
         .join(' ')}
-      onClick={onPlayerClick ? () => onPlayerClick(player.id) : undefined}
+      onClick={(e) => {
+        if (!onPlayerClick) {
+          e.stopPropagation();
+          return;
+        }
+        onPlayerClick(player.id);
+      }}
       style={{ background: getOwnerBg(player.id) }}
       title={playerLabel}
     >

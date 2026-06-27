@@ -28,7 +28,7 @@
     "**/.aider*/**": true,
     "**/.continue/**": true,
     "**/.jules/**": true,
-    "**/.cline/**": true
+    "**/.cline/**": true,
   },
   "search.exclude": {
     "**/.env": true,
@@ -59,6 +59,8 @@
     "**/.aider*/**": true,
     "**/.continue/**": true,
     "**/.jules/**": true,
-    "**/.cline/**": true
+    "**/.cline/**": true,
+    "**/*.log": true,
+    "**/*-report.md": true
   }
 }
