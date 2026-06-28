@@ -2122,8 +2122,12 @@ function applyAltAssetsEndTurn(
         p.id,
       );
       if (newPrice !== updated.cryptoHolding.currentPrice) {
-        if (!playerChanged) { updated = { ...p }; playerChanged = true; }
-        updated.cryptoHolding = { ...updated.cryptoHolding!, currentPrice: newPrice };
+        updated = { ...p };
+        playerChanged = true;
+        updated.cryptoHolding = {
+          ...updated.cryptoHolding!,
+          currentPrice: newPrice,
+        };
       }
     }
 
@@ -2153,7 +2157,10 @@ function applyAltAssetsEndTurn(
         }
       }
       if (maturedCount > 0) {
-        if (!playerChanged) { updated = { ...p }; playerChanged = true; }
+        if (!playerChanged) {
+          updated = { ...p };
+          playerChanged = true;
+        }
         updated.money += totalPayout;
         updated.vcInvestments = remaining.length > 0 ? remaining : undefined;
       }
@@ -2169,7 +2176,10 @@ function applyAltAssetsEndTurn(
         return sum;
       }, 0);
       if (dividendTotal > 0) {
-        if (!playerChanged) { updated = { ...p }; playerChanged = true; }
+        if (!playerChanged) {
+          updated = { ...p };
+          playerChanged = true;
+        }
         updated.money += dividendTotal;
         messages.push(
           `${p.name}にESG投資の配当金$${dividendTotal}が支払われました。`,
@@ -2292,7 +2302,12 @@ function applyInsuranceOnEndTurn(
   const allMessages = [...messages, ...fireMessages];
 
   // None of the states changed and no messages to show
-  if (!playersChanged && !propertiesChanged && !insuranceChanged && allMessages.length === 0) {
+  if (
+    !playersChanged &&
+    !propertiesChanged &&
+    !insuranceChanged &&
+    allMessages.length === 0
+  ) {
     return state;
   }
 
