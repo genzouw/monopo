@@ -7,10 +7,16 @@ on:
       - '.github/workflows/**'
       - '**.config.*'
       - '.coderabbit.yaml'
-      - '.pr_agent.toml'
+      - '.pr-agent.toml'
       - 'docs/ai-guidelines.md'
+      - '.cursorrules'
+      - '.windsurfrules'
+      - '.clinerules'
+      - '.github/copilot-instructions.md'
+      - 'sweep.yaml'
 
 permissions:
+  issues: write
   pull-requests: write
   contents: read
 
@@ -27,7 +33,7 @@ jobs:
         uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
+          GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }} # pragma: allowlist secret
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
         with:
           script: |
@@ -80,12 +86,13 @@ jobs:
 
             if (aiRes.ok) {
               const aiData = await aiRes.json();
-              const evaluation = aiData.choices?.[0]?.message?.content || '評価の生成に失敗しました';
-
-              await github.rest.issues.createComment({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: `### 🤖 AI 自動ツール＆設定評価\n\n${evaluation}`
-              });
+              const evaluation = aiData.choices?.[0]?.message?.content;
+              if (evaluation) {
+                await github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: `### 🤖 AI 自動ツール＆設定評価\n\n${evaluation}`
+                });
+              }
             }
