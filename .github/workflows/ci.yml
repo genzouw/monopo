@@ -149,9 +149,10 @@ jobs:
             -o -name "*.sqlite" -o -name "*.sqlite3" -o -name "*.db" \
             -o -name "*service-account*.json" -o -name "*serviceaccount*.json" \
             -o -name "*.tfstate" -o -name "*.tfstate.backup" \
+            -o -name "*.log" -o -name "*-report.md" \
             -o -path "*/.cursor/*" -o -path "*/.claude/*" -o -path "*/.aider*/*" \
             -o -path "*/.continue/*" -o -path "*/.jules/*" -o -path "*/.cline/*" \
-            -o -path "*/.windsurf/*" -o -path "*/.trae/*" -o -name "*-report.md" \
+            -o -path "*/.windsurf/*" -o -path "*/.trae/*" -o -path "*/.roo/*" \
             \) -not -name ".env.example" -not -path "*/node_modules/*" -not -path "*/.git/*" || true)
 
           if [ -n "$BANNED_FILES" ]; then

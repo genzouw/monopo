@@ -1,0 +1,87 @@
+name: AI Tool Evaluator
+
+on:
+  pull_request:
+    paths:
+      - 'package.json'
+      - '.github/workflows/**'
+      - '*.config.*'
+      - 'docs/ai-guidelines.md'
+      - '.cursorrules'
+      - '.windsurfrules'
+      - '.clinerules'
+      - '.github/copilot-instructions.md'
+      - '.pr-agent.toml'
+      - '.coderabbit.yaml'
+      - 'sweep.yaml'
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate Tool Changes
+        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }} # pragma: allowlist secret
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+
+            const changedFiles = files.map(f => f.filename).join(', ');
+
+            const tavilyRes = await fetch('https://api.tavily.com/search', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                api_key: process.env.TAVILY_API_KEY,
+                query: `Latest AI tools best practices CI/CD GitHub Actions 2024 for: ${changedFiles}`,
+                search_depth: 'advanced',
+                include_answer: true,
+              }),
+            });
+
+            let searchAnswer = '検索結果なし';
+            if (tavilyRes.ok) {
+              const searchData = await tavilyRes.json();
+              searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
+            }
+
+            const prompt = `あなたは最新のAI開発ツールとCI/CDに精通したシニアエンジニアです。以下の変更されたファイル一覧とWeb検索による最新のベストプラクティスをもとに、今回のツール設定やCI/CDパイプラインの変更が適切か、改善点はないかを日本語でレビューしてください。
+            変更されたファイル: ${changedFiles}
+            Web検索結果: ${searchAnswer}`;
+
+            const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
+              },
+              body: JSON.stringify({
+                model: 'o3-mini',
+                messages: [{ role: 'user', content: prompt }]
+              })
+            });
+
+            if (aiRes.ok) {
+              const aiData = await aiRes.json();
+              const analysis = aiData.choices?.[0]?.message?.content;
+              if(analysis) {
+                await github.rest.issues.createComment({
+                  issue_number: prNumber,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: `### 🤖 AI CI/CD & Tool Evaluator\n\n${analysis}`
+                });
+              }
+            }
