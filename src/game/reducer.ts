@@ -2301,7 +2301,7 @@ function applyInsuranceOnEndTurn(
 
   const allMessages = [...messages, ...fireMessages];
 
-  // None of the states changed and no messages to show
+  // いずれの状態も変更されず、表示するメッセージもない
   if (
     !playersChanged &&
     !propertiesChanged &&
