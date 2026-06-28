@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useId } from 'react';
 import type { Player } from '../../game/types';
 import { getOwnerBg } from '../common/playerColors';
 import styles from './PlayerPanel.module.css';
@@ -24,61 +24,68 @@ const MemoizedPlayerChip = memo(function MemoizedPlayerChip({
   isActive,
   onPlayerClick,
 }: MemoizedPlayerChipProps) {
-  const playerLabel =
-    `${player.token} ${player.name} 所持金 ${player.money.toLocaleString()}ドル` +
-    (player.inJail ? ' 刑務所に入っています' : '') +
-    (player.isBankrupt ? ' 破産しています' : '') +
-    (onPlayerClick ? ' 詳細を見る' : ' 現在は選択できません');
-
+  const playerDescriptionId = useId();
   return (
-    <button
-      type="button"
-      aria-label={playerLabel}
-      aria-current={isActive ? 'true' : 'false'}
-      aria-disabled={!onPlayerClick}
-      className={[
-        styles.playerChip,
-        isActive && styles.playerChipActive,
-        player.isBankrupt && styles.playerChipBankrupt,
-      ]
-        .filter(Boolean)
-        .join(' ')}
-      onClick={(e) => {
-        if (!onPlayerClick) {
-          e.stopPropagation();
-          return;
+    <div className={styles.playerChipContainer}>
+      <button
+        type="button"
+        aria-label={
+          `${player.token} ${player.name} 所持金 ${player.money.toLocaleString()}ドル` +
+          (player.inJail ? ' 刑務所に入っています' : '') +
+          (player.isBankrupt ? ' 破産しています' : '') +
+          (onPlayerClick ? ' 詳細を見る' : '')
         }
-        onPlayerClick(player.id);
-      }}
-      style={{ background: getOwnerBg(player.id) }}
-      title={playerLabel}
-    >
-      <span aria-hidden="true">{player.token}</span>
-      <span aria-hidden="true">${player.money.toLocaleString()}</span>
-      {player.creditScore !== undefined && (
-        <span
-          className={styles.jailBadge}
-          aria-hidden="true"
-          title={`信用スコア: ${player.creditScore}`}
-        >
-          📊{player.creditScore}
+        aria-current={isActive ? 'true' : 'false'}
+        aria-disabled={!onPlayerClick}
+        aria-describedby={!onPlayerClick ? playerDescriptionId : undefined}
+        className={[
+          styles.playerChip,
+          isActive && styles.playerChipActive,
+          player.isBankrupt && styles.playerChipBankrupt,
+        ]
+          .filter(Boolean)
+          .join(' ')}
+        onClick={(e) => {
+          if (!onPlayerClick) {
+            e.stopPropagation();
+            return;
+          }
+          onPlayerClick(player.id);
+        }}
+        style={{ background: getOwnerBg(player.id) }}
+      >
+        <span aria-hidden="true">{player.token}</span>
+        <span aria-hidden="true">${player.money.toLocaleString()}</span>
+        {player.creditScore !== undefined && (
+          <span
+            className={styles.jailBadge}
+            aria-hidden="true"
+            title={`信用スコア: ${player.creditScore}`}
+          >
+            📊{player.creditScore}
+          </span>
+        )}
+        {(player.loanBalance ?? 0) > 0 && (
+          <span
+            className={styles.jailBadge}
+            aria-hidden="true"
+            title={`ローン残高: $${player.loanBalance}`}
+          >
+            🏦${player.loanBalance}
+          </span>
+        )}
+        {player.inJail && (
+          <span className={styles.jailBadge} aria-hidden="true">
+            🔒
+          </span>
+        )}
+      </button>
+      {!onPlayerClick && (
+        <span id={playerDescriptionId} className={styles.helperText}>
+          他のプレイヤーの操作中や処理中は詳細を見られません
         </span>
       )}
-      {(player.loanBalance ?? 0) > 0 && (
-        <span
-          className={styles.jailBadge}
-          aria-hidden="true"
-          title={`ローン残高: $${player.loanBalance}`}
-        >
-          🏦${player.loanBalance}
-        </span>
-      )}
-      {player.inJail && (
-        <span className={styles.jailBadge} aria-hidden="true">
-          🔒
-        </span>
-      )}
-    </button>
+    </div>
   );
 });
 
