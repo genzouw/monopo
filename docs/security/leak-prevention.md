@@ -12,7 +12,7 @@
 - **`.gitignore` と `.gitattributes` による除外・保護**:
   - `.env`, `.env.*` (ただし `.env.example` は除く)
   - `*.pem`, `*.key`, `id_rsa`, `id_ed25519`, `id_ecdsa`, `id_dsa`, `*credentials*.json`, `*secret*.json`, `*.npmrc`, `.netrc`, DBファイル(`*.sqlite` 等) 等
-  - AI エージェントの作業跡（`.cursor/`, `.claude/`, `.aider*`, `.cline/` 等）はローカル環境特有の秘密情報が含まれるリスクがあるため除外しています。
+  - AI エージェントの作業跡（`.cursor/`, `.claude/`, `.aider*`, `.cline/`, `.windsurf/`, `.trae/`, `.roo/` 等）や、デバッグ等で出力されるログファイル・レポートファイル（`*.log`, `*-report.md`）はローカル環境特有の秘密情報が含まれるリスクがあるため除外しています。
   - **さらに、`.gitattributes` により、これらの秘密情報ファイルが誤って `git add` された場合でも、diff の中身がレビュー画面・ログ・PR 上で表示されない（`-diff` によりバイナリ扱いとなり `Binary files differ` 表示）よう、またリポジトリのアーカイブに含まれないよう（`export-ignore`）設定し、二重に保護しています。**
 - **`pre-commit` framework**: `.pre-commit-config.yaml` による標準的なフック（秘密鍵の検知、YAML構文チェックなど）を利用してコミット前の安全性をさらに高めています。
   - **`detect-secrets`**: `gitleaks` を補完し、エントロピーベースで未知の高乱数なシークレットや独自フォーマットのトークンを検知します。
@@ -33,8 +33,11 @@
   - `gitleaks` を補完する形で、実際に外部プロバイダ API に対して有効性を検証できたシークレット（有効性検証済み）のみを検知します（`--only-verified`）。誤検知を減らしつつ、漏洩したキーが現在も利用可能かどうかの重大なリスクを即座にブロックします。
 - **Trivy ワークフロー (`.github/workflows/trivy.yml`)**:
   - パッケージの脆弱性や IaC の設定ミスに加え、シークレットのスキャン (`secret` スキャナ) も実施し、多角的に検知します。設定ミスやシークレットが検知された場合は CI をブロック（`--exit-code 1`）しますが、パッケージの脆弱性検知時は開発の利便性を考慮しブロックしません（`--exit-code 0`）。
+  - **対象範囲の拡張**: すべての重要度（`UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL`）のシークレットおよび設定ミスをスキャン対象とし、軽微な情報漏洩リスクも見逃さないように厳格に運用しています。
 - **CodeQL ワークフロー (`.github/workflows/codeql.yml`)**:
   - `security-extended` および `security-and-quality` クエリを使用して、データフロー解析によるシークレットのハードコード検知や品質チェックなど、高度な静的解析を行います。
+- **Zizmor ワークフロー (`.github/workflows/zizmor.yml`)**:
+  - `zizmor` を利用して、GitHub Actions ワークフロー自体の脆弱性（インジェクションリスクや不適切な権限設定など）を静的解析し、CI 設定を経由した情報漏洩を未然に防ぎます。
 - **権限 (Permissions) の最小化**:
   - CI の各ワークフロー (`.github/workflows/*.yml`) では `permissions` が明示されており、GitHub Actions が必要以上にリポジトリを書き換える権限を持たないように設計されています。
 

@@ -54,9 +54,19 @@ jobs:
 
       - name: Run Trivy (misconfig & secret)
         run: |
+          # 1. Run strict secret scanning for all severities (UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL)
+          # シークレット漏洩は深刻度にかかわらず致命的になる可能性があるため、全重要度で厳格にブロックします。
+          trivy fs \
+            --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL \
+            --scanners secret \
+            --exit-code 1 \
+            .
+
+          # 2. Run misconfig scanning for CRITICAL,HIGH only
+          # 設定ミス (misconfig) において低重要度までブロックすると CI が不安定になるため、CRITICAL,HIGH に限定します。
           trivy fs \
             --severity CRITICAL,HIGH \
-            --scanners misconfig,secret \
+            --scanners misconfig \
             --exit-code 1 \
             .
 

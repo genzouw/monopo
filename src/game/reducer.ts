@@ -30,6 +30,7 @@ import {
   calculateNextPrice,
   createInitialStockMarket,
   distributeDividends,
+  getPricingEconomyStatus,
   isStocksEnabled,
   validateStockBuy,
   validateStockSell,
@@ -55,7 +56,6 @@ import {
 } from './insurance';
 import {
   applyEconomyFactor,
-  applyFinancialCrisisToStocks,
   isMacroEconomyEnabled,
   shouldUpdateEconomy,
   transitionEconomy,
@@ -251,6 +251,7 @@ function checkNegativeMoney(state: GameState): GameState {
     const { updatedPlayer, proceeds } = liquidateNonPropertyAssets(
       player,
       workingState.stockMarket,
+      getPricingEconomyStatus(workingState),
     );
     if (proceeds > 0) {
       workingState = {
@@ -1664,7 +1665,10 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
 
       // P2-a 拡張: 景気サイクル更新
       let newEconomyStatus = state.economyStatus;
-      let newStockMarket = state.stockMarket;
+      // 株価は景気の影響を受けない基準価格として保持し、実効価格は売買・表示時に
+      // getEffectiveStockPrice で景気乗数を掛けて算出する。よって景気遷移で
+      // stockMarket 自体を書き換えることはない（不況→回復で実効株価が自動回復する）。
+      const newStockMarket = state.stockMarket;
       let economyMessage = '';
 
       if (isMacroEconomyEnabled(state) && newEconomyStatus) {
@@ -1674,15 +1678,14 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
             newEconomyStatus,
             getSecureRandom(),
           );
-          // 金融危機に突入した場合: 株式機能 ON のときだけ全株価を 50% 減＋暴落メッセージ。
+          // 金融危機に突入した場合: 株式機能 ON のときだけ株価暴落をアナウンスする。
+          // 暴落自体は景気乗数（crisis=0.4 倍）として実効株価に反映され、
+          // 景気回復とともに自動的に元の水準へ戻る。
           // 株式機能 OFF のときは存在しない株価暴落をアナウンスしないよう、汎用文言にする。
           if (newEconomyStatus === 'crisis' && prevStatus !== 'crisis') {
-            if (isStocksEnabled(state)) {
-              newStockMarket = applyFinancialCrisisToStocks(newStockMarket);
-              economyMessage = ' ⚠️金融危機！株価が暴落したよ！';
-            } else {
-              economyMessage = ' ⚠️金融危機！景気が急変したよ！';
-            }
+            economyMessage = isStocksEnabled(state)
+              ? ' ⚠️金融危機！株価が暴落したよ！'
+              : ' ⚠️金融危機！景気が急変したよ！';
           } else if (newEconomyStatus !== prevStatus) {
             const statusNames: Record<EconomyStatus, string> = {
               boom: '好況',
@@ -1732,7 +1735,8 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     }
     case 'CLOSE_STOCK_DIALOG': {
       if (state.turnPhase !== 'stock') return state;
-      return { ...state, turnPhase: 'endTurn' };
+      const phase = state.dice.rolled ? 'endTurn' : 'roll';
+      return { ...state, turnPhase: phase };
     }
     case 'BUY_STOCK': {
       const player = state.players[state.currentPlayerIndex];
@@ -1776,7 +1780,8 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     }
     case 'CLOSE_ALT_ASSET_DIALOG': {
       if (state.turnPhase !== 'altAsset') return state;
-      return { ...state, turnPhase: 'endTurn' };
+      const phase = state.dice.rolled ? 'endTurn' : 'roll';
+      return { ...state, turnPhase: phase };
     }
     case 'BUY_CRYPTO': {
       if (!state.features?.altAssets) return state;
