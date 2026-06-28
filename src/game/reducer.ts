@@ -2114,18 +2114,18 @@ function applyAltAssetsEndTurn(
     let playerChanged = false;
 
     // 暗号資産価格の更新
-    if (updated.cryptoHolding) {
+    if (p.cryptoHolding) {
       const newPrice = calculateNextCryptoPrice(
-        updated.cryptoHolding.currentPrice,
-        updated.cryptoHolding.initialPrice,
+        p.cryptoHolding.currentPrice,
+        p.cryptoHolding.initialPrice,
         nextTurnCount,
         p.id,
       );
-      if (newPrice !== updated.cryptoHolding.currentPrice) {
+      if (p.cryptoHolding && newPrice !== p.cryptoHolding.currentPrice) {
         updated = { ...p };
         playerChanged = true;
         updated.cryptoHolding = {
-          ...updated.cryptoHolding!,
+          ...p.cryptoHolding,
           currentPrice: newPrice,
         };
       }
