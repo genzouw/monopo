@@ -3,7 +3,8 @@ extra_instructions = """
 - UIテキスト、ドキュメント、コメントはすべて日本語で記述してください。
 - プロジェクト全体で「monopoly（モノポリ）」ではなく必ず「monopo（モノポ）」という名称を使用してください。
 - パッケージマネージャとして npm / yarn / pnpm ではなく、必ず Bun を使用してください。
-- セキュアな乱数生成には `Math.random()` ではなく `src/game/random.ts` の `getSecureRandomInt` を使用しているか確認してください。
+- セキュアな乱数生成には `Math.random()` ではなく `src/game/random.ts` の `getSecureRandom` または `getSecureRandomInt` を使用しているか確認してください。
+- ボタン要素には生HTMLの `<button>` ではなく、必ず共通コンポーネントである `<Button>` (`src/components/common/Button.tsx`) を使用しているか確認してください。
 """
 
 [pr_description]
