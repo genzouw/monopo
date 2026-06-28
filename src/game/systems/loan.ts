@@ -11,6 +11,7 @@ import type {
   Player,
 } from '../types';
 import { calculateTotalAssets } from '../rules';
+import { getEffectiveStockPrice } from '../economy';
 import {
   CREDIT_SCORE_INITIAL,
   calculateCreditScoreDiscount,
@@ -179,6 +180,7 @@ function _calcAssets(
 export function liquidateNonPropertyAssets(
   player: Player,
   stockMarket: Partial<Record<ColorGroup, ColorGroupStock>> | undefined,
+  economyStatus?: EconomyStatus,
 ): { updatedPlayer: Player; proceeds: number } {
   let proceeds = 0;
   let updated = { ...player };
@@ -197,12 +199,13 @@ export function liquidateNonPropertyAssets(
     updated = { ...updated, vcInvestments: undefined };
   }
 
-  // ③ 株式（現在の市場価格で換金）
+  // ③ 株式（現在の景気を加味した実効株価で換金）
   if (updated.stocks && stockMarket) {
     for (const [color, shares] of Object.entries(updated.stocks)) {
       const market = stockMarket[color as ColorGroup];
       if (market && shares && shares > 0) {
-        proceeds += market.pricePerShare * shares;
+        proceeds +=
+          getEffectiveStockPrice(market.pricePerShare, economyStatus) * shares;
       }
     }
     updated = { ...updated, stocks: undefined };

@@ -1,6 +1,10 @@
 name: AI CI Failure Analyzer
 
 on:
+  # zizmor: ignore[dangerous-triggers]
+  # CI 完了後に失敗を解析してコメントする本ワークフローの根幹トリガー。
+  # ジョブは権限を actions:read / pull-requests:write / contents:read に限定し、
+  # PR のコード checkout やビルドは行わず、ログ閲覧とコメント投稿のみに留めるため安全。
   workflow_run:
     workflows: ['CI']
     types:
@@ -84,7 +88,7 @@ jobs:
               body: JSON.stringify({
                 api_key: process.env.TAVILY_API_KEY,
                 query: query.slice(0, 400),
-                search_depth: 'basic',
+                search_depth: 'advanced',
                 include_answer: true,
               }),
             });
