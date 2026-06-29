@@ -153,7 +153,6 @@ jobs:
             -o -path "*/.cursor/*" -o -path "*/.claude/*" -o -path "*/.aider*/*" \
             -o -path "*/.continue/*" -o -path "*/.jules/*" -o -path "*/.cline/*" \
             -o -path "*/.windsurf/*" -o -path "*/.trae/*" -o -path "*/.roo/*" \
-            -o -name "*.log" -o -name "*-report.md" \
             \) -not -name ".env.example" -not -path "*/node_modules/*" -not -path "*/.git/*" || true)
 
           if [ -n "$BANNED_FILES" ]; then

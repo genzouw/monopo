@@ -31,7 +31,8 @@
     "**/.cline/**": true,
     "**/.windsurf/**": true,
     "**/.trae/**": true,
-    "**/.roo/**": true
+    "**/.roo/**": true,
+    "**/*-report.md": true
   },
   "search.exclude": {
     "**/.env": true,

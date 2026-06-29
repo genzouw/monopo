@@ -6,7 +6,7 @@
 
 開発者が自身のローカル環境で誤って秘密情報をコミットするのを防ぎます。
 
-- **`gitleaks` フック**: コミット時に `.husky/pre-commit` フックを通してローカルで `gitleaks` が実行され、秘密情報を検知した場合はコミットをブロックします。
+- **`gitleaks` フック**: コミット時に `.husky/pre-commit` および `.husky/commit-msg` フックを通してローカルで `gitleaks` が実行され、ソースコードやコミットメッセージ自体から秘密情報を検知した場合はコミットをブロックします。
   - **⚠️ 注意**: `gitleaks` が未インストールの場合、コミットは自動的にブロックされます。意図せぬ秘密情報の混入を防ぐため、gitleaks のインストールが**必須**となっています。
   - **必須**: 開発環境には [gitleaks](https://github.com/gitleaks/gitleaks) をインストールしてください。（例: `brew install gitleaks` または GitHub のリリースページからダウンロード）
 - **`.gitignore` と `.gitattributes` による除外・保護**:
