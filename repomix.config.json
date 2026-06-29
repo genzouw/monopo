@@ -14,10 +14,6 @@
   "ignore": {
     "useGitignore": true,
     "useDefaultPatterns": true,
-    "customPatterns": [
-      "public/**",
-      "bun.lock",
-      "coverage/**"
-    ]
+    "customPatterns": ["public/**", "**/bun.lock*", "coverage/**"]
   }
 }
