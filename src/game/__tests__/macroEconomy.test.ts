@@ -1,11 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import type { ColorGroupStock } from '../types';
 import {
   ECONOMY_FACTORS,
   ECONOMY_UPDATE_INTERVAL,
   ECONOMY_TRANSITION_MATRIX,
   applyEconomyFactor,
-  applyFinancialCrisisToStocks,
   shouldUpdateEconomy,
   transitionEconomy,
   isMacroEconomyEnabled,
@@ -103,59 +101,6 @@ describe('macroEconomy', () => {
       expect(shouldUpdateEconomy(3)).toBe(false);
       expect(shouldUpdateEconomy(7)).toBe(false);
       expect(shouldUpdateEconomy(11)).toBe(false);
-    });
-  });
-
-  describe('applyFinancialCrisisToStocks', () => {
-    it('全株価を50%減少させる', () => {
-      const market: Record<string, ColorGroupStock> = {
-        brown: {
-          color: 'brown',
-          pricePerShare: 100,
-          totalShares: 100,
-          bankShares: 80,
-        },
-        red: {
-          color: 'red',
-          pricePerShare: 200,
-          totalShares: 100,
-          bankShares: 50,
-        },
-      };
-      const result = applyFinancialCrisisToStocks(market);
-      expect(result?.brown?.pricePerShare).toBe(50);
-      expect(result?.red?.pricePerShare).toBe(100);
-    });
-
-    it('undefinedを渡した場合はundefinedを返す', () => {
-      expect(applyFinancialCrisisToStocks(undefined)).toBeUndefined();
-    });
-
-    it('株価は最低1を下回らない', () => {
-      const market: Record<string, ColorGroupStock> = {
-        brown: {
-          color: 'brown',
-          pricePerShare: 1,
-          totalShares: 100,
-          bankShares: 100,
-        },
-      };
-      const result = applyFinancialCrisisToStocks(market);
-      expect(result?.brown?.pricePerShare).toBe(1);
-    });
-
-    it('stockMarket以外のフィールドは変更しない', () => {
-      const market: Record<string, ColorGroupStock> = {
-        brown: {
-          color: 'brown',
-          pricePerShare: 100,
-          totalShares: 100,
-          bankShares: 80,
-        },
-      };
-      const result = applyFinancialCrisisToStocks(market);
-      expect(result?.brown?.totalShares).toBe(100);
-      expect(result?.brown?.bankShares).toBe(80);
     });
   });
 

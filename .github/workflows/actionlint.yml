@@ -50,7 +50,9 @@ jobs:
 
       - name: Run actionlint
         run: |
-          "${{ steps.actionlint.outputs.executable }}" -color
+          "${STEPS_ACTIONLINT_OUTPUTS_EXECUTABLE}" -color
+        env:
+          STEPS_ACTIONLINT_OUTPUTS_EXECUTABLE: ${{ steps.actionlint.outputs.executable }}
 
       - name: Reject mutable branch references in `uses:`
         # 外部 Action を `@main` 等のブランチ追跡で参照すると、上流のリポジトリ
