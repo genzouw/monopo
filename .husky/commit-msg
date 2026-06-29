@@ -1,2 +1,29 @@
 #!/bin/sh
+set -e
+
 bunx commitlint --edit "$1"
+
+# コミットメッセージ自体のシークレット混入をチェックする
+if command -v gitleaks > /dev/null 2>&1; then
+  echo "🔒 Running gitleaks check on commit message..."
+  # gitleaks detect の終了コードを区別して処理する（95: リーク検知, その他非ゼロ: エラー）
+  exit_code=0
+  gitleaks detect --exit-code 95 --no-git --source "$1" --redact --verbose || exit_code=$?
+  if [ $exit_code -eq 95 ]; then
+    echo "❌ Error: gitleaks found a secret in your commit message."
+    echo "コミットメッセージ内にシークレットまたは保護された情報が検知されました。"
+    echo "内容を修正して再度コミットしてください。"
+    exit 1
+  elif [ $exit_code -ne 0 ]; then
+    echo "❌ Error: gitleaks execution failed (exit code: $exit_code)."
+    echo "gitleaks の実行中にエラーが発生しました。設定やバージョンを確認してください。"
+    exit 1
+  fi
+else
+  {
+    echo "❌ Error: gitleaks is not installed locally."
+    echo "To prevent accidental secret leaks, gitleaks is REQUIRED for commits."
+    echo "Please install it: (e.g., 'brew install gitleaks' or download from https://github.com/gitleaks/gitleaks/releases)"
+  } >&2
+  exit 1
+fi
