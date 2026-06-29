@@ -99,11 +99,9 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
   };
 
   const handleNameChange = (index: number, name: string) => {
-    if (name.length > 1000) return;
+    if ([...name].length > MAX_NAME_LENGTH) return;
     const newNames = [...names];
-    // Security enhancement: enforce max length on names to prevent potential DoS or memory issues.
-    // Use code-point-based truncation so emoji/surrogate-pair chars match the input's maxLength behavior.
-    newNames[index] = [...name].slice(0, MAX_NAME_LENGTH).join('');
+    newNames[index] = name;
     setNames(newNames);
   };
 
