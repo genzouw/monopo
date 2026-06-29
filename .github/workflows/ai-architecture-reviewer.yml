@@ -24,7 +24,7 @@ jobs:
           bun-version: 1.2.14
 
       - name: Bundle Codebase Context with Repomix
-        run: bunx repomix@1.15.0 --style xml --output codebase.xml
+        run: bunx repomix@1.16.0 --style xml --output codebase.xml
 
       - name: Perform Architectural Review
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
