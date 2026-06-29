@@ -6,14 +6,14 @@
 
 開発者が自身のローカル環境で誤って秘密情報をコミットするのを防ぎます。
 
-- **`gitleaks` フック**: コミット時に `.husky/pre-commit` フックを通してローカルで `gitleaks` が実行され、秘密情報を検知した場合はコミットをブロックします。
+- **`gitleaks` フック**: コミット時に `.husky/pre-commit` および `.husky/commit-msg` フックを通してローカルで `gitleaks` が実行され、ソースコードやコミットメッセージ自体から秘密情報を検知した場合はコミットをブロックします。
   - **⚠️ 注意**: `gitleaks` が未インストールの場合、コミットは自動的にブロックされます。意図せぬ秘密情報の混入を防ぐため、gitleaks のインストールが**必須**となっています。
   - **自動セットアップ**: 本リポジトリでは `package.json` の `prepare` スクリプトにより、初回 `bun install` 時に自動で Husky と pre-commit フックがセットアップされます。
   - **必須**: 開発環境には [gitleaks](https://github.com/gitleaks/gitleaks) をインストールしてください。（例: `brew install gitleaks` または GitHub のリリースページからダウンロード）
 - **`.gitignore` と `.gitattributes` による除外・保護**:
   - `.env`, `.env.*` (ただし `.env.example` は除く)
   - `*.pem`, `*.key`, `id_rsa`, `id_ed25519`, `id_ecdsa`, `id_dsa`, `*credentials*.json`, `*secret*.json`, `*.npmrc`, `.netrc`, DBファイル(`*.sqlite` 等) 等
-  - AI エージェントの作業跡（`.cursor/`, `.claude/`, `.aider*`, `.cline/` 等）はローカル環境特有の秘密情報が含まれるリスクがあるため除外しています。
+  - AI エージェントの作業跡（`.cursor/`, `.claude/`, `.aider*`, `.cline/`, `.windsurf/`, `.trae/`, `.roo/` 等）や、デバッグ等で出力されるログファイル・レポートファイル（`*.log`, `*-report.md`）はローカル環境特有の秘密情報が含まれるリスクがあるため除外しています。
   - **さらに、`.gitattributes` により、これらの秘密情報ファイルが誤って `git add` された場合でも、diff の中身がレビュー画面・ログ・PR 上で表示されない（`-diff` によりバイナリ扱いとなり `Binary files differ` 表示）よう、またリポジトリのアーカイブに含まれないよう（`export-ignore`）設定し、二重に保護しています。**
 - **`pre-commit` framework**: `.pre-commit-config.yaml` による標準的なフック（秘密鍵の検知、YAML構文チェックなど）を利用してコミット前の安全性をさらに高めています。
   - **`detect-secrets`**: `gitleaks` を補完し、エントロピーベースで未知の高乱数なシークレットや独自フォーマットのトークンを検知します。
