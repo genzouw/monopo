@@ -77,6 +77,10 @@ export function saveSetupConfig(config: SetupConfig): void {
   }
 }
 
+/**
+ * localStorage からセットアップ設定を読み込み、バリデーション済みの SetupConfig を返す。
+ * 設定が存在しない・不正値の場合は null を返す。名前はコードポイント単位で MAX_NAME_LENGTH 以下であること。
+ */
 export function loadSetupConfig(): SetupConfig | null {
   try {
     const saved = readWithLegacyFallback(SETUP_KEY, LEGACY_SETUP_KEY);
