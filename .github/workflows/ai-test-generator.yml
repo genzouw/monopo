@@ -23,25 +23,25 @@ jobs:
             const title = context.payload.issue.title;
             const issueBody = (context.payload.issue.body || '').slice(0, 4000);
 
-            const tavilyRes = await fetch('https://api.tavily.com/search', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                api_key: process.env.TAVILY_API_KEY,
-                query: `Latest Vitest React Testing Library best practices 2024 for: ${title}`,
-                search_depth: 'advanced',
-                include_answer: true,
-              }),
-            });
-
             let searchAnswer = '検索結果の要約なし';
-            if (tavilyRes.ok) {
-              try {
+            try {
+              const tavilyRes = await fetch('https://api.tavily.com/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  api_key: process.env.TAVILY_API_KEY,
+                  query: `Latest Vitest React Testing Library best practices for: ${title}`,
+                  search_depth: 'advanced',
+                  include_answer: true,
+                }),
+              });
+
+              if (tavilyRes.ok) {
                 const searchData = await tavilyRes.json();
                 searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
-              } catch (e) {
-                console.log('Failed to parse Tavily response');
               }
+            } catch (e) {
+              console.log('Failed to fetch or parse Tavily response:', e);
             }
 
             const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のIssueの内容とWeb検索による最新のベストプラクティスをもとに、Vitest を使用したテストコードのモック・実装案を日本語の解説とともに作成してください。
