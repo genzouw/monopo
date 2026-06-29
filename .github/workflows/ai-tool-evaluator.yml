@@ -1,0 +1,98 @@
+name: AI Tool & Configuration Evaluator
+
+on:
+  pull_request:
+    paths:
+      - 'package.json'
+      - '.github/workflows/**'
+      - '**.config.*'
+      - '.coderabbit.yaml'
+      - '.pr-agent.toml'
+      - 'docs/ai-guidelines.md'
+      - '.cursorrules'
+      - '.windsurfrules'
+      - '.clinerules'
+      - '.github/copilot-instructions.md'
+      - 'sweep.yaml'
+
+permissions:
+  issues: write
+  pull-requests: write
+  contents: read
+
+jobs:
+  evaluate-tools:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Analyze Tool Changes and Comment
+        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }} # pragma: allowlist secret
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+        with:
+          script: |
+            const diff = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              mediaType: { format: 'diff' }
+            });
+
+            const tavilyRes = await fetch('https://api.tavily.com/search', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.TAVILY_API_KEY}`
+              },
+              body: JSON.stringify({
+                query: "2025 AI coding tools automated PR review free open source best practices security",
+                search_depth: 'advanced'
+              })
+            });
+
+            let searchContext = '検索に失敗しました';
+            if (tavilyRes.ok) {
+              const searchData = await tavilyRes.json();
+              searchContext = searchData.results?.map(r => r.content).join('\n') || '';
+            }
+
+            const prompt = `あなたは熟練のDevOpsエンジニアおよびAIツールスペシャリストです。
+            以下のPRの差分（ツールの追加や設定変更）と、最新のAIツールのベストプラクティス（Web検索結果）をもとに、導入品質やセキュリティリスク、OSSでの無料枠の有無についての評価を日本語で提供してください。
+
+            【検索結果】
+            ${searchContext.slice(0, 3000)}
+
+            【PR差分】
+            ${diff.data.slice(0, 3000)}
+            `;
+
+            const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
+              },
+              body: JSON.stringify({
+                model: 'o3-mini',
+                messages: [{ role: 'user', content: prompt }]
+              })
+            });
+
+            if (aiRes.ok) {
+              const aiData = await aiRes.json();
+              const evaluation = aiData.choices?.[0]?.message?.content;
+              if (evaluation) {
+                await github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: `### 🤖 AI 自動ツール＆設定評価\n\n${evaluation}`
+                });
+              }
+            }

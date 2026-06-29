@@ -2106,36 +2106,39 @@ function applyAltAssetsEndTurn(
   diceSum: number,
 ): GameState {
   const messages: string[] = [];
-  let anyPlayerChanged = false;
+  let playersChanged = false;
 
   const players = state.players.map((p) => {
     if (p.isBankrupt) return p;
-    let changed = false;
-    let updated = { ...p };
+    let updated = p;
+    let playerChanged = false;
 
     // 暗号資産価格の更新
-    if (updated.cryptoHolding) {
-      changed = true;
+    if (p.cryptoHolding) {
       const newPrice = calculateNextCryptoPrice(
-        updated.cryptoHolding.currentPrice,
-        updated.cryptoHolding.initialPrice,
+        p.cryptoHolding.currentPrice,
+        p.cryptoHolding.initialPrice,
         nextTurnCount,
         p.id,
       );
-      updated = {
-        ...updated,
-        cryptoHolding: { ...updated.cryptoHolding, currentPrice: newPrice },
-      };
+      if (p.cryptoHolding && newPrice !== p.cryptoHolding.currentPrice) {
+        updated = { ...p };
+        playerChanged = true;
+        updated.cryptoHolding = {
+          ...p.cryptoHolding,
+          currentPrice: newPrice,
+        };
+      }
     }
 
     // VC 満期チェックと精算
     if (updated.vcInvestments && updated.vcInvestments.length > 0) {
       let totalPayout = 0;
-      let vcChanged = false;
       const remaining: VCInvestment[] = [];
+      let maturedCount = 0;
       for (const vc of updated.vcInvestments) {
         if (isVCMatured(vc, nextTurnCount)) {
-          vcChanged = true;
+          maturedCount++;
           const res = resolveVCInvestment(vc.amount, diceSum);
           totalPayout += res.payout;
           const resultText =
@@ -2153,13 +2156,13 @@ function applyAltAssetsEndTurn(
           remaining.push(vc);
         }
       }
-      if (vcChanged) {
-        changed = true;
-        updated = {
-          ...updated,
-          money: updated.money + totalPayout,
-          vcInvestments: remaining.length > 0 ? remaining : undefined,
-        };
+      if (maturedCount > 0) {
+        if (!playerChanged) {
+          updated = { ...p };
+          playerChanged = true;
+        }
+        updated.money += totalPayout;
+        updated.vcInvestments = remaining.length > 0 ? remaining : undefined;
       }
     }
 
@@ -2173,28 +2176,26 @@ function applyAltAssetsEndTurn(
         return sum;
       }, 0);
       if (dividendTotal > 0) {
-        changed = true;
-        updated = { ...updated, money: updated.money + dividendTotal };
+        if (!playerChanged) {
+          updated = { ...p };
+          playerChanged = true;
+        }
+        updated.money += dividendTotal;
         messages.push(
           `${p.name}にESG投資の配当金$${dividendTotal}が支払われました。`,
         );
       }
     }
 
-    if (changed) {
-      anyPlayerChanged = true;
-      return updated;
-    }
-    return p;
+    if (playerChanged) playersChanged = true;
+    return updated;
   });
 
-  if (!anyPlayerChanged && messages.length === 0) {
-    return state;
-  }
+  if (!playersChanged && messages.length === 0) return state;
 
   return {
     ...state,
-    players: anyPlayerChanged ? players : state.players,
+    players: playersChanged ? players : state.players,
     message: messages.length > 0 ? messages.join(' ') : state.message,
   };
 }
@@ -2209,30 +2210,16 @@ function applyInsuranceOnEndTurn(
 ): GameState {
   let players = state.players;
   let propertyStates = state.propertyStates;
-  let insuranceState = state.insuranceState;
-  let stateChanged = false;
+  let insuranceState = state.insuranceState ?? {};
   const messages: string[] = [];
 
-  const getMutableInsuranceState = (): Record<string, boolean> => {
-    if (insuranceState === state.insuranceState) {
-      insuranceState = insuranceState ? { ...insuranceState } : {};
-      stateChanged = true;
-    }
-    return insuranceState ?? {};
-  };
-
-  const getMutablePropertyStates = () => {
-    if (propertyStates === state.propertyStates) {
-      propertyStates = { ...propertyStates };
-      stateChanged = true;
-    }
-    return propertyStates;
-  };
+  let playersChanged = false;
+  let propertiesChanged = false;
+  let insuranceChanged = false;
 
   // 保険料徴収（10ターン節目のみ）
   if (shouldCollectPremium(newTurnCount)) {
-    let anyPlayerChanged = false;
-    const newPlayers = players.map((p) => {
+    const nextPlayers = players.map((p) => {
       if (p.isBankrupt) return p;
       let totalPremium = 0;
       for (const propId of p.properties) {
@@ -2241,29 +2228,34 @@ function applyInsuranceOnEndTurn(
         totalPremium += calculatePremium(space?.price ?? 0);
       }
       if (totalPremium === 0) return p;
-      anyPlayerChanged = true;
       if (p.money < totalPremium) {
-        const mutInsuranceState = getMutableInsuranceState();
+        let removedInsurance = false;
         for (const propId of p.properties) {
-          if (isPropertyInsured(mutInsuranceState, propId)) {
-            delete mutInsuranceState[propId];
+          if (isPropertyInsured(insuranceState, propId)) {
+            if (!insuranceChanged) {
+              insuranceState = { ...insuranceState };
+              insuranceChanged = true;
+            }
+            delete insuranceState[propId];
+            removedInsurance = true;
           }
         }
-        messages.push(`${p.name}の保険料が払えず、保険が解除されたよ`);
+        if (removedInsurance) {
+          messages.push(`${p.name}の保険料が払えず、保険が解除されたよ`);
+        }
         return p;
       }
       messages.push(`${p.name}の保険料$${totalPremium}を徴収したよ`);
+      playersChanged = true;
       return { ...p, money: p.money - totalPremium };
     });
-    if (anyPlayerChanged) {
-      players = newPlayers;
-      stateChanged = true;
+    if (playersChanged || messages.length > 0) {
+      players = nextPlayers;
     }
   }
 
   // 火災チェック（毎ターン、全プレイヤーの全物件）
   const fireMessages: string[] = [];
-  let anyPlayerFired = false;
   const updatedPlayers = players.map((p) => {
     if (p.isBankrupt) return p;
     let moneyDelta = 0;
@@ -2275,21 +2267,22 @@ function applyInsuranceOnEndTurn(
       const roll = getSecureRandomInt(1, 100);
       if (roll > FIRE_PROBABILITY * 100) continue;
       // 火災発生
-      anyPlayerFired = true;
       const insured = isPropertyInsured(insuranceState, propId);
       const payout = calculateFirePayout(space.price ?? 0, insured);
       moneyDelta += payout;
       destroyedProps.push(propId);
 
-      const mutPropertyStates = getMutablePropertyStates();
-      mutPropertyStates[propId] = {
-        ownerId: null,
-        houses: 0,
-        isMortgaged: false,
-      };
+      if (!propertiesChanged) {
+        propertyStates = { ...propertyStates };
+        propertiesChanged = true;
+      }
+      propertyStates[propId] = { ownerId: null, houses: 0, isMortgaged: false };
 
-      const mutInsuranceState = getMutableInsuranceState();
-      delete mutInsuranceState[propId];
+      if (!insuranceChanged) {
+        insuranceState = { ...insuranceState };
+        insuranceChanged = true;
+      }
+      delete insuranceState[propId];
 
       fireMessages.push(
         insured
@@ -2298,6 +2291,7 @@ function applyInsuranceOnEndTurn(
       );
     }
     if (destroyedProps.length === 0) return p;
+    playersChanged = true;
     return {
       ...p,
       money: p.money + moneyDelta,
@@ -2305,22 +2299,23 @@ function applyInsuranceOnEndTurn(
     };
   });
 
-  if (anyPlayerFired) {
-    players = updatedPlayers;
-    stateChanged = true;
-  }
-
   const allMessages = [...messages, ...fireMessages];
 
-  if (!stateChanged && allMessages.length === 0) {
+  // いずれの状態も変更されず、表示するメッセージもない
+  if (
+    !playersChanged &&
+    !propertiesChanged &&
+    !insuranceChanged &&
+    allMessages.length === 0
+  ) {
     return state;
   }
 
   return {
     ...state,
-    players,
-    propertyStates,
-    insuranceState,
+    ...(playersChanged ? { players: updatedPlayers } : {}),
+    ...(propertiesChanged ? { propertyStates } : {}),
+    ...(insuranceChanged ? { insuranceState } : {}),
     message: allMessages.length > 0 ? allMessages.join(' / ') : state.message,
   };
 }
