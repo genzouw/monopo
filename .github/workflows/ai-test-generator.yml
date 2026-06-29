@@ -28,7 +28,7 @@ jobs:
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 api_key: process.env.TAVILY_API_KEY,
-                query: `Latest Vitest React Testing Library best practices 2024 for: ${title}`,
+                query: `Latest Vitest React Testing Library best practices for: ${title}`,
                 search_depth: 'advanced',
                 include_answer: true,
               }),
