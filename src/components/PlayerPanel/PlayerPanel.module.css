@@ -19,10 +19,23 @@
   box-shadow: var(--shadow);
   cursor: pointer;
   outline: none;
+  transition:
+    transform 0.1s,
+    box-shadow 0.1s;
+  touch-action: manipulation;
 }
 .playerChip:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
+}
+@media (hover: hover) {
+  .playerChip:not([aria-disabled='true']):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+}
+.playerChip:not([aria-disabled='true']):active {
+  transform: scale(0.96);
 }
 .playerChipActive {
   border: 2px solid var(--color-primary);
