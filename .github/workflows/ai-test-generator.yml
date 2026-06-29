@@ -13,22 +13,45 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Generate Tests and Comment
-        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9.0.0
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
         with:
           script: |
             const title = context.payload.issue.title;
             const issueBody = (context.payload.issue.body || '').slice(0, 4000);
 
-            const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のIssueの内容をもとに、Vitest を使用したテストコードのモック・実装案を日本語の解説とともに作成してください。
+            let searchAnswer = '検索結果の要約なし';
+            try {
+              const tavilyRes = await fetch('https://api.tavily.com/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  api_key: process.env.TAVILY_API_KEY,
+                  query: `Latest Vitest React Testing Library best practices for: ${title}`,
+                  search_depth: 'advanced',
+                  include_answer: true,
+                }),
+              });
+
+              if (tavilyRes.ok) {
+                const searchData = await tavilyRes.json();
+                searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
+              }
+            } catch (e) {
+              console.log('Failed to fetch or parse Tavily response:', e);
+            }
+
+            const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のIssueの内容とWeb検索による最新のベストプラクティスをもとに、Vitest を使用したテストコードのモック・実装案を日本語の解説とともに作成してください。
             プロジェクト要件:
             - 名称には「monopoly」ではなく必ず「monopo」を使用する。
             - パッケージマネージャには必ずBunを使用する。
 
             Issueタイトル: ${title}
             Issue本文: ${issueBody}
+            検索結果の要約: ${searchAnswer}
             `;
 
             const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {

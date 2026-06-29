@@ -1,0 +1,117 @@
+name: AI Architecture Reviewer
+
+on:
+  pull_request:
+    paths:
+      - 'src/**/*'
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  review-architecture:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.2.14
+
+      - name: Bundle Codebase Context with Repomix
+        run: bunx repomix@1.15.0 --style xml --output codebase.xml
+
+      - name: Perform Architectural Review
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+        with:
+          script: |
+            const fs = require('fs');
+            const prNumber = context.payload.pull_request.number;
+            const title = context.payload.pull_request.title;
+            const body = (context.payload.pull_request.body || '').slice(0, 1000);
+
+            let codebase = '<empty>';
+            try {
+              codebase = fs.readFileSync('codebase.xml', 'utf8').slice(0, 15000); // Truncate to avoid context limit
+            } catch (e) {
+              console.log('Repomix output not found.');
+            }
+
+            let searchAnswer = '検索結果なし';
+            try {
+              const tavilyRes = await fetch('https://api.tavily.com/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  api_key: process.env.TAVILY_API_KEY,
+                  query: `Latest React 19, Bun, TypeScript architectural best practices for: ${title}`,
+                  search_depth: 'advanced',
+                  include_answer: true,
+                }),
+              });
+
+              if (tavilyRes.ok) {
+                const searchData = await tavilyRes.json();
+                searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
+              } else {
+                console.log(`Tavily search failed: ${tavilyRes.status}`);
+              }
+            } catch (e) {
+              console.log('Tavily search request failed:', e);
+            }
+
+            const prompt = `あなたは最新のフロントエンド技術に精通したシニアアーキテクトです。
+            以下のPR情報、プロジェクトのコードベース構造全体、および最新のWeb検索ベストプラクティスをもとに、
+            提案されている変更がプロジェクト全体のアーキテクチャに与える影響をマクロな視点で日本語でレビューしてください。
+            プロジェクト要件:
+            - 名称には「monopoly」ではなく必ず「monopo」を使用する。
+            - パッケージマネージャには必ずBunを使用する。
+
+            PRタイトル: ${title}
+            PR本文: ${body}
+            Web検索結果: ${searchAnswer}
+
+            コードベース概要 (XML):
+            ${codebase}`;
+
+            let analysis = null;
+            try {
+              const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
+                },
+                body: JSON.stringify({
+                  model: 'o3-mini',
+                  messages: [{ role: 'user', content: prompt }]
+                })
+              });
+
+              if (aiRes.ok) {
+                const aiData = await aiRes.json();
+                analysis = aiData.choices?.[0]?.message?.content;
+              } else {
+                console.log(`Azure inference failed: ${aiRes.status}`);
+              }
+            } catch (e) {
+              console.log('Azure inference request failed:', e);
+            }
+
+            const reviewBody = analysis
+              ? `### 🤖 AI Architecture Review\n\n${analysis}`
+              : '### 🤖 AI Architecture Review\n\n⚠️ 外部APIエラーのため自動アーキテクチャレビューを生成できませんでした。Actions のログを確認してください。';
+            await github.rest.issues.createComment({
+              issue_number: prNumber,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: reviewBody
+            });
