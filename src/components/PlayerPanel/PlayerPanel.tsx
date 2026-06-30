@@ -87,6 +87,29 @@ const MemoizedPlayerChip = memo(function MemoizedPlayerChip({
       )}
     </div>
   );
+}, (prevProps, nextProps) => {
+  // ⚡ Bolt: Custom areEqual function to prevent unnecessary re-renders of MemoizedPlayerChip.
+  // 💡 What: Compare only the specific Player fields that are actually rendered in the UI.
+  // 🎯 Why: Player objects frequently update with changes like `position` or `properties` that
+  //        aren't shown in the chip. Default shallow comparison triggers needless re-renders.
+  // 📊 Impact: Significantly reduces React render cycle time when players move across the board.
+  // 🔬 Measurement: Observe React DevTools Profiler to confirm chips don't re-render on move.
+  if (prevProps.isActive !== nextProps.isActive) return false;
+  if (prevProps.onPlayerClick !== nextProps.onPlayerClick) return false;
+
+  const p1 = prevProps.player;
+  const p2 = nextProps.player;
+
+  return (
+    p1.id === p2.id &&
+    p1.token === p2.token &&
+    p1.name === p2.name &&
+    p1.money === p2.money &&
+    p1.inJail === p2.inJail &&
+    p1.isBankrupt === p2.isBankrupt &&
+    p1.creditScore === p2.creditScore &&
+    p1.loanBalance === p2.loanBalance
+  );
 });
 
 const PlayerPanel = memo(function PlayerPanel({
