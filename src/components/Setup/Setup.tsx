@@ -61,6 +61,8 @@ const DEFAULT_NAMES = [
 ];
 const DEFAULT_TOKENS: string[] = [TOKENS[0], TOKENS[1], TOKENS[2], TOKENS[3]];
 const START_GUIDE_MSG = 'すべてのプレイヤーのなまえを入力してね';
+// サロゲートペアを考慮した余裕係数
+const RAW_LENGTH_LIMIT_MULTIPLIER = 10;
 
 /**
  * ゲーム開始前の初期設定画面コンポーネント。
@@ -99,6 +101,9 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
   };
 
   const handleNameChange = (index: number, name: string) => {
+    // 悪意のある極端に長い文字列によるDoS攻撃を防ぐための定数時間チェック
+    // サロゲートペアを考慮し、余裕を持たせた文字数（MAX_NAME_LENGTH * RAW_LENGTH_LIMIT_MULTIPLIER）を上限とする
+    if (name.length > MAX_NAME_LENGTH * RAW_LENGTH_LIMIT_MULTIPLIER) return;
     if ([...name].length > MAX_NAME_LENGTH) return;
     const newNames = [...names];
     newNames[index] = name;
