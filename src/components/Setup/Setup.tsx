@@ -99,6 +99,9 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
   };
 
   const handleNameChange = (index: number, name: string) => {
+    // 悪意のある極端に長い文字列によるDoS攻撃を防ぐための定数時間チェック
+    // サロゲートペアを考慮し、余裕を持たせた文字数（MAX_NAME_LENGTH * 10）を上限とする
+    if (name.length > MAX_NAME_LENGTH * 10) return;
     if ([...name].length > MAX_NAME_LENGTH) return;
     const newNames = [...names];
     newNames[index] = name;
