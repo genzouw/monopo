@@ -32,7 +32,7 @@ jobs:
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 api_key: process.env.TAVILY_API_KEY,
-                query: query,
+                query: `2025 latest ${query}`,
                 search_depth: 'advanced',
                 include_answer: true,
               }),
