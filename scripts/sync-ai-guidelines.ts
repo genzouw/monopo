@@ -29,6 +29,7 @@ const TARGETS: readonly SyncTarget[] = [
   { name: 'Windsurf', dest: '.windsurfrules' },
   { name: 'Cline', dest: '.clinerules' },
   { name: 'Roo Code', dest: '.roorules' },
+  { name: 'Trae', dest: '.traerules' },
   { name: 'GitHub Copilot', dest: '.github/copilot-instructions.md' },
 ] as const;
 
