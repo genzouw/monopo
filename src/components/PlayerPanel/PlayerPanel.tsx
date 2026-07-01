@@ -18,19 +18,20 @@ type MemoizedPlayerChipProps = {
 // ⚡ Bolt: React.memo() のカスタム比較関数を追加し、PlayerChip の不要な再レンダリングを防止する。
 const arePlayerChipsEqual = (
   prevProps: MemoizedPlayerChipProps,
-  nextProps: MemoizedPlayerChipProps
+  nextProps: MemoizedPlayerChipProps,
 ) => {
   return (
     prevProps.isActive === nextProps.isActive &&
     prevProps.onPlayerClick === nextProps.onPlayerClick &&
-    prevProps.player.id === nextProps.player.id &&
-    prevProps.player.token === nextProps.player.token &&
-    prevProps.player.name === nextProps.player.name &&
-    prevProps.player.money === nextProps.player.money &&
-    prevProps.player.inJail === nextProps.player.inJail &&
-    prevProps.player.isBankrupt === nextProps.player.isBankrupt &&
-    prevProps.player.creditScore === nextProps.player.creditScore &&
-    prevProps.player.loanBalance === nextProps.player.loanBalance
+    (prevProps.player === nextProps.player ||
+      (prevProps.player.id === nextProps.player.id &&
+        prevProps.player.token === nextProps.player.token &&
+        prevProps.player.name === nextProps.player.name &&
+        prevProps.player.money === nextProps.player.money &&
+        prevProps.player.inJail === nextProps.player.inJail &&
+        prevProps.player.isBankrupt === nextProps.player.isBankrupt &&
+        prevProps.player.creditScore === nextProps.player.creditScore &&
+        prevProps.player.loanBalance === nextProps.player.loanBalance))
   );
 };
 
