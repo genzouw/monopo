@@ -65,4 +65,5 @@ CI の各ワークフロー (`.github/workflows/*.yml`) では、予期せぬス
 CI の監査ワークフロー (`.github/workflows/permissions-audit.yml`) にて、全ワークフローファイルが `permissions:` を明示しているかを検査し、漏洩防止の基盤として「最小権限の原則 (Principle of Least Privilege)」を徹底しています。
 
 ### CIの対象ブランチ拡張について
-シークレット漏洩のリスクは main ブランチだけでなく、開発中のフィーチャーブランチにも存在します。そのため、本リポジトリでは `gitleaks`、`trufflehog`、`trivy` の CI スキャンを **すべてのブランチの push 時に実行** するよう設定しています。
+
+シークレット漏洩のリスクは `main` ブランチだけでなく、開発中のフィーチャーブランチにも存在します。そのため、本リポジトリでは `gitleaks` や `trufflehog` によるシークレット検知のスキャンを **すべてのブランチの push 時に実行** するよう設定しています。
