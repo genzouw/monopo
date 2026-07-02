@@ -63,3 +63,6 @@
 CI の各ワークフロー (`.github/workflows/*.yml`) では、予期せぬスクリプト実行や悪意ある Action からリポジトリを保護するため、**トップレベルでの `permissions` の明示を必須**としています。
 未指定の場合、GitHub のデフォルト設定によっては過剰な権限（例: リポジトリの書き換え権限）が与えられる可能性があります。
 CI の監査ワークフロー (`.github/workflows/permissions-audit.yml`) にて、全ワークフローファイルが `permissions:` を明示しているかを検査し、漏洩防止の基盤として「最小権限の原則 (Principle of Least Privilege)」を徹底しています。
+
+### CIの対象ブランチ拡張について
+シークレット漏洩のリスクは main ブランチだけでなく、開発中のフィーチャーブランチにも存在します。そのため、本リポジトリでは `gitleaks`、`trufflehog`、`trivy` の CI スキャンを **すべてのブランチの push 時に実行** するよう設定しています。
