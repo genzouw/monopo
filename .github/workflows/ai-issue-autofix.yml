@@ -96,12 +96,12 @@ jobs:
         uses: peter-evans/create-pull-request@6d6857d36972b65feb161a90e484f2984215f83e # v6.0.5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "🤖 AI Auto-Fix for Issue #${{ github.event.issue.number }}"
-          title: "🤖 AI Auto-Fix: ${{ github.event.issue.title }}"
+          commit-message: '🤖 AI Auto-Fix for Issue #${{ github.event.issue.number }}'
+          title: '🤖 AI Auto-Fix: ${{ github.event.issue.title }}'
           body: |
             ### 🤖 AI 自動修正
             このPull Requestは、AI Issue Auto-FixerによってIssue #${{ github.event.issue.number }}を解決するために自動生成されました。
 
             マージする前に、変更内容を注意深く確認してください。
-          branch: "ai-autofix/issue-${{ github.event.issue.number }}"
-          labels: "request ai review"
+          branch: 'ai-autofix/issue-${{ github.event.issue.number }}'
+          labels: 'request ai review'
