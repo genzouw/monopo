@@ -20,6 +20,14 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.2.14
+
+      - name: Bundle Codebase Context with Repomix
+        run: bunx repomix@1.16.0 --style xml --output codebase.xml
+
       - name: Fetch PR Diff
         id: fetch-diff
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
@@ -33,7 +41,6 @@ jobs:
               pull_number: context.issue.number,
               mediaType: { format: 'diff' }
             });
-            // 差分が大きすぎる場合は制限する
             const truncatedDiff = diff.data.slice(0, 10000);
             return truncatedDiff;
 
@@ -42,11 +49,55 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
           PR_DIFF: ${{ steps.fetch-diff.outputs.result }}
         with:
           script: |
+            const fs = require('fs');
             const prDiff = process.env.PR_DIFF;
-            const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のプルリクエストの差分をレビューし、コードの品質、潜在的なバグ、セキュリティの問題、パフォーマンスの改善点について日本語で簡潔にフィードバックを提供してください。プロジェクト要件: 名称には「monopoly」ではなく必ず「monopo」を使用する。パッケージマネージャには必ずBunを使用する。差分:\n\n${prDiff}`;
+            const title = context.payload.pull_request.title;
+
+            let codebase = '<empty>';
+            try {
+              codebase = fs.readFileSync('codebase.xml', 'utf8').slice(0, 15000);
+            } catch (e) {
+              console.log('Repomix output not found.');
+            }
+
+            let searchAnswer = '検索結果の要約なし';
+            try {
+              const tavilyRes = await fetch('https://api.tavily.com/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  api_key: process.env.TAVILY_API_KEY,
+                  query: `2025 latest pull request code review best practices for: ${title}`,
+                  search_depth: 'advanced',
+                  include_answer: true,
+                }),
+              });
+
+              if (tavilyRes.ok) {
+                const searchData = await tavilyRes.json();
+                searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
+              }
+            } catch (e) {
+              console.log('Tavily search request failed:', e);
+            }
+
+            const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のプルリクエストの差分、プロジェクトのコードベース概要、および最新のWeb検索ベストプラクティスをもとに、コードの品質、潜在的なバグ、セキュリティの問題、パフォーマンスの改善点について日本語で簡潔にフィードバックを提供してください。
+            プロジェクト要件:
+            - 名称には「monopoly」ではなく必ず「monopo」を使用する。
+            - パッケージマネージャには必ずBunを使用する。
+
+            Web検索によるヒント:
+            ${searchAnswer}
+
+            コードベース概要 (XML):
+            ${codebase}
+
+            差分:
+            ${prDiff}`;
 
             const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
               method: 'POST',

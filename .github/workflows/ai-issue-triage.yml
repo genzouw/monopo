@@ -44,7 +44,10 @@ jobs:
               }
             }
 
-            const prompt = `あなたは熟練のプロジェクトマネージャーです。以下のIssueの内容とWeb検索によるコンテキストをもとに、このIssueに付与すべき適切なラベル（bug, enhancement, question, request ai review, request ai tests など）を分析し、理由とともに日本語で提案してください。
+            const prompt = `あなたは熟練のプロジェクトマネージャーです。以下のIssueの内容とWeb検索によるコンテキストをもとに、このIssueに付与すべき適切なラベル（bug, enhancement, question, request ai review, request ai tests など）を分析してください。
+            出力は以下のJSON形式のみとしてください。Markdown修飾（\`\`\`json など）は絶対に含めないでください。
+            { "label": "提案するラベル", "reason": "提案理由(日本語で記述)" }
+
             プロジェクト要件:
             - 名称には「monopoly」ではなく必ず「monopo」を使用する。
             - パッケージマネージャには必ずBunを使用する。
@@ -66,10 +69,19 @@ jobs:
             });
 
             let analysis = 'ラベルの提案に失敗しました。';
+            let parsedResult = null;
             if (aiRes.ok) {
               try {
                 const aiData = await aiRes.json();
-                analysis = aiData.choices?.[0]?.message?.content || analysis;
+                const content = aiData.choices?.[0]?.message?.content || '';
+                // 念のため余計な文字列（Markdownなど）を取り除く
+                const jsonMatch = content.match(/\{[\s\S]*?\}/);
+                if (jsonMatch) {
+                   parsedResult = JSON.parse(jsonMatch[0]);
+                   analysis = parsedResult.reason;
+                } else {
+                   analysis = content;
+                }
               } catch (e) {}
             }
 
@@ -81,3 +93,17 @@ jobs:
               repo: context.repo.repo,
               body: body
             });
+
+            if (parsedResult && parsedResult.label) {
+               try {
+                 await github.rest.issues.addLabels({
+                   owner: context.repo.owner,
+                   repo: context.repo.repo,
+                   issue_number: context.issue.number,
+                   labels: [parsedResult.label]
+                 });
+                 console.log(`Successfully added label: ${parsedResult.label}`);
+               } catch (e) {
+                 console.log('Failed to add label', e);
+               }
+            }
