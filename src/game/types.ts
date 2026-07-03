@@ -8,6 +8,9 @@ export const MAX_PLAYERS = 4;
 // ── プレイヤー名の最大文字数（コードポイント基準） ──
 export const MAX_NAME_LENGTH = 20;
 
+// ── サロゲートペアを考慮した raw.length 上限の倍率 ──
+export const RAW_LENGTH_LIMIT_MULTIPLIER = 10;
+
 // ── 物件カラーグループ ──
 export type ColorGroup =
   | 'brown'
@@ -157,8 +160,7 @@ export type TradeInvalidReason =
   | 'PROPERTY_HAS_HOUSES';
 
 export type TradeValidationResult =
-  | { isValid: true }
-  | { isValid: false; reason: TradeInvalidReason };
+  { isValid: true } | { isValid: false; reason: TradeInvalidReason };
 
 // ── P3-a 拡張: ローン状態 ──
 export type LoanState = {
