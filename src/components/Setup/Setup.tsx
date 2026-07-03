@@ -248,7 +248,12 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
               maxLength={MAX_NAME_LENGTH}
               aria-required="true"
               aria-invalid={names[i].trim().length === 0}
-              aria-describedby={`${baseId}-char-count-${i}`}
+              aria-describedby={[
+                `${baseId}-char-count-${i}`,
+                names[i].trim().length === 0 && `${baseId}-name-error-${i}`,
+              ]
+                .filter(Boolean)
+                .join(' ')}
             />
             <span
               id={`${baseId}-char-count-${i}`}
@@ -257,6 +262,15 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
             >
               {[...names[i]].length}/{MAX_NAME_LENGTH}
             </span>
+            {names[i].trim().length === 0 && (
+              <span
+                id={`${baseId}-name-error-${i}`}
+                className={styles.errorMessage}
+                role="alert"
+              >
+                なまえを入力してね
+              </span>
+            )}
           </div>
         ))}
       </div>
