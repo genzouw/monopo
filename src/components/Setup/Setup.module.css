@@ -175,3 +175,23 @@
   color: var(--color-text-light);
   grid-column: 2;
 }
+
+.nameInput[aria-invalid='true'] {
+  border-color: var(--color-danger, #ff4d4f);
+  background-color: #fff0f0;
+}
+.nameInput:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+.errorHint {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
