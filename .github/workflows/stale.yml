@@ -6,8 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  # stale PRへのラベル付与・コメント・クローズ用
-  pull-requests: write
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -16,6 +15,10 @@ concurrency:
 jobs:
   stale:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # stale PRへのラベル付与・コメント・クローズ用
+      pull-requests: write
     steps:
       - uses: actions/stale@eb5cf3af3ac0a1aa4c9c45633dd1ae542a27a899 # v10
         with:
