@@ -260,7 +260,7 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
             {names[i].trim().length === 0 && (
               <span
                 id={`${baseId}-name-error-${i}`}
-                className={styles.errorHint}
+                className={styles.errorMessage}
                 role="alert"
               >
                 なまえを入力してね
