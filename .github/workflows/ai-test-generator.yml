@@ -5,12 +5,15 @@ on:
     types: [labeled]
 
 permissions:
-  issues: write
+  contents: read
 
 jobs:
   generate-tests:
     if: github.event.label.name == 'request ai tests'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
     steps:
       - name: Generate Tests and Comment
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
