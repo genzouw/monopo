@@ -8,12 +8,14 @@ on:
       - '.github/workflows/**'
 
 permissions:
-  pull-requests: write
   contents: read
 
 jobs:
   review:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - name: Checkout Code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
