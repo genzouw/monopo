@@ -157,7 +157,8 @@ export type TradeInvalidReason =
   | 'PROPERTY_HAS_HOUSES';
 
 export type TradeValidationResult =
-  { isValid: true } | { isValid: false; reason: TradeInvalidReason };
+  | { isValid: true }
+  | { isValid: false; reason: TradeInvalidReason };
 
 // ── P3-a 拡張: ローン状態 ──
 export type LoanState = {
