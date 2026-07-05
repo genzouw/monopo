@@ -95,7 +95,10 @@ export function loadSetupConfig(): SetupConfig | null {
       config.names.length !== MAX_PLAYERS ||
       config.tokens.length !== MAX_PLAYERS ||
       !config.names.every(
-        (n) => typeof n === 'string' && [...n].length <= MAX_NAME_LENGTH,
+        (n) =>
+          typeof n === 'string' &&
+          n.length <= MAX_NAME_LENGTH * 10 &&
+          [...n].length <= MAX_NAME_LENGTH,
       ) ||
       !config.tokens.every(
         (t) =>
