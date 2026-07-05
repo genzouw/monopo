@@ -1,5 +1,11 @@
 import type { FeatureFlags, GameState } from './types';
-import { TOKENS, MIN_PLAYERS, MAX_PLAYERS, MAX_NAME_LENGTH } from './types';
+import {
+  TOKENS,
+  MIN_PLAYERS,
+  MAX_PLAYERS,
+  MAX_NAME_LENGTH,
+  RAW_LENGTH_LIMIT_MULTIPLIER,
+} from './types';
 
 const STORAGE_KEY = 'monopo-save';
 const SETUP_KEY = 'monopo-setup';
@@ -97,7 +103,7 @@ export function loadSetupConfig(): SetupConfig | null {
       !config.names.every(
         (n) =>
           typeof n === 'string' &&
-          n.length <= MAX_NAME_LENGTH * 10 &&
+          n.length <= MAX_NAME_LENGTH * RAW_LENGTH_LIMIT_MULTIPLIER &&
           [...n].length <= MAX_NAME_LENGTH,
       ) ||
       !config.tokens.every(
