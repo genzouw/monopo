@@ -67,3 +67,6 @@ regexes = [
     '''(?i)raspberrypi\.local''',
     '''(?i)printer\.local'''
 ]
+paths = [
+    '''docs/security/'''
+]
