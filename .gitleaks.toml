@@ -53,3 +53,11 @@ regexes = [
     '''(?i)test-project''',
     '''(?i)dummy-account'''
 ]
+
+[[rules]]
+id = "monopo-internal-domain"
+description = "インフラ構成の過剰露出 - 内部ネットワーク・社内エンドポイントのハードコード検知"
+regex = '''(?i)\b[a-z0-9](?:[a-z0-9\-]*[a-z0-9])?\.(?:internal|local|corp|staging\.monopo\.com)\b'''
+tags = ["infrastructure", "internal-domain"]
+secretGroup = 0
+entropy = 0.0
