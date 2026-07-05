@@ -16,13 +16,15 @@ concurrency:
 permissions:
   # チェックアウト・リポジトリ参照用
   contents: read
-  # Trivy スキャン結果を GitHub Security タブへアップロードするために必要
-  security-events: write
 
 jobs:
   fs-scan:
     name: Trivy filesystem scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Trivy スキャン結果を GitHub Security タブへアップロードするために必要
+      security-events: write
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
