@@ -4,6 +4,7 @@ import {
   MIN_PLAYERS,
   MAX_PLAYERS,
   MAX_NAME_LENGTH,
+  RAW_LENGTH_LIMIT_MULTIPLIER,
 } from '../../game/types';
 import type { FeatureFlags, GameState } from '../../game/types';
 import { loadSetupConfig, saveSetupConfig } from '../../game/storage';
@@ -61,8 +62,6 @@ const DEFAULT_NAMES = [
 ];
 const DEFAULT_TOKENS: string[] = [TOKENS[0], TOKENS[1], TOKENS[2], TOKENS[3]];
 const START_GUIDE_MSG = 'すべてのプレイヤーのなまえを入力してね';
-// サロゲートペアを考慮した余裕係数
-const RAW_LENGTH_LIMIT_MULTIPLIER = 10;
 
 /**
  * ゲーム開始前の初期設定画面コンポーネント。
