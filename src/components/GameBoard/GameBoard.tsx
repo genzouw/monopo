@@ -537,11 +537,11 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
             : undefined;
           const offer = state.trade;
           if (!offer) return null;
-          const offerSpaces = offer.offerProperties.map(
-            (id) => getSpaceById(id, state.board)!,
+          const offerSpaces = offer.offerProperties.map((id) =>
+            getSpaceById(id, state.board)!,
           );
-          const requestSpaces = offer.requestProperties.map(
-            (id) => getSpaceById(id, state.board)!,
+          const requestSpaces = offer.requestProperties.map((id) =>
+            getSpaceById(id, state.board)!,
           );
           return (
             <Dialog
