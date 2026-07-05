@@ -5,11 +5,14 @@ on:
     types: [opened]
 
 permissions:
-  issues: write
+  contents: read
 
 jobs:
   triage:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
     steps:
       - name: Tavily Search and AI Label Proposal
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0

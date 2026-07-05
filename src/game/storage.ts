@@ -1,5 +1,11 @@
 import type { FeatureFlags, GameState } from './types';
-import { TOKENS, MIN_PLAYERS, MAX_PLAYERS, MAX_NAME_LENGTH } from './types';
+import {
+  TOKENS,
+  MIN_PLAYERS,
+  MAX_PLAYERS,
+  MAX_NAME_LENGTH,
+  RAW_LENGTH_LIMIT_MULTIPLIER,
+} from './types';
 
 const STORAGE_KEY = 'monopo-save';
 const SETUP_KEY = 'monopo-setup';
@@ -99,6 +105,7 @@ export function loadSetupConfig(): SetupConfig | null {
       !config.names.every(
         (n) =>
           typeof n === 'string' &&
+          // サロゲートペア分解によるDoSを防ぐための事前チェック（[...n]展開前に上限を絞る）
           n.length <= MAX_NAME_UNIT_LENGTH &&
           [...n].length <= MAX_NAME_LENGTH,
       ) ||
