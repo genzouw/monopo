@@ -8,6 +8,10 @@ export const MAX_PLAYERS = 4;
 // ── プレイヤー名の最大文字数（コードポイント基準） ──
 export const MAX_NAME_LENGTH = 20;
 
+// ── 名前バリデーション: サロゲートペア分解前のバイト長上限係数 ──
+// サロゲートペアは最大2コードユニット/コードポイントだが、DoS安全マージンとして10倍に設定
+export const RAW_LENGTH_LIMIT_MULTIPLIER = 10;
+
 // ── 物件カラーグループ ──
 export type ColorGroup =
   | 'brown'
