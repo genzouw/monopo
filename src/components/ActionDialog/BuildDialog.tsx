@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useId, useMemo } from 'react';
 import type {
   BoardSpace,
   ColorGroup,
@@ -56,16 +56,20 @@ export default function BuildDialog({
   onClose,
 }: BuildDialogProps) {
   const hintIdBase = useId();
-  const ownedProperties = currentPlayer.properties
-    .map((id: string) => getSpaceById(id, board))
-    .filter(
-      (s): s is BoardSpace => !!s && s.type === 'property' && !!s.houseCost,
-    )
-    .sort((a, b) => {
-      const ai = COLOR_ORDER.indexOf(a.color as ColorGroup);
-      const bi = COLOR_ORDER.indexOf(b.color as ColorGroup);
-      return ai - bi;
-    });
+  // ⚡ Bolt: useMemo to prevent mapping, filtering, and sorting the properties array on every render.
+  // This avoids O(N log N) recalculation of ownedProperties on every keystroke or update within the dialog.
+  const ownedProperties = useMemo(() => {
+    return currentPlayer.properties
+      .map((id: string) => getSpaceById(id, board))
+      .filter(
+        (s): s is BoardSpace => !!s && s.type === 'property' && !!s.houseCost,
+      )
+      .sort((a, b) => {
+        const ai = COLOR_ORDER.indexOf(a.color as ColorGroup);
+        const bi = COLOR_ORDER.indexOf(b.color as ColorGroup);
+        return ai - bi;
+      });
+  }, [currentPlayer.properties, board]);
 
   return (
     <Dialog
