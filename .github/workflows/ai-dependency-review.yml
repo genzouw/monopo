@@ -5,16 +5,18 @@ on:
     types: [opened, synchronize]
 
 permissions:
-  pull-requests: write
   contents: read
 
 jobs:
   review:
     if: github.event.pull_request.user.login == 'dependabot[bot]'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - name: Analyze Dependabot PR with Tavily
-        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}

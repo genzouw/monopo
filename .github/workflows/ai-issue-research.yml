@@ -3,15 +3,18 @@ on:
   issues:
     types: [labeled]
 permissions:
-  issues: write
+  contents: read
 
 jobs:
   research:
     if: github.event.label.name == 'request ai research'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
     steps:
       - name: Tavily Search and AI Plan Generation
-        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }} # pragma: allowlist secret
@@ -32,7 +35,7 @@ jobs:
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 api_key: process.env.TAVILY_API_KEY,
-                query: query,
+                query: `2025 latest ${query}`,
                 search_depth: 'advanced',
                 include_answer: true,
               }),

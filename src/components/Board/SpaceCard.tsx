@@ -27,6 +27,45 @@ type SpaceCardProps = {
   owner?: Player;
 };
 
+// ⚡ Bolt: React.memo() のカスタム比較関数を追加し、SpaceCard の不要な再レンダリングを防止する。
+const areSpaceCardsEqual = (
+  prevProps: SpaceCardProps,
+  nextProps: SpaceCardProps,
+) => {
+  if (prevProps.isCurrent !== nextProps.isCurrent) return false;
+  if (prevProps.space.id !== nextProps.space.id) return false;
+
+  if (prevProps.playersHere.length !== nextProps.playersHere.length)
+    return false;
+  for (let i = 0; i < prevProps.playersHere.length; i++) {
+    if (
+      prevProps.playersHere[i].id !== nextProps.playersHere[i].id ||
+      prevProps.playersHere[i].token !== nextProps.playersHere[i].token
+    )
+      return false;
+  }
+
+  const prevPropState = prevProps.propertyState;
+  const nextPropState = nextProps.propertyState;
+  if (prevPropState !== nextPropState) {
+    if (!prevPropState || !nextPropState) return false;
+    if (
+      prevPropState.houses !== nextPropState.houses ||
+      prevPropState.isMortgaged !== nextPropState.isMortgaged ||
+      prevPropState.ownerId !== nextPropState.ownerId
+    )
+      return false;
+  }
+
+  if (
+    prevProps.owner?.name !== nextProps.owner?.name ||
+    prevProps.owner?.token !== nextProps.owner?.token
+  )
+    return false;
+
+  return true;
+};
+
 const SpaceCard = memo(function SpaceCard({
   space,
   propertyState,
@@ -69,6 +108,6 @@ const SpaceCard = memo(function SpaceCard({
       )}
     </div>
   );
-});
+}, areSpaceCardsEqual);
 
 export default SpaceCard;

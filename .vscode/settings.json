@@ -28,7 +28,11 @@
     "**/.aider*/**": true,
     "**/.continue/**": true,
     "**/.jules/**": true,
-    "**/.cline/**": true
+    "**/.cline/**": true,
+    "**/.windsurf/**": true,
+    "**/.trae/**": true,
+    "**/.roo/**": true,
+    "**/*-report.md": true
   },
   "search.exclude": {
     "**/.env": true,
@@ -59,6 +63,11 @@
     "**/.aider*/**": true,
     "**/.continue/**": true,
     "**/.jules/**": true,
-    "**/.cline/**": true
+    "**/.cline/**": true,
+    "**/.windsurf/**": true,
+    "**/.trae/**": true,
+    "**/.roo/**": true,
+    "**/*.log": true,
+    "**/*-report.md": true
   }
 }

@@ -1,0 +1,109 @@
+name: AI Issue Auto-Fixer
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: read
+
+jobs:
+  autofix:
+    if: github.event.label.name == 'request ai fix'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.2.14
+
+      - name: Bundle Codebase Context
+        run: bunx repomix@1.16.0 --style xml --output codebase.xml
+
+      - name: Generate and Apply Fix
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
+        with:
+          script: |
+            const fs = require('fs');
+            const title = context.payload.issue.title;
+            const issueBody = (context.payload.issue.body || '').slice(0, 4000);
+
+            let codebase = '<empty>';
+            try {
+              codebase = fs.readFileSync('codebase.xml', 'utf8').slice(0, 30000);
+            } catch (e) {
+              console.log('Repomixの出力が見つかりません。');
+            }
+
+            const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のIssueの内容と、プロジェクトのコードベース概要をもとに、このIssueを解決するための具体的なファイルの書き換えを行うNode.jsスクリプト (CommonJS形式、fsモジュール使用) を出力してください。
+            スクリプトはそのまま実行できる形で出力し、\`\`\`javascript で囲んでください。
+
+            プロジェクト要件:
+            - 名称には「monopoly」ではなく必ず「monopo」を使用する。
+            - パッケージマネージャには必ずBunを使用する。
+
+            Issueタイトル: ${title}
+            Issue本文: ${issueBody}
+
+            コードベース概要 (XML):
+            ${codebase}`;
+
+            const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
+              },
+              body: JSON.stringify({
+                model: 'o3-mini',
+                messages: [{ role: 'user', content: prompt }]
+              })
+            });
+
+            if (aiRes.ok) {
+              const aiData = await aiRes.json();
+              const analysis = aiData.choices?.[0]?.message?.content || '';
+
+              const match = analysis.match(/```(?:javascript|js)\n([\s\S]*?)```/);
+              if (match && match[1]) {
+                const scriptContent = match[1];
+                fs.writeFileSync('auto-fix.cjs', scriptContent);
+                console.log('修正スクリプトが生成されました。');
+              } else {
+                console.log('レスポンスに有効なスクリプトが見つかりませんでした。');
+              }
+            } else {
+              console.log('AIリクエストが失敗しました:', await aiRes.text());
+            }
+
+      - name: Run Generated Fix Script
+        run: |
+          if [ -f "auto-fix.cjs" ]; then
+            node auto-fix.cjs
+            rm auto-fix.cjs
+          fi
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@6d6857d36972b65feb161a90e484f2984215f83e # v6.0.5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: '🤖 AI Auto-Fix for Issue #${{ github.event.issue.number }}'
+          title: '🤖 AI Auto-Fix: ${{ github.event.issue.title }}'
+          body: |
+            ### 🤖 AI 自動修正
+            このPull Requestは、AI Issue Auto-FixerによってIssue #${{ github.event.issue.number }}を解決するために自動生成されました。
+
+            マージする前に、変更内容を注意深く確認してください。
+          branch: 'ai-autofix/issue-${{ github.event.issue.number }}'
+          labels: 'request ai review'

@@ -4,6 +4,7 @@ import {
   MIN_PLAYERS,
   MAX_PLAYERS,
   MAX_NAME_LENGTH,
+  RAW_LENGTH_LIMIT_MULTIPLIER,
 } from '../../game/types';
 import type { FeatureFlags, GameState } from '../../game/types';
 import { loadSetupConfig, saveSetupConfig } from '../../game/storage';
@@ -99,10 +100,12 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
   };
 
   const handleNameChange = (index: number, name: string) => {
+    // 悪意のある極端に長い文字列によるDoS攻撃を防ぐための定数時間チェック
+    // サロゲートペアを考慮し、余裕を持たせた文字数（MAX_NAME_LENGTH * RAW_LENGTH_LIMIT_MULTIPLIER）を上限とする
+    if (name.length > MAX_NAME_LENGTH * RAW_LENGTH_LIMIT_MULTIPLIER) return;
+    if ([...name].length > MAX_NAME_LENGTH) return;
     const newNames = [...names];
-    // Security enhancement: enforce max length on names to prevent potential DoS or memory issues.
-    // Use code-point-based truncation so emoji/surrogate-pair chars match the input's maxLength behavior.
-    newNames[index] = [...name].slice(0, MAX_NAME_LENGTH).join('');
+    newNames[index] = name;
     setNames(newNames);
   };
 
@@ -244,7 +247,12 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
               maxLength={MAX_NAME_LENGTH}
               aria-required="true"
               aria-invalid={names[i].trim().length === 0}
-              aria-describedby={`${baseId}-char-count-${i}`}
+              aria-describedby={[
+                `${baseId}-char-count-${i}`,
+                names[i].trim().length === 0 && `${baseId}-name-error-${i}`,
+              ]
+                .filter(Boolean)
+                .join(' ')}
             />
             <span
               id={`${baseId}-char-count-${i}`}
@@ -253,6 +261,15 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
             >
               {[...names[i]].length}/{MAX_NAME_LENGTH}
             </span>
+            {names[i].trim().length === 0 && (
+              <span
+                id={`${baseId}-name-error-${i}`}
+                className={styles.errorMessage}
+                role="alert"
+              >
+                なまえを入力してね
+              </span>
+            )}
           </div>
         ))}
       </div>

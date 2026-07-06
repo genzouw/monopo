@@ -6,13 +6,14 @@
 
 開発者が自身のローカル環境で誤って秘密情報をコミットするのを防ぎます。
 
-- **`gitleaks` フック**: コミット時に `.husky/pre-commit` フックを通してローカルで `gitleaks` が実行され、秘密情報を検知した場合はコミットをブロックします。
+- **`gitleaks` フック**: コミット時に `.husky/pre-commit` および `.husky/commit-msg` フックを通してローカルで `gitleaks` が実行され、ソースコードやコミットメッセージ自体から秘密情報を検知した場合はコミットをブロックします。
   - **⚠️ 注意**: `gitleaks` が未インストールの場合、コミットは自動的にブロックされます。意図せぬ秘密情報の混入を防ぐため、gitleaks のインストールが**必須**となっています。
+  - **自動セットアップ**: 本リポジトリでは `package.json` の `prepare` スクリプトにより、初回 `bun install` 時に自動で Husky と pre-commit フックがセットアップされます。
   - **必須**: 開発環境には [gitleaks](https://github.com/gitleaks/gitleaks) をインストールしてください。（例: `brew install gitleaks` または GitHub のリリースページからダウンロード）
 - **`.gitignore` と `.gitattributes` による除外・保護**:
   - `.env`, `.env.*` (ただし `.env.example` は除く)
   - `*.pem`, `*.key`, `id_rsa`, `id_ed25519`, `id_ecdsa`, `id_dsa`, `*credentials*.json`, `*secret*.json`, `*.npmrc`, `.netrc`, DBファイル(`*.sqlite` 等) 等
-  - AI エージェントの作業跡（`.cursor/`, `.claude/`, `.aider*`, `.cline/` 等）はローカル環境特有の秘密情報が含まれるリスクがあるため除外しています。
+  - AI エージェントの作業跡（`.cursor/`, `.claude/`, `.aider*`, `.cline/`, `.windsurf/`, `.trae/`, `.roo/` 等）や、デバッグ等で出力されるログファイル・レポートファイル（`*.log`, `*-report.md`）はローカル環境特有の秘密情報が含まれるリスクがあるため除外しています。
   - **さらに、`.gitattributes` により、これらの秘密情報ファイルが誤って `git add` された場合でも、diff の中身がレビュー画面・ログ・PR 上で表示されない（`-diff` によりバイナリ扱いとなり `Binary files differ` 表示）よう、またリポジトリのアーカイブに含まれないよう（`export-ignore`）設定し、二重に保護しています。**
 - **`pre-commit` framework**: `.pre-commit-config.yaml` による標準的なフック（秘密鍵の検知、YAML構文チェックなど）を利用してコミット前の安全性をさらに高めています。
   - **`detect-secrets`**: `gitleaks` を補完し、エントロピーベースで未知の高乱数なシークレットや独自フォーマットのトークンを検知します。
@@ -21,13 +22,14 @@
     - **未検証検出 (`is_verified: false`) の扱い**: ベースラインへのコミット前に対象箇所を目視確認してください。誤検知（GitHub Actions secrets 参照など）の場合は該当行に `# pragma: allowlist secret` コメントを追加してから再スキャンし、エントリを削除します。実際のシークレットの場合は即座にローテーション（無効化・再発行）を行ってください。
     - **検出の限界**: 低エントロピーの短いパスワードや独自フォーマットの秘密情報は検知困難な場合があります。`gitleaks` との多層防御で補完しています。
     - **トラブルシューティング**: 誤検知が出た場合は `# pragma: allowlist secret` コメントをその行末に追加するか、`detect-secrets scan --baseline .secrets.baseline` でベースラインを更新して既知の誤検知として登録してください。また、ローカル環境に `detect-secrets` をインストール（例: `pip install detect-secrets`）後、`detect-secrets audit .secrets.baseline` を実行してインタラクティブに誤検知を確認・登録することもできます。
+  - **自動依存解決**: `pre-commit` framework が実行する gitleaks フックには、システム依存の `gitleaks-system` ではなく、pre-commit が自動で依存関係を解決して実行する `gitleaks` を使用することで、CI 環境や新規開発者の環境での実行エラーを防ぎ、安定性を向上させています（なお、9〜12行目の `.husky/pre-commit` 経由の gitleaks 実行には、引き続きローカルへの gitleaks インストールが必要です）。
 
 ## 2. CI 検知（リポジトリ防御）
 
 ローカル環境の防御をすり抜けた場合でも、GitHub へプッシュされた時点で自動スキャンが実行されます。
 
 - **Gitleaks ワークフロー (`.github/workflows/gitleaks.yml`)**:
-  - 全ての PR と `main` ブランチへのプッシュ時に、対象となるソースコードをスキャンし、シークレットの漏洩があれば CI がエラー（赤検知）となります。正規表現とエントロピーによるパターンベースの検知を行います。
+  - 全ての PR とすべてのブランチへのプッシュ時に、対象となるソースコードをスキャンし、シークレットの漏洩があれば CI がエラー（赤検知）となります。正規表現とエントロピーによるパターンベースの検知を行います。
   - **カスタムルールの適用**: リポジトリ直下の `.gitleaks.toml` を使用し、デフォルトの Gitleaks ルールに加えて、個別の汎用ルール（例: メールアドレス等の個人情報 [PII] のハードコード、クラウド識別子 [AWS Account ID / GCP Project ID]、内部IPアドレス）も追加で検知するように強化されています。
 - **TruffleHog ワークフロー (`.github/workflows/trufflehog.yml`)**:
   - `gitleaks` を補完する形で、実際に外部プロバイダ API に対して有効性を検証できたシークレット（有効性検証済み）のみを検知します（`--only-verified`）。誤検知を減らしつつ、漏洩したキーが現在も利用可能かどうかの重大なリスクを即座にブロックします。
@@ -61,3 +63,11 @@
 CI の各ワークフロー (`.github/workflows/*.yml`) では、予期せぬスクリプト実行や悪意ある Action からリポジトリを保護するため、**トップレベルでの `permissions` の明示を必須**としています。
 未指定の場合、GitHub のデフォルト設定によっては過剰な権限（例: リポジトリの書き換え権限）が与えられる可能性があります。
 CI の監査ワークフロー (`.github/workflows/permissions-audit.yml`) にて、全ワークフローファイルが `permissions:` を明示しているかを検査し、漏洩防止の基盤として「最小権限の原則 (Principle of Least Privilege)」を徹底しています。
+
+### CIの対象ブランチ拡張について
+
+シークレット漏洩のリスクは `main` ブランチだけでなく、開発中のフィーチャーブランチにも存在します。そのため、本リポジトリでは `gitleaks` や `trufflehog` によるシークレット検知のスキャンを **すべてのブランチの push 時に実行** するよう設定しています。
+
+### インフラ構成・内部エンドポイントの露出防止
+
+ローカル環境やCI環境の `gitleaks` によるシークレットスキャンにおいて、`.gitleaks.toml` カスタムルール (`monopo-internal-domain`) により、内部インフラ特有のドメイン（例: `.internal`, `.local`, `.corp`, `staging.monopo.com` など）のハードコードを検知・ブロックしています。これにより、意図せぬ社内ネットワーク情報の過剰露出を防ぎます。
