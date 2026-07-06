@@ -16,14 +16,15 @@ concurrency:
 permissions:
   # リポジトリのソースコード読み込み用
   contents: read
-  # CodeQL 解析結果を GitHub Security タブへアップロードするために必要
-  security-events: write
 
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
     runs-on: ubuntu-latest
     timeout-minutes: 360
+    permissions:
+      contents: read
+      security-events: write
 
     strategy:
       fail-fast: false

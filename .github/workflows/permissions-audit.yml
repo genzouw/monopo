@@ -22,13 +22,26 @@ jobs:
 
       - name: Check for workflows without explicit permissions
         run: |
-          echo "🔍 Scanning workflows for missing permissions..."
-          VIOLATIONS=$(grep -rEL '^permissions:' .github/workflows/*.yml || true)
-          if [ -n "$VIOLATIONS" ]; then
+          echo "🔍 Scanning workflows for missing or excessive top-level permissions..."
+
+          # 1. 権限が明示されていないワークフローのチェック
+          MISSING=$(grep -rEL '^permissions:' .github/workflows/*.yml || true)
+          if [ -n "$MISSING" ]; then
             echo "::error::❌ The following workflows do not have explicit top-level permissions set:"
-            echo "$VIOLATIONS"
+            echo "$MISSING"
             echo "To enforce least privilege, all workflows must have explicit top-level 'permissions'."
             false
           else
             echo "✅ All workflows have explicit top-level permissions."
+          fi
+
+          # 2. トップレベルで write や read-all が指定されているワークフローのチェック
+          EXCESSIVE=$(awk '/^permissions: read-all/ { print FILENAME; next } /^permissions:/ { in_perms=1; next } in_perms && /^  [a-z-]+: (write|all)/ { print FILENAME; in_perms=0 } in_perms && /^[^ ]/ { in_perms=0 }' .github/workflows/*.yml || true)
+          if [ -n "$EXCESSIVE" ]; then
+            echo "::error::❌ The following workflows have excessive top-level permissions (write or read-all):"
+            echo "$EXCESSIVE"
+            echo "To enforce least privilege, top-level permissions must be read-only (e.g., contents: read). Move write permissions to specific jobs."
+            false
+          else
+            echo "✅ All workflows follow least privilege for top-level permissions."
           fi
