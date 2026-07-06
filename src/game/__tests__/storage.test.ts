@@ -307,6 +307,17 @@ describe('saveSetupConfig / loadSetupConfig', () => {
     expect(loadSetupConfig()).toBeNull();
   });
 
+  it('非常に長い文字列（DoS試行）はnullを返す', () => {
+    localStorage.setItem(
+      SETUP_KEY,
+      JSON.stringify({
+        ...validConfig,
+        names: ['A'.repeat(300), 'B', 'C', 'D'],
+      }),
+    );
+    expect(loadSetupConfig()).toBeNull();
+  });
+
   it('絵文字（サロゲートペア）はコードポイント基準で文字数判定する', () => {
     // 絵文字20文字（UTF-16コードユニットでは40だが、コードポイントでは20）はOK
     const ok = '🎩'.repeat(20);
