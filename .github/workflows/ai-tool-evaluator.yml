@@ -53,7 +53,7 @@ jobs:
                 'Authorization': `Bearer ${process.env.TAVILY_API_KEY}`
               },
               body: JSON.stringify({
-                query: "2025 2026 latest AI coding tools automated PR review free open source best practices security",
+                query: "2025 latest AI coding tools automated PR review free open source best practices security",
                 search_depth: 'advanced'
               })
             });
