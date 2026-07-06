@@ -106,10 +106,14 @@ export function getLoanInterestRate(
 // ── バリデーション型 ──
 
 export type LoanTakeReason =
-  'LOAN_DISABLED' | 'INVALID_AMOUNT' | 'EXCEEDS_LIMIT' | 'PLAYER_NOT_FOUND';
+  | 'LOAN_DISABLED'
+  | 'INVALID_AMOUNT'
+  | 'EXCEEDS_LIMIT'
+  | 'PLAYER_NOT_FOUND';
 
 export type LoanTakeValidation =
-  { ok: true } | { ok: false; reason: LoanTakeReason };
+  | { ok: true }
+  | { ok: false; reason: LoanTakeReason };
 
 export type LoanRepayReason =
   | 'LOAN_DISABLED'
@@ -119,7 +123,8 @@ export type LoanRepayReason =
   | 'PLAYER_NOT_FOUND';
 
 export type LoanRepayValidation =
-  { ok: true } | { ok: false; reason: LoanRepayReason };
+  | { ok: true }
+  | { ok: false; reason: LoanRepayReason };
 
 /**
  * 借入バリデーション。
