@@ -3,6 +3,9 @@ import type { Player } from '../../game/types';
 import { getOwnerBg } from '../common/playerColors';
 import styles from './PlayerPanel.module.css';
 
+const LABEL_LOAN_BALANCE = 'ローン残高';
+const UNIT_CURRENCY = 'ドル';
+
 type PlayerPanelProps = {
   allPlayers: Player[];
   currentPlayerIndex: number;
@@ -57,7 +60,7 @@ const MemoizedPlayerChip = memo(function MemoizedPlayerChip({
             ? ` 信用スコア ${player.creditScore}`
             : '') +
           ((player.loanBalance ?? 0) > 0
-            ? ` ローン残高 ${player.loanBalance}ドル`
+            ? ` ${LABEL_LOAN_BALANCE} ${player.loanBalance?.toLocaleString()}${UNIT_CURRENCY}`
             : '') +
           (onPlayerClick ? ' 詳細を見る' : '')
         }
