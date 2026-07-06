@@ -1,8 +1,3 @@
----
-title: '提案: 既存ゲーム拡張および現実経済模倣の教育的機能追加'
-labels: ['enhancement', 'proposal', 'economics']
----
-
 # 提案: 既存ゲーム拡張および現実経済模倣の教育的機能追加
 
 ## 概要 (Overview)
