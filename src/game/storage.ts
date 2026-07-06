@@ -12,7 +12,7 @@ const SETUP_KEY = 'monopo-setup';
 const LEGACY_STORAGE_KEY = 'monopoly-save';
 const LEGACY_SETUP_KEY = 'monopoly-setup';
 // サロゲートペア等を考慮したコードユニット長の上限（DoS対策の早期リジェクト用）
-const MAX_NAME_UNIT_LENGTH = MAX_NAME_LENGTH * 10;
+const MAX_NAME_UNIT_LENGTH = MAX_NAME_LENGTH * RAW_LENGTH_LIMIT_MULTIPLIER;
 
 function readWithLegacyFallback(key: string, legacyKey: string): string | null {
   const current = localStorage.getItem(key);
