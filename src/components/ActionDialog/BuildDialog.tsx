@@ -65,9 +65,11 @@ export default function BuildDialog({
         (s): s is BoardSpace => !!s && s.type === 'property' && !!s.houseCost,
       )
       .sort((a, b) => {
-        const ai = COLOR_ORDER.indexOf(a.color as ColorGroup);
-        const bi = COLOR_ORDER.indexOf(b.color as ColorGroup);
-        return ai - bi;
+        const ai = a.color ? COLOR_ORDER.indexOf(a.color) : -1;
+        const bi = b.color ? COLOR_ORDER.indexOf(b.color) : -1;
+        const aIndex = ai === -1 ? COLOR_ORDER.length : ai;
+        const bIndex = bi === -1 ? COLOR_ORDER.length : bi;
+        return aIndex - bIndex;
       });
   }, [currentPlayer.properties, board]);
 
