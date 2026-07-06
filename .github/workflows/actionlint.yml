@@ -49,8 +49,10 @@ jobs:
           fi
 
       - name: Run actionlint
+        env:
+          ACTIONLINT: ${{ steps.actionlint.outputs.executable }}
         run: |
-          "${{ steps.actionlint.outputs.executable }}" -color
+          "$ACTIONLINT" -color
 
       - name: Reject non-SHA action references in `uses:`
         # 外部 Action をブランチ・タグ参照すると、上流のリポジトリリネームや
