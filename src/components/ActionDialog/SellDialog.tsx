@@ -6,6 +6,7 @@ import type {
 } from '../../game/types';
 import { useMemo } from 'react';
 import { getSpaceById } from '../../game/rules';
+import { compareByColorOrder } from './colorSort';
 import Dialog from '../common/Dialog';
 import Button from '../common/Button';
 import styles from './ActionDialog.module.css';
@@ -59,13 +60,7 @@ export default function SellDialog({
     return currentPlayer.properties
       .map((id: string) => getSpaceById(id, board))
       .filter((s): s is BoardSpace => !!s)
-      .sort((a, b) => {
-        const ai = a.color ? COLOR_ORDER.indexOf(a.color) : -1;
-        const bi = b.color ? COLOR_ORDER.indexOf(b.color) : -1;
-        const aIndex = ai === -1 ? COLOR_ORDER.length : ai;
-        const bIndex = bi === -1 ? COLOR_ORDER.length : bi;
-        return aIndex - bIndex;
-      });
+      .sort((a, b) => compareByColorOrder(a.color, b.color, COLOR_ORDER));
   }, [currentPlayer.properties, board]);
 
   const title = forced
