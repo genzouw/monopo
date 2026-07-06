@@ -5154,9 +5154,9 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
       {state.turnPhase === 'trade' && state.trade && (
         <TradeDialog
           currentPlayer={currentPlayer}
-          targetPlayer={state.players.find(
-            (p) => p.id === state.trade!.toPlayerId,
-          )!}
+          targetPlayer={
+            state.players.find((p) => p.id === state.trade!.toPlayerId)!
+          }
           propertyStates={state.propertyStates}
           onPropose={(offer) => dispatch({ type: 'PROPOSE_TRADE', offer })}
           onClose={() => dispatch({ type: 'CLOSE_TRADE_DIALOG' })}
