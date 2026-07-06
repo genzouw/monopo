@@ -89,7 +89,8 @@ export default function TradeDialog({
     return currentPlayer.properties
       .map((id: string) => getSpaceById(id, board))
       .filter(
-        (s): s is BoardSpace => !!s && (propertyStates[s.id]?.houses ?? 0) === 0,
+        (s): s is BoardSpace =>
+          !!s && (propertyStates[s.id]?.houses ?? 0) === 0,
       );
   }, [currentPlayer.properties, board, propertyStates]);
 
@@ -97,7 +98,8 @@ export default function TradeDialog({
     return targetPlayer.properties
       .map((id: string) => getSpaceById(id, board))
       .filter(
-        (s): s is BoardSpace => !!s && (propertyStates[s.id]?.houses ?? 0) === 0,
+        (s): s is BoardSpace =>
+          !!s && (propertyStates[s.id]?.houses ?? 0) === 0,
       );
   }, [targetPlayer.properties, board, propertyStates]);
 
