@@ -60,9 +60,11 @@ export default function SellDialog({
       .map((id: string) => getSpaceById(id, board))
       .filter((s): s is BoardSpace => !!s)
       .sort((a, b) => {
-        const ai = a.color ? COLOR_ORDER.indexOf(a.color) : COLOR_ORDER.length;
-        const bi = b.color ? COLOR_ORDER.indexOf(b.color) : COLOR_ORDER.length;
-        return ai - bi;
+        const ai = a.color ? COLOR_ORDER.indexOf(a.color) : -1;
+        const bi = b.color ? COLOR_ORDER.indexOf(b.color) : -1;
+        const aIndex = ai === -1 ? COLOR_ORDER.length : ai;
+        const bIndex = bi === -1 ? COLOR_ORDER.length : bi;
+        return aIndex - bIndex;
       });
   }, [currentPlayer.properties, board]);
 
