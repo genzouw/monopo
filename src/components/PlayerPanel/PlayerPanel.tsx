@@ -53,6 +53,12 @@ const MemoizedPlayerChip = memo(function MemoizedPlayerChip({
           `${player.token} ${player.name} 所持金 ${player.money.toLocaleString()}ドル` +
           (player.inJail ? ' 刑務所に入っています' : '') +
           (player.isBankrupt ? ' 破産しています' : '') +
+          (player.creditScore !== undefined
+            ? ` 信用スコア ${player.creditScore}`
+            : '') +
+          ((player.loanBalance ?? 0) > 0
+            ? ` ローン残高 ${player.loanBalance}ドル`
+            : '') +
           (onPlayerClick ? ' 詳細を見る' : '')
         }
         aria-current={isActive ? 'true' : 'false'}
