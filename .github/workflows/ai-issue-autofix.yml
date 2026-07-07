@@ -47,7 +47,8 @@ jobs:
             }
 
             const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のIssueの内容と、プロジェクトのコードベース概要をもとに、このIssueを解決するための具体的なファイルの書き換えを行うNode.jsスクリプト (CommonJS形式、fsモジュール使用) を出力してください。
-            スクリプトはそのまま実行できる形で出力し、\`\`\`javascript で囲んでください。
+            必ず以下のJSONフォーマットで出力し、それ以外のテキスト（Markdownの修飾など）は含めないでください。
+            { "script": "Node.jsスクリプトの文字列。エスケープされた改行などを含む。", "explanation": "修正内容の説明。日本語" }
 
             プロジェクト要件:
             - 名称には「monopoly」ではなく必ず「monopo」を使用する。
@@ -75,13 +76,23 @@ jobs:
               const aiData = await aiRes.json();
               const analysis = aiData.choices?.[0]?.message?.content || '';
 
-              const match = analysis.match(/```(?:javascript|js)\n([\s\S]*?)```/);
-              if (match && match[1]) {
-                const scriptContent = match[1];
-                fs.writeFileSync('auto-fix.cjs', scriptContent);
-                console.log('修正スクリプトが生成されました。');
-              } else {
-                console.log('レスポンスに有効なスクリプトが見つかりませんでした。');
+              try {
+                // markdownコードブロックが含まれている場合に対処
+                const jsonString = analysis.replace(/^```json/im, '').replace(/```$/im, '').trim();
+                const parsed = JSON.parse(jsonString);
+
+                if (parsed.script) {
+                  fs.writeFileSync('auto-fix.cjs', parsed.script);
+                  console.log('修正スクリプトが生成されました。');
+                } else {
+                  console.log('JSONレスポンスにスクリプトが含まれていません。');
+                }
+
+                if (parsed.explanation) {
+                   fs.writeFileSync('auto-fix-explanation.txt', parsed.explanation);
+                }
+              } catch (err) {
+                 console.log('AIの出力が期待されるJSON形式ではありませんでした:', analysis);
               }
             } else {
               console.log('AIリクエストが失敗しました:', await aiRes.text());
