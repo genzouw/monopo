@@ -20,7 +20,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Check for workflows without explicit permissions
+      - name: Audit workflow top-level permissions (missing / excessive)
         run: |
           echo "🔍 Scanning workflows for missing or excessive top-level permissions..."
 
