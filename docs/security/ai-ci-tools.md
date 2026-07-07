@@ -32,9 +32,10 @@
 
 ## 新規: AI Accessibility Reviewer の設定
 
-フロントエンドの変更に対して、WCAG 準拠やUI/UXの観点でAIが自動レビューを行う .github/workflows/ai-a11y-reviewer.yml を追加しました。
+フロントエンドの変更に対して、WCAG 準拠やUI/UXの観点でAIが自動レビューを行う `.github/workflows/ai-a11y-reviewer.yml` を追加しました。
 無料の GitHub Models (o3-mini) と Tavily Search API を利用して最新のトレンドで評価します。
+
 1. **GitHub Secretsの設定 (必須)**
-   - このワークフローを動作させるには、GitHub のリポジトリの Settings > Secrets and variables > Actions にて、以下のシークレットを登録してください。
+   - このワークフローを動作させるには、リポジトリ管理者権限を持つユーザーが GitHub のリポジトリの `Settings > Secrets and variables > Actions` にて、以下のシークレットを登録してください。
      - `GH_MODELS_TOKEN`: GitHub Models へのアクセス用トークン
      - `TAVILY_API_KEY`: Tavily Search API へのアクセス用キー
