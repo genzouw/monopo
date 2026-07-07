@@ -37,7 +37,7 @@ jobs:
           fi
 
           # 2. トップレベルで write や read-all が指定されているワークフローのチェック
-          EXCESSIVE=$(awk '/^permissions: read-all/ { print FILENAME; next } /^permissions:/ { in_perms=1; next } in_perms && /^  [a-z-]+: (write|all)/ { print FILENAME; in_perms=0 } in_perms && /^[^ ]/ { in_perms=0 }' .github/workflows/*.yml || true)
+          EXCESSIVE=$(echo "$WORKFLOWS" | xargs awk 'FNR==1 { in_perms=0 } /^permissions: *((read|write)-all|\{.*(write|all))/ { print FILENAME; next } /^permissions:/ { in_perms=1; next } in_perms && /^  [a-z-]+: (write|all)/ { print FILENAME; in_perms=0 } in_perms && /^[^ ]/ { in_perms=0 }' || true)
           if [ -n "$EXCESSIVE" ]; then
             echo "::error::❌ The following workflows have excessive top-level permissions (write or read-all):"
             echo "$EXCESSIVE"
