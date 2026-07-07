@@ -1,0 +1,137 @@
+name: AI Documentation Generator
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  generate-docs:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: true
+
+      - name: Fetch PR Diff
+        id: fetch-diff
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          script: |
+            const diff = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              mediaType: { format: 'diff' }
+            });
+            const truncatedDiff = diff.data.slice(0, 10000);
+            return truncatedDiff;
+
+      - name: Generate and Commit Documentation
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+          PR_DIFF: ${{ steps.fetch-diff.outputs.result }}
+        with:
+          script: |
+            const prNumber = context.issue.number;
+            const prTitle = context.payload.pull_request.title;
+            const prBody = (context.payload.pull_request.body || '').slice(0, 1000);
+            const prDiff = process.env.PR_DIFF;
+
+            let searchAnswer = '検索結果なし';
+            try {
+              const tavilyRes = await fetch('https://api.tavily.com/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  api_key: process.env.TAVILY_API_KEY,
+                  query: `2025 latest best practices for AI auto-generating documentation from pull requests`,
+                  search_depth: 'advanced',
+                  include_answer: true,
+                }),
+              });
+
+              if (tavilyRes.ok) {
+                const searchData = await tavilyRes.json();
+                searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
+              } else {
+                console.log(`Tavily search failed: ${tavilyRes.status}`);
+              }
+            } catch (e) {
+              console.log('Tavily search request failed:', e);
+            }
+
+            const prompt = `あなたは優れたテクニカルライターであり、ソフトウェアエンジニアです。
+            以下のマージされたPull Requestの情報、差分、および最新のWeb検索ベストプラクティスをもとに、
+            このPRによる変更内容を詳細に記録するMarkdownドキュメントを日本語で作成してください。
+
+            プロジェクト要件:
+            - 名称には「monopoly」ではなく必ず「monopo」を使用する。
+            - パッケージマネージャには必ずBunを使用する。
+
+            PRタイトル: ${prTitle}
+            PR本文: ${prBody}
+            差分:
+            ${prDiff}
+
+            Web検索結果（ドキュメント作成のベストプラクティス）: ${searchAnswer}
+
+            出力形式:
+            ファイル全体の内容のみを出力してください。Markdownのコードブロック（\`\`\`markdown など）で囲まないでください。
+            内容はタイトル（# PR-${prNumber}: ${prTitle}）、概要、変更の詳細、およびシステムへの影響（アーキテクチャや依存関係）を含めること。
+            `;
+
+            let generatedDoc = null;
+            try {
+              const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
+                },
+                body: JSON.stringify({
+                  model: 'o3-mini',
+                  messages: [{ role: 'user', content: prompt }]
+                })
+              });
+
+              if (aiRes.ok) {
+                const aiData = await aiRes.json();
+                generatedDoc = aiData.choices?.[0]?.message?.content;
+              } else {
+                console.log(`Azure inference failed: ${aiRes.status}`);
+              }
+            } catch (e) {
+              console.log('Azure inference request failed:', e);
+            }
+
+            if (generatedDoc) {
+              const path = `docs/auto-generated/PR-${prNumber}.md`;
+              const message = `docs(ai): 🤖 PR-${prNumber} の自動生成ドキュメントを追加`;
+              const content = Buffer.from(generatedDoc).toString('base64');
+
+              await github.rest.repos.createOrUpdateFileContents({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                path: path,
+                message: message,
+                content: content,
+                branch: 'main'
+              });
+            } else {
+              console.log('ドキュメントの生成に失敗しました。');
+            }
