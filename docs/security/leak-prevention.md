@@ -71,3 +71,7 @@ CI の監査ワークフロー (`.github/workflows/permissions-audit.yml`) に�
 ### インフラ構成・内部エンドポイントの露出防止
 
 ローカル環境やCI環境の `gitleaks` によるシークレットスキャンにおいて、`.gitleaks.toml` カスタムルール (`monopo-internal-domain`) により、内部インフラ特有のドメイン（例: `.internal`, `.local`, `.corp`, `staging.monopo.com` など）のハードコードを検知・ブロックしています。これにより、意図せぬ社内ネットワーク情報の過剰露出を防ぎます。
+
+### CI ワークフローの権限最小化 (Least Privilege in CI)
+
+リポジトリに対する予期せぬ変更やインジェクション攻撃時の二次被害を防ぐため、`.github/workflows/` 配下の CI ワークフローでは**トップレベルの権限を読み取り専用 (`contents: read` など最小限) に制限**しています。書き込み権限（例: `pull-requests: write`, `security-events: write`）が必要な場合は、トップレベルではなく、その権限を実際に必要とする**ジョブ単位 (`jobs.<job_name>.permissions`) に絞って付与**することを徹底しています。
