@@ -1,0 +1,14 @@
+#!/bin/sh
+set -e
+
+if command -v gitleaks > /dev/null 2>&1; then
+  echo "🔒 Running local gitleaks check before push..."
+  gitleaks protect --verbose
+else
+  {
+    echo "❌ Error: gitleaks is not installed locally."
+    echo "To prevent accidental secret leaks, gitleaks is REQUIRED for pushing."
+    echo "Please install it."
+  } >&2
+  exit 1
+fi
