@@ -75,3 +75,7 @@ CI の監査ワークフロー (`.github/workflows/permissions-audit.yml`) に�
 ### CI ワークフローの権限最小化 (Least Privilege in CI)
 
 リポジトリに対する予期せぬ変更やインジェクション攻撃時の二次被害を防ぐため、`.github/workflows/` 配下の CI ワークフローでは**トップレベルの権限を読み取り専用 (`contents: read` など最小限) に制限**しています。書き込み権限（例: `pull-requests: write`, `security-events: write`）が必要な場合は、トップレベルではなく、その権限を実際に必要とする**ジョブ単位 (`jobs.<job_name>.permissions`) に絞って付与**することを徹底しています。
+
+## 4. クライアントサイドの防御 (Client-Side Defense)
+
+- **Referrer-Policy**: `index.html` に `<meta name="referrer" content="no-referrer" />` を設定することで、アプリケーション内から外部リソースを参照した際や外部リンクへ遷移した際に、現在のURLや機密情報がリファラとして外部に漏洩することを防ぎます。
