@@ -48,7 +48,7 @@ jobs:
         with:
           script: |
             const prDiff = process.env.PR_DIFF;
-            const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のプルリクエストの差分をレビューし、コードの品質、潜在的なバグ、セキュリティの問題、パフォーマンスの改善点について日本語で簡潔にフィードバックを提供してください。プロジェクト要件: 名称には「monopoly」ではなく必ず「monopo」を使用する。パッケージマネージャには必ずBunを使用する。差分:\n\n${prDiff}`;
+            const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のプルリクエストの差分をレビューし、コードの品質、潜在的なバグ、セキュリティの問題、パフォーマンスの改善点（React 19の最新機能やBunの最適化を含む）、およびAIコンテキストの境界違反がないかについて日本語で簡潔にフィードバックを提供してください。プロジェクト要件: 名称には「monopoly」ではなく必ず「monopo」を使用する。パッケージマネージャには必ずBunを使用する。差分:\n\n${prDiff}`;
 
             const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
               method: 'POST',
