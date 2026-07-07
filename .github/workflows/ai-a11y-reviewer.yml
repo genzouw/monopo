@@ -1,17 +1,15 @@
-name: AI PR Reviewer
+name: AI A11y Reviewer
 
 on:
   pull_request:
-    types: [opened, synchronize]
-    paths-ignore:
-      - '**.md'
-      - '.github/workflows/**'
+    paths:
+      - 'src/**/*'
 
 permissions:
   contents: read
 
 jobs:
-  review:
+  review-a11y:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -43,21 +41,20 @@ jobs:
               pull_number: context.issue.number,
               mediaType: { format: 'diff' }
             });
-            const truncatedDiff = diff.data.slice(0, 10000);
-            return truncatedDiff;
+            return diff.data.slice(0, 10000);
 
-      - name: Generate AI Code Review
+      - name: Perform Accessibility Review
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
           PR_DIFF: ${{ steps.fetch-diff.outputs.result }}
         with:
           script: |
             const fs = require('fs');
-            const prDiff = process.env.PR_DIFF;
+            const prNumber = context.issue.number;
             const title = context.payload.pull_request.title;
+            const prDiff = process.env.PR_DIFF;
 
             let codebase = '<empty>';
             try {
@@ -66,14 +63,14 @@ jobs:
               console.log('Repomix output not found.');
             }
 
-            let searchAnswer = '検索結果の要約なし';
+            let searchAnswer = '検索結果なし';
             try {
               const tavilyRes = await fetch('https://api.tavily.com/search', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                   api_key: process.env.TAVILY_API_KEY,
-                  query: `2025 latest pull request code review best practices for: ${title}`,
+                  query: `2025 latest Web Content Accessibility Guidelines WCAG React UI UX best practices for: ${title}`,
                   search_depth: 'advanced',
                   include_answer: true,
                 }),
@@ -83,17 +80,17 @@ jobs:
                 const searchData = await tavilyRes.json();
                 searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
               }
-            } catch (e) {
-              console.log('Tavily search request failed:', e);
-            }
+            } catch (e) {}
 
-            const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のプルリクエストの差分、プロジェクトのコードベース概要、および最新のWeb検索ベストプラクティスをもとに、コードの品質、潜在的なバグ、セキュリティの問題、パフォーマンスの改善点（React 19の最新機能やBunの最適化を含む）、およびAIコンテキストの境界違反がないかについて日本語で簡潔にフィードバックを提供してください。
+            const prompt = `あなたはアクセシビリティ(A11y)およびUI/UXの専門家です。
+            以下のPRの差分、プロジェクトのコードベース、および最新のWeb検索のベストプラクティスをもとに、
+            フロントエンドの変更がWCAGに準拠しているか、スクリーンリーダーのサポートやキーボード操作、適切なARIA属性の付与ができているかを日本語でレビューしてください。
+
             プロジェクト要件:
             - 名称には「monopoly」ではなく必ず「monopo」を使用する。
             - パッケージマネージャには必ずBunを使用する。
 
-            Web検索によるヒント:
-            ${searchAnswer}
+            Web検索結果: ${searchAnswer}
 
             コードベース概要 (XML):
             ${codebase}
@@ -101,30 +98,31 @@ jobs:
             差分:
             ${prDiff}`;
 
-            const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
-              },
-              body: JSON.stringify({
-                model: 'o3-mini',
-                messages: [{ role: 'user', content: prompt }]
-              })
-            });
+            let analysis = null;
+            try {
+              const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
+                },
+                body: JSON.stringify({
+                  model: 'o3-mini',
+                  messages: [{ role: 'user', content: prompt }]
+                })
+              });
 
-            if (!aiRes.ok) {
-              console.log('AI Review failed');
-              return;
-            }
-            const aiData = await aiRes.json();
-            const review = aiData.choices?.[0]?.message?.content;
+              if (aiRes.ok) {
+                const aiData = await aiRes.json();
+                analysis = aiData.choices?.[0]?.message?.content;
+              }
+            } catch (e) {}
 
-            if (review) {
+            if (analysis) {
               await github.rest.issues.createComment({
-                issue_number: context.issue.number,
+                issue_number: prNumber,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: `### 🤖 AI Code Review\n\n${review}`
+                body: `### 🤖 AI Accessibility Review\n\n${analysis}`
               });
             }
