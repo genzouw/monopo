@@ -25,7 +25,8 @@ jobs:
           echo "🔍 Scanning workflows for missing or excessive top-level permissions..."
 
           # 1. 権限が明示されていないワークフローのチェック
-          MISSING=$(grep -rEL '^permissions:' .github/workflows/*.yml || true)
+          WORKFLOWS=$(find .github/workflows -maxdepth 1 -type f \( -name '*.yml' -o -name '*.yaml' \))
+          MISSING=$(echo "$WORKFLOWS" | xargs grep -EL '^permissions:' || true)
           if [ -n "$MISSING" ]; then
             echo "::error::❌ The following workflows do not have explicit top-level permissions set:"
             echo "$MISSING"
