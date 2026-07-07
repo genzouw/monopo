@@ -8,15 +8,17 @@ on:
       - '.github/workflows/**'
 
 permissions:
-  pull-requests: write
   contents: read
 
 jobs:
   review:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - name: Checkout Code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
 
@@ -71,7 +73,7 @@ jobs:
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                   api_key: process.env.TAVILY_API_KEY,
-                  query: `2025 latest pull request code review best practices for: ${title}`,
+                  query: `latest pull request code review best practices for: ${title}`,
                   search_depth: 'advanced',
                   include_answer: true,
                 }),
@@ -85,7 +87,7 @@ jobs:
               console.log('Tavily search request failed:', e);
             }
 
-            const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のプルリクエストの差分、プロジェクトのコードベース概要、および最新のWeb検索ベストプラクティスをもとに、コードの品質、潜在的なバグ、セキュリティの問題、パフォーマンスの改善点について日本語で簡潔にフィードバックを提供してください。
+            const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のプルリクエストの差分、プロジェクトのコードベース概要、および最新のWeb検索ベストプラクティスをもとに、コードの品質、潜在的なバグ、セキュリティの問題、パフォーマンスの改善点（React 19の最新機能やBunの最適化を含む）、およびAIコンテキストの境界違反がないかについて日本語で簡潔にフィードバックを提供してください。
             プロジェクト要件:
             - 名称には「monopoly」ではなく必ず「monopo」を使用する。
             - パッケージマネージャには必ずBunを使用する。

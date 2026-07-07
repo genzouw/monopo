@@ -1,4 +1,4 @@
-import { useState, useId } from 'react';
+import { useState, useId, useMemo } from 'react';
 import type {
   BoardSpace,
   ColorGroup,
@@ -83,17 +83,25 @@ export default function TradeDialog({
   const [offerMoney, setOfferMoney] = useState(0);
   const [requestMoney, setRequestMoney] = useState(0);
 
-  const myProperties = currentPlayer.properties
-    .map((id: string) => getSpaceById(id, board))
-    .filter(
-      (s): s is BoardSpace => !!s && (propertyStates[s.id]?.houses ?? 0) === 0,
-    );
+  // ⚡ Bolt: useMemo to prevent repeated mapping and filtering of property arrays on every render.
+  // TradeDialog involves frequent state updates (typing money amount), and computing properties on every render hurts input latency.
+  const myProperties = useMemo(() => {
+    return currentPlayer.properties
+      .map((id: string) => getSpaceById(id, board))
+      .filter(
+        (s): s is BoardSpace =>
+          !!s && (propertyStates[s.id]?.houses ?? 0) === 0,
+      );
+  }, [currentPlayer.properties, board, propertyStates]);
 
-  const theirProperties = targetPlayer.properties
-    .map((id: string) => getSpaceById(id, board))
-    .filter(
-      (s): s is BoardSpace => !!s && (propertyStates[s.id]?.houses ?? 0) === 0,
-    );
+  const theirProperties = useMemo(() => {
+    return targetPlayer.properties
+      .map((id: string) => getSpaceById(id, board))
+      .filter(
+        (s): s is BoardSpace =>
+          !!s && (propertyStates[s.id]?.houses ?? 0) === 0,
+      );
+  }, [targetPlayer.properties, board, propertyStates]);
 
   const toggleOffer = (id: string) => {
     setOfferProperties((prev) =>
