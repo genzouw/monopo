@@ -13,3 +13,8 @@ extra_instructions = """
 extra_instructions = """
 - PRの説明はすべて日本語で記述してください。
 """
+
+[pr_reviewer]
+extra_instructions = """
+- 新たなAIツールやサービスの導入を提案・レビューする際は、公開リポジトリにおいて無料で利用可能であることを必ず確認してください。
+"""

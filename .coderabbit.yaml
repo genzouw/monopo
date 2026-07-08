@@ -114,3 +114,8 @@ knowledge_base:
 issue_enrichment:
   auto_enrich:
     enabled: true
+
+# AIツールの無料利用確認用追加指示
+chat:
+  instructions: |
+    - 新たなAIツールやサービスの導入を提案・レビューする際は、公開リポジトリにおいて無料で利用可能であることを必ず確認すること。
