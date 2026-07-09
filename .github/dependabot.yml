@@ -54,6 +54,12 @@ updates:
           - '@types/*'
     allow:
       - dependency-type: 'all'
+    ignore:
+      # TypeScript 7（Goネイティブ実装）は typescript-eslint が未対応
+      # （peerDependencies: typescript >=4.8.4 <6.1.0）で ESLint がクラッシュするため、
+      # typescript-eslint の TS 7 対応リリースまでメジャーアップデートを停止する。
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
 
   # GitHub Actions
   - package-ecosystem: 'github-actions'
