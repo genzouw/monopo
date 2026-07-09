@@ -1,0 +1,110 @@
+name: AI Weekly Tech Trend Analyzer
+
+on:
+  schedule:
+    - cron: '0 9 * * 1' # 毎週月曜日の朝9時(UTC)に実行
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze-trends:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Search and Generate Trend Report
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+        with:
+          script: |
+            const year = new Date().getFullYear();
+
+            // 1. Tavily Search for Web Development Trends
+            const devTavilyRes = await fetch('https://api.tavily.com/search', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                api_key: process.env.TAVILY_API_KEY,
+                query: `${year} latest React TypeScript Vite Bun frontend architecture best practices`,
+                search_depth: 'advanced',
+                include_answer: true,
+              }),
+            });
+
+            // 2. Tavily Search for AI/CI Tool Trends
+            const aiTavilyRes = await fetch('https://api.tavily.com/search', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                api_key: process.env.TAVILY_API_KEY,
+                query: `${year} latest GitHub Actions AI tools open source free for public repo`,
+                search_depth: 'advanced',
+                include_answer: true,
+              }),
+            });
+
+            let devContext = 'Web開発トレンドの検索に失敗しました。';
+            let aiContext = 'AIツールの検索に失敗しました。';
+
+            if (devTavilyRes.ok) {
+              const data = await devTavilyRes.json();
+              devContext = (data.answer || '').slice(0, 1500) + '\n' + (data.results?.map(r => r.content).join('\n') || '').slice(0, 1500);
+            }
+            if (aiTavilyRes.ok) {
+              const data = await aiTavilyRes.json();
+              aiContext = (data.answer || '').slice(0, 1500) + '\n' + (data.results?.map(r => r.content).join('\n') || '').slice(0, 1500);
+            }
+
+            const prompt = `あなたは最新のテクノロジーに精通したシニアテックリードです。以下の最新の検索結果をもとに、プロジェクトの技術スタック（React, TypeScript, Vite, Bun）に役立つ開発トレンドと、公開リポジトリで無料で使える最新のAIツール・自動化パイプライン（CI/CD）の提案をまとめた日本語のレポートを作成してください。
+
+            プロジェクト要件:
+            - 名称には「monopoly」ではなく必ず「monopo」を使用する。
+            - パッケージマネージャには必ずBunを使用する。
+
+            【Web開発トレンド (検索結果)】
+            ${devContext}
+
+            【AI・自動化ツールトレンド (検索結果)】
+            ${aiContext}
+            `;
+
+            const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
+              },
+              body: JSON.stringify({
+                model: 'o3-mini',
+                messages: [{ role: 'user', content: prompt }]
+              })
+            });
+
+            if (aiRes.ok) {
+              const aiData = await aiRes.json();
+              const report = aiData.choices?.[0]?.message?.content;
+
+              if (report) {
+                const titleDate = new Date().toISOString().split('T')[0];
+                await github.rest.issues.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title: `🤖 AI Weekly Tech & Tool Trend Report (${titleDate})`,
+                  body: `### 🤖 今週の技術トレンド＆AIツール導入提案\n\n${report}`,
+                  labels: ['enhancement', 'ai-generated', 'research']
+                });
+              }
+            } else {
+              console.log('GitHub Models request failed:', await aiRes.text());
+            }
