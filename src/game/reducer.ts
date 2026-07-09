@@ -322,6 +322,22 @@ function updateCurrentPlayer(
   state: GameState,
   updates: Partial<Player>,
 ): GameState {
+  const currentPlayer = state.players[state.currentPlayerIndex];
+  if (!currentPlayer) return state; // Safety check if index is out of bounds
+
+  // ⚡ Bolt: 構造共有 (Structural Sharing) と遅延クローンによる最適化
+  // - What: 実際に値が変更される場合のみ新しいプレイヤーオブジェクトを生成する
+  // - Why: 無条件にスプレッド構文でコピーすると参照が変わり、変更がなくてもReact.memo (MiniMapやPlayerPanelなど) が再レンダリングされてしまうため
+  // - Impact: 不要な再レンダリングを防ぎ、メインスレッドのブロック時間を削減
+  // - Measurement: React Profiler で不要な再レンダリングがスキップされていることを確認
+  const hasChanges = (Object.keys(updates) as Array<keyof Player>).some(
+    (key) => updates[key] !== currentPlayer[key],
+  );
+
+  if (!hasChanges) {
+    return state;
+  }
+
   const players = state.players.map((p, i) =>
     i === state.currentPlayerIndex ? { ...p, ...updates } : p,
   );
