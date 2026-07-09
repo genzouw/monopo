@@ -105,6 +105,9 @@ reviews:
 
 chat:
   auto_reply: true
+  # AIツールの無料利用確認用追加指示
+  instructions: |
+    - 新たなAIツールやサービスの導入を提案・レビューする際は、公開リポジトリにおいて無料で利用可能であることを必ず確認すること。
 
 knowledge_base:
   opt_out: false

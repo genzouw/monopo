@@ -20,8 +20,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Fetch Trends and Generate Report
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+      - name: Search and Generate Trend Report
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
@@ -29,41 +29,56 @@ jobs:
         with:
           script: |
             // トークン上限超過とコスト増を防ぐため、プロンプトに埋め込む値は文字数で truncate する
-            const MAX_SEARCH_ANSWER_CHARS = 3000;
+            const MAX_SEARCH_ANSWER_CHARS = 1500;
+            const year = new Date().getFullYear();
 
-            // 1. Tavily Search
-            const tavilyRes = await fetch('https://api.tavily.com/search', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                api_key: process.env.TAVILY_API_KEY,
-                query: `2025 latest frontend React 19 Bun AI CI/CD optimization tech trends`,
-                search_depth: 'advanced',
-                include_answer: true,
-              }),
-            });
+            async function searchTavily(query) {
+              const res = await fetch('https://api.tavily.com/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  api_key: process.env.TAVILY_API_KEY,
+                  query,
+                  search_depth: 'advanced',
+                  include_answer: true,
+                }),
+              });
 
-            let searchData = { answer: '要約なし', results: [] };
-            if (tavilyRes.ok) {
-              try {
-                searchData = await tavilyRes.json();
-              } catch (e) {
-                console.log('Failed to parse Tavily response as JSON:', e);
+              let data = { answer: '', results: [] };
+              if (res.ok) {
+                try {
+                  data = await res.json();
+                } catch (e) {
+                  console.log('Failed to parse Tavily response as JSON:', e);
+                }
+              } else {
+                console.log(`Tavily request failed: ${res.status} ${res.statusText}`);
               }
-            } else {
-              console.log(`Tavily request failed: ${tavilyRes.status} ${tavilyRes.statusText}`);
+              return data;
             }
-            const searchAnswer = (searchData.answer || '要約なし').slice(0, MAX_SEARCH_ANSWER_CHARS);
 
-            // 2. GitHub Models によるサマリー生成
-            const prompt = `あなたは最新のIT、コンピューターサイエンス、フロントエンド技術に精通したシニアエンジニアです。
-            以下のWeb検索結果をもとに、今週の最新技術トレンド（特にReact 19、Bun、AIを活用したCI/CDパイプライン、自動化ツールについて）を日本語でわかりやすく要約し、私たちのプロジェクト（monopo）への応用可能性や推奨事項を提案してください。
+            // 1. Tavily Search for Web Development Trends
+            const devSearchData = await searchTavily(`${year} latest React TypeScript Vite Bun frontend architecture best practices`);
+            const devContext = (devSearchData.answer || 'Web開発トレンドの検索に失敗しました。').slice(0, MAX_SEARCH_ANSWER_CHARS)
+              + '\n' + (devSearchData.results?.map(r => r.content).join('\n') || '').slice(0, MAX_SEARCH_ANSWER_CHARS);
+
+            // 2. Tavily Search for AI/CI Tool Trends
+            const aiSearchData = await searchTavily(`${year} latest GitHub Actions AI tools open source free for public repo`);
+            const aiContext = (aiSearchData.answer || 'AIツールの検索に失敗しました。').slice(0, MAX_SEARCH_ANSWER_CHARS)
+              + '\n' + (aiSearchData.results?.map(r => r.content).join('\n') || '').slice(0, MAX_SEARCH_ANSWER_CHARS);
+
+            // 3. GitHub Models によるサマリー生成
+            const prompt = `あなたは最新のテクノロジーに精通したシニアテックリードです。以下の最新の検索結果をもとに、プロジェクトの技術スタック（React, TypeScript, Vite, Bun）に役立つ開発トレンドと、公開リポジトリで無料で使える最新のAIツール・自動化パイプライン（CI/CD）の提案をまとめた日本語のレポートを作成してください。
 
             プロジェクト要件:
             - 名称には「monopoly」ではなく必ず「monopo」を使用する。
             - パッケージマネージャには必ずBunを使用する。
 
-            検索結果の要約: ${searchAnswer}
+            【Web開発トレンド (検索結果)】
+            ${devContext}
+
+            【AI・自動化ツールトレンド (検索結果)】
+            ${aiContext}
             `;
 
             const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
@@ -78,11 +93,11 @@ jobs:
               })
             });
 
-            let report = 'トレンドレポートの生成に失敗しました。';
+            let report;
             if (aiRes.ok) {
               try {
                 const aiData = await aiRes.json();
-                report = aiData.choices?.[0]?.message?.content || report;
+                report = aiData.choices?.[0]?.message?.content;
               } catch (e) {
                 console.log('Failed to parse GitHub Models response as JSON:', e);
               }
@@ -92,15 +107,18 @@ jobs:
               console.log('Response body:', errorBody);
             }
 
-            let body = `### 🤖 AI Weekly Tech Trend Report\n\n${report}\n\n#### 参考ソース\n`;
-            if(searchData.results) {
-               searchData.results.forEach(r => { body += `- [${r.title}](${r.url})\n`; });
-            }
+            if (report) {
+              let body = `### 🤖 今週の技術トレンド＆AIツール導入提案\n\n${report}\n\n#### 参考ソース\n`;
+              [...(devSearchData.results || []), ...(aiSearchData.results || [])].forEach(r => {
+                body += `- [${r.title}](${r.url})\n`;
+              });
 
-            await github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: `🤖 今週の技術トレンド分析レポート (${new Date().toISOString().split('T')[0]})`,
-              body: body,
-              labels: ['enhancement', 'ai-generated']
-            });
+              const titleDate = new Date().toISOString().split('T')[0];
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `🤖 AI Weekly Tech & Tool Trend Report (${titleDate})`,
+                body: body,
+                labels: ['enhancement', 'ai-generated', 'research']
+              });
+            }
