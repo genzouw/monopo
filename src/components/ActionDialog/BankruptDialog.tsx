@@ -20,7 +20,9 @@ export default function BankruptDialog({
       }
     >
       <div style={{ textAlign: 'center', padding: '16px 0', fontSize: 16 }}>
-        <div style={{ fontSize: 48, marginBottom: 12 }}>😢</div>
+        <div style={{ fontSize: 48, marginBottom: 12 }} aria-hidden="true">
+          😢
+        </div>
         <div>{playerName}はおかねがなくなってしまったよ。</div>
         <div
           style={{
