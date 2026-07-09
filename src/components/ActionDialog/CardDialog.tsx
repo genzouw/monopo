@@ -17,7 +17,9 @@ export default function CardDialog({ card, onDismiss }: CardDialogProps) {
       actions={<Button onClick={onDismiss}>わかった！</Button>}
     >
       <div className={styles.cardContent}>
-        <div className={styles.cardEmoji} aria-hidden="true">{emoji}</div>
+        <div className={styles.cardEmoji} aria-hidden="true">
+          {emoji}
+        </div>
         <div>{card.text}</div>
       </div>
     </Dialog>
