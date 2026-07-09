@@ -21,3 +21,13 @@ repos:
     hooks:
       - id: gitleaks
         stages: [commit]
+
+  - repo: local
+    hooks:
+      - id: forbid-sensitive-files
+        name: Prevent committing sensitive files and AI workspaces
+        entry: >-
+          sh -c 'echo "❌ Error: Attempted to commit banned sensitive files or AI workspaces:"; for f in "$@"; do echo "  - $f"; done; echo "Please remove them from your commit (e.g., git reset HEAD <file>)."; exit 1' --
+        language: system
+        files: '(?i)(\.env$|\.env\..*|.*\.pem$|.*\.key$|.*credentials.*\.(json|ya?ml|env)$|.*secret.*\.(json|ya?ml|env)$|\.npmrc$|\.netrc$|.*\.(p12|pfx|keystore|sqlite|sqlite3|db)$|service-?account.*\.(json|ya?ml|env)$|\.tfstate.*|^\.cursor/|^\.claude/|^\.aider.*|^\.continue/|^\.jules/|(^|/)\.cline/|(^|/)\.windsurf/|(^|/)\.trae/|(^|/)\.roo/|.*\.log$|.*-report\.md$|ai-report-.*\.md$)'
+        exclude: '\.env\.example$'
