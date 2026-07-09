@@ -330,13 +330,9 @@ function updateCurrentPlayer(
   // - Why: 無条件にスプレッド構文でコピーすると参照が変わり、変更がなくてもReact.memo (MiniMapやPlayerPanelなど) が再レンダリングされてしまうため
   // - Impact: 不要な再レンダリングを防ぎ、メインスレッドのブロック時間を削減
   // - Measurement: React Profiler で不要な再レンダリングがスキップされていることを確認
-  let hasChanges = false;
-  for (const key in updates) {
-    if (updates[key as keyof Player] !== currentPlayer[key as keyof Player]) {
-      hasChanges = true;
-      break;
-    }
-  }
+  const hasChanges = (Object.keys(updates) as Array<keyof Player>).some(
+    (key) => updates[key] !== currentPlayer[key],
+  );
 
   if (!hasChanges) {
     return state;
