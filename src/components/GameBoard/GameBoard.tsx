@@ -277,6 +277,38 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
     [state.dice.rolled, state.dice.values, isRolling, handleRollComplete],
   );
 
+  // ⚡ Bolt: useMemo to prevent O(P log P) sorting/mapping of owned properties on every render (e.g. 60 FPS animation) while the player dialog is open.
+  const detailPlayerProps = useMemo(() => {
+    const detailPlayer = showPlayerDetail
+      ? state.players.find((p) => p.id === showPlayerDetail)
+      : null;
+    if (!detailPlayer) return [];
+    const colorOrder = [
+      'brown',
+      'lightblue',
+      'pink',
+      'orange',
+      'red',
+      'yellow',
+      'green',
+      'blue',
+    ];
+    return detailPlayer.properties
+      .map((id) => ({
+        space: getSpaceById(id, state.board)!,
+        state: state.propertyStates[id],
+      }))
+      .sort((a, b) => {
+        const ai = a.space.color
+          ? colorOrder.indexOf(a.space.color)
+          : colorOrder.length;
+        const bi = b.space.color
+          ? colorOrder.indexOf(b.space.color)
+          : colorOrder.length;
+        return ai !== bi ? ai - bi : a.space.position - b.space.position;
+      });
+  }, [showPlayerDetail, state.players, state.board, state.propertyStates]);
+
   return (
     <div className={styles.gameBoard}>
       <div className={styles.boardSection}>
@@ -899,20 +931,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
             blue: '🔵 あお',
             railroad: '🚂 てつどう',
           };
-          const ownedProps = detailPlayer.properties
-            .map((id) => ({
-              space: getSpaceById(id, state.board)!,
-              state: state.propertyStates[id],
-            }))
-            .sort((a, b) => {
-              const ai = a.space.color
-                ? colorOrder.indexOf(a.space.color)
-                : colorOrder.length;
-              const bi = b.space.color
-                ? colorOrder.indexOf(b.space.color)
-                : colorOrder.length;
-              return ai !== bi ? ai - bi : a.space.position - b.space.position;
-            });
+          const ownedProps = detailPlayerProps;
           const currentSpaceName =
             state.board[detailPlayer.position]?.name ?? '';
           return (
