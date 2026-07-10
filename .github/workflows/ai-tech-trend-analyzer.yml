@@ -2,7 +2,7 @@ name: AI Weekly Tech Trend Analyzer
 
 on:
   schedule:
-    - cron: '0 9 * * 1' # 毎週月曜日の朝9時(UTC)に実行
+    - cron: '0 9 * * 1' # 毎週月曜日の午前9時（UTC）に実行
   workflow_dispatch:
 
 permissions:
@@ -28,44 +28,46 @@ jobs:
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
         with:
           script: |
+            // トークン上限超過とコスト増を防ぐため、プロンプトに埋め込む値は文字数で truncate する
+            const MAX_SEARCH_ANSWER_CHARS = 1500;
             const year = new Date().getFullYear();
 
+            async function searchTavily(query) {
+              const res = await fetch('https://api.tavily.com/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  api_key: process.env.TAVILY_API_KEY,
+                  query,
+                  search_depth: 'advanced',
+                  include_answer: true,
+                }),
+              });
+
+              let data = { answer: '', results: [] };
+              if (res.ok) {
+                try {
+                  data = await res.json();
+                } catch (e) {
+                  console.log('Failed to parse Tavily response as JSON:', e);
+                }
+              } else {
+                console.log(`Tavily request failed: ${res.status} ${res.statusText}`);
+              }
+              return data;
+            }
+
             // 1. Tavily Search for Web Development Trends
-            const devTavilyRes = await fetch('https://api.tavily.com/search', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                api_key: process.env.TAVILY_API_KEY,
-                query: `${year} latest React TypeScript Vite Bun frontend architecture best practices`,
-                search_depth: 'advanced',
-                include_answer: true,
-              }),
-            });
+            const devSearchData = await searchTavily(`${year} latest React TypeScript Vite Bun frontend architecture best practices`);
+            const devContext = (devSearchData.answer || 'Web開発トレンドの検索に失敗しました。').slice(0, MAX_SEARCH_ANSWER_CHARS)
+              + '\n' + (devSearchData.results?.map(r => r.content).join('\n') || '').slice(0, MAX_SEARCH_ANSWER_CHARS);
 
             // 2. Tavily Search for AI/CI Tool Trends
-            const aiTavilyRes = await fetch('https://api.tavily.com/search', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                api_key: process.env.TAVILY_API_KEY,
-                query: `${year} latest GitHub Actions AI tools open source free for public repo`,
-                search_depth: 'advanced',
-                include_answer: true,
-              }),
-            });
+            const aiSearchData = await searchTavily(`${year} latest GitHub Actions AI tools open source free for public repo`);
+            const aiContext = (aiSearchData.answer || 'AIツールの検索に失敗しました。').slice(0, MAX_SEARCH_ANSWER_CHARS)
+              + '\n' + (aiSearchData.results?.map(r => r.content).join('\n') || '').slice(0, MAX_SEARCH_ANSWER_CHARS);
 
-            let devContext = 'Web開発トレンドの検索に失敗しました。';
-            let aiContext = 'AIツールの検索に失敗しました。';
-
-            if (devTavilyRes.ok) {
-              const data = await devTavilyRes.json();
-              devContext = (data.answer || '').slice(0, 1500) + '\n' + (data.results?.map(r => r.content).join('\n') || '').slice(0, 1500);
-            }
-            if (aiTavilyRes.ok) {
-              const data = await aiTavilyRes.json();
-              aiContext = (data.answer || '').slice(0, 1500) + '\n' + (data.results?.map(r => r.content).join('\n') || '').slice(0, 1500);
-            }
-
+            // 3. GitHub Models によるサマリー生成
             const prompt = `あなたは最新のテクノロジーに精通したシニアテックリードです。以下の最新の検索結果をもとに、プロジェクトの技術スタック（React, TypeScript, Vite, Bun）に役立つ開発トレンドと、公開リポジトリで無料で使える最新のAIツール・自動化パイプライン（CI/CD）の提案をまとめた日本語のレポートを作成してください。
 
             プロジェクト要件:
@@ -91,20 +93,32 @@ jobs:
               })
             });
 
+            let report;
             if (aiRes.ok) {
-              const aiData = await aiRes.json();
-              const report = aiData.choices?.[0]?.message?.content;
-
-              if (report) {
-                const titleDate = new Date().toISOString().split('T')[0];
-                await github.rest.issues.create({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  title: `🤖 AI Weekly Tech & Tool Trend Report (${titleDate})`,
-                  body: `### 🤖 今週の技術トレンド＆AIツール導入提案\n\n${report}`,
-                  labels: ['enhancement', 'ai-generated', 'research']
-                });
+              try {
+                const aiData = await aiRes.json();
+                report = aiData.choices?.[0]?.message?.content;
+              } catch (e) {
+                console.log('Failed to parse GitHub Models response as JSON:', e);
               }
             } else {
-              console.log('GitHub Models request failed:', await aiRes.text());
+              const errorBody = await aiRes.text().catch(() => '<failed to read body>');
+              console.log(`GitHub Models request failed: ${aiRes.status} ${aiRes.statusText}`);
+              console.log('Response body:', errorBody);
+            }
+
+            if (report) {
+              let body = `### 🤖 今週の技術トレンド＆AIツール導入提案\n\n${report}\n\n#### 参考ソース\n`;
+              [...(devSearchData.results || []), ...(aiSearchData.results || [])].forEach(r => {
+                body += `- [${r.title}](${r.url})\n`;
+              });
+
+              const titleDate = new Date().toISOString().split('T')[0];
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `🤖 AI Weekly Tech & Tool Trend Report (${titleDate})`,
+                body: body,
+                labels: ['enhancement', 'ai-generated', 'research']
+              });
             }

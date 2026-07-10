@@ -38,6 +38,7 @@
 
 - ローカルAIエージェントやAI-native IDE（Windsurf, Trae, Aider, Cline, Roo Code, Continue.devなど）を利用する際は、リポジトリ固有のルールを遵守し、作業ディレクトリ（`.aider*`、`.continue/`、`.windsurf`、`.roo/`、`.trae/` など）をコミットしないように注意してください。
 - 本リポジトリでは無料・オープンソースのベストプラクティスに基づき、GitHub Models (o3-mini) を利用した自作の AI PR Reviewer を導入し、SaaS依存を低減しつつ高度なコードレビューを自動化しています。
+- 定期的に（毎週）最新のフロントエンド（React 19, Bun等）やAI CI/CDのトレンドを要約し、チームの継続的な学習を促進するための AI Weekly Tech Trend Analyzer (`.github/workflows/ai-tech-trend-analyzer.yml`) プロトタイプを導入しています。
 
 - 最新のAIエージェント（GitHub Copilot Agent, GPT-5.5, Claude 3.7, DeepSeek-R1 連携等）を利用する際は、生成されたコードのセキュリティリスク（機密情報の出力やインジェクション脆弱性）をローカルで必ず検証し、自動レビューツールとの多層的なチェックを行ってください。
 
