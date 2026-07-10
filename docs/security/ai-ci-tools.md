@@ -29,3 +29,13 @@
    - `.lighthouserc.json` の `upload.target: "temporary-public-storage"` により、レポートは一時的な公開ストレージ（7日間で削除）にアップロードされます。
      - 参考: `treosh/lighthouse-ci-action` の入力引数では同等の指定が `temporaryPublicStorage: true` という名称になりますが、本リポジトリでは設定を `.lighthouserc.json` 側に集約しているため、ワークフロー側ではこの入力引数を使用していません。
    - よりセキュアな運用が必要な場合は、プライベートなLHCIサーバーを構築し、シークレット（`LHCI_SERVER_URL`, `LHCI_SERVER_TOKEN`）を登録した上で `.lighthouserc.json` の `upload.target` を `lhci` に変更する運用を検討してください。
+
+## 新規: AI Accessibility Reviewer の設定
+
+フロントエンドの変更に対して、WCAG 準拠やUI/UXの観点でAIが自動レビューを行う `.github/workflows/ai-a11y-reviewer.yml` を追加しました。
+無料の GitHub Models (o3-mini) と Tavily Search API を利用して最新のトレンドで評価します。
+
+1. **GitHub Secretsの設定 (必須)**
+   - このワークフローを動作させるには、リポジトリ管理者権限を持つユーザーが GitHub のリポジトリの `Settings > Secrets and variables > Actions` にて、以下のシークレットを登録してください。
+     - `GH_MODELS_TOKEN`: GitHub Models へのアクセス用トークン
+     - `TAVILY_API_KEY`: Tavily Search API へのアクセス用キー

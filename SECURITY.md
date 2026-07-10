@@ -59,3 +59,8 @@ CI の監査ワークフロー (`.github/workflows/permissions-audit.yml`) に�
 ### CI ワークフローの権限最小化 (Least Privilege in CI)
 
 リポジトリに対する予期せぬ変更やインジェクション攻撃時の二次被害を防ぐため、`.github/workflows/` 配下の CI ワークフローでは**トップレベルの権限を読み取り専用 (`contents: read` など最小限) に制限**しています。書き込み権限（例: `pull-requests: write`, `security-events: write`）が必要な場合は、トップレベルではなく、その権限を実際に必要とする**ジョブ単位 (`jobs.<job_name>.permissions`) に絞って付与**することを徹底しています。
+
+### 追加の漏洩防止対策 (Pre-commit 強化)
+
+ファイル名・パスベースによる特定ファイル (環境変数ファイル、キーファイル、AI エージェント作業ディレクトリなど) のコミット防止ルールを、ローカルのシェルスクリプト依存から `.pre-commit-config.yaml` のカスタムフック (`forbid-sensitive-files`) へと移行・統合しました。
+これにより、CI 上で稼働する `pre-commit` ワークフローとローカル環境での防止ルールが一元化され、防御の確実性が向上しています。

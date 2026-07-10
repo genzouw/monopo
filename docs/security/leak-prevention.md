@@ -76,6 +76,10 @@ CI の監査ワークフロー (`.github/workflows/permissions-audit.yml`) に�
 
 リポジトリに対する予期せぬ変更やインジェクション攻撃時の二次被害を防ぐため、`.github/workflows/` 配下の CI ワークフローでは**トップレベルの権限を読み取り専用 (`contents: read` など最小限) に制限**しています。書き込み権限（例: `pull-requests: write`, `security-events: write`）が必要な場合は、トップレベルではなく、その権限を実際に必要とする**ジョブ単位 (`jobs.<job_name>.permissions`) に絞って付与**することを徹底しています。
 
+### pre-push フックの追加 (防御層の強化)
+
+ローカルで `git commit --no-verify` などを用いて pre-commit をバイパスされた場合への最後の防壁として、新たに `.husky/pre-push` フックによる gitleaks 検知を導入しました。これにより、リモートリポジトリへ秘密情報がプッシュされることを水際で防ぎます。
+
 ## 4. クライアントサイドの防御 (Client-Side Defense)
 
 - **Referrer-Policy**: `index.html` に `<meta name="referrer" content="no-referrer" />` を設定することで、アプリケーション内から外部リソースを参照した際や外部リンクへ遷移した際に、現在のURLや機密情報がリファラとして外部に漏洩することを防ぎます。

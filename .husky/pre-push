@@ -1,0 +1,23 @@
+#!/bin/sh
+set -e
+
+# Read push info from stdin (format: <local-ref> <local-sha> <remote-ref> <remote-sha>)
+# If all local SHAs are zero (branch deletion), skip scanning.
+while read -r local_ref local_sha remote_ref remote_sha; do
+  if [ "$local_sha" = "0000000000000000000000000000000000000000" ]; then
+    echo "ℹ️ Branch deletion detected (${remote_ref}), skipping gitleaks scan."
+    exit 0
+  fi
+done
+
+if command -v gitleaks > /dev/null 2>&1; then
+  echo "🔒 Running local gitleaks check before push..."
+  gitleaks detect --log-opts="--not --remotes" --verbose
+else
+  {
+    echo "❌ Error: gitleaks is not installed locally."
+    echo "To prevent accidental secret leaks, gitleaks is REQUIRED for pushing."
+    echo "Please install it."
+  } >&2
+  exit 1
+fi
