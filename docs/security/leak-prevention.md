@@ -83,3 +83,7 @@ CI の監査ワークフロー (`.github/workflows/permissions-audit.yml`) に�
 ## 4. クライアントサイドの防御 (Client-Side Defense)
 
 - **Referrer-Policy**: `index.html` に `<meta name="referrer" content="no-referrer" />` を設定することで、アプリケーション内から外部リソースを参照した際や外部リンクへ遷移した際に、現在のURLや機密情報がリファラとして外部に漏洩することを防ぎます。
+
+### 追加のセキュリティ要件 (Trivy ブランチ拡張)
+
+シークレット漏洩・設定ミス検知のリスクは `main` ブランチだけでなく、開発中のフィーチャーブランチにも存在します。そのため、本リポジトリでは `trivy` によるスキャンも **すべてのブランチの push 時に実行** するよう拡張設定しています。
