@@ -43,7 +43,7 @@ export default function JailDialog({
           </Button>
           {hasCards && (
             <Button variant="secondary" onClick={onUseCard}>
-              カードをつかう（あと {currentPlayer.getOutOfJailCards} まい）
+              カードをつかう（あと {currentPlayer.getOutOfJailCards}まい）
             </Button>
           )}
           <Button variant="secondary" onClick={onRollForJail}>
@@ -62,8 +62,7 @@ export default function JailDialog({
         )}
         {hasCards && (
           <div className={styles.hasCardHint}>
-            しゃくほうカードを {currentPlayer.getOutOfJailCards}{' '}
-            まいもってるよ！
+            しゃくほうカードを {currentPlayer.getOutOfJailCards}まいもってるよ！
           </div>
         )}
       </div>
