@@ -283,6 +283,9 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
       ? state.players.find((p) => p.id === showPlayerDetail)
       : null;
     if (!detailPlayer) return [];
+    const board = state.board;
+    const propertyStates = state.propertyStates;
+    if (!board || !propertyStates) return [];
     const colorOrder = [
       'brown',
       'lightblue',
@@ -294,17 +297,21 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
       'blue',
     ];
     return detailPlayer.properties
-      .map((id) => ({
-        space: getSpaceById(id, state.board)!,
-        state: state.propertyStates[id],
-      }))
+      .map((id) => {
+        const space = getSpaceById(id, board);
+        const propertyState = propertyStates[id];
+        return space && propertyState ? { space, state: propertyState } : null;
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null)
       .sort((a, b) => {
-        const ai = a.space.color
+        const aColorIdx = a.space.color
           ? colorOrder.indexOf(a.space.color)
-          : colorOrder.length;
-        const bi = b.space.color
+          : -1;
+        const bColorIdx = b.space.color
           ? colorOrder.indexOf(b.space.color)
-          : colorOrder.length;
+          : -1;
+        const ai = aColorIdx !== -1 ? aColorIdx : colorOrder.length;
+        const bi = bColorIdx !== -1 ? bColorIdx : colorOrder.length;
         return ai !== bi ? ai - bi : a.space.position - b.space.position;
       });
   }, [showPlayerDetail, state.players, state.board, state.propertyStates]);
