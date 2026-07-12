@@ -240,37 +240,6 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
       currentSpace?.type === 'communityChest') &&
     !state.currentCard;
 
-  // ⚡ Bolt: Extract array mapping/sorting out of the render IIFE and memoize to avoid severe performance degradation during high-frequency animations (60 FPS).
-  const detailPlayerForProps = showPlayerDetail
-    ? playersById[showPlayerDetail]
-    : null;
-  const detailPlayerOwnedProps = useMemo(() => {
-    if (!detailPlayerForProps) return [];
-    const colorOrder = [
-      'brown',
-      'lightblue',
-      'pink',
-      'orange',
-      'red',
-      'yellow',
-      'green',
-      'blue',
-    ];
-    return detailPlayerForProps.properties
-      .map((id) => {
-        const space = getSpaceById(id, state.board);
-        return space ? { space, state: state.propertyStates[id] } : null;
-      })
-      .filter((item): item is NonNullable<typeof item> => item !== null)
-      .sort((a, b) => {
-        const indexA = a.space.color ? colorOrder.indexOf(a.space.color) : -1;
-        const ai = indexA === -1 ? colorOrder.length : indexA;
-        const indexB = b.space.color ? colorOrder.indexOf(b.space.color) : -1;
-        const bi = indexB === -1 ? colorOrder.length : indexB;
-        return ai !== bi ? ai - bi : a.space.position - b.space.position;
-      });
-  }, [detailPlayerForProps, state.board, state.propertyStates]);
-
   const tradeTargetPlayer = state.trade
     ? playersById[state.trade.toPlayerId]
     : null;
@@ -310,6 +279,45 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
       ) : undefined,
     [state.dice.rolled, state.dice.values, isRolling, handleRollComplete],
   );
+
+  // ⚡ Bolt: useMemo to prevent O(P log P) sorting/mapping of owned properties on every render (e.g. 60 FPS animation) while the player dialog is open.
+  const detailPlayerProps = useMemo(() => {
+    const detailPlayer = showPlayerDetail
+      ? state.players.find((p) => p.id === showPlayerDetail)
+      : null;
+    if (!detailPlayer) return [];
+    const board = state.board;
+    const propertyStates = state.propertyStates;
+    if (!board || !propertyStates) return [];
+    const colorOrder = [
+      'brown',
+      'lightblue',
+      'pink',
+      'orange',
+      'red',
+      'yellow',
+      'green',
+      'blue',
+    ];
+    return detailPlayer.properties
+      .map((id) => {
+        const space = getSpaceById(id, board);
+        const propertyState = propertyStates[id];
+        return space && propertyState ? { space, state: propertyState } : null;
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null)
+      .sort((a, b) => {
+        const aColorIdx = a.space.color
+          ? colorOrder.indexOf(a.space.color)
+          : -1;
+        const bColorIdx = b.space.color
+          ? colorOrder.indexOf(b.space.color)
+          : -1;
+        const ai = aColorIdx !== -1 ? aColorIdx : colorOrder.length;
+        const bi = bColorIdx !== -1 ? bColorIdx : colorOrder.length;
+        return ai !== bi ? ai - bi : a.space.position - b.space.position;
+      });
+  }, [showPlayerDetail, state.players, state.board, state.propertyStates]);
 
   return (
     <div className={styles.gameBoard}>
@@ -923,7 +931,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
             blue: '🔵 あお',
             railroad: '🚂 てつどう',
           };
-          const ownedProps = detailPlayerOwnedProps;
+          const ownedProps = detailPlayerProps;
           const colorOrder = [
             'brown',
             'lightblue',
