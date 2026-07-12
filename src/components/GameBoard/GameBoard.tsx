@@ -200,8 +200,11 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
     dispatch({ type: 'DECLARE_BANKRUPTCY', creditorId: null });
   };
 
-  const otherActivePlayers = state.players.filter(
-    (p) => p.id !== currentPlayer.id && !p.isBankrupt,
+  // ⚡ Bolt: Memoize filtered array to prevent O(N) recalculations on every render during 60 FPS animations.
+  const otherActivePlayers = useMemo(
+    () =>
+      state.players.filter((p) => p.id !== currentPlayer.id && !p.isBankrupt),
+    [state.players, currentPlayer.id],
   );
 
   // Determine which dialog to show
@@ -917,16 +920,6 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
             state.propertyStates,
             state.board,
           );
-          const colorOrder = [
-            'brown',
-            'lightblue',
-            'pink',
-            'orange',
-            'red',
-            'yellow',
-            'green',
-            'blue',
-          ];
           const COLOR_LABEL: Record<string, string> = {
             brown: '🟤 ちゃいろ',
             lightblue: '🩵 みずいろ',
@@ -939,6 +932,16 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
             railroad: '🚂 てつどう',
           };
           const ownedProps = detailPlayerProps;
+          const colorOrder = [
+            'brown',
+            'lightblue',
+            'pink',
+            'orange',
+            'red',
+            'yellow',
+            'green',
+            'blue',
+          ];
           const currentSpaceName =
             state.board[detailPlayer.position]?.name ?? '';
           return (
