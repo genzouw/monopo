@@ -14,3 +14,11 @@ extra_instructions = """
 extra_instructions = """
 - PRの説明はすべて日本語で記述してください。
 """
+[pr_code_suggestions]
+extra_instructions = """
+- コードの改善提案はすべて日本語で記述してください。
+"""
+[pr_add_docs]
+extra_instructions = """
+- 生成されるドキュメントやコメントはすべて日本語で記述してください。
+"""
