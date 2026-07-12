@@ -1,6 +1,6 @@
 <!--
   ⚠️ このファイルは自動生成されています。直接編集しないでください。
-  対象ツール: Windsurf
+  対象ツール: Claude Code
   マスタ: docs/ai-guidelines.md
   同期: bun run sync:ai-guidelines
 -->
