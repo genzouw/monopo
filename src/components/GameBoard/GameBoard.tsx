@@ -257,17 +257,16 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
       'blue',
     ];
     return detailPlayerForProps.properties
-      .map((id) => ({
-        space: getSpaceById(id, state.board)!,
-        state: state.propertyStates[id],
-      }))
+      .map((id) => {
+        const space = getSpaceById(id, state.board);
+        return space ? { space, state: state.propertyStates[id] } : null;
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null)
       .sort((a, b) => {
-        const ai = a.space.color
-          ? colorOrder.indexOf(a.space.color)
-          : colorOrder.length;
-        const bi = b.space.color
-          ? colorOrder.indexOf(b.space.color)
-          : colorOrder.length;
+        const indexA = a.space.color ? colorOrder.indexOf(a.space.color) : -1;
+        const ai = indexA === -1 ? colorOrder.length : indexA;
+        const indexB = b.space.color ? colorOrder.indexOf(b.space.color) : -1;
+        const bi = indexB === -1 ? colorOrder.length : indexB;
         return ai !== bi ? ai - bi : a.space.position - b.space.position;
       });
   }, [detailPlayerForProps, state.board, state.propertyStates]);
