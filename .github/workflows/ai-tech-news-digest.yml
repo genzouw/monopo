@@ -1,0 +1,87 @@
+name: AI Weekly Tech News Digest
+
+on:
+  schedule:
+    - cron: '0 8 * * 3' # 毎週水曜日の午前8時（UTC）に実行
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate-digest:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Fetch Tech News and Summarize
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+        with:
+          script: |
+            const MAX_CHARS = 2000;
+            const year = new Date().getFullYear();
+
+            // Web Search via Tavily
+            const tavilyRes = await fetch('https://api.tavily.com/search', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                api_key: process.env.TAVILY_API_KEY,
+                query: `${year} latest AI coding tools free open source github actions cicd`,
+                search_depth: 'advanced',
+                include_answer: true,
+              }),
+            });
+
+            let searchData = { answer: '検索結果なし', results: [] };
+            if (tavilyRes.ok) {
+              searchData = await tavilyRes.json();
+            }
+
+            const searchContext = (searchData.answer || '').slice(0, MAX_CHARS) + '\n' + (searchData.results?.map(r => r.content).join('\n') || '').slice(0, MAX_CHARS);
+
+            const prompt = `あなたはテックリードです。以下の検索結果を元に、新しいAIツールの導入や自動化に関する最新の有益なニュースとトレンドをまとめ、開発チーム向けのレポートを日本語で出力してください。
+            特に、無料・オープンソースでGitHub Actionsに組み込めるツールに焦点を当ててください。
+            プロジェクト要件:
+            - 名称には「monopoly」ではなく必ず「monopo」を使用する。
+            - パッケージマネージャには必ずBunを使用する。
+
+            検索結果:
+            ${searchContext}`;
+
+            const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
+              },
+              body: JSON.stringify({
+                model: 'o3-mini',
+                messages: [{ role: 'user', content: prompt }]
+              })
+            });
+
+            let report = 'レポート生成失敗';
+            if (aiRes.ok) {
+              const aiData = await aiRes.json();
+              report = aiData.choices?.[0]?.message?.content || report;
+            }
+
+            if (report) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `🤖 今週のAI・自動化トレンドダイジェスト (${new Date().toISOString().split('T')[0]})`,
+                body: `### 🤖 Tech News Digest\n\n${report}`,
+                labels: ['enhancement', 'ai-generated']
+              });
+            }
