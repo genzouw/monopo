@@ -5,8 +5,9 @@ name: Trivy Scan
 # 必須チェック (context: "trivy / Trivy filesystem scan") のため paths フィルタ禁止。
 on:
   push:
-    branches: [main, master]
+    branches: ['**']
   pull_request:
+    branches: ['**']
   schedule:
     # 毎週月曜 04:00 JST (= 日曜 19:00 UTC) に再スキャンして新規 CVE を拾う
     - cron: '0 19 * * 0'
