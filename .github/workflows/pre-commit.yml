@@ -2,9 +2,9 @@ name: Pre-commit Hooks
 
 on:
   push:
-    branches: [main]
+    branches: ['**']
   pull_request:
-    branches: [main]
+    branches: ['**']
 
 concurrency:
   group: pre-commit-${{ github.ref }}
