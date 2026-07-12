@@ -247,8 +247,16 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
               maxLength={MAX_NAME_LENGTH}
               aria-required="true"
               aria-invalid={names[i].trim().length === 0}
-              aria-errormessage={names[i].trim().length === 0 ? `${baseId}-name-error-${i}` : undefined}
-              aria-describedby={`${baseId}-char-count-${i}`}
+              aria-errormessage={
+                names[i].trim().length === 0
+                  ? `${baseId}-name-error-${i}`
+                  : undefined
+              }
+              aria-describedby={
+                names[i].trim().length === 0
+                  ? `${baseId}-char-count-${i} ${baseId}-name-error-${i}`
+                  : `${baseId}-char-count-${i}`
+              }
             />
             <span
               id={`${baseId}-char-count-${i}`}
