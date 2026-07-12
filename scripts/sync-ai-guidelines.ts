@@ -31,6 +31,7 @@ const TARGETS: readonly SyncTarget[] = [
   { name: 'Roo Code', dest: '.roorules' },
   { name: 'Trae', dest: '.traerules' },
   { name: 'GitHub Copilot', dest: '.github/copilot-instructions.md' },
+  { name: 'Claude Code', dest: 'CLAUDE.md' },
 ] as const;
 
 const AUTO_GENERATED_HEADER = (toolName: string): string =>
