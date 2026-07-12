@@ -1,6 +1,6 @@
 <!--
   ⚠️ このファイルは自動生成されています。直接編集しないでください。
-  対象ツール: Trae
+  対象ツール: Claude Code
   マスタ: docs/ai-guidelines.md
   同期: bun run sync:ai-guidelines
 -->
@@ -50,6 +50,5 @@
 - 最新のAIエージェント（GitHub Copilot Agent, GPT-5.5, Claude 3.7, DeepSeek-R1 連携等）を利用する際は、生成されたコードのセキュリティリスク（機密情報の出力やインジェクション脆弱性）をローカルで必ず検証し、自動レビューツールとの多層的なチェックを行ってください。
 
 - 新たなAIツールやサービスを導入する際は、公開リポジトリにおいて無料で利用可能であることを前提としてください。また、それらを設定するための手動の事前作業（Secretsへのトークン追加など）は必ずプルリクエストの説明に記載してください。
-- 週次の開発進捗の要約や課題分析には、GitHub Models (o3-mini) と Tavily Search API を連携した自動プロジェクトマネジメントツール (`.github/workflows/ai-weekly-summary.yml`) を活用し、最新トレンドに基づく品質向上の提案を Issue として生成します。
 
 - `CLAUDE.md` は Claude Code 向けの設定ファイルとして自動生成されます。
