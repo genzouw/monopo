@@ -44,7 +44,7 @@
 
 週次のプロジェクト活動（コミット・PR）のサマリーと、最新のAI/CI-CDトレンド分析を自動生成し、Issueとして起票する `.github/workflows/ai-weekly-summary.yml` を追加しました。
 
-1. **GitHub Secretsの設定 (必須)**
-   - 動作には以下のシークレット設定が必要です。（上記 AI Accessibility Reviewer と共通のキーです）
-     - `GH_MODELS_TOKEN`
-     - `TAVILY_API_KEY`
+1. **GitHub Secretsの設定 (必須・リポジトリ管理者権限が必要)**
+   - このワークフローを動作させるには、リポジトリ管理者権限を持つユーザーが GitHub のリポジトリの `Settings > Secrets and variables > Actions` にて、以下のシークレットを登録してください。
+     - `GH_MODELS_TOKEN`: GitHub Models へのアクセス用トークン
+     - `TAVILY_API_KEY`: Tavily Search API へのアクセス用キー
