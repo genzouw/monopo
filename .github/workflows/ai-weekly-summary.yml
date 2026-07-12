@@ -1,0 +1,153 @@
+name: AI Weekly Project Summary
+
+on:
+  schedule:
+    - cron: '0 8 * * 5' # 毎週金曜日の午前8時（UTC）に実行
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate-summary:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Fetch and Generate Summary
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+        with:
+          script: |
+            const MAX_SEARCH_ANSWER_CHARS = 1500;
+            const year = new Date().getFullYear();
+
+            // 1. Tavily Search for AI/CI Tool Trends
+            async function searchTavily(query) {
+              const res = await fetch('https://api.tavily.com/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  api_key: process.env.TAVILY_API_KEY,
+                  query,
+                  search_depth: 'advanced',
+                  include_answer: true,
+                }),
+              });
+
+              let data = { answer: '', results: [] };
+              if (res.ok) {
+                try {
+                  data = await res.json();
+                } catch (e) {
+                  console.log('Failed to parse Tavily response as JSON:', e);
+                }
+              } else {
+                console.log(`Tavily request failed: ${res.status} ${res.statusText}`);
+              }
+              return data;
+            }
+
+            const aiSearchData = await searchTavily(`${year} latest GitHub Actions AI tools CI/CD best practices`);
+            const aiContext = (aiSearchData.answer || 'AIトレンド情報の取得に失敗しました。').slice(0, MAX_SEARCH_ANSWER_CHARS);
+
+            // 2. Fetch Recent Commits and PRs
+            const sinceDate = new Date();
+            sinceDate.setDate(sinceDate.getDate() - 7);
+            const sinceISO = sinceDate.toISOString();
+
+            const commits = await github.rest.repos.listCommits({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              since: sinceISO,
+            });
+
+            const prs = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'all',
+              sort: 'updated',
+              direction: 'desc',
+              per_page: 20
+            });
+
+            const recentPrs = prs.data.filter(pr => new Date(pr.updated_at) >= sinceDate);
+
+            const commitData = commits.data.map(c => `- ${c.commit.message.split('\n')[0]} (${c.author?.login || 'unknown'})`).join('\n');
+            const prData = recentPrs.map(pr => `- [#${pr.number}] ${pr.title} (${pr.state})`).join('\n');
+
+            // 3. GitHub Models によるサマリー生成
+            const prompt = `あなたは熟練のテックリードです。以下の過去1週間のプロジェクト活動情報と、最新のAI/CI-CDのトレンド情報を元に、チームに向けた日本語の週次プロジェクトサマリーレポートを作成してください。
+
+            プロジェクト要件:
+            - 名称には「monopoly」ではなく必ず「monopo」を使用する。
+
+            【過去1週間の活動情報】
+            ■ コミット
+            ${commitData || '特になし'}
+
+            ■ プルリクエスト
+            ${prData || '特になし'}
+
+            【最新のAI/CI-CDのトレンド情報 (参考)】
+            ${aiContext}
+
+            出力要件:
+            1. 活動サマリー: 過去1週間の主な進捗と成果を簡潔にまとめること。
+            2. トレンド分析: 最新のAIやCI/CDトレンドを踏まえて、現在の活動に対する分析と、今後の開発フローや自動化に対する改善提案・アイデアを提示すること。
+            `;
+
+            const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
+              },
+              body: JSON.stringify({
+                model: 'o3-mini',
+                messages: [{ role: 'user', content: prompt }]
+              })
+            });
+
+            let report;
+            if (aiRes.ok) {
+              try {
+                const aiData = await aiRes.json();
+                report = aiData.choices?.[0]?.message?.content;
+              } catch (e) {
+                console.log('Failed to parse GitHub Models response as JSON:', e);
+              }
+            } else {
+              const errorBody = await aiRes.text().catch(() => '<failed to read body>');
+              console.log(`GitHub Models request failed: ${aiRes.status} ${aiRes.statusText}`);
+              console.log('Response body:', errorBody);
+            }
+
+            if (report) {
+              let body = `### 📊 今週のプロジェクト活動サマリー＆改善提案\n\n${report}\n\n`;
+              if (aiSearchData.results && aiSearchData.results.length > 0) {
+                 body += `#### 参考トレンドソース\n`;
+                 aiSearchData.results.slice(0, 3).forEach(r => {
+                   body += `- [${r.title}](${r.url})\n`;
+                 });
+              }
+
+              const titleDate = new Date().toISOString().split('T')[0];
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `📊 AI Weekly Project Summary (${titleDate})`,
+                body: body,
+                labels: ['enhancement', 'ai-generated', 'report']
+              });
+            }
