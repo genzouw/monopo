@@ -6,3 +6,4 @@ rules:
   - 'All UI text, documentations, and comments must be in Japanese.'
   - 'Strictly use the name "monopo" (モノポ) across the entire codebase.'
   - 'Always run `bun install && bun run lint && bun run typecheck && bun run test` to ensure tests pass before proposing changes.'
+  - 'When proposing new tools or configurations, ensure they are free and open-source for public repositories.'
