@@ -52,7 +52,10 @@ jobs:
           echo "🔍 Scanning workflows for pull_request_target trigger..."
 
           WORKFLOWS=$(find .github/workflows -maxdepth 1 -type f \( -name '*.yml' -o -name '*.yaml' \))
-          PR_TARGET=$(echo "$WORKFLOWS" | xargs grep -El '^[[:space:]]*on:[[:space:]]*pull_request_target:|^[[:space:]]*pull_request_target:' || true)
+          # マップ形式（on:\n  pull_request_target:）、スカラー形式（on: pull_request_target）、
+          # インラインリスト形式（on: [push, pull_request_target]）、
+          # ブロックリスト形式（on:\n  - pull_request_target）のすべてを検出する。
+          PR_TARGET=$(echo "$WORKFLOWS" | xargs grep -El '^[[:space:]]*pull_request_target:|^[[:space:]]*on:[[:space:]]*pull_request_target[[:space:]]*$|^[[:space:]]*-[[:space:]]*pull_request_target[[:space:]]*$|^[[:space:]]*on:[[:space:]]*\[.*pull_request_target.*\]' || true)
           if [ -n "$PR_TARGET" ]; then
             echo "::error::❌ The following workflows use the prohibited 'pull_request_target' trigger:"
             echo "$PR_TARGET"
