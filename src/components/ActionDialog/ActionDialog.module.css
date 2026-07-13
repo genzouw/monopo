@@ -229,8 +229,25 @@
   color: var(--color-danger);
   font-size: 13px;
 }
+/* おかね入力の上限超過エラー用ヒント。入力欄の右横にインラインで表示する。 */
+.tradeMoneyErrorHint {
+  color: var(--color-danger);
+  font-size: 12px;
+  margin-left: 8px;
+}
 .tradeEmptyProperties {
   font-size: 13px;
   color: var(--color-text-light);
   padding: 4px 8px;
+}
+
+.moneyInput[aria-invalid='true'],
+.buildItemActions input[aria-invalid='true'] {
+  border-color: var(--color-danger, #ff4d4f);
+  background-color: var(--color-danger-bg, #fff0f0);
+}
+.moneyInput[aria-invalid='true']:focus-visible,
+.buildItemActions input[aria-invalid='true']:focus-visible {
+  outline: 2px solid var(--color-danger, #ff4d4f);
+  outline-offset: 1px;
 }
