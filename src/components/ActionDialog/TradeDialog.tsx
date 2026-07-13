@@ -78,6 +78,8 @@ export default function TradeDialog({
   const offerMoneyId = useId();
   const requestMoneyId = useId();
   const tradeEmptyHintId = useId();
+  const offerMoneyErrorId = useId();
+  const requestMoneyErrorId = useId();
   const [offerProperties, setOfferProperties] = useState<string[]>([]);
   const [requestProperties, setRequestProperties] = useState<string[]>([]);
   const [offerMoney, setOfferMoney] = useState(0);
@@ -115,6 +117,8 @@ export default function TradeDialog({
     );
   };
 
+  const isOfferMoneyInvalid = offerMoney > currentPlayer.money;
+  const isRequestMoneyInvalid = requestMoney > targetPlayer.money;
   const isTradeEmpty =
     offerProperties.length === 0 &&
     requestProperties.length === 0 &&
@@ -143,7 +147,7 @@ export default function TradeDialog({
           <div className={styles.tradeActionButtons}>
             <Button
               onClick={handlePropose}
-              aria-disabled={isTradeEmpty}
+              aria-disabled={isTradeEmpty || isOfferMoneyInvalid || isRequestMoneyInvalid}
               aria-describedby={isTradeEmpty ? tradeEmptyHintId : undefined}
             >
               {LABELS.propose}
@@ -223,9 +227,17 @@ export default function TradeDialog({
               }
               const val = Number(raw);
               if (isNaN(val)) return;
-              setOfferMoney(clamp(val, currentPlayer.money));
+              // Remove clamp here so user can type and see error if they overtype
+              setOfferMoney(val);
             }}
+            aria-invalid={isOfferMoneyInvalid}
+            aria-errormessage={isOfferMoneyInvalid ? offerMoneyErrorId : undefined}
           />
+          {isOfferMoneyInvalid && (
+            <div id={offerMoneyErrorId} className={styles.tradeEmptyHint} role="alert" style={{marginLeft: 8, fontSize: 12}}>
+              所持金を超えています
+            </div>
+          )}
           <div className={styles.moneyQuickButtons}>
             <button
               type="button"
@@ -317,9 +329,17 @@ export default function TradeDialog({
               }
               const val = Number(raw);
               if (isNaN(val)) return;
-              setRequestMoney(clamp(val, targetPlayer.money));
+              // Remove clamp here so user can type and see error if they overtype
+              setRequestMoney(val);
             }}
+            aria-invalid={isRequestMoneyInvalid}
+            aria-errormessage={isRequestMoneyInvalid ? requestMoneyErrorId : undefined}
           />
+          {isRequestMoneyInvalid && (
+            <div id={requestMoneyErrorId} className={styles.tradeEmptyHint} role="alert" style={{marginLeft: 8, fontSize: 12}}>
+              相手の所持金を超えています
+            </div>
+          )}
           <div className={styles.moneyQuickButtons}>
             <button
               type="button"

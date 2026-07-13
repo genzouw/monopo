@@ -148,9 +148,11 @@ export default function LoanDialog({
                     if (val.length > MAX_MONEY_INPUT_LENGTH) return;
                     setBorrowAmount(val);
                   }}
-                  placeholder={`最大 $${maxBorrow}`}
+                  placeholder={`最大 ${maxBorrow}`}
                   style={{ width: 120 }}
                   aria-label="借入金額"
+                  aria-invalid={!canBorrow && borrowAmount !== ''}
+                  aria-errormessage={!canBorrow && borrowAmount !== '' ? borrowHintId : undefined}
                 />
                 <Button
                   size="small"
@@ -196,9 +198,11 @@ export default function LoanDialog({
                     if (val.length > MAX_MONEY_INPUT_LENGTH) return;
                     setRepayAmount(val);
                   }}
-                  placeholder={`残高 $${loanBalance}`}
+                  placeholder={`残高 ${loanBalance}`}
                   style={{ width: 120 }}
                   aria-label="返済金額"
+                  aria-invalid={!canRepay && repayAmount !== ''}
+                  aria-errormessage={!canRepay && repayAmount !== '' ? repayHintId : undefined}
                 />
                 <Button
                   size="small"
