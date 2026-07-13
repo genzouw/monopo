@@ -248,7 +248,9 @@ export default function TradeDialog({
               className={styles.tradeMoneyErrorHint}
               role="alert"
             >
-              所持金を超えています
+              {offerMoney < 0
+                ? '0以上の金額を入力してね'
+                : '所持金を超えています'}
             </div>
           )}
           <div className={styles.moneyQuickButtons}>
@@ -359,7 +361,9 @@ export default function TradeDialog({
               className={styles.tradeMoneyErrorHint}
               role="alert"
             >
-              相手の所持金を超えています
+              {requestMoney < 0
+                ? '0以上の金額を入力してね'
+                : '相手の所持金を超えています'}
             </div>
           )}
           <div className={styles.moneyQuickButtons}>
