@@ -152,7 +152,9 @@ export default function LoanDialog({
                   style={{ width: 120 }}
                   aria-label="借入金額"
                   aria-invalid={!canBorrow && borrowAmount !== ''}
-                  aria-errormessage={!canBorrow && borrowAmount !== '' ? borrowHintId : undefined}
+                  aria-errormessage={
+                    !canBorrow && borrowAmount !== '' ? borrowHintId : undefined
+                  }
                 />
                 <Button
                   size="small"
@@ -173,7 +175,7 @@ export default function LoanDialog({
                 <div
                   id={borrowHintId}
                   className={styles.noMoneyHintTight}
-                  role="status"
+                  role="alert"
                 >
                   かりられる上限をこえているか、正しくないよ
                 </div>
@@ -202,7 +204,9 @@ export default function LoanDialog({
                   style={{ width: 120 }}
                   aria-label="返済金額"
                   aria-invalid={!canRepay && repayAmount !== ''}
-                  aria-errormessage={!canRepay && repayAmount !== '' ? repayHintId : undefined}
+                  aria-errormessage={
+                    !canRepay && repayAmount !== '' ? repayHintId : undefined
+                  }
                 />
                 <Button
                   size="small"
@@ -224,7 +228,7 @@ export default function LoanDialog({
                 <div
                   id={repayHintId}
                   className={styles.noMoneyHintTight}
-                  role="status"
+                  role="alert"
                 >
                   {parsedRepay > currentPlayer.money
                     ? 'おかねがたりないよ'
