@@ -46,3 +46,18 @@ jobs:
           else
             echo "✅ All workflows follow least privilege for top-level permissions."
           fi
+
+      - name: Audit workflow pull_request_target trigger
+        run: |
+          echo "🔍 Scanning workflows for pull_request_target trigger..."
+
+          WORKFLOWS=$(find .github/workflows -maxdepth 1 -type f \( -name '*.yml' -o -name '*.yaml' \))
+          PR_TARGET=$(echo "$WORKFLOWS" | xargs grep -El '^[[:space:]]*on:[[:space:]]*pull_request_target:|^[[:space:]]*pull_request_target:' || true)
+          if [ -n "$PR_TARGET" ]; then
+            echo "::error::❌ The following workflows use the prohibited 'pull_request_target' trigger:"
+            echo "$PR_TARGET"
+            echo "To prevent secrets leakage from forked PRs, 'pull_request_target' is strictly prohibited. Please use 'pull_request' instead."
+            false
+          else
+            echo "✅ No workflows use the 'pull_request_target' trigger."
+          fi
