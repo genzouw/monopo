@@ -200,8 +200,11 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
     dispatch({ type: 'DECLARE_BANKRUPTCY', creditorId: null });
   };
 
-  const otherActivePlayers = state.players.filter(
-    (p) => p.id !== currentPlayer.id && !p.isBankrupt,
+  // ⚡ Bolt: Memoize filtered array to prevent O(N) recalculations on every render during 60 FPS animations.
+  const otherActivePlayers = useMemo(
+    () =>
+      state.players.filter((p) => p.id !== currentPlayer.id && !p.isBankrupt),
+    [state.players, currentPlayer.id],
   );
 
   // Determine which dialog to show
@@ -276,6 +279,45 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
       ) : undefined,
     [state.dice.rolled, state.dice.values, isRolling, handleRollComplete],
   );
+
+  // ⚡ Bolt: useMemo to prevent O(P log P) sorting/mapping of owned properties on every render (e.g. 60 FPS animation) while the player dialog is open.
+  const detailPlayerProps = useMemo(() => {
+    const detailPlayer = showPlayerDetail
+      ? state.players.find((p) => p.id === showPlayerDetail)
+      : null;
+    if (!detailPlayer) return [];
+    const board = state.board;
+    const propertyStates = state.propertyStates;
+    if (!board || !propertyStates) return [];
+    const colorOrder = [
+      'brown',
+      'lightblue',
+      'pink',
+      'orange',
+      'red',
+      'yellow',
+      'green',
+      'blue',
+    ];
+    return detailPlayer.properties
+      .map((id) => {
+        const space = getSpaceById(id, board);
+        const propertyState = propertyStates[id];
+        return space && propertyState ? { space, state: propertyState } : null;
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null)
+      .sort((a, b) => {
+        const aColorIdx = a.space.color
+          ? colorOrder.indexOf(a.space.color)
+          : -1;
+        const bColorIdx = b.space.color
+          ? colorOrder.indexOf(b.space.color)
+          : -1;
+        const ai = aColorIdx !== -1 ? aColorIdx : colorOrder.length;
+        const bi = bColorIdx !== -1 ? bColorIdx : colorOrder.length;
+        return ai !== bi ? ai - bi : a.space.position - b.space.position;
+      });
+  }, [showPlayerDetail, state.players, state.board, state.propertyStates]);
 
   return (
     <div className={styles.gameBoard}>
@@ -878,16 +920,6 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
             state.propertyStates,
             state.board,
           );
-          const colorOrder = [
-            'brown',
-            'lightblue',
-            'pink',
-            'orange',
-            'red',
-            'yellow',
-            'green',
-            'blue',
-          ];
           const COLOR_LABEL: Record<string, string> = {
             brown: '🟤 ちゃいろ',
             lightblue: '🩵 みずいろ',
@@ -899,20 +931,17 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
             blue: '🔵 あお',
             railroad: '🚂 てつどう',
           };
-          const ownedProps = detailPlayer.properties
-            .map((id) => ({
-              space: getSpaceById(id, state.board)!,
-              state: state.propertyStates[id],
-            }))
-            .sort((a, b) => {
-              const ai = a.space.color
-                ? colorOrder.indexOf(a.space.color)
-                : colorOrder.length;
-              const bi = b.space.color
-                ? colorOrder.indexOf(b.space.color)
-                : colorOrder.length;
-              return ai !== bi ? ai - bi : a.space.position - b.space.position;
-            });
+          const ownedProps = detailPlayerProps;
+          const colorOrder = [
+            'brown',
+            'lightblue',
+            'pink',
+            'orange',
+            'red',
+            'yellow',
+            'green',
+            'blue',
+          ];
           const currentSpaceName =
             state.board[detailPlayer.position]?.name ?? '';
           return (
