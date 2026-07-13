@@ -231,20 +231,22 @@ export default function TradeDialog({
               }
               const val = Number(raw);
               if (isNaN(val)) return;
-              // Remove clamp here so user can type and see error if they overtype
+              // クランプを削除し、上限超過時にエラーとして表示できるようにする
               setOfferMoney(val);
             }}
             aria-invalid={isOfferMoneyInvalid}
             aria-errormessage={
               isOfferMoneyInvalid ? offerMoneyErrorId : undefined
             }
+            aria-describedby={
+              isOfferMoneyInvalid ? offerMoneyErrorId : undefined
+            }
           />
           {isOfferMoneyInvalid && (
             <div
               id={offerMoneyErrorId}
-              className={styles.tradeEmptyHint}
+              className={styles.tradeMoneyErrorHint}
               role="alert"
-              style={{ marginLeft: 8, fontSize: 12 }}
             >
               所持金を超えています
             </div>
@@ -340,20 +342,22 @@ export default function TradeDialog({
               }
               const val = Number(raw);
               if (isNaN(val)) return;
-              // Remove clamp here so user can type and see error if they overtype
+              // クランプを削除し、上限超過時にエラーとして表示できるようにする
               setRequestMoney(val);
             }}
             aria-invalid={isRequestMoneyInvalid}
             aria-errormessage={
               isRequestMoneyInvalid ? requestMoneyErrorId : undefined
             }
+            aria-describedby={
+              isRequestMoneyInvalid ? requestMoneyErrorId : undefined
+            }
           />
           {isRequestMoneyInvalid && (
             <div
               id={requestMoneyErrorId}
-              className={styles.tradeEmptyHint}
+              className={styles.tradeMoneyErrorHint}
               role="alert"
-              style={{ marginLeft: 8, fontSize: 12 }}
             >
               相手の所持金を超えています
             </div>
