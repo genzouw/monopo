@@ -78,6 +78,8 @@ export default function TradeDialog({
   const offerMoneyId = useId();
   const requestMoneyId = useId();
   const tradeEmptyHintId = useId();
+  const offerMoneyErrorId = useId();
+  const requestMoneyErrorId = useId();
   const [offerProperties, setOfferProperties] = useState<string[]>([]);
   const [requestProperties, setRequestProperties] = useState<string[]>([]);
   const [offerMoney, setOfferMoney] = useState(0);
@@ -115,6 +117,10 @@ export default function TradeDialog({
     );
   };
 
+  const isOfferMoneyInvalid =
+    offerMoney < 0 || offerMoney > currentPlayer.money;
+  const isRequestMoneyInvalid =
+    requestMoney < 0 || requestMoney > targetPlayer.money;
   const isTradeEmpty =
     offerProperties.length === 0 &&
     requestProperties.length === 0 &&
@@ -143,7 +149,9 @@ export default function TradeDialog({
           <div className={styles.tradeActionButtons}>
             <Button
               onClick={handlePropose}
-              aria-disabled={isTradeEmpty}
+              aria-disabled={
+                isTradeEmpty || isOfferMoneyInvalid || isRequestMoneyInvalid
+              }
               aria-describedby={isTradeEmpty ? tradeEmptyHintId : undefined}
             >
               {LABELS.propose}
@@ -223,9 +231,28 @@ export default function TradeDialog({
               }
               const val = Number(raw);
               if (isNaN(val)) return;
-              setOfferMoney(clamp(val, currentPlayer.money));
+              // クランプを削除し、上限超過時にエラーとして表示できるようにする
+              setOfferMoney(val);
             }}
+            aria-invalid={isOfferMoneyInvalid}
+            aria-errormessage={
+              isOfferMoneyInvalid ? offerMoneyErrorId : undefined
+            }
+            aria-describedby={
+              isOfferMoneyInvalid ? offerMoneyErrorId : undefined
+            }
           />
+          {isOfferMoneyInvalid && (
+            <div
+              id={offerMoneyErrorId}
+              className={styles.tradeMoneyErrorHint}
+              role="alert"
+            >
+              {offerMoney < 0
+                ? '0以上の金額を入力してね'
+                : '所持金を超えています'}
+            </div>
+          )}
           <div className={styles.moneyQuickButtons}>
             <button
               type="button"
@@ -317,9 +344,28 @@ export default function TradeDialog({
               }
               const val = Number(raw);
               if (isNaN(val)) return;
-              setRequestMoney(clamp(val, targetPlayer.money));
+              // クランプを削除し、上限超過時にエラーとして表示できるようにする
+              setRequestMoney(val);
             }}
+            aria-invalid={isRequestMoneyInvalid}
+            aria-errormessage={
+              isRequestMoneyInvalid ? requestMoneyErrorId : undefined
+            }
+            aria-describedby={
+              isRequestMoneyInvalid ? requestMoneyErrorId : undefined
+            }
           />
+          {isRequestMoneyInvalid && (
+            <div
+              id={requestMoneyErrorId}
+              className={styles.tradeMoneyErrorHint}
+              role="alert"
+            >
+              {requestMoney < 0
+                ? '0以上の金額を入力してね'
+                : '相手の所持金を超えています'}
+            </div>
+          )}
           <div className={styles.moneyQuickButtons}>
             <button
               type="button"
