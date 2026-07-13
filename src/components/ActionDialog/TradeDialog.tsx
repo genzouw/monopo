@@ -117,8 +117,10 @@ export default function TradeDialog({
     );
   };
 
-  const isOfferMoneyInvalid = offerMoney > currentPlayer.money;
-  const isRequestMoneyInvalid = requestMoney > targetPlayer.money;
+  const isOfferMoneyInvalid =
+    offerMoney < 0 || offerMoney > currentPlayer.money;
+  const isRequestMoneyInvalid =
+    requestMoney < 0 || requestMoney > targetPlayer.money;
   const isTradeEmpty =
     offerProperties.length === 0 &&
     requestProperties.length === 0 &&
@@ -147,7 +149,9 @@ export default function TradeDialog({
           <div className={styles.tradeActionButtons}>
             <Button
               onClick={handlePropose}
-              aria-disabled={isTradeEmpty || isOfferMoneyInvalid || isRequestMoneyInvalid}
+              aria-disabled={
+                isTradeEmpty || isOfferMoneyInvalid || isRequestMoneyInvalid
+              }
               aria-describedby={isTradeEmpty ? tradeEmptyHintId : undefined}
             >
               {LABELS.propose}
@@ -231,10 +235,17 @@ export default function TradeDialog({
               setOfferMoney(val);
             }}
             aria-invalid={isOfferMoneyInvalid}
-            aria-errormessage={isOfferMoneyInvalid ? offerMoneyErrorId : undefined}
+            aria-errormessage={
+              isOfferMoneyInvalid ? offerMoneyErrorId : undefined
+            }
           />
           {isOfferMoneyInvalid && (
-            <div id={offerMoneyErrorId} className={styles.tradeEmptyHint} role="alert" style={{marginLeft: 8, fontSize: 12}}>
+            <div
+              id={offerMoneyErrorId}
+              className={styles.tradeEmptyHint}
+              role="alert"
+              style={{ marginLeft: 8, fontSize: 12 }}
+            >
               所持金を超えています
             </div>
           )}
@@ -333,10 +344,17 @@ export default function TradeDialog({
               setRequestMoney(val);
             }}
             aria-invalid={isRequestMoneyInvalid}
-            aria-errormessage={isRequestMoneyInvalid ? requestMoneyErrorId : undefined}
+            aria-errormessage={
+              isRequestMoneyInvalid ? requestMoneyErrorId : undefined
+            }
           />
           {isRequestMoneyInvalid && (
-            <div id={requestMoneyErrorId} className={styles.tradeEmptyHint} role="alert" style={{marginLeft: 8, fontSize: 12}}>
+            <div
+              id={requestMoneyErrorId}
+              className={styles.tradeEmptyHint}
+              role="alert"
+              style={{ marginLeft: 8, fontSize: 12 }}
+            >
               相手の所持金を超えています
             </div>
           )}
