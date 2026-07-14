@@ -68,6 +68,8 @@
     "**/.trae/**": true,
     "**/.roo/**": true,
     "**/*.log": true,
-    "**/*-report.md": true
+    "**/*-report.md": true,
+    "**/*.patch": true,
+    "**/*.diff": true
   }
 }
