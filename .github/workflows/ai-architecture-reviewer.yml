@@ -83,7 +83,9 @@ jobs:
                 const searchData = await tavilyRes.json();
                 searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
               }
-            } catch (e) {}
+            } catch (e) {
+              console.error('Tavily search failed:', e);
+            }
 
             const prompt = `あなたはソフトウェアアーキテクチャの専門家です。
             以下のPRの差分、プロジェクトのコードベース全体（Repomixによる）、および最新のWeb検索のベストプラクティスをもとに、
@@ -119,7 +121,9 @@ jobs:
                 const aiData = await aiRes.json();
                 analysis = aiData.choices?.[0]?.message?.content;
               }
-            } catch (e) {}
+            } catch (e) {
+              console.error('AI inference failed:', e);
+            }
 
             if (analysis) {
               await github.rest.issues.createComment({
