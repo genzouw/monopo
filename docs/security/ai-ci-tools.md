@@ -48,3 +48,12 @@
    - このワークフローを動作させるには、リポジトリ管理者権限を持つユーザーが GitHub のリポジトリの `Settings > Secrets and variables > Actions` にて、以下のシークレットを登録してください。
      - `GH_MODELS_TOKEN`: GitHub Models へのアクセス用トークン
      - `TAVILY_API_KEY`: Tavily Search API へのアクセス用キー
+
+## 新規: AI Architecture Reviewer の設定
+
+Pull Request における変更に対して、リポジトリ全体を考慮したアーキテクチャ（設計やスケーラビリティ等）の観点で自動レビューを行う `.github/workflows/ai-architecture-reviewer.yml` を追加しました。
+
+1. **GitHub Secretsの設定 (必須)**
+   - このワークフローを動作させるには、リポジトリ管理者権限を持つユーザーが GitHub のリポジトリの `Settings > Secrets and variables > Actions` にて、以下のシークレットを登録してください。
+     - `GH_MODELS_TOKEN`: GitHub Models へのアクセス用トークン
+     - `TAVILY_API_KEY`: Tavily Search API へのアクセス用キー

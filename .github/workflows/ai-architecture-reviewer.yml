@@ -1,15 +1,17 @@
-name: AI A11y Reviewer
+name: AI Architecture Reviewer
 
 on:
   pull_request:
-    paths:
-      - 'src/**/*'
+    types: [opened, synchronize]
+    paths-ignore:
+      - '**.md'
+      - '.github/workflows/**'
 
 permissions:
   contents: read
 
 jobs:
-  review-a11y:
+  review-architecture:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -43,7 +45,7 @@ jobs:
             });
             return diff.data.slice(0, 10000);
 
-      - name: Perform Accessibility Review
+      - name: Perform Architecture Review
         uses: actions/github-script@v7
         env:
           GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
@@ -70,7 +72,7 @@ jobs:
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                   api_key: process.env.TAVILY_API_KEY,
-                  query: `2025 latest Web Content Accessibility Guidelines WCAG React UI UX best practices for: ${title}`,
+                  query: `2025 latest software architecture design patterns best practices scalability for: ${title}`,
                   search_depth: 'advanced',
                   include_answer: true,
                 }),
@@ -82,9 +84,9 @@ jobs:
               }
             } catch (e) {}
 
-            const prompt = `あなたはアクセシビリティ(A11y)およびUI/UXの専門家です。
-            以下のPRの差分、プロジェクトのコードベース、および最新のWeb検索のベストプラクティスをもとに、
-            フロントエンドの変更がWCAGに準拠しているか、スクリーンリーダーのサポートやキーボード操作、適切なARIA属性の付与ができているかを日本語でレビューしてください。
+            const prompt = `あなたはソフトウェアアーキテクチャの専門家です。
+            以下のPRの差分、プロジェクトのコードベース全体（Repomixによる）、および最新のWeb検索のベストプラクティスをもとに、
+            この変更がシステムの全体的なアーキテクチャ、スケーラビリティ、保守性、および設計パターンにどのような影響を与えるか、日本語でレビューしてください。
 
             プロジェクト要件:
             - 名称には「monopoly」ではなく必ず「monopo」を使用する。
@@ -123,6 +125,6 @@ jobs:
                 issue_number: prNumber,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: `### 🤖 AI Accessibility Review\n\n${analysis}`
+                body: `### 🤖 AI Architecture Review\n\n${analysis}`
               });
             }
