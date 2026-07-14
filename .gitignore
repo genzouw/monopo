@@ -61,6 +61,8 @@ id_dsa
 *.tfstate*
 
 # AI agent workspaces
+*.patch
+*.diff
 .cursor/
 .claude/
 .aider*
