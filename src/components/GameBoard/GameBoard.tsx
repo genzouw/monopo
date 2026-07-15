@@ -280,6 +280,34 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
     [state.dice.rolled, state.dice.values, isRolling, handleRollComplete],
   );
 
+  // ⚡ Bolt: useMemo to prevent O(S log S) filtering and sorting of player stocks on every render (e.g. 60 FPS animation) while the player dialog is open.
+  const detailPlayerStocks = useMemo(() => {
+    const detailPlayer = showPlayerDetail
+      ? state.players.find((p) => p.id === showPlayerDetail)
+      : null;
+    if (!detailPlayer || !detailPlayer.stocks) return [];
+
+    const colorOrder = [
+      'brown',
+      'lightblue',
+      'pink',
+      'orange',
+      'red',
+      'yellow',
+      'green',
+      'blue',
+    ];
+    return Object.entries(detailPlayer.stocks)
+      .filter(([, shares]) => typeof shares === 'number' && shares > 0)
+      .sort(([colorA], [colorB]) => {
+        const ai = colorOrder.indexOf(colorA);
+        const bi = colorOrder.indexOf(colorB);
+        const realA = ai === -1 ? colorOrder.length : ai;
+        const realB = bi === -1 ? colorOrder.length : bi;
+        return realA - realB;
+      });
+  }, [showPlayerDetail, state.players]);
+
   // ⚡ Bolt: useMemo to prevent O(P log P) sorting/mapping of owned properties on every render (e.g. 60 FPS animation) while the player dialog is open.
   const detailPlayerProps = useMemo(() => {
     const detailPlayer = showPlayerDetail
@@ -932,16 +960,6 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
             railroad: '🚂 てつどう',
           };
           const ownedProps = detailPlayerProps;
-          const colorOrder = [
-            'brown',
-            'lightblue',
-            'pink',
-            'orange',
-            'red',
-            'yellow',
-            'green',
-            'blue',
-          ];
           const currentSpaceName =
             state.board[detailPlayer.position]?.name ?? '';
           return (
@@ -1077,10 +1095,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                     <div style={{ fontWeight: 700, marginBottom: 8 }}>
                       📈 おうえんカード（株）
                     </div>
-                    {!detailPlayer.stocks ||
-                    Object.values(detailPlayer.stocks).every(
-                      (shares) => shares === 0,
-                    ) ? (
+                    {detailPlayerStocks.length === 0 ? (
                       <div
                         style={{
                           color: 'var(--color-text-light)',
@@ -1090,19 +1105,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                         まだもっていないよ
                       </div>
                     ) : (
-                      Object.entries(detailPlayer.stocks)
-                        .filter(
-                          ([, shares]) =>
-                            typeof shares === 'number' && shares > 0,
-                        )
-                        .sort(([colorA], [colorB]) => {
-                          const ai = colorOrder.indexOf(colorA);
-                          const bi = colorOrder.indexOf(colorB);
-                          const realA = ai === -1 ? colorOrder.length : ai;
-                          const realB = bi === -1 ? colorOrder.length : bi;
-                          return realA - realB;
-                        })
-                        .map(([color, shares]) => (
+                      detailPlayerStocks.map(([color, shares]) => (
                           <div
                             key={color}
                             style={{
