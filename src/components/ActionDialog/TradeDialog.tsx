@@ -238,9 +238,6 @@ export default function TradeDialog({
             aria-errormessage={
               isOfferMoneyInvalid ? offerMoneyErrorId : undefined
             }
-            aria-describedby={
-              isOfferMoneyInvalid ? offerMoneyErrorId : undefined
-            }
           />
           {isOfferMoneyInvalid && (
             <div
@@ -349,9 +346,6 @@ export default function TradeDialog({
             }}
             aria-invalid={isRequestMoneyInvalid}
             aria-errormessage={
-              isRequestMoneyInvalid ? requestMoneyErrorId : undefined
-            }
-            aria-describedby={
               isRequestMoneyInvalid ? requestMoneyErrorId : undefined
             }
           />
