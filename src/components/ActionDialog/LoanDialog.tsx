@@ -155,6 +155,9 @@ export default function LoanDialog({
                   aria-errormessage={
                     !canBorrow && borrowAmount !== '' ? borrowHintId : undefined
                   }
+                  aria-describedby={
+                    !canBorrow && borrowAmount !== '' ? borrowHintId : undefined
+                  }
                 />
                 <Button
                   size="small"
@@ -205,6 +208,9 @@ export default function LoanDialog({
                   aria-label="返済金額"
                   aria-invalid={!canRepay && repayAmount !== ''}
                   aria-errormessage={
+                    !canRepay && repayAmount !== '' ? repayHintId : undefined
+                  }
+                  aria-describedby={
                     !canRepay && repayAmount !== '' ? repayHintId : undefined
                   }
                 />
