@@ -33,7 +33,7 @@ import styles from './GameBoard.module.css';
 
 // ⚡ Bolt: colorOrder をファイルスコープの定数化し、detailPlayerStocks / detailPlayerProps の
 // useMemo 内での重複定義・再生成を防ぐ（レビュー指摘: gemini-code-assist, coderabbitai）。
-const COLOR_ORDER: ColorGroup[] = [
+const COLOR_ORDER: readonly ColorGroup[] = [
   'brown',
   'lightblue',
   'pink',
