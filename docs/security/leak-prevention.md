@@ -91,3 +91,7 @@ CI の監査ワークフロー (`.github/workflows/permissions-audit.yml`) に�
 ### pull_request_target の使用禁止
 
 フォーク元から悪意のあるコードがシークレット付きで実行されるリスクがあるため、`pull_request_target` トリガーの使用を CI (`permissions-audit.yml`) で明示的に禁止・ブロックしています。
+
+### 追加の漏洩防止対策 (Pre-commit 強化)
+
+ローカル環境の防御をさらに高めるため、`.pre-commit-config.yaml` に **TruffleHog** を追加しました。これにより、有効性が検証可能なシークレット（API キーなど）がコミットされる前にローカル環境で即座に検知・ブロックされます。
