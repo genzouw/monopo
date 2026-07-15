@@ -22,6 +22,12 @@ repos:
       - id: gitleaks
         stages: [commit]
 
+  - repo: https://github.com/trufflesecurity/trufflehog
+    rev: v3.95.9
+    hooks:
+      - id: trufflehog
+        stages: [commit]
+
   - repo: local
     hooks:
       - id: forbid-sensitive-files
