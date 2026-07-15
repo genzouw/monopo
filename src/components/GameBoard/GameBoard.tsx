@@ -27,6 +27,7 @@ import BankruptDialog from '../ActionDialog/BankruptDialog';
 import ForceBuyDialog from '../ActionDialog/ForceBuyDialog';
 import StockDialog from '../ActionDialog/StockDialog';
 import LoanDialog from '../ActionDialog/LoanDialog';
+import { compareByColorOrder } from '../ActionDialog/colorSort';
 import { useSound } from '../../sound/useSound';
 import styles from './GameBoard.module.css';
 
@@ -302,13 +303,9 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
 
     return Object.entries(detailPlayer.stocks)
       .filter(([, shares]) => typeof shares === 'number' && shares > 0)
-      .sort(([colorA], [colorB]) => {
-        const ai = COLOR_ORDER.indexOf(colorA as ColorGroup);
-        const bi = COLOR_ORDER.indexOf(colorB as ColorGroup);
-        const realA = ai === -1 ? COLOR_ORDER.length : ai;
-        const realB = bi === -1 ? COLOR_ORDER.length : bi;
-        return realA - realB;
-      });
+      .sort(([colorA], [colorB]) =>
+        compareByColorOrder(colorA, colorB, COLOR_ORDER),
+      );
   }, [showPlayerDetail, playersById]);
 
   // ⚡ Bolt: useMemo to prevent O(P log P) sorting/mapping of owned properties on every render (e.g. 60 FPS animation) while the player dialog is open.
@@ -328,15 +325,14 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
       })
       .filter((item): item is NonNullable<typeof item> => item !== null)
       .sort((a, b) => {
-        const aColorIdx = a.space.color
-          ? COLOR_ORDER.indexOf(a.space.color)
-          : -1;
-        const bColorIdx = b.space.color
-          ? COLOR_ORDER.indexOf(b.space.color)
-          : -1;
-        const ai = aColorIdx !== -1 ? aColorIdx : COLOR_ORDER.length;
-        const bi = bColorIdx !== -1 ? bColorIdx : COLOR_ORDER.length;
-        return ai !== bi ? ai - bi : a.space.position - b.space.position;
+        const colorCompare = compareByColorOrder(
+          a.space.color,
+          b.space.color,
+          COLOR_ORDER,
+        );
+        return colorCompare !== 0
+          ? colorCompare
+          : a.space.position - b.space.position;
       });
   }, [showPlayerDetail, playersById, state.board, state.propertyStates]);
 
