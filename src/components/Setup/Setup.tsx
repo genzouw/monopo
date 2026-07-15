@@ -252,11 +252,7 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
                   ? `${baseId}-name-error-${i}`
                   : undefined
               }
-              aria-describedby={
-                names[i].trim().length === 0
-                  ? `${baseId}-char-count-${i} ${baseId}-name-error-${i}`
-                  : `${baseId}-char-count-${i}`
-              }
+              aria-describedby={`${baseId}-char-count-${i}`}
             />
             <span
               id={`${baseId}-char-count-${i}`}

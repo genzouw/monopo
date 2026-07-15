@@ -91,3 +91,10 @@ CI の監査ワークフロー (`.github/workflows/permissions-audit.yml`) に�
 ### pull_request_target の使用禁止
 
 フォーク元から悪意のあるコードがシークレット付きで実行されるリスクがあるため、`pull_request_target` トリガーの使用を CI (`permissions-audit.yml`) で明示的に禁止・ブロックしています。
+
+### 追加の漏洩検知・抑止対策 (Pre-commit 強化)
+
+ローカル環境での検知・抑止力をさらに高めるため、`.pre-commit-config.yaml` に **TruffleHog** を追加しました。これにより、有効性が検証可能なシークレット（API キーなど）がコミットされる前にローカル環境で即座に検知・抑止されます。
+
+- **必須**: 開発環境には [TruffleHog](https://github.com/trufflesecurity/trufflehog) をインストールしてください（例: `brew install trufflehog`）。未インストールの場合、コミット時にエラーが発生してブロックされます。
+- **オフライン時の回避策**: TruffleHog はデフォルトでシークレットの有効性を外部プロバイダに問い合わせて検証するため、オフライン環境ではコミットが失敗する場合があります。その場合は `SKIP=trufflehog git commit ...` のようにフックを一時的にスキップしてください。
