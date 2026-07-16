@@ -7,7 +7,7 @@ import {
   useId,
 } from 'react';
 import type { Dispatch } from 'react';
-import type { GameState, Player } from '../../game/types';
+import type { BoardSpace, GameState, Player } from '../../game/types';
 import type { GameAction } from '../../game/actions';
 import { MAX_JAIL_TURNS } from '../../game/reducer';
 import { calculateTotalAssets, getSpaceById } from '../../game/rules';
@@ -282,10 +282,11 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
 
   // ⚡ Bolt: useMemo to prevent mapping on every render during animations.
   const tradeOfferSpaces = useMemo(() => {
-    if (state.turnPhase !== 'tradeConfirm' || !state.trade) return [];
-    return state.trade.offerProperties.map((id) =>
-      getSpaceById(id, state.board)!,
-    );
+    const trade = state.trade;
+    if (state.turnPhase !== 'tradeConfirm' || !trade) return [];
+    return trade.offerProperties
+      .map((id) => getSpaceById(id, state.board))
+      .filter((space): space is BoardSpace => !!space);
   }, [state.turnPhase, state.trade, state.board]);
 
   const tradeRequestSpaces = useMemo(() => {
@@ -1118,36 +1119,36 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                       </div>
                     ) : (
                       detailPlayerStocks.map(([color, shares]) => (
-                          <div
-                            key={color}
-                            style={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              padding: '4px 0',
-                              fontSize: 14,
-                              borderBottom: '1px solid #f0f0f0',
-                            }}
-                          >
-                            <span>
-                              {color !== 'railroad' && (
-                                <span
-                                  style={{
-                                    display: 'inline-block',
-                                    width: 10,
-                                    height: 10,
-                                    borderRadius: 2,
-                                    backgroundColor: `var(--color-${color})`,
-                                    marginRight: 6,
-                                    verticalAlign: 'middle',
-                                  }}
-                                />
-                              )}
-                              {COLOR_LABEL[color] || color}
-                            </span>
-                            <span>{shares}まい</span>
-                          </div>
-                        ))
+                        <div
+                          key={color}
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            padding: '4px 0',
+                            fontSize: 14,
+                            borderBottom: '1px solid #f0f0f0',
+                          }}
+                        >
+                          <span>
+                            {color !== 'railroad' && (
+                              <span
+                                style={{
+                                  display: 'inline-block',
+                                  width: 10,
+                                  height: 10,
+                                  borderRadius: 2,
+                                  backgroundColor: `var(--color-${color})`,
+                                  marginRight: 6,
+                                  verticalAlign: 'middle',
+                                }}
+                              />
+                            )}
+                            {COLOR_LABEL[color] || color}
+                          </span>
+                          <span>{shares}まい</span>
+                        </div>
+                      ))
                     )}
                   </div>
                 )}
