@@ -80,6 +80,5 @@ secretGroup = 0
 entropy = 0.0
 [rules.allowlist]
 regexes = [
-    '''(?i)postgres(?:ql)?://(user:pass@)?localhost''',
-    '''(?i)redis://localhost'''
+    '''(?i)(?:postgres(?:ql)?|redis|mongodb(?:\+srv)?|mysql)://(?:[^:]+:[^@]+@)?(?:localhost|127\.0\.0\.1)(?:[:/?]|$)'''
 ]
