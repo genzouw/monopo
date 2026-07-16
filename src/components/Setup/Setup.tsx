@@ -254,7 +254,9 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
               }
               aria-describedby={[
                 `${baseId}-char-count-${i}`,
-                names[i].trim().length === 0 ? `${baseId}-name-error-${i}` : null,
+                names[i].trim().length === 0
+                  ? `${baseId}-name-error-${i}`
+                  : null,
               ]
                 .filter(Boolean)
                 .join(' ')}
