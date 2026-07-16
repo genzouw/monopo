@@ -57,3 +57,12 @@ Pull Request における変更に対して、リポジトリ全体を考慮し�
    - このワークフローを動作させるには、リポジトリ管理者権限を持つユーザーが GitHub のリポジトリの `Settings > Secrets and variables > Actions` にて、以下のシークレットを登録してください。
      - `GH_MODELS_TOKEN`: GitHub Models へのアクセス用トークン
      - `TAVILY_API_KEY`: Tavily Search API へのアクセス用キー
+
+## 新規: AI Test Automation の設定
+
+Pull Request におけるソースコード変更に対して、最新のPlaywrightやJestのベストプラクティスに基づいたテストコードを自動提案する `.github/workflows/ai-test-automation.yml` を追加しました。
+
+1. **GitHub Secretsの設定 (必須)**
+   - このワークフローを動作させるには、リポジトリ管理者権限を持つユーザーが GitHub のリポジトリの `Settings > Secrets and variables > Actions` にて、以下のシークレットを登録してください。
+     - `GH_MODELS_TOKEN`: GitHub Models へのアクセス用トークン
+     - `TAVILY_API_KEY`: Tavily Search API へのアクセス用キー
