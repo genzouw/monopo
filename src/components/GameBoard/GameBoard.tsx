@@ -290,10 +290,11 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
   }, [state.turnPhase, state.trade, state.board]);
 
   const tradeRequestSpaces = useMemo(() => {
-    if (state.turnPhase !== 'tradeConfirm' || !state.trade) return [];
-    return state.trade.requestProperties.map((id) =>
-      getSpaceById(id, state.board)!,
-    );
+    const trade = state.trade;
+    if (state.turnPhase !== 'tradeConfirm' || !trade) return [];
+    return trade.requestProperties
+      .map((id) => getSpaceById(id, state.board))
+      .filter((space): space is BoardSpace => !!space);
   }, [state.turnPhase, state.trade, state.board]);
 
   // ⚡ Bolt: useMemo to prevent O(K log K) sorting/mapping of stocks on every render.
