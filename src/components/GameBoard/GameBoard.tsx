@@ -280,6 +280,47 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
     [state.dice.rolled, state.dice.values, isRolling, handleRollComplete],
   );
 
+  // ⚡ Bolt: useMemo to prevent mapping on every render during animations.
+  const tradeOfferSpaces = useMemo(() => {
+    if (state.turnPhase !== 'tradeConfirm' || !state.trade) return [];
+    return state.trade.offerProperties.map((id) =>
+      getSpaceById(id, state.board)!,
+    );
+  }, [state.turnPhase, state.trade, state.board]);
+
+  const tradeRequestSpaces = useMemo(() => {
+    if (state.turnPhase !== 'tradeConfirm' || !state.trade) return [];
+    return state.trade.requestProperties.map((id) =>
+      getSpaceById(id, state.board)!,
+    );
+  }, [state.turnPhase, state.trade, state.board]);
+
+  // ⚡ Bolt: useMemo to prevent O(K log K) sorting/mapping of stocks on every render.
+  const detailPlayerStocks = useMemo(() => {
+    if (!showPlayerDetail) return [];
+    const detailPlayer = state.players.find((p) => p.id === showPlayerDetail);
+    if (!detailPlayer || !detailPlayer.stocks) return [];
+    const colorOrder = [
+      'brown',
+      'lightblue',
+      'pink',
+      'orange',
+      'red',
+      'yellow',
+      'green',
+      'blue',
+    ];
+    return Object.entries(detailPlayer.stocks)
+      .filter(([, shares]) => typeof shares === 'number' && shares > 0)
+      .sort(([colorA], [colorB]) => {
+        const ai = colorOrder.indexOf(colorA);
+        const bi = colorOrder.indexOf(colorB);
+        const realA = ai === -1 ? colorOrder.length : ai;
+        const realB = bi === -1 ? colorOrder.length : bi;
+        return realA - realB;
+      });
+  }, [showPlayerDetail, state.players]);
+
   // ⚡ Bolt: useMemo to prevent O(P log P) sorting/mapping of owned properties on every render (e.g. 60 FPS animation) while the player dialog is open.
   const detailPlayerProps = useMemo(() => {
     const detailPlayer = showPlayerDetail
@@ -579,12 +620,8 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
             : undefined;
           const offer = state.trade;
           if (!offer) return null;
-          const offerSpaces = offer.offerProperties.map((id) =>
-            getSpaceById(id, state.board)!,
-          );
-          const requestSpaces = offer.requestProperties.map((id) =>
-            getSpaceById(id, state.board)!,
-          );
+          const offerSpaces = tradeOfferSpaces;
+          const requestSpaces = tradeRequestSpaces;
           return (
             <Dialog
               title={`${to?.token} ${to?.name}へのていあん`}
@@ -932,16 +969,6 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
             railroad: '🚂 てつどう',
           };
           const ownedProps = detailPlayerProps;
-          const colorOrder = [
-            'brown',
-            'lightblue',
-            'pink',
-            'orange',
-            'red',
-            'yellow',
-            'green',
-            'blue',
-          ];
           const currentSpaceName =
             state.board[detailPlayer.position]?.name ?? '';
           return (
@@ -1090,19 +1117,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                         まだもっていないよ
                       </div>
                     ) : (
-                      Object.entries(detailPlayer.stocks)
-                        .filter(
-                          ([, shares]) =>
-                            typeof shares === 'number' && shares > 0,
-                        )
-                        .sort(([colorA], [colorB]) => {
-                          const ai = colorOrder.indexOf(colorA);
-                          const bi = colorOrder.indexOf(colorB);
-                          const realA = ai === -1 ? colorOrder.length : ai;
-                          const realB = bi === -1 ? colorOrder.length : bi;
-                          return realA - realB;
-                        })
-                        .map(([color, shares]) => (
+                      detailPlayerStocks.map(([color, shares]) => (
                           <div
                             key={color}
                             style={{
