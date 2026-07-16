@@ -38,3 +38,5 @@
 *.log -diff export-ignore
 *-report.md -diff export-ignore
 ai-report-*.md -diff export-ignore
+*.patch -diff export-ignore
+*.diff -diff export-ignore

@@ -13,7 +13,7 @@
 - **`.gitignore` と `.gitattributes` による除外・保護**:
   - `.env`, `.env.*` (ただし `.env.example` は除く)
   - `*.pem`, `*.key`, `id_rsa`, `id_ed25519`, `id_ecdsa`, `id_dsa`, `*credentials*.json`, `*secret*.json`, `*.npmrc`, `.netrc`, DBファイル(`*.sqlite` 等) 等
-  - AI エージェントの作業跡（`.cursor/`, `.claude/`, `.aider*`, `.cline/`, `.windsurf/`, `.trae/`, `.roo/` 等）や、デバッグ等で出力されるログファイル・レポートファイル（`*.log`, `*-report.md`）はローカル環境特有の秘密情報が含まれるリスクがあるため除外しています。
+  - AI エージェントの作業跡（`.cursor/`, `.claude/`, `.aider*`, `.cline/`, `.windsurf/`, `.trae/`, `.roo/` 等）や、デバッグ等で出力されるログファイル・レポートファイル（`*.log`, `*-report.md`）、ソースコードの差分ファイル（`*.patch`, `*.diff`）はローカル環境特有の秘密情報や未公開コードが含まれるリスクがあるため除外しています。
   - **さらに、`.gitattributes` により、これらの秘密情報ファイルが誤って `git add` された場合でも、diff の中身がレビュー画面・ログ・PR 上で表示されない（`-diff` によりバイナリ扱いとなり `Binary files differ` 表示）よう、またリポジトリのアーカイブに含まれないよう（`export-ignore`）設定し、二重に保護しています。**
 - **`pre-commit` framework**: `.pre-commit-config.yaml` による標準的なフック（秘密鍵の検知、YAML構文チェックなど）を利用してコミット前の安全性をさらに高めています。
   - **`detect-secrets`**: `gitleaks` を補完し、エントロピーベースで未知の高乱数なシークレットや独自フォーマットのトークンを検知します。
@@ -91,3 +91,10 @@ CI の監査ワークフロー (`.github/workflows/permissions-audit.yml`) に�
 ### pull_request_target の使用禁止
 
 フォーク元から悪意のあるコードがシークレット付きで実行されるリスクがあるため、`pull_request_target` トリガーの使用を CI (`permissions-audit.yml`) で明示的に禁止・ブロックしています。
+
+### 追加の漏洩検知・抑止対策 (Pre-commit 強化)
+
+ローカル環境での検知・抑止力をさらに高めるため、`.pre-commit-config.yaml` に **TruffleHog** を追加しました。これにより、有効性が検証可能なシークレット（API キーなど）がコミットされる前にローカル環境で即座に検知・抑止されます。
+
+- **必須**: 開発環境には [TruffleHog](https://github.com/trufflesecurity/trufflehog) をインストールしてください（例: `brew install trufflehog`）。未インストールの場合、コミット時にエラーが発生してブロックされます。
+- **オフライン時の回避策**: TruffleHog はデフォルトでシークレットの有効性を外部プロバイダに問い合わせて検証するため、オフライン環境ではコミットが失敗する場合があります。その場合は `SKIP=trufflehog git commit ...` のようにフックを一時的にスキップしてください。
