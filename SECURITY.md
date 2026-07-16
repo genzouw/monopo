@@ -68,3 +68,7 @@ CI の監査ワークフロー (`.github/workflows/permissions-audit.yml`) に�
 ### PR スキャン対象ブランチの拡張について
 
 TruffleHog および pre-commit（gitleaks/detect-secrets）による CI スキャンは、`main` ブランチだけでなく全てのフィーチャーブランチの PR に対しても実行されるよう設定されています。これにより、開発の初期段階からシークレットの流出やポリシー違反を未然に防ぎます。
+
+### 接続文字列・バックエンドURLのハードコード禁止
+
+データベース（PostgreSQL, MongoDB, MySQL）やキャッシュ（Redis）への完全な接続文字列（`postgres://...` や `redis://...` 等）のソースコードへのハードコードは、`.gitleaks.toml` のカスタムルール (`monopo-connection-string`) によって検知・ブロックされます。パスワードが含まれていない場合でも、環境によって接続先が変わるべき値であるため、必ず環境変数経由で設定してください。

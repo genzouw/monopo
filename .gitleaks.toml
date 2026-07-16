@@ -70,3 +70,16 @@ regexes = [
 paths = [
     '''docs/security/'''
 ]
+
+[[rules]]
+id = "monopo-connection-string"
+description = "データベース・キャッシュ等の接続文字列 (postgres, redis, mongodb 等) のハードコード検知"
+regex = '''(?i)(?:postgres(?:ql)?|redis|mongodb(?:\+srv)?|mysql)://(?:[^:]+:[^@]+@)?[^/]+(?:/[^?]*)?(?:\?[^"'\s]*)?'''
+tags = ["database", "connection-string", "credential"]
+secretGroup = 0
+entropy = 0.0
+[rules.allowlist]
+regexes = [
+    '''(?i)postgres(?:ql)?://(user:pass@)?localhost''',
+    '''(?i)redis://localhost'''
+]
