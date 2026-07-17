@@ -63,6 +63,8 @@ jobs:
               if (tavilyRes.ok) {
                 const searchData = await tavilyRes.json();
                 searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
+              } else {
+                console.error(`Tavily search failed with status: ${tavilyRes.status}`);
               }
             } catch (e) {
               console.error('Tavily search failed:', e);
