@@ -3,7 +3,9 @@ title: '【提案】monopo への現実的・教育的マネーゲーム機能�
 labels:
   - enhancement
   - discussion
+  - proposal
   - game-design
+  - game-mechanics
 ---
 
 ## 💡 背景
