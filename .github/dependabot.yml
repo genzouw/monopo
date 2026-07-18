@@ -101,6 +101,9 @@ updates:
     labels:
       - 'dependencies'
       - 'security'
+    # 新規リリースを即座に取り込まず一定期間の検証期間を設けることで、
+    # サプライチェーン攻撃（悪意あるリリースの即時混入）のリスクを低減する。
+    cooldown:
+      default-days: 7
     commit-message:
       prefix: 'chore'
-      include: 'scope'
