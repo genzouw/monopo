@@ -39,6 +39,8 @@ jobs:
                 query: `${year} latest AI coding tools free open source github actions cicd`,
                 search_depth: 'advanced',
                 include_answer: true,
+                topic: 'news',
+                days: 7,
               }),
             });
 
@@ -66,7 +68,9 @@ jobs:
               },
               body: JSON.stringify({
                 model: 'o3-mini',
-                messages: [{ role: 'user', content: prompt }]
+                messages: [{ role: 'user', content: prompt }],
+                reasoning_effort: 'high',
+                max_completion_tokens: 15000
               })
             });
 
