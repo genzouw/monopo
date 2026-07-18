@@ -85,3 +85,22 @@ updates:
       # node24 を正式サポートするまではメジャーアップデートを停止する。
       - dependency-name: 'DavidAnson/markdownlint-cli2-action'
         update-types: ['version-update:semver-major']
+
+  # pre-commit hooks
+  - package-ecosystem: 'pre-commit'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'Asia/Tokyo'
+    open-pull-requests-limit: 5
+    target-branch: 'main'
+    reviewers:
+      - 'genzouw'
+    labels:
+      - 'dependencies'
+      - 'security'
+    commit-message:
+      prefix: 'chore'
+      include: 'scope'
