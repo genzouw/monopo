@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useId, useMemo } from 'react';
 import type { BoardSpace, Player, PropertyState } from '../../game/types';
 import { canMortgage, canUnmortgage, getSpaceById } from '../../game/rules';
 import Dialog from '../common/Dialog';
@@ -23,9 +23,13 @@ export default function MortgageDialog({
   onClose,
 }: MortgageDialogProps) {
   const hintIdBase = useId();
-  const ownedProperties = currentPlayer.properties
-    .map((id: string) => getSpaceById(id, board))
-    .filter((s): s is BoardSpace => !!s && !!s.mortgageValue);
+
+  // ⚡ Bolt: useMemo to prevent mapping and filtering the properties array on every render.
+  const ownedProperties = useMemo(() => {
+    return currentPlayer.properties
+      .map((id: string) => getSpaceById(id, board))
+      .filter((s): s is BoardSpace => !!s && !!s.mortgageValue);
+  }, [currentPlayer.properties, board]);
 
   return (
     <Dialog
