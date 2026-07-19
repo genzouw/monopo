@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useId, useMemo } from 'react';
 import type { BoardSpace, Player, PropertyState } from '../../game/types';
 import { canMortgage, canUnmortgage, getSpaceById } from '../../game/rules';
 import Dialog from '../common/Dialog';
@@ -23,9 +23,17 @@ export default function MortgageDialog({
   onClose,
 }: MortgageDialogProps) {
   const hintIdBase = useId();
-  const ownedProperties = currentPlayer.properties
-    .map((id: string) => getSpaceById(id, board))
-    .filter((s): s is BoardSpace => !!s && !!s.mortgageValue);
+
+  // ⚡ Bolt: 毎回のレンダリングで物件配列のマッピングとフィルタリングが行われるのを防ぐため、useMemo を使用します。
+  // これにより、抵当ダイアログが開いている状態での親コンポーネントの状態変更に伴うレンダリングのオーバーヘッドを削減します。
+  const ownedProperties = useMemo(() => {
+    return currentPlayer.properties
+      .map((id) => getSpaceById(id, board))
+      .filter(
+        (s): s is BoardSpace =>
+          s !== undefined && s.mortgageValue !== undefined,
+      );
+  }, [currentPlayer.properties, board]);
 
   return (
     <Dialog
