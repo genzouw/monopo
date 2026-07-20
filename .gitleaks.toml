@@ -118,7 +118,7 @@ regexes = [
 [[rules]]
 id = "monopo-saas-token"
 description = "SaaS トークン (Vercel, Resend, Supabase, Google Gemini 等) のハードコード検知"
-regex = '''(?i)(?:re_[a-zA-Z0-9]{24}|sbp_[a-zA-Z0-9]{40}|AIza[0-9A-Za-z\-_]{35})'''
+regex = '''(?:re_[a-zA-Z0-9]{24}|sbp_[a-zA-Z0-9]{40}|AIza[0-9A-Za-z\-_]{35})'''
 tags = ["saas", "api-key", "credential"]
 secretGroup = 0
 entropy = 0.0
