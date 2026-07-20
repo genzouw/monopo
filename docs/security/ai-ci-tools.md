@@ -74,3 +74,13 @@ Issueの内容をもとに自動でコードを修正する `.github/workflows/a
 1. **GitHub Secretsの設定 (必須)**
    - 既存の `GH_MODELS_TOKEN` に加え、`TAVILY_API_KEY` の設定が必要です。
    - `Settings > Secrets and variables > Actions` で設定されているか確認してください。
+
+## 更新: AI Tech News Digest の設定
+
+週次のAI・自動化トレンドダイジェストを生成する `.github/workflows/ai-tech-news-digest.yml` において、Tavily Search API の `topic: 'news'` と `days: 7` パラメータを追加し、より最新の技術ニュースに特化して情報を取得できるように最適化しました。
+
+1. **GitHub Secretsの設定 (必須)**
+   - 本設定には**リポジトリ管理者権限**が必要です。
+   - `Settings > Secrets and variables > Actions` にて、以下のシークレットを登録してください。
+     - `GH_MODELS_TOKEN`: GitHub Models APIにアクセスするためのトークン。
+     - `TAVILY_API_KEY`: Tavily Search APIを利用するためのAPIキー。
