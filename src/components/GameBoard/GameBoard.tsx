@@ -49,6 +49,7 @@ const COLOR_ORDER = [
   'yellow',
   'green',
   'blue',
+  'railroad',
 ];
 
 export default function GameBoard({ state, dispatch }: GameBoardProps) {
