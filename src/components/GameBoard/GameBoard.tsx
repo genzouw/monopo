@@ -35,6 +35,22 @@ type GameBoardProps = {
   dispatch: Dispatch<GameAction>;
 };
 
+/**
+ * 土地・株式の色分類を表示順に並べるための基準配列。
+ * `detailPlayerProps` / `detailPlayerStocks` の両方から参照される静的データのため、
+ * レンダリングごとの再生成を避けるためコンポーネント外の定数として定義する。
+ */
+const COLOR_ORDER = [
+  'brown',
+  'lightblue',
+  'pink',
+  'orange',
+  'red',
+  'yellow',
+  'green',
+  'blue',
+];
+
 export default function GameBoard({ state, dispatch }: GameBoardProps) {
   const playersById = useMemo(() => {
     const dict: Record<string, Player> = {};
@@ -289,16 +305,6 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
     const board = state.board;
     const propertyStates = state.propertyStates;
     if (!board || !propertyStates) return [];
-    const colorOrder = [
-      'brown',
-      'lightblue',
-      'pink',
-      'orange',
-      'red',
-      'yellow',
-      'green',
-      'blue',
-    ];
     return detailPlayer.properties
       .map((id) => {
         const space = getSpaceById(id, board);
@@ -308,13 +314,13 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
       .filter((item): item is NonNullable<typeof item> => item !== null)
       .sort((a, b) => {
         const aColorIdx = a.space.color
-          ? colorOrder.indexOf(a.space.color)
+          ? COLOR_ORDER.indexOf(a.space.color)
           : -1;
         const bColorIdx = b.space.color
-          ? colorOrder.indexOf(b.space.color)
+          ? COLOR_ORDER.indexOf(b.space.color)
           : -1;
-        const ai = aColorIdx !== -1 ? aColorIdx : colorOrder.length;
-        const bi = bColorIdx !== -1 ? bColorIdx : colorOrder.length;
+        const ai = aColorIdx !== -1 ? aColorIdx : COLOR_ORDER.length;
+        const bi = bColorIdx !== -1 ? bColorIdx : COLOR_ORDER.length;
         return ai !== bi ? ai - bi : a.space.position - b.space.position;
       });
   }, [showPlayerDetail, state.players, state.board, state.propertyStates]);
@@ -326,24 +332,13 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
       : null;
     if (!detailPlayer || !detailPlayer.stocks) return [];
 
-    const colorOrder = [
-      'brown',
-      'lightblue',
-      'pink',
-      'orange',
-      'red',
-      'yellow',
-      'green',
-      'blue',
-    ];
-
     return Object.entries(detailPlayer.stocks)
       .filter(([, shares]) => typeof shares === 'number' && shares > 0)
       .sort(([colorA], [colorB]) => {
-        const ai = colorOrder.indexOf(colorA);
-        const bi = colorOrder.indexOf(colorB);
-        const realA = ai === -1 ? colorOrder.length : ai;
-        const realB = bi === -1 ? colorOrder.length : bi;
+        const ai = COLOR_ORDER.indexOf(colorA);
+        const bi = COLOR_ORDER.indexOf(colorB);
+        const realA = ai === -1 ? COLOR_ORDER.length : ai;
+        const realB = bi === -1 ? COLOR_ORDER.length : bi;
         return realA - realB;
       });
   }, [showPlayerDetail, state.players]);
@@ -1110,36 +1105,36 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                       </div>
                     ) : (
                       detailPlayerStocks.map(([color, shares]) => (
-                          <div
-                            key={color}
-                            style={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              padding: '4px 0',
-                              fontSize: 14,
-                              borderBottom: '1px solid #f0f0f0',
-                            }}
-                          >
-                            <span>
-                              {color !== 'railroad' && (
-                                <span
-                                  style={{
-                                    display: 'inline-block',
-                                    width: 10,
-                                    height: 10,
-                                    borderRadius: 2,
-                                    backgroundColor: `var(--color-${color})`,
-                                    marginRight: 6,
-                                    verticalAlign: 'middle',
-                                  }}
-                                />
-                              )}
-                              {COLOR_LABEL[color] || color}
-                            </span>
-                            <span>{shares}まい</span>
-                          </div>
-                        ))
+                        <div
+                          key={color}
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            padding: '4px 0',
+                            fontSize: 14,
+                            borderBottom: '1px solid #f0f0f0',
+                          }}
+                        >
+                          <span>
+                            {color !== 'railroad' && (
+                              <span
+                                style={{
+                                  display: 'inline-block',
+                                  width: 10,
+                                  height: 10,
+                                  borderRadius: 2,
+                                  backgroundColor: `var(--color-${color})`,
+                                  marginRight: 6,
+                                  verticalAlign: 'middle',
+                                }}
+                              />
+                            )}
+                            {COLOR_LABEL[color] || color}
+                          </span>
+                          <span>{shares}まい</span>
+                        </div>
+                      ))
                     )}
                   </div>
                 )}
