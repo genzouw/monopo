@@ -94,7 +94,7 @@ entropy = 0.0
 [[rules]]
 id = "monopo-pii-phone-jp"
 description = "個人情報 (PII) - 国内電話番号のハードコード検知"
-regex = '''(?i)\b0[789]0-?\d{4}-?\d{4}\b'''
+regex = '''(?i)(?:phone|tel|電話)[\s]*[:=][\s]*["']?0[789]0-?\d{4}-?\d{4}["']?'''
 tags = ["pii", "phone"]
 secretGroup = 0
 entropy = 0.0
