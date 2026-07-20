@@ -1088,10 +1088,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                     <div style={{ fontWeight: 700, marginBottom: 8 }}>
                       📈 おうえんカード（株）
                     </div>
-                    {!detailPlayer.stocks ||
-                    Object.values(detailPlayer.stocks).every(
-                      (shares) => shares === 0,
-                    ) ? (
+                    {detailPlayerStocks.length === 0 ? (
                       <div
                         style={{
                           color: 'var(--color-text-light)',
