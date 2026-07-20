@@ -53,6 +53,22 @@ const COLOR_ORDER = [
   'railroad',
 ];
 
+/**
+ * 株式の色分類を日本語ラベルに変換するための静的な対応表。
+ * プレイヤー詳細ダイアログのレンダリングごとの再生成を避けるためコンポーネント外の定数として定義する。
+ */
+const COLOR_LABEL: Record<string, string> = {
+  brown: '🟤 ちゃいろ',
+  lightblue: '🩵 みずいろ',
+  pink: '🩷 ピンク',
+  orange: '🟠 オレンジ',
+  red: '🔴 あか',
+  yellow: '🟡 きいろ',
+  green: '🟢 みどり',
+  blue: '🔵 あお',
+  railroad: '🚂 てつどう',
+};
+
 export default function GameBoard({ state, dispatch }: GameBoardProps) {
   const playersById = useMemo(() => {
     const dict: Record<string, Player> = {};
@@ -941,17 +957,6 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
             state.propertyStates,
             state.board,
           );
-          const COLOR_LABEL: Record<string, string> = {
-            brown: '🟤 ちゃいろ',
-            lightblue: '🩵 みずいろ',
-            pink: '🩷 ピンク',
-            orange: '🟠 オレンジ',
-            red: '🔴 あか',
-            yellow: '🟡 きいろ',
-            green: '🟢 みどり',
-            blue: '🔵 あお',
-            railroad: '🚂 てつどう',
-          };
           const ownedProps = detailPlayerProps;
           const currentSpaceName =
             state.board[detailPlayer.position]?.name ?? '';
