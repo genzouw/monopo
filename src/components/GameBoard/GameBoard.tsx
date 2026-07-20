@@ -319,6 +319,35 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
       });
   }, [showPlayerDetail, state.players, state.board, state.propertyStates]);
 
+  // ⚡ Bolt: useMemo to prevent sorting/mapping of stocks on every render (e.g. 60 FPS animation) while the player dialog is open.
+  const detailPlayerStocks = useMemo(() => {
+    const detailPlayer = showPlayerDetail
+      ? state.players.find((p) => p.id === showPlayerDetail)
+      : null;
+    if (!detailPlayer || !detailPlayer.stocks) return [];
+
+    const colorOrder = [
+      'brown',
+      'lightblue',
+      'pink',
+      'orange',
+      'red',
+      'yellow',
+      'green',
+      'blue',
+    ];
+
+    return Object.entries(detailPlayer.stocks)
+      .filter(([, shares]) => typeof shares === 'number' && shares > 0)
+      .sort(([colorA], [colorB]) => {
+        const ai = colorOrder.indexOf(colorA);
+        const bi = colorOrder.indexOf(colorB);
+        const realA = ai === -1 ? colorOrder.length : ai;
+        const realB = bi === -1 ? colorOrder.length : bi;
+        return realA - realB;
+      });
+  }, [showPlayerDetail, state.players]);
+
   return (
     <div className={styles.gameBoard}>
       <div className={styles.boardSection}>
@@ -932,16 +961,6 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
             railroad: '🚂 てつどう',
           };
           const ownedProps = detailPlayerProps;
-          const colorOrder = [
-            'brown',
-            'lightblue',
-            'pink',
-            'orange',
-            'red',
-            'yellow',
-            'green',
-            'blue',
-          ];
           const currentSpaceName =
             state.board[detailPlayer.position]?.name ?? '';
           return (
@@ -1090,19 +1109,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                         まだもっていないよ
                       </div>
                     ) : (
-                      Object.entries(detailPlayer.stocks)
-                        .filter(
-                          ([, shares]) =>
-                            typeof shares === 'number' && shares > 0,
-                        )
-                        .sort(([colorA], [colorB]) => {
-                          const ai = colorOrder.indexOf(colorA);
-                          const bi = colorOrder.indexOf(colorB);
-                          const realA = ai === -1 ? colorOrder.length : ai;
-                          const realB = bi === -1 ? colorOrder.length : bi;
-                          return realA - realB;
-                        })
-                        .map(([color, shares]) => (
+                      detailPlayerStocks.map(([color, shares]) => (
                           <div
                             key={color}
                             style={{
