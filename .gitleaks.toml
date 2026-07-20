@@ -122,3 +122,11 @@ regex = '''(?i)(?:re_[a-zA-Z0-9]{24}|sbp_[a-zA-Z0-9]{40}|AIza[0-9A-Za-z\-_]{35})
 tags = ["saas", "api-key", "credential"]
 secretGroup = 0
 entropy = 0.0
+
+[[rules]]
+id = "monopo-tavily-api-key"
+description = "Tavily Search API の API キーハードコード検知"
+regex = '''(?i)tvly-[a-zA-Z0-9]{32}'''
+tags = ["ai", "api-key", "credential", "tavily"]
+secretGroup = 0
+entropy = 0.0
