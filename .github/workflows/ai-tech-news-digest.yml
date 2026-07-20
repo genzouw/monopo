@@ -35,7 +35,7 @@ jobs:
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                api_key: process.env.TAVILY_API_KEY,
+                api_key: process.env.TAVILY_API_KEY, // pragma: allowlist secret
                 query: `${year} latest AI coding tools free open source github actions cicd`,
                 topic: 'news',
                 days: 7,

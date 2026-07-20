@@ -53,7 +53,7 @@ jobs:
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  api_key: process.env.TAVILY_API_KEY,
+                  api_key: process.env.TAVILY_API_KEY, // pragma: allowlist secret
                   query: `2025 latest software development bug fix solution for: ${title}`,
                   search_depth: 'advanced',
                   include_answer: true,
