@@ -100,7 +100,7 @@ secretGroup = 0
 entropy = 0.0
 [rules.allowlist]
 regexes = [
-    '''(?i)090-0000-0000'''
+    '''(?i)090-?0000-?0000'''
 ]
 
 [[rules]]
