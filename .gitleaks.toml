@@ -70,3 +70,31 @@ regexes = [
 paths = [
     '''docs/security/'''
 ]
+
+[[rules]]
+id = "monopo-connection-string"
+description = "データベース・キャッシュ等の接続文字列 (postgres, redis, mongodb 等) のハードコード検知"
+regex = '''(?i)(?:postgres(?:ql)?|redis|mongodb(?:\+srv)?|mysql)://(?:[^:]+:[^@]+@)?[^/"'\s]+(?:/[^?"'\s]*)?(?:\?[^"'\s]*)?'''
+tags = ["database", "connection-string", "credential"]
+secretGroup = 0
+entropy = 0.0
+[rules.allowlist]
+regexes = [
+    '''(?i)(?:postgres(?:ql)?|redis|mongodb(?:\+srv)?|mysql)://(?:[^:]+:[^@]+@)?(?:localhost|127\.0\.0\.1)(?:[:/?]|$)'''
+]
+
+[[rules]]
+id = "monopo-ai-api-key"
+description = "AI サービス (OpenAI, Anthropic 等) の API キーハードコード検知"
+regex = '''(?i)(?:sk-proj-[a-zA-Z0-9\-_]{100,}|sk-[a-zA-Z0-9]{48}|sk-ant-api03-[a-zA-Z0-9\-_]{95})'''
+tags = ["ai", "api-key", "credential"]
+secretGroup = 0
+entropy = 0.0
+
+[[rules]]
+id = "monopo-tavily-api-key"
+description = "Tavily Search API の API キーハードコード検知"
+regex = '''(?i)tvly-[a-zA-Z0-9]{32}'''
+tags = ["ai", "api-key", "credential", "tavily"]
+secretGroup = 0
+entropy = 0.0
