@@ -1,0 +1,110 @@
+name: AI Test Automation
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - 'src/**/*.ts'
+      - 'src/**/*.tsx'
+
+permissions:
+  contents: read
+
+jobs:
+  test-automation:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Fetch PR Diff
+        id: fetch-diff
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          script: |
+            const diff = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              mediaType: { format: 'diff' }
+            });
+            return diff.data.slice(0, 10000);
+
+      - name: Generate AI Tests
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+          PR_DIFF: ${{ steps.fetch-diff.outputs.result }}
+        with:
+          script: |
+            const prDiff = process.env.PR_DIFF;
+            const title = context.payload.pull_request.title;
+
+            let searchAnswer = '検索結果の要約なし';
+            try {
+              const tavilyRes = await fetch('https://api.tavily.com/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  api_key: process.env.TAVILY_API_KEY,
+                  query: `2025 latest Playwright Jest React testing best practices for: ${title}`,
+                  search_depth: 'advanced',
+                  include_answer: true,
+                }),
+              });
+
+              if (tavilyRes.ok) {
+                const searchData = await tavilyRes.json();
+                searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
+              }
+            } catch (e) {
+              console.log('Tavily search request failed:', e);
+            }
+
+            const prompt = `あなたは熟練のQAエンジニアです。以下のプルリクエストの差分と最新のWeb検索ベストプラクティスをもとに、Playwright または Jest を用いた自動テストコードの実装案を作成し、品質向上のためのフィードバックを日本語で提供してください。
+            プロジェクト要件:
+            - 名称には「monopoly」ではなく必ず「monopo」を使用する。
+            - パッケージマネージャには必ずBunを使用する。
+
+            Web検索によるヒント:
+            ${searchAnswer}
+
+            差分:
+            ${prDiff}`;
+
+            const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
+              },
+              body: JSON.stringify({
+                model: 'o3-mini',
+                messages: [{ role: 'user', content: prompt }]
+              })
+            });
+
+            if (!aiRes.ok) {
+              console.log('AI Test Generation failed');
+              return;
+            }
+            const aiData = await aiRes.json();
+            const review = aiData.choices?.[0]?.message?.content;
+
+            if (review) {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `### 🤖 AI Test Automation Proposal\n\n${review}`
+              });
+            }
