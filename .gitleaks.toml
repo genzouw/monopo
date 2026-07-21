@@ -92,6 +92,38 @@ secretGroup = 0
 entropy = 0.0
 
 [[rules]]
+id = "monopo-pii-phone-jp"
+description = "個人情報 (PII) - 国内電話番号のハードコード検知"
+regex = '''(?i)(?:phone|tel|電話)[\s]*[:=][\s]*["']?0[789]0-?\d{4}-?\d{4}["']?'''
+tags = ["pii", "phone"]
+secretGroup = 0
+entropy = 0.0
+[rules.allowlist]
+regexes = [
+    '''(?i)090-?0000-?0000'''
+]
+
+[[rules]]
+id = "monopo-pii-mynumber"
+description = "個人情報 (PII) - マイナンバー (個人番号) のハードコード検知"
+regex = '''(?i)(?:マイナンバー|\b[mM]y[nN]umber\b|個人番号)[\s]*[:=][\s]*["']?\d{12}["']?'''
+tags = ["pii", "mynumber"]
+secretGroup = 0
+entropy = 0.0
+[rules.allowlist]
+regexes = [
+    '''(?i)000000000000'''
+]
+
+[[rules]]
+id = "monopo-saas-token"
+description = "SaaS トークン (Vercel, Resend, Supabase, Google Gemini 等) のハードコード検知"
+regex = '''(?:re_[a-zA-Z0-9]{24}|sbp_[a-zA-Z0-9]{40}|AIza[0-9A-Za-z\-_]{35}|vc(?:p|i|a|r|k)_[a-zA-Z0-9]{24,})'''
+tags = ["saas", "api-key", "credential"]
+secretGroup = 0
+entropy = 0.0
+
+[[rules]]
 id = "monopo-tavily-api-key"
 description = "Tavily Search API の API キーハードコード検知"
 regex = '''(?i)tvly-[a-zA-Z0-9]{32}'''
