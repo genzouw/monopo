@@ -106,7 +106,7 @@ regexes = [
 [[rules]]
 id = "monopo-pii-mynumber"
 description = "個人情報 (PII) - マイナンバー (個人番号) のハードコード検知"
-regex = '''(?i)(?:\bマイナンバー\b|\b[mM]y[nN]umber\b|個人番号)[\s]*[:=][\s]*["']?\d{12}["']?'''
+regex = '''(?i)(?:マイナンバー|\b[mM]y[nN]umber\b|個人番号)[\s]*[:=][\s]*["']?\d{12}["']?'''
 tags = ["pii", "mynumber"]
 secretGroup = 0
 entropy = 0.0
