@@ -7,7 +7,7 @@ import {
   useId,
 } from 'react';
 import type { Dispatch } from 'react';
-import type { GameState, Player } from '../../game/types';
+import type { ColorGroup, GameState, Player } from '../../game/types';
 import type { GameAction } from '../../game/actions';
 import { MAX_JAIL_TURNS } from '../../game/reducer';
 import { calculateTotalAssets, getSpaceById } from '../../game/rules';
@@ -28,8 +28,22 @@ import BankruptDialog from '../ActionDialog/BankruptDialog';
 import ForceBuyDialog from '../ActionDialog/ForceBuyDialog';
 import StockDialog from '../ActionDialog/StockDialog';
 import LoanDialog from '../ActionDialog/LoanDialog';
+import { compareByColorOrder } from '../ActionDialog/colorSort';
 import { useSound } from '../../sound/useSound';
 import styles from './GameBoard.module.css';
+
+// ⚡ Bolt: colorOrder をファイルスコープの定数化し、detailPlayerStocks / detailPlayerProps の
+// useMemo 内での重複定義・再生成を防ぐ（レビュー指摘: gemini-code-assist, coderabbitai）。
+const COLOR_ORDER: readonly ColorGroup[] = [
+  'brown',
+  'lightblue',
+  'pink',
+  'orange',
+  'red',
+  'yellow',
+  'green',
+  'blue',
+];
 
 type GameBoardProps = {
   state: GameState;
@@ -314,10 +328,24 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
     [state.dice.rolled, state.dice.values, isRolling, handleRollComplete],
   );
 
+  // ⚡ Bolt: useMemo to prevent O(S log S) filtering and sorting of player stocks on every render (e.g. 60 FPS animation) while the player dialog is open.
+  const detailPlayerStocks = useMemo(() => {
+    const detailPlayer = showPlayerDetail
+      ? playersById[showPlayerDetail]
+      : null;
+    if (!detailPlayer || !detailPlayer.stocks) return [];
+
+    return Object.entries(detailPlayer.stocks)
+      .filter(([, shares]) => typeof shares === 'number' && shares > 0)
+      .sort(([colorA], [colorB]) =>
+        compareByColorOrder(colorA, colorB, COLOR_ORDER),
+      );
+  }, [showPlayerDetail, playersById]);
+
   // ⚡ Bolt: useMemo to prevent O(P log P) sorting/mapping of owned properties on every render (e.g. 60 FPS animation) while the player dialog is open.
   const detailPlayerProps = useMemo(() => {
     const detailPlayer = showPlayerDetail
-      ? state.players.find((p) => p.id === showPlayerDetail)
+      ? playersById[showPlayerDetail]
       : null;
     if (!detailPlayer) return [];
     const board = state.board;
@@ -340,7 +368,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           ? colorCompare
           : a.space.position - b.space.position;
       });
-  }, [showPlayerDetail, state.players, state.board, state.propertyStates]);
+  }, [showPlayerDetail, playersById, state.board, state.propertyStates]);
 
   // ⚡ Bolt: useMemo to prevent sorting/mapping of stocks on every render (e.g. 60 FPS animation) while the player dialog is open.
   const detailPlayerStocks = useMemo(() => {
