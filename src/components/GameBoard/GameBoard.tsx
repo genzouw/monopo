@@ -22,17 +22,25 @@ import CardDialog from '../ActionDialog/CardDialog';
 import JailDialog from '../ActionDialog/JailDialog';
 import BuildDialog from '../ActionDialog/BuildDialog';
 import SellDialog from '../ActionDialog/SellDialog';
+import { compareByColorOrder } from '../ActionDialog/colorSort';
 import TradeDialog from '../ActionDialog/TradeDialog';
 import BankruptDialog from '../ActionDialog/BankruptDialog';
 import ForceBuyDialog from '../ActionDialog/ForceBuyDialog';
 import StockDialog from '../ActionDialog/StockDialog';
 import LoanDialog from '../ActionDialog/LoanDialog';
-import { compareByColorOrder } from '../ActionDialog/colorSort';
 import { useSound } from '../../sound/useSound';
 import styles from './GameBoard.module.css';
 
-// ⚡ Bolt: colorOrder をファイルスコープの定数化し、detailPlayerStocks / detailPlayerProps の
-// useMemo 内での重複定義・再生成を防ぐ（レビュー指摘: gemini-code-assist, coderabbitai）。
+type GameBoardProps = {
+  state: GameState;
+  dispatch: Dispatch<GameAction>;
+};
+
+/**
+ * 土地・株式の色分類を表示順に並べるための基準配列。
+ * `detailPlayerProps` / `detailPlayerStocks` の両方から参照される静的データのため、
+ * レンダリングごとの再生成を避けるためコンポーネント外の定数として定義する。
+ */
 const COLOR_ORDER: readonly ColorGroup[] = [
   'brown',
   'lightblue',
@@ -42,11 +50,23 @@ const COLOR_ORDER: readonly ColorGroup[] = [
   'yellow',
   'green',
   'blue',
+  'railroad',
 ];
 
-type GameBoardProps = {
-  state: GameState;
-  dispatch: Dispatch<GameAction>;
+/**
+ * 株式の色分類を日本語ラベルに変換するための静的な対応表。
+ * プレイヤー詳細ダイアログのレンダリングごとの再生成を避けるためコンポーネント外の定数として定義する。
+ */
+const COLOR_LABEL: Record<string, string> = {
+  brown: '🟤 ちゃいろ',
+  lightblue: '🩵 みずいろ',
+  pink: '🩷 ピンク',
+  orange: '🟠 オレンジ',
+  red: '🔴 あか',
+  yellow: '🟡 きいろ',
+  green: '🟢 みどり',
+  blue: '🔵 あお',
+  railroad: '🚂 てつどう',
 };
 
 export default function GameBoard({ state, dispatch }: GameBoardProps) {
@@ -937,17 +957,6 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
             state.propertyStates,
             state.board,
           );
-          const COLOR_LABEL: Record<string, string> = {
-            brown: '🟤 ちゃいろ',
-            lightblue: '🩵 みずいろ',
-            pink: '🩷 ピンク',
-            orange: '🟠 オレンジ',
-            red: '🔴 あか',
-            yellow: '🟡 きいろ',
-            green: '🟢 みどり',
-            blue: '🔵 あお',
-            railroad: '🚂 てつどう',
-          };
           const ownedProps = detailPlayerProps;
           const currentSpaceName =
             state.board[detailPlayer.position]?.name ?? '';
