@@ -28,22 +28,8 @@ import BankruptDialog from '../ActionDialog/BankruptDialog';
 import ForceBuyDialog from '../ActionDialog/ForceBuyDialog';
 import StockDialog from '../ActionDialog/StockDialog';
 import LoanDialog from '../ActionDialog/LoanDialog';
-import { compareByColorOrder } from '../ActionDialog/colorSort';
 import { useSound } from '../../sound/useSound';
 import styles from './GameBoard.module.css';
-
-// ⚡ Bolt: colorOrder をファイルスコープの定数化し、detailPlayerStocks / detailPlayerProps の
-// useMemo 内での重複定義・再生成を防ぐ（レビュー指摘: gemini-code-assist, coderabbitai）。
-const COLOR_ORDER: readonly ColorGroup[] = [
-  'brown',
-  'lightblue',
-  'pink',
-  'orange',
-  'red',
-  'yellow',
-  'green',
-  'blue',
-];
 
 type GameBoardProps = {
   state: GameState;
@@ -55,7 +41,7 @@ type GameBoardProps = {
  * `detailPlayerProps` / `detailPlayerStocks` の両方から参照される静的データのため、
  * レンダリングごとの再生成を避けるためコンポーネント外の定数として定義する。
  */
-const COLOR_ORDER = [
+const COLOR_ORDER: readonly ColorGroup[] = [
   'brown',
   'lightblue',
   'pink',
@@ -369,20 +355,6 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           : a.space.position - b.space.position;
       });
   }, [showPlayerDetail, playersById, state.board, state.propertyStates]);
-
-  // ⚡ Bolt: useMemo to prevent sorting/mapping of stocks on every render (e.g. 60 FPS animation) while the player dialog is open.
-  const detailPlayerStocks = useMemo(() => {
-    const detailPlayer = showPlayerDetail
-      ? state.players.find((p) => p.id === showPlayerDetail)
-      : null;
-    if (!detailPlayer || !detailPlayer.stocks) return [];
-
-    return Object.entries(detailPlayer.stocks)
-      .filter(([, shares]) => typeof shares === 'number' && shares > 0)
-      .sort(([colorA], [colorB]) =>
-        compareByColorOrder(colorA, colorB, COLOR_ORDER),
-      );
-  }, [showPlayerDetail, state.players]);
 
   return (
     <div className={styles.gameBoard}>
