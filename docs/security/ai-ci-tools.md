@@ -84,3 +84,10 @@ Issueの内容をもとに自動でコードを修正する `.github/workflows/a
    - `Settings > Secrets and variables > Actions` にて、以下のシークレットを登録してください。
      - `GH_MODELS_TOKEN`: GitHub Models APIにアクセスするためのトークン。
      - `TAVILY_API_KEY`: Tavily Search APIを利用するためのAPIキー。
+
+## 新規: Open Code Review の設定
+
+PR作成時にAI生成コードのハルシネーションや非推奨API、ロジックのギャップを検出するローカルLLMベースの品質ゲートとして `raye-deng/open-code-review@v2.1.5` を導入しました。
+
+1. **GitHub Secretsの設定**
+   - 追加のAPIキー設定は不要です。デフォルトの `GITHUB_TOKEN` を使用して動作します。
