@@ -41,8 +41,6 @@ jobs:
                 days: 7,
                 search_depth: 'advanced',
                 include_answer: true,
-                topic: 'news',
-                days: 7,
               }),
             });
 
