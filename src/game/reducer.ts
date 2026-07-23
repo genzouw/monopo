@@ -1723,6 +1723,22 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         );
       }
 
+      // 資産イベント（VC満期・ESG配当・保険料徴収・火災）のメッセージは
+      // ターン告知で上書きすると一度も表示されず、物件消滅などが無通知になる。
+      // 告知の前に連結して必ず表示する。
+      const eventMessages: string[] = [];
+      if (stateAfterAlt.message !== state.message) {
+        eventMessages.push(stateAfterAlt.message);
+      }
+      if (stateAfterInsurance.message !== stateAfterAlt.message) {
+        eventMessages.push(stateAfterInsurance.message);
+      }
+      const turnAnnouncement =
+        (nextPlayer.inJail
+          ? `${nextPlayer.name}のばんだよ！刑務所にいるよ`
+          : `${nextPlayer.name}のばんだよ！サイコロをふろう！`) +
+        economyMessage;
+
       return {
         ...stateAfterInsurance,
         currentPlayerIndex: nextIndex,
@@ -1731,11 +1747,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         dice: { values: [1, 1], doubles: 0, rolled: false },
         economyStatus: newEconomyStatus,
         stockMarket: newStockMarket,
-        message:
-          (nextPlayer.inJail
-            ? `${nextPlayer.name}のばんだよ！刑務所にいるよ`
-            : `${nextPlayer.name}のばんだよ！サイコロをふろう！`) +
-          economyMessage,
+        message: [...eventMessages, turnAnnouncement].join(' '),
       };
     }
 

@@ -15,6 +15,7 @@
   - `*.pem`, `*.key`, `id_rsa`, `id_ed25519`, `id_ecdsa`, `id_dsa`, `*credentials*.json`, `*secret*.json`, `*.npmrc`, `.netrc`, DBファイル(`*.sqlite` 等) 等
   - AI エージェントの作業跡（`.cursor/`, `.claude/`, `.aider*`, `.cline/`, `.windsurf/`, `.trae/`, `.roo/` 等）や、デバッグ等で出力されるログファイル・レポートファイル（`*.log`, `*-report.md`）、ソースコードの差分ファイル（`*.patch`, `*.diff`）はローカル環境特有の秘密情報や未公開コードが含まれるリスクがあるため除外しています。
   - **さらに、`.gitattributes` により、これらの秘密情報ファイルが誤って `git add` された場合でも、diff の中身がレビュー画面・ログ・PR 上で表示されない（`-diff` によりバイナリ扱いとなり `Binary files differ` 表示）よう、またリポジトリのアーカイブに含まれないよう（`export-ignore`）設定し、二重に保護しています。**
+- **VS Code / Cursor 用安全側プリセット (`.vscode/settings.json`)**: リポジトリに事前に設定されたプリセットにより、ローカルエディタのエクスプローラーや検索からシークレットファイル (`.env`, `*.pem`等) やAIエージェントの作業跡 (`.cursor/`, `.claude/`等) を除外 (`files.exclude`) し、誤露出・誤操作のリスクを低減します。コミット防止は `.gitignore` およびフックで担保します。
 - **`pre-commit` framework**: `.pre-commit-config.yaml` による標準的なフック（秘密鍵の検知、YAML構文チェックなど）を利用してコミット前の安全性をさらに高めています。
   - **`detect-secrets`**: `gitleaks` を補完し、エントロピーベースで未知の高乱数なシークレットや独自フォーマットのトークンを検知します。
     - **セットアップ**: `pre-commit install` 実行時に自動的にインストールされます。追加の手動インストールは不要です。
@@ -40,6 +41,9 @@
   - `security-extended` および `security-and-quality` クエリを使用して、データフロー解析によるシークレットのハードコード検知や品質チェックなど、高度な静的解析を行います。
 - **Zizmor ワークフロー (`.github/workflows/zizmor.yml`)**:
   - `zizmor` を利用して、GitHub Actions ワークフロー自体の脆弱性（インジェクションリスクや不適切な権限設定など）を静的解析し、CI 設定を経由した情報漏洩を未然に防ぎます。
+- **Actionlint フック (pre-commit)**:
+  - `.github/workflows/` 配下の YAML ファイル（`.yml` / `.yaml`、サブディレクトリ含む）に対して、actionlint が検知可能なインジェクションリスクや設定ミスをコミット前に検査します。
+  - 動的に取得される外部スクリプトなど actionlint の対象外となるリスクは、zizmor および `permissions-audit.yml` の CI 検査で補完します。
 - **権限 (Permissions) の最小化**:
   - CI の各ワークフロー (`.github/workflows/*.yml`) では `permissions` が明示されており、GitHub Actions が必要以上にリポジトリを書き換える権限を持たないように設計されています。
 
