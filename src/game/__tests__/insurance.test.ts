@@ -389,6 +389,35 @@ describe('reducer 保険統合', () => {
       expect(state.players[0].money).toBe(moneyBefore + scrapValue);
     });
 
+    it('火災発生時は火災メッセージがターン告知に上書きされず表示される', () => {
+      vi.spyOn(randomModule, 'getSecureRandomInt').mockReturnValue(1);
+      let state = startGame({ insurance: true });
+      const { state: withProp, propId } = buyPropertyForPlayer(state);
+      const space = withProp.board.find((s) => s.id === propId)!;
+      state = {
+        ...withProp,
+        dice: { values: [1, 2], doubles: 0, rolled: true },
+      };
+      state = gameReducer(state, { type: 'END_TURN' });
+      // 火災で物件が消滅したことがプレイヤーに通知される
+      expect(state.message).toContain('火災');
+      expect(state.message).toContain(space.name);
+      // 次のプレイヤーへのターン告知も併記される
+      expect(state.message).toContain('はなこのばんだよ');
+    });
+
+    it('火災が発生しなければ従来どおりターン告知のみ表示される', () => {
+      vi.spyOn(randomModule, 'getSecureRandomInt').mockReturnValue(99);
+      let state = startGame({ insurance: true });
+      const { state: withProp } = buyPropertyForPlayer(state);
+      state = {
+        ...withProp,
+        dice: { values: [1, 2], doubles: 0, rolled: true },
+      };
+      state = gameReducer(state, { type: 'END_TURN' });
+      expect(state.message).toBe('はなこのばんだよ！サイコロをふろう！');
+    });
+
     it('保険料残高不足時に保険が全解除されマイナス残高にならない', () => {
       vi.spyOn(randomModule, 'getSecureRandomInt').mockReturnValue(99);
       let state = startGame({ insurance: true });
