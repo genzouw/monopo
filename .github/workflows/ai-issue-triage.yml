@@ -67,9 +67,9 @@ jobs:
               },
               body: JSON.stringify({
                 model: 'o3-mini',
+                messages: [{ role: 'user', content: prompt }],
                 reasoning_effort: 'high',
-                max_completion_tokens: 15000,
-                messages: [{ role: 'user', content: prompt }]
+                max_completion_tokens: 15000
               })
             });
 
