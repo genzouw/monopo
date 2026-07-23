@@ -74,6 +74,19 @@ const COLOR_LABEL: Record<string, string> = {
   railroad: '🚂 てつどう',
 };
 
+/**
+ * ゲーム盤面全体を描画するトップレベルコンポーネント。
+ *
+ * ミニマップ・プレイヤーパネル・サイコロ・各種行動ダイアログ（購入 / 建設 / 取引 /
+ * 破産 / カード等）を統括し、`gameReducer` の状態に応じて表示を切り替える。
+ * アニメーション中の高頻度な再レンダリングに備え、配列変換やハンドラは
+ * `useMemo` / `useCallback` でメモ化している。
+ *
+ * @param props - コンポーネントの引数
+ * @param props.state - `gameReducer` が管理するゲーム全体の状態
+ * @param props.dispatch - ゲーム状態を更新するための `GameAction` ディスパッチャ
+ * @returns ゲーム盤面の React 要素
+ */
 export default function GameBoard({ state, dispatch }: GameBoardProps) {
   const playersById = useMemo(() => {
     const dict: Record<string, Player> = {};
