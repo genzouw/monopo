@@ -205,6 +205,11 @@
 .moneyQuickButtonClear:active {
   transform: scale(0.96);
 }
+.moneyQuickButton[aria-disabled='true'],
+.moneyQuickButtonClear[aria-disabled='true'] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 .moneyQuickButton {
   border: 2px solid var(--color-secondary);
   color: var(--color-secondary);

@@ -257,28 +257,36 @@ export default function TradeDialog({
             <button
               type="button"
               className={styles.moneyQuickButton}
-              onClick={() =>
+              onClick={() => {
+                if (offerMoney >= currentPlayer.money) return;
                 setOfferMoney((prev) => clamp(prev + 10, currentPlayer.money))
-              }
+              }}
               aria-label={LABELS.add10}
+              aria-disabled={offerMoney >= currentPlayer.money}
             >
               +$10
             </button>
             <button
               type="button"
               className={styles.moneyQuickButton}
-              onClick={() =>
+              onClick={() => {
+                if (offerMoney >= currentPlayer.money) return;
                 setOfferMoney((prev) => clamp(prev + 100, currentPlayer.money))
-              }
+              }}
               aria-label={LABELS.add100}
+              aria-disabled={offerMoney >= currentPlayer.money}
             >
               +$100
             </button>
             <button
               type="button"
               className={styles.moneyQuickButtonClear}
-              onClick={() => setOfferMoney(0)}
+              onClick={() => {
+                if (offerMoney === 0) return;
+                setOfferMoney(0)
+              }}
               aria-label={LABELS.clearMoney}
+              aria-disabled={offerMoney === 0}
             >
               クリア
             </button>
@@ -370,28 +378,36 @@ export default function TradeDialog({
             <button
               type="button"
               className={styles.moneyQuickButton}
-              onClick={() =>
+              onClick={() => {
+                if (requestMoney >= targetPlayer.money) return;
                 setRequestMoney((prev) => clamp(prev + 10, targetPlayer.money))
-              }
+              }}
               aria-label={LABELS.add10}
+              aria-disabled={requestMoney >= targetPlayer.money}
             >
               +$10
             </button>
             <button
               type="button"
               className={styles.moneyQuickButton}
-              onClick={() =>
+              onClick={() => {
+                if (requestMoney >= targetPlayer.money) return;
                 setRequestMoney((prev) => clamp(prev + 100, targetPlayer.money))
-              }
+              }}
               aria-label={LABELS.add100}
+              aria-disabled={requestMoney >= targetPlayer.money}
             >
               +$100
             </button>
             <button
               type="button"
               className={styles.moneyQuickButtonClear}
-              onClick={() => setRequestMoney(0)}
+              onClick={() => {
+                if (requestMoney === 0) return;
+                setRequestMoney(0)
+              }}
               aria-label={LABELS.clearMoney}
+              aria-disabled={requestMoney === 0}
             >
               クリア
             </button>
