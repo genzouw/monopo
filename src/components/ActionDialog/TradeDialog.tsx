@@ -258,11 +258,11 @@ export default function TradeDialog({
               type="button"
               className={styles.moneyQuickButton}
               onClick={() => {
-                if (offerMoney >= currentPlayer.money) return;
-                setOfferMoney((prev) => clamp(prev + 10, currentPlayer.money))
+                if (offerMoney + 10 > currentPlayer.money) return;
+                setOfferMoney((prev) => clamp(prev + 10, currentPlayer.money));
               }}
               aria-label={LABELS.add10}
-              aria-disabled={offerMoney >= currentPlayer.money}
+              aria-disabled={offerMoney + 10 > currentPlayer.money}
             >
               +$10
             </button>
@@ -270,11 +270,11 @@ export default function TradeDialog({
               type="button"
               className={styles.moneyQuickButton}
               onClick={() => {
-                if (offerMoney >= currentPlayer.money) return;
-                setOfferMoney((prev) => clamp(prev + 100, currentPlayer.money))
+                if (offerMoney + 100 > currentPlayer.money) return;
+                setOfferMoney((prev) => clamp(prev + 100, currentPlayer.money));
               }}
               aria-label={LABELS.add100}
-              aria-disabled={offerMoney >= currentPlayer.money}
+              aria-disabled={offerMoney + 100 > currentPlayer.money}
             >
               +$100
             </button>
@@ -283,7 +283,7 @@ export default function TradeDialog({
               className={styles.moneyQuickButtonClear}
               onClick={() => {
                 if (offerMoney === 0) return;
-                setOfferMoney(0)
+                setOfferMoney(0);
               }}
               aria-label={LABELS.clearMoney}
               aria-disabled={offerMoney === 0}
@@ -379,11 +379,11 @@ export default function TradeDialog({
               type="button"
               className={styles.moneyQuickButton}
               onClick={() => {
-                if (requestMoney >= targetPlayer.money) return;
-                setRequestMoney((prev) => clamp(prev + 10, targetPlayer.money))
+                if (requestMoney + 10 > targetPlayer.money) return;
+                setRequestMoney((prev) => clamp(prev + 10, targetPlayer.money));
               }}
               aria-label={LABELS.add10}
-              aria-disabled={requestMoney >= targetPlayer.money}
+              aria-disabled={requestMoney + 10 > targetPlayer.money}
             >
               +$10
             </button>
@@ -391,11 +391,13 @@ export default function TradeDialog({
               type="button"
               className={styles.moneyQuickButton}
               onClick={() => {
-                if (requestMoney >= targetPlayer.money) return;
-                setRequestMoney((prev) => clamp(prev + 100, targetPlayer.money))
+                if (requestMoney + 100 > targetPlayer.money) return;
+                setRequestMoney((prev) =>
+                  clamp(prev + 100, targetPlayer.money),
+                );
               }}
               aria-label={LABELS.add100}
-              aria-disabled={requestMoney >= targetPlayer.money}
+              aria-disabled={requestMoney + 100 > targetPlayer.money}
             >
               +$100
             </button>
@@ -404,7 +406,7 @@ export default function TradeDialog({
               className={styles.moneyQuickButtonClear}
               onClick={() => {
                 if (requestMoney === 0) return;
-                setRequestMoney(0)
+                setRequestMoney(0);
               }}
               aria-label={LABELS.clearMoney}
               aria-disabled={requestMoney === 0}
