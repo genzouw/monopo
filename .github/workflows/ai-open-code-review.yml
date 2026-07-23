@@ -1,0 +1,30 @@
+name: AI Open Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths-ignore:
+      - '**.md'
+      - '.github/workflows/**'
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Open Code Review
+        uses: raye-deng/open-code-review@eb099a26da8e47c423e098109fe0905fde675478 # v2.1.5
+        with:
+          sla: L1
+          threshold: 60
+          github-token: ${{ secrets.GITHUB_TOKEN }}
