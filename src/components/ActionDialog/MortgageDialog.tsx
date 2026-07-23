@@ -28,7 +28,7 @@ export default function MortgageDialog({
   // これにより、抵当ダイアログが開いている状態での親コンポーネントの状態変更に伴うレンダリングのオーバーヘッドを削減します。
   const ownedProperties = useMemo(() => {
     return currentPlayer.properties
-      .map((id) => getSpaceById(id, board))
+      .map((id: string) => getSpaceById(id, board))
       .filter(
         (s): s is BoardSpace =>
           s !== undefined && s.mortgageValue !== undefined,
