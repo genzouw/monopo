@@ -319,7 +319,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
     [state.dice.rolled, state.dice.values, isRolling, handleRollComplete],
   );
 
-  // ⚡ Bolt: useMemo to prevent mapping on every render during animations.
+  // ⚡ Bolt: アニメーション中の再レンダリングごとのマッピングを防ぐ。
   const tradeOfferSpaces = useMemo(() => {
     const trade = state.trade;
     if (state.turnPhase !== 'tradeConfirm' || !trade) return [];
