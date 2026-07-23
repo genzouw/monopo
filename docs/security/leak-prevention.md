@@ -41,6 +41,9 @@
   - `security-extended` および `security-and-quality` クエリを使用して、データフロー解析によるシークレットのハードコード検知や品質チェックなど、高度な静的解析を行います。
 - **Zizmor ワークフロー (`.github/workflows/zizmor.yml`)**:
   - `zizmor` を利用して、GitHub Actions ワークフロー自体の脆弱性（インジェクションリスクや不適切な権限設定など）を静的解析し、CI 設定を経由した情報漏洩を未然に防ぎます。
+- **Actionlint フック (pre-commit)**:
+  - `.github/workflows/` 配下の YAML ファイル（`.yml` / `.yaml`、サブディレクトリ含む）に対して、actionlint が検知可能なインジェクションリスクや設定ミスをコミット前に検査します。
+  - 動的に取得される外部スクリプトなど actionlint の対象外となるリスクは、zizmor および `permissions-audit.yml` の CI 検査で補完します。
 - **権限 (Permissions) の最小化**:
   - CI の各ワークフロー (`.github/workflows/*.yml`) では `permissions` が明示されており、GitHub Actions が必要以上にリポジトリを書き換える権限を持たないように設計されています。
 
