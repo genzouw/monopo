@@ -7,7 +7,7 @@ import {
   useId,
 } from 'react';
 import type { Dispatch } from 'react';
-import type { GameState, Player } from '../../game/types';
+import type { ColorGroup, GameState, Player } from '../../game/types';
 import type { GameAction } from '../../game/actions';
 import { MAX_JAIL_TURNS } from '../../game/reducer';
 import { calculateTotalAssets, getSpaceById } from '../../game/rules';
@@ -22,6 +22,7 @@ import CardDialog from '../ActionDialog/CardDialog';
 import JailDialog from '../ActionDialog/JailDialog';
 import BuildDialog from '../ActionDialog/BuildDialog';
 import SellDialog from '../ActionDialog/SellDialog';
+import { compareByColorOrder } from '../ActionDialog/colorSort';
 import TradeDialog from '../ActionDialog/TradeDialog';
 import BankruptDialog from '../ActionDialog/BankruptDialog';
 import ForceBuyDialog from '../ActionDialog/ForceBuyDialog';
@@ -33,6 +34,39 @@ import styles from './GameBoard.module.css';
 type GameBoardProps = {
   state: GameState;
   dispatch: Dispatch<GameAction>;
+};
+
+/**
+ * 土地・株式の色分類を表示順に並べるための基準配列。
+ * `detailPlayerProps` / `detailPlayerStocks` の両方から参照される静的データのため、
+ * レンダリングごとの再生成を避けるためコンポーネント外の定数として定義する。
+ */
+const COLOR_ORDER: readonly ColorGroup[] = [
+  'brown',
+  'lightblue',
+  'pink',
+  'orange',
+  'red',
+  'yellow',
+  'green',
+  'blue',
+  'railroad',
+];
+
+/**
+ * 株式の色分類を日本語ラベルに変換するための静的な対応表。
+ * プレイヤー詳細ダイアログのレンダリングごとの再生成を避けるためコンポーネント外の定数として定義する。
+ */
+const COLOR_LABEL: Record<string, string> = {
+  brown: '🟤 ちゃいろ',
+  lightblue: '🩵 みずいろ',
+  pink: '🩷 ピンク',
+  orange: '🟠 オレンジ',
+  red: '🔴 あか',
+  yellow: '🟡 きいろ',
+  green: '🟢 みどり',
+  blue: '🔵 あお',
+  railroad: '🚂 てつどう',
 };
 
 export default function GameBoard({ state, dispatch }: GameBoardProps) {
@@ -280,25 +314,29 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
     [state.dice.rolled, state.dice.values, isRolling, handleRollComplete],
   );
 
+  // ⚡ Bolt: useMemo to prevent O(S log S) filtering and sorting of player stocks on every render (e.g. 60 FPS animation) while the player dialog is open.
+  const detailPlayerStocks = useMemo(() => {
+    const detailPlayer = showPlayerDetail
+      ? playersById[showPlayerDetail]
+      : null;
+    if (!detailPlayer || !detailPlayer.stocks) return [];
+
+    return Object.entries(detailPlayer.stocks)
+      .filter(([, shares]) => typeof shares === 'number' && shares > 0)
+      .sort(([colorA], [colorB]) =>
+        compareByColorOrder(colorA, colorB, COLOR_ORDER),
+      );
+  }, [showPlayerDetail, playersById]);
+
   // ⚡ Bolt: useMemo to prevent O(P log P) sorting/mapping of owned properties on every render (e.g. 60 FPS animation) while the player dialog is open.
   const detailPlayerProps = useMemo(() => {
     const detailPlayer = showPlayerDetail
-      ? state.players.find((p) => p.id === showPlayerDetail)
+      ? playersById[showPlayerDetail]
       : null;
     if (!detailPlayer) return [];
     const board = state.board;
     const propertyStates = state.propertyStates;
     if (!board || !propertyStates) return [];
-    const colorOrder = [
-      'brown',
-      'lightblue',
-      'pink',
-      'orange',
-      'red',
-      'yellow',
-      'green',
-      'blue',
-    ];
     return detailPlayer.properties
       .map((id) => {
         const space = getSpaceById(id, board);
@@ -307,17 +345,16 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
       })
       .filter((item): item is NonNullable<typeof item> => item !== null)
       .sort((a, b) => {
-        const aColorIdx = a.space.color
-          ? colorOrder.indexOf(a.space.color)
-          : -1;
-        const bColorIdx = b.space.color
-          ? colorOrder.indexOf(b.space.color)
-          : -1;
-        const ai = aColorIdx !== -1 ? aColorIdx : colorOrder.length;
-        const bi = bColorIdx !== -1 ? bColorIdx : colorOrder.length;
-        return ai !== bi ? ai - bi : a.space.position - b.space.position;
+        const colorCompare = compareByColorOrder(
+          a.space.color,
+          b.space.color,
+          COLOR_ORDER,
+        );
+        return colorCompare !== 0
+          ? colorCompare
+          : a.space.position - b.space.position;
       });
-  }, [showPlayerDetail, state.players, state.board, state.propertyStates]);
+  }, [showPlayerDetail, playersById, state.board, state.propertyStates]);
 
   return (
     <div className={styles.gameBoard}>
@@ -920,28 +957,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
             state.propertyStates,
             state.board,
           );
-          const COLOR_LABEL: Record<string, string> = {
-            brown: '🟤 ちゃいろ',
-            lightblue: '🩵 みずいろ',
-            pink: '🩷 ピンク',
-            orange: '🟠 オレンジ',
-            red: '🔴 あか',
-            yellow: '🟡 きいろ',
-            green: '🟢 みどり',
-            blue: '🔵 あお',
-            railroad: '🚂 てつどう',
-          };
           const ownedProps = detailPlayerProps;
-          const colorOrder = [
-            'brown',
-            'lightblue',
-            'pink',
-            'orange',
-            'red',
-            'yellow',
-            'green',
-            'blue',
-          ];
           const currentSpaceName =
             state.board[detailPlayer.position]?.name ?? '';
           return (
@@ -1077,10 +1093,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                     <div style={{ fontWeight: 700, marginBottom: 8 }}>
                       📈 おうえんカード（株）
                     </div>
-                    {!detailPlayer.stocks ||
-                    Object.values(detailPlayer.stocks).every(
-                      (shares) => shares === 0,
-                    ) ? (
+                    {detailPlayerStocks.length === 0 ? (
                       <div
                         style={{
                           color: 'var(--color-text-light)',
@@ -1090,49 +1103,37 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                         まだもっていないよ
                       </div>
                     ) : (
-                      Object.entries(detailPlayer.stocks)
-                        .filter(
-                          ([, shares]) =>
-                            typeof shares === 'number' && shares > 0,
-                        )
-                        .sort(([colorA], [colorB]) => {
-                          const ai = colorOrder.indexOf(colorA);
-                          const bi = colorOrder.indexOf(colorB);
-                          const realA = ai === -1 ? colorOrder.length : ai;
-                          const realB = bi === -1 ? colorOrder.length : bi;
-                          return realA - realB;
-                        })
-                        .map(([color, shares]) => (
-                          <div
-                            key={color}
-                            style={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              padding: '4px 0',
-                              fontSize: 14,
-                              borderBottom: '1px solid #f0f0f0',
-                            }}
-                          >
-                            <span>
-                              {color !== 'railroad' && (
-                                <span
-                                  style={{
-                                    display: 'inline-block',
-                                    width: 10,
-                                    height: 10,
-                                    borderRadius: 2,
-                                    backgroundColor: `var(--color-${color})`,
-                                    marginRight: 6,
-                                    verticalAlign: 'middle',
-                                  }}
-                                />
-                              )}
-                              {COLOR_LABEL[color] || color}
-                            </span>
-                            <span>{shares}まい</span>
-                          </div>
-                        ))
+                      detailPlayerStocks.map(([color, shares]) => (
+                        <div
+                          key={color}
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            padding: '4px 0',
+                            fontSize: 14,
+                            borderBottom: '1px solid #f0f0f0',
+                          }}
+                        >
+                          <span>
+                            {color !== 'railroad' && (
+                              <span
+                                style={{
+                                  display: 'inline-block',
+                                  width: 10,
+                                  height: 10,
+                                  borderRadius: 2,
+                                  backgroundColor: `var(--color-${color})`,
+                                  marginRight: 6,
+                                  verticalAlign: 'middle',
+                                }}
+                              />
+                            )}
+                            {COLOR_LABEL[color] || color}
+                          </span>
+                          <span>{shares}まい</span>
+                        </div>
+                      ))
                     )}
                   </div>
                 )}
