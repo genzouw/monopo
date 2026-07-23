@@ -40,6 +40,8 @@ jobs:
                 topic: 'news',
                 days: 7,
                 search_depth: 'advanced',
+                topic: 'news',
+                days: 7,
                 include_answer: true,
               }),
             });
@@ -68,7 +70,9 @@ jobs:
               },
               body: JSON.stringify({
                 model: 'o3-mini',
-                messages: [{ role: 'user', content: prompt }]
+                messages: [{ role: 'user', content: prompt }],
+                reasoning_effort: 'high',
+                max_completion_tokens: 15000
               })
             });
 

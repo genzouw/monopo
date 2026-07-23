@@ -7,7 +7,12 @@ import {
   useId,
 } from 'react';
 import type { Dispatch } from 'react';
-import type { ColorGroup, GameState, Player } from '../../game/types';
+import type {
+  BoardSpace,
+  ColorGroup,
+  GameState,
+  Player,
+} from '../../game/types';
 import type { GameAction } from '../../game/actions';
 import { MAX_JAIL_TURNS } from '../../game/reducer';
 import { calculateTotalAssets, getSpaceById } from '../../game/rules';
@@ -69,6 +74,19 @@ const COLOR_LABEL: Record<string, string> = {
   railroad: '🚂 てつどう',
 };
 
+/**
+ * ゲーム盤面全体を描画するトップレベルコンポーネント。
+ *
+ * ミニマップ・プレイヤーパネル・サイコロ・各種行動ダイアログ（購入 / 建設 / 取引 /
+ * 破産 / カード等）を統括し、`gameReducer` の状態に応じて表示を切り替える。
+ * アニメーション中の高頻度な再レンダリングに備え、配列変換やハンドラは
+ * `useMemo` / `useCallback` でメモ化している。
+ *
+ * @param props - コンポーネントの引数
+ * @param props.state - `gameReducer` が管理するゲーム全体の状態
+ * @param props.dispatch - ゲーム状態を更新するための `GameAction` ディスパッチャ
+ * @returns ゲーム盤面の React 要素
+ */
 export default function GameBoard({ state, dispatch }: GameBoardProps) {
   const playersById = useMemo(() => {
     const dict: Record<string, Player> = {};
@@ -313,6 +331,23 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
       ) : undefined,
     [state.dice.rolled, state.dice.values, isRolling, handleRollComplete],
   );
+
+  // ⚡ Bolt: アニメーション中の再レンダリングごとのマッピングを防ぐ。
+  const tradeOfferSpaces = useMemo(() => {
+    const trade = state.trade;
+    if (state.turnPhase !== 'tradeConfirm' || !trade) return [];
+    return trade.offerProperties
+      .map((id) => getSpaceById(id, state.board))
+      .filter((space): space is BoardSpace => !!space);
+  }, [state.turnPhase, state.trade, state.board]);
+
+  const tradeRequestSpaces = useMemo(() => {
+    const trade = state.trade;
+    if (state.turnPhase !== 'tradeConfirm' || !trade) return [];
+    return trade.requestProperties
+      .map((id) => getSpaceById(id, state.board))
+      .filter((space): space is BoardSpace => !!space);
+  }, [state.turnPhase, state.trade, state.board]);
 
   // ⚡ Bolt: useMemo to prevent O(S log S) filtering and sorting of player stocks on every render (e.g. 60 FPS animation) while the player dialog is open.
   const detailPlayerStocks = useMemo(() => {
@@ -616,12 +651,8 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
             : undefined;
           const offer = state.trade;
           if (!offer) return null;
-          const offerSpaces = offer.offerProperties.map((id) =>
-            getSpaceById(id, state.board)!,
-          );
-          const requestSpaces = offer.requestProperties.map((id) =>
-            getSpaceById(id, state.board)!,
-          );
+          const offerSpaces = tradeOfferSpaces;
+          const requestSpaces = tradeRequestSpaces;
           return (
             <Dialog
               title={`${to?.token} ${to?.name}へのていあん`}
@@ -650,7 +681,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                 <div style={{ fontWeight: 700 }}>
                   {from?.token} {from?.name}からのていあん:
                 </div>
-                {(offerSpaces.length > 0 || offer.offerMoney > 0) && (
+                {(offer.offerProperties.length > 0 || offer.offerMoney > 0) && (
                   <div
                     style={{
                       padding: 8,
@@ -664,12 +695,19 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                     {offerSpaces.map((s) => (
                       <div key={s.id}>・{s.name}</div>
                     ))}
+                    {/* 未解決の物件IDがあり一部が表示できない場合は明示する（取引内容の誤認防止） */}
+                    {offerSpaces.length < offer.offerProperties.length && (
+                      <div style={{ color: '#c0392b' }}>
+                        ・⚠️ 一部のマスを表示できません
+                      </div>
+                    )}
                     {offer.offerMoney > 0 && (
                       <div>・💰 ${offer.offerMoney}</div>
                     )}
                   </div>
                 )}
-                {(requestSpaces.length > 0 || offer.requestMoney > 0) && (
+                {(offer.requestProperties.length > 0 ||
+                  offer.requestMoney > 0) && (
                   <div
                     style={{
                       padding: 8,
@@ -683,6 +721,12 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                     {requestSpaces.map((s) => (
                       <div key={s.id}>・{s.name}</div>
                     ))}
+                    {/* 未解決の物件IDがあり一部が表示できない場合は明示する（取引内容の誤認防止） */}
+                    {requestSpaces.length < offer.requestProperties.length && (
+                      <div style={{ color: '#c0392b' }}>
+                        ・⚠️ 一部のマスを表示できません
+                      </div>
+                    )}
                     {offer.requestMoney > 0 && (
                       <div>・💰 ${offer.requestMoney}</div>
                     )}
