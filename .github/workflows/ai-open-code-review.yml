@@ -23,7 +23,7 @@ jobs:
           persist-credentials: false
 
       - name: Open Code Review
-        uses: raye-deng/open-code-review@v2.1.5
+        uses: raye-deng/open-code-review@eb099a26da8e47c423e098109fe0905fde675478 # v2.1.5
         with:
           sla: L1
           threshold: 60
