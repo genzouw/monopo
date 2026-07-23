@@ -137,8 +137,15 @@ jobs:
               console.warn(`AI Review failed: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
               return;
             }
-            const aiData = await aiRes.json();
-            const choice = aiData.choices?.[0];
+            let aiData;
+            try {
+              aiData = await aiRes.json();
+            } catch (error) {
+              // 2xx でも本文が不正 JSON の場合は例外で step を落とさず警告して離脱する。
+              console.warn(`AI Review returned invalid JSON: ${String(error)}`);
+              return;
+            }
+            const choice = aiData?.choices?.[0];
             const review = choice?.message?.content;
 
             if (!review) {
