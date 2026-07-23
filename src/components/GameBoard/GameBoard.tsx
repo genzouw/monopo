@@ -681,7 +681,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                 <div style={{ fontWeight: 700 }}>
                   {from?.token} {from?.name}からのていあん:
                 </div>
-                {(offerSpaces.length > 0 || offer.offerMoney > 0) && (
+                {(offer.offerProperties.length > 0 || offer.offerMoney > 0) && (
                   <div
                     style={{
                       padding: 8,
@@ -695,12 +695,19 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                     {offerSpaces.map((s) => (
                       <div key={s.id}>・{s.name}</div>
                     ))}
+                    {/* 未解決の物件IDがあり一部が表示できない場合は明示する（取引内容の誤認防止） */}
+                    {offerSpaces.length < offer.offerProperties.length && (
+                      <div style={{ color: '#c0392b' }}>
+                        ・⚠️ 一部のマスを表示できません
+                      </div>
+                    )}
                     {offer.offerMoney > 0 && (
                       <div>・💰 ${offer.offerMoney}</div>
                     )}
                   </div>
                 )}
-                {(requestSpaces.length > 0 || offer.requestMoney > 0) && (
+                {(offer.requestProperties.length > 0 ||
+                  offer.requestMoney > 0) && (
                   <div
                     style={{
                       padding: 8,
@@ -714,6 +721,12 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                     {requestSpaces.map((s) => (
                       <div key={s.id}>・{s.name}</div>
                     ))}
+                    {/* 未解決の物件IDがあり一部が表示できない場合は明示する（取引内容の誤認防止） */}
+                    {requestSpaces.length < offer.requestProperties.length && (
+                      <div style={{ color: '#c0392b' }}>
+                        ・⚠️ 一部のマスを表示できません
+                      </div>
+                    )}
                     {offer.requestMoney > 0 && (
                       <div>・💰 ${offer.requestMoney}</div>
                     )}
