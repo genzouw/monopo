@@ -1,0 +1,23 @@
+name: AI Codeball Reviewer
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  codeball:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run Codeball
+        uses: sturdy-dev/codeball-action@102067b9f537482cee112577655c85fda56d8926 # v2.6.0
+        with:
+          # Fail the job if the PR is risky
+          fail-job-on-risky: false

@@ -91,3 +91,10 @@ PR作成時にAI生成コードのハルシネーションや非推奨API、ロ�
 
 1. **GitHub Secretsの設定**
    - 追加のAPIキー設定は不要です。デフォルトの `GITHUB_TOKEN` を使用して動作します。
+
+## 新規: AI Codeball Reviewer の設定
+
+安全なPR（バグの可能性が低いPR）をAIが自動で承認（Approve）し、開発スピードを向上させるための品質ゲートとして `sturdy-dev/codeball-action` を導入しました。パブリックリポジトリで無料で利用可能です。
+
+1. **手動セットアップ (必須)**
+   - PRへのコメントやApproveを行うため、Codeball GitHub App (https://github.com/apps/codeball) をリポジトリにインストールする必要があります。
