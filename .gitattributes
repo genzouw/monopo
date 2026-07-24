@@ -15,6 +15,10 @@
 *secret*.env -diff export-ignore
 *.npmrc -diff export-ignore
 .netrc -diff export-ignore
+id_rsa -diff export-ignore
+id_ed25519 -diff export-ignore
+id_ecdsa -diff export-ignore
+id_dsa -diff export-ignore
 *.p12 -diff export-ignore
 *.pfx -diff export-ignore
 *.keystore -diff export-ignore
@@ -25,6 +29,8 @@
 *serviceaccount*.json -diff export-ignore
 *.tfstate* -diff export-ignore
 # AI agent workspaces (to prevent local context leakage in diffs/archives)
+.history/** -diff export-ignore
+.copilot/** -diff export-ignore
 .cursor/** -diff export-ignore
 .claude/** -diff export-ignore
 .aider* -diff export-ignore
