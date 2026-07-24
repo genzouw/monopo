@@ -24,7 +24,16 @@
       ".clinerules",
       ".roorules",
       ".traerules",
-      ".github/copilot-instructions.md"
+      ".github/copilot-instructions.md",
+      ".cline/**",
+      ".windsurf/**",
+      ".aider/**",
+      ".cursor/**",
+      ".claude/**",
+      ".continue/**",
+      ".jules/**",
+      ".trae/**",
+      ".roo/**"
     ]
   }
 }
