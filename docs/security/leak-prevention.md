@@ -24,6 +24,11 @@
     - **検出の限界**: 低エントロピーの短いパスワードや独自フォーマットの秘密情報は検知困難な場合があります。`gitleaks` との多層防御で補完しています。
     - **トラブルシューティング**: 誤検知が出た場合は `# pragma: allowlist secret` コメントをその行末に追加するか、`detect-secrets scan --baseline .secrets.baseline` でベースラインを更新して既知の誤検知として登録してください。また、ローカル環境に `detect-secrets` をインストール（例: `pip install detect-secrets`）後、`detect-secrets audit .secrets.baseline` を実行してインタラクティブに誤検知を確認・登録することもできます。
   - **自動依存解決**: `pre-commit` framework が実行する gitleaks フックには、システム依存の `gitleaks-system` ではなく、pre-commit が自動で依存関係を解決して実行する `gitleaks` を使用することで、CI 環境や新規開発者の環境での実行エラーを防ぎ、安定性を向上させています（なお、9〜12行目の `.husky/pre-commit` 経由の gitleaks 実行には、引き続きローカルへの gitleaks インストールが必要です）。
+- **`actionlint` および `zizmor` フック (pre-commit)**: `.github/workflows/` 配下の YAML ファイルに対して、コミット前に `actionlint` と `zizmor` を実行します。
+  - **`zizmor` の検査範囲**: `zizmor` はワークフローファイルに加えて `.github/dependabot.yml` および `action.yml` / `action.yaml`（コンポジットアクション）も検査対象に含みます。
+  - **実行モードの固定**: `args: ['--no-progress', '--offline']` により**オフラインモードに固定**しています。`zizmor` は `GH_TOKEN` / `GITHUB_TOKEN` / `ZIZMOR_GITHUB_TOKEN` のいずれかが環境変数にあると自動でオンラインモードへ切り替わり、追加検知によってコミットがブロックされます。固定しない場合「トークンを export している開発者だけコミットできない」状態となり、その回避に使われる `git commit --no-verify` が gitleaks を含む**すべての**フックを無効化してしまうため、ローカルはオフラインに固定しています。オンライン検査は CI (`.github/workflows/zizmor.yml`) が担当します。
+  - これにより、インジェクションリスクや不適切な権限指定といった CI 固有の脆弱性を**ローカルで早期に検知します**。ただし `git commit --no-verify` やフック未インストールの場合は素通りするため、これは「未然の防止」ではなく早期検知の層です。すり抜けた場合は CI の `zizmor.yml` で検知します。
+  - **検知漏れの補完**: 動的に取得される外部スクリプトなど `actionlint` の対象外となるリスクは、`zizmor` および `permissions-audit.yml` の CI 検査で補完します。
 
 ## 2. CI 検知（リポジトリ防御）
 
@@ -40,11 +45,7 @@
 - **CodeQL ワークフロー (`.github/workflows/codeql.yml`)**:
   - `security-extended` および `security-and-quality` クエリを使用して、データフロー解析によるシークレットのハードコード検知や品質チェックなど、高度な静的解析を行います。
 - **Zizmor ワークフロー (`.github/workflows/zizmor.yml`)**:
-  - `zizmor` を利用して、GitHub Actions ワークフロー自体の脆弱性（インジェクションリスクや不適切な権限設定など）を静的解析し、CI 設定を経由した情報漏洩を未然に防ぎます。
-- **Actionlint および Zizmor フック (pre-commit)**:
-  - `.github/workflows/` 配下の YAML ファイルに対して、コミット前に `actionlint` と `zizmor` を実行します。
-  - **`zizmor` の検査範囲**: `zizmor` はワークフローファイルに加えて `.github/dependabot.yml` および `action.yml` / `action.yaml`（コンポジットアクション）も検査対象に含みます。
-  - これにより、インジェクションリスクや不適切な権限指定といったCI固有の脆弱性をローカル環境で検査・ブロックし、サーバーへのプッシュを未然に防ぎます。
+  - `zizmor` を利用して、GitHub Actions ワークフロー自体の脆弱性（インジェクションリスクや不適切な権限設定など）を静的解析し、**検知結果を SARIF として Code scanning に報告します**。本ワークフローが呼び出す reusable workflow (`genzouw/ci-workflows`) は `continue-on-error: true` で実行されるため、検知が発生しても CI はブロックされません。検知内容は Code scanning のアラートとして確認してください。
 - **権限 (Permissions) の最小化**:
   - CI の各ワークフロー (`.github/workflows/*.yml`) では `permissions` が明示されており、GitHub Actions が必要以上にリポジトリを書き換える権限を持たないように設計されています。
 
