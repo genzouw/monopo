@@ -98,6 +98,8 @@ describe('InsuranceDialog', () => {
     const buyButton = screen.getByRole('button', { name: /入る/ });
     expect(buyButton).toHaveAttribute('aria-disabled', 'true');
     expect(screen.getByText('おかねがたりないよ')).toBeInTheDocument();
+    fireEvent.click(buyButton);
+    expect(onBuy).not.toHaveBeenCalled();
   });
 
   it('鉄道・公共施設は保険対象外で一覧に出ない', () => {
