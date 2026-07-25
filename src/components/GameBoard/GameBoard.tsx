@@ -33,6 +33,7 @@ import BankruptDialog from '../ActionDialog/BankruptDialog';
 import ForceBuyDialog from '../ActionDialog/ForceBuyDialog';
 import StockDialog from '../ActionDialog/StockDialog';
 import LoanDialog from '../ActionDialog/LoanDialog';
+import InsuranceDialog from '../ActionDialog/InsuranceDialog';
 import { useSound } from '../../sound/useSound';
 import styles from './GameBoard.module.css';
 
@@ -281,6 +282,9 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
   // ローン拡張
   const loanEnabled = state.features?.loan === true;
   const [showLoanDialog, setShowLoanDialog] = useState(false);
+  // 保険拡張（火災リスクにそなえる）
+  const insuranceEnabled = state.features?.insurance === true;
+  const [showInsuranceDialog, setShowInsuranceDialog] = useState(false);
   const canSubAction =
     state.turnPhase === 'endTurn' || state.turnPhase === 'roll';
 
@@ -514,6 +518,16 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                   🏦 ローン
                 </Button>
               )}
+              {insuranceEnabled && (
+                <Button
+                  size="small"
+                  variant="secondary"
+                  className={styles.subActionButton}
+                  onClick={() => setShowInsuranceDialog(true)}
+                >
+                  🔥 ほけん
+                </Button>
+              )}
             </>
           )}
         </div>
@@ -609,6 +623,22 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
             setShowLoanDialog(false);
           }}
           onClose={() => setShowLoanDialog(false)}
+        />
+      )}
+
+      {showInsuranceDialog && insuranceEnabled && (
+        <InsuranceDialog
+          currentPlayer={currentPlayer}
+          board={state.board}
+          insuranceState={state.insuranceState}
+          onBuy={(propertyId) => {
+            play('purchase');
+            dispatch({ type: 'BUY_INSURANCE', propertyId });
+          }}
+          onCancel={(propertyId) => {
+            dispatch({ type: 'CANCEL_INSURANCE', propertyId });
+          }}
+          onClose={() => setShowInsuranceDialog(false)}
         />
       )}
 
