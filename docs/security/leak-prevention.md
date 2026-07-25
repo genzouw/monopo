@@ -43,6 +43,7 @@
   - `zizmor` を利用して、GitHub Actions ワークフロー自体の脆弱性（インジェクションリスクや不適切な権限設定など）を静的解析し、CI 設定を経由した情報漏洩を未然に防ぎます。
 - **Actionlint および Zizmor フック (pre-commit)**:
   - `.github/workflows/` 配下の YAML ファイルに対して、コミット前に `actionlint` と `zizmor` を実行します。
+  - **`zizmor` の検査範囲**: `zizmor` はワークフローファイルに加えて `.github/dependabot.yml` および `action.yml` / `action.yaml`（コンポジットアクション）も検査対象に含みます。
   - これにより、インジェクションリスクや不適切な権限指定といったCI固有の脆弱性をローカル環境で検査・ブロックし、サーバーへのプッシュを未然に防ぎます。
 - **権限 (Permissions) の最小化**:
   - CI の各ワークフロー (`.github/workflows/*.yml`) では `permissions` が明示されており、GitHub Actions が必要以上にリポジトリを書き換える権限を持たないように設計されています。
