@@ -134,7 +134,7 @@ entropy = 0.0
 [[rules]]
 id = "monopo-ai-ecosystem-token"
 description = "AI エコシステムトークン (Hugging Face, Replicate, LangSmith 等) のハードコード検知"
-regex = '''(?:hf_[a-zA-Z0-9]{34}|r8_[a-zA-Z0-9]{37,40}|lsv2_[pt][a-zA-Z0-9]{38})'''
+regex = '''(?:hf_[a-zA-Z0-9]{34}|r8_[a-zA-Z0-9]{37,40}|lsv2_(?:pt|sk)_[a-zA-Z0-9_]{32,})'''
 tags = ["ai", "api-key", "credential"]
 secretGroup = 0
 entropy = 0.0
