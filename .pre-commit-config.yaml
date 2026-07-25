@@ -33,6 +33,24 @@ repos:
     hooks:
       - id: actionlint
 
+  # 旧名 woodruffw/zizmor-pre-commit は zizmorcore/zizmor-pre-commit にリネーム済み。
+  # 旧名は 301 リダイレクトで解決するが、旧名で誰かが新規リポジトリを作成した時点で
+  # リダイレクトは失われるため、正規名で参照する。
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit
+    rev: v1.28.0
+    hooks:
+      # --offline を明示し、実行モードを環境非依存に固定する。
+      # zizmor は GH_TOKEN / GITHUB_TOKEN / ZIZMOR_GITHUB_TOKEN のいずれかが
+      # 環境変数にあると自動でオンラインモードへ切り替わり、ref-version-mismatch 等の
+      # 追加検知で非 0 終了する。結果として「トークンを export している開発者だけ
+      # コミットできない」状態になり、回避のための --no-verify が gitleaks 等
+      # すべてのフックを無効化してしまうため、ローカルはオフラインに固定する。
+      # オンライン検査は GH_TOKEN 付きで動く .github/workflows/zizmor.yml が担当する。
+      # なお args を指定するとフック定義側のデフォルト（--no-progress）が
+      # 置き換わるため、両方を明示する必要がある。
+      - id: zizmor
+        args: ['--no-progress', '--offline']
+
   - repo: local
     hooks:
       - id: forbid-sensitive-files

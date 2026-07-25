@@ -60,6 +60,14 @@ updates:
       # typescript-eslint の TS 7 対応リリースまでメジャーアップデートを停止する。
       - dependency-name: 'typescript'
         update-types: ['version-update:semver-major']
+    # zizmor の dependabot-cooldown 監査が 7 日以上を要求するため 7 を指定している
+    # （zizmor 未指定時は insufficient implicit default-days (less than 7) を検知）。
+    # 新規リリースを即座に取り込まず一定期間の検証期間を設けることで、
+    # サプライチェーン攻撃（悪意あるリリースの即時混入）のリスクを低減する。
+    # なお cooldown は version updates にのみ効き security updates には適用されないため、
+    # 脆弱性修正の取り込みが遅延することはない。
+    cooldown:
+      default-days: 7
 
   # GitHub Actions
   - package-ecosystem: 'github-actions'
@@ -85,6 +93,14 @@ updates:
       # node24 を正式サポートするまではメジャーアップデートを停止する。
       - dependency-name: 'DavidAnson/markdownlint-cli2-action'
         update-types: ['version-update:semver-major']
+    # zizmor の dependabot-cooldown 監査が 7 日以上を要求するため 7 を指定している
+    # （zizmor 未指定時は insufficient implicit default-days (less than 7) を検知）。
+    # 新規リリースを即座に取り込まず一定期間の検証期間を設けることで、
+    # サプライチェーン攻撃（悪意あるリリースの即時混入）のリスクを低減する。
+    # なお cooldown は version updates にのみ効き security updates には適用されないため、
+    # 脆弱性修正の取り込みが遅延することはない。
+    cooldown:
+      default-days: 7
 
   # pre-commit hooks
   - package-ecosystem: 'pre-commit'
@@ -101,8 +117,12 @@ updates:
     labels:
       - 'dependencies'
       - 'security'
+    # zizmor の dependabot-cooldown 監査が 7 日以上を要求するため 7 を指定している
+    # （zizmor 未指定時は insufficient implicit default-days (less than 7) を検知）。
     # 新規リリースを即座に取り込まず一定期間の検証期間を設けることで、
     # サプライチェーン攻撃（悪意あるリリースの即時混入）のリスクを低減する。
+    # なお cooldown は version updates にのみ効き security updates には適用されないため、
+    # 脆弱性修正の取り込みが遅延することはない。
     cooldown:
       default-days: 7
     commit-message:
