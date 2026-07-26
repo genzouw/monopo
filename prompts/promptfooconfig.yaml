@@ -3,5 +3,3 @@ prompts:
   - '*.json'
 providers:
   - id: 'github:models:o3-mini'
-    config:
-      apiKeyEnvar: GH_MODELS_TOKEN # pragma: allowlist secret
