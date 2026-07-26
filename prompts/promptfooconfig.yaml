@@ -1,0 +1,7 @@
+description: "Monopo prompt evaluation config"
+prompts:
+  - "*.json"
+providers:
+  - id: "github:models:o3-mini"
+    config:
+      apiKey: "envar:GH_MODELS_TOKEN"
