@@ -1,5 +1,3 @@
 description: 'Monopo prompt evaluation config'
-prompts:
-  - '*.json'
 providers:
   - id: 'github:openai/o3-mini'
