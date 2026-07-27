@@ -82,6 +82,9 @@ PR作成時にプロンプトへの変更（`prompts/**`）が含まれている
 
 1. **GitHub Secretsの設定**
    - 無料で利用可能な GitHub Models を評価モデルとして使用しますが、認証には `models: read` 権限を付与したビルトインの `GITHUB_TOKEN` を使用しているため、`GH_MODELS_TOKEN` を含む追加のシークレット登録は不要です。
+2. **現時点のステータス（スキャフォルド）**
+   - 導入時点では評価対象となる `prompts/*.json` および `tests`（アサーション）・`redteam`（脆弱性診断）設定は未整備であり、評価パイプラインの土台（スキャフォルド）のみを導入しています。
+   - 実際のプロンプト・tests・redteam設定の追加は別途Issueで対応します。
 
 ## 更新: AI Tech News Digest の設定
 
