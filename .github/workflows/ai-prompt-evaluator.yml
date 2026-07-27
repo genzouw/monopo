@@ -25,7 +25,7 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/promptfoo
-          key: ${{ runner.os }}-promptfoo-v1
+          key: ${{ runner.os }}-promptfoo-${{ hashFiles('prompts/**') }}
           restore-keys: |
             ${{ runner.os }}-promptfoo-
 
