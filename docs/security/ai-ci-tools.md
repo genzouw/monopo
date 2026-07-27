@@ -80,9 +80,8 @@ Issueの内容をもとに自動でコードを修正する `.github/workflows/a
 PR作成時にプロンプトへの変更（`prompts/**`）が含まれている場合、変更前と変更後のプロンプトを自動的に評価・比較し、PRにコメントとしてレポートを通知する `.github/workflows/ai-prompt-evaluator.yml` を追加しました。
 最新のLLMセキュリティテスト、およびプロンプトの回帰テストを目的としています。
 
-1. **GitHub Secretsの設定 (必須)**
-   - 無料で利用可能な GitHub Models を評価モデルとして使用するため、既存の `GH_MODELS_TOKEN` が必要です。
-   - `Settings > Secrets and variables > Actions` で設定されているか確認してください。
+1. **GitHub Secretsの設定**
+   - 無料で利用可能な GitHub Models を評価モデルとして使用しますが、認証には `models: read` 権限を付与したビルトインの `GITHUB_TOKEN` を使用しているため、`GH_MODELS_TOKEN` を含む追加のシークレット登録は不要です。
 
 ## 更新: AI Tech News Digest の設定
 
