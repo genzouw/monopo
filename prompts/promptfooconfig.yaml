@@ -1,0 +1,3 @@
+description: 'Monopo prompt evaluation config'
+providers:
+  - id: 'github:openai/o3-mini'

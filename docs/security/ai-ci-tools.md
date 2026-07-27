@@ -75,6 +75,17 @@ Issueの内容をもとに自動でコードを修正する `.github/workflows/a
    - 既存の `GH_MODELS_TOKEN` に加え、`TAVILY_API_KEY` の設定が必要です。
    - `Settings > Secrets and variables > Actions` で設定されているか確認してください。
 
+## 新規: Promptfoo (AI Prompt Evaluator) の設定
+
+PR作成時にプロンプトへの変更（`prompts/**`）が含まれている場合、変更前と変更後のプロンプトを自動的に評価・比較し、PRにコメントとしてレポートを通知する `.github/workflows/ai-prompt-evaluator.yml` を追加しました。
+最新のLLMセキュリティテスト、およびプロンプトの回帰テストを目的としています。
+
+1. **GitHub Secretsの設定**
+   - 無料で利用可能な GitHub Models を評価モデルとして使用しますが、認証には `models: read` 権限を付与したビルトインの `GITHUB_TOKEN` を使用しているため、`GH_MODELS_TOKEN` を含む追加のシークレット登録は不要です。
+2. **現時点のステータス（スキャフォルド）**
+   - 導入時点では評価対象となる `prompts/*.json` および `tests`（アサーション）・`redteam`（脆弱性診断）設定は未整備であり、評価パイプラインの土台（スキャフォルド）のみを導入しています。
+   - 実際のプロンプト・tests・redteam設定の追加は別途Issueで対応します。
+
 ## 更新: AI Tech News Digest の設定
 
 週次のAI・自動化トレンドダイジェストを生成する `.github/workflows/ai-tech-news-digest.yml` において、Tavily Search API の `topic: 'news'` と `days: 7` パラメータを追加し、より最新の技術ニュースに特化して情報を取得できるように最適化しました。
