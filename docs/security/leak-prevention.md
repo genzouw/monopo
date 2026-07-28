@@ -13,7 +13,7 @@
 - **`.gitignore` と `.gitattributes` による除外・保護**:
   - `.env`, `.env.*` (ただし `.env.example` は除く)
   - `*.pem`, `*.key`, `id_rsa`, `id_ed25519`, `id_ecdsa`, `id_dsa`, `*credentials*.json`, `*secret*.json`, `*.npmrc`, `.netrc`, DBファイル(`*.sqlite` 等) 等
-  - AI エージェントの作業跡（`.copilot/`, `.cursor/`, `.claude/`, `.aider*`, `.cline/`, `.windsurf/`, `.trae/`, `.roo/` 等）やエディタのローカル履歴（`.history/`）、デバッグ等で出力されるログファイル・レポートファイル（`*.log`, `*-report.md`）、ソースコードの差分ファイル（`*.patch`, `*.diff`）はローカル環境特有の秘密情報や未公開コードが含まれるリスクがあるため除外しています。
+  - クラウドプロバイダやインフラのローカル状態（`.vercel/`, `.netlify/`, `.wrangler/`, `.serverless/`, `.sst/`, `.envrc` 等）、AI エージェントの作業跡（`.copilot/`, `.cursor/`, `.claude/`, `.aider*`, `.cline/`, `.windsurf/`, `.trae/`, `.roo/` 等）やエディタのローカル履歴（`.history/`）、デバッグ等で出力されるログファイル・レポートファイル（`*.log`, `*-report.md`）、ソースコードの差分ファイル（`*.patch`, `*.diff`）はローカル環境特有の秘密情報や未公開コードが含まれるリスクがあるため除外しています。
   - **さらに、`.gitattributes` により、これらの秘密情報ファイルが誤って `git add` された場合でも、diff の中身がレビュー画面・ログ・PR 上で表示されない（`-diff` によりバイナリ扱いとなり `Binary files differ` 表示）よう、またリポジトリのアーカイブに含まれないよう（`export-ignore`）設定し、二重に保護しています。**
 - **VS Code / Cursor 用安全側プリセット (`.vscode/settings.json`)**: リポジトリに事前に設定されたプリセットにより、ローカルエディタのエクスプローラーや検索からシークレットファイル (`.env`, `*.pem`, `id_rsa`等) やAIエージェントの作業跡 (`.copilot/`, `.cursor/`, `.claude/` 等に加え `ai-report-*.md` などの一時ファイル)、エディタ履歴 (`.history/`)、ソースコードの差分ファイル（`*.patch`, `*.diff`）などを除外 (`files.exclude`, `search.exclude`) し、誤露出・誤操作のリスクを低減します。コミット防止は `.gitignore` および各種フック（`gitleaks`、`forbid-sensitive-files`）で担保します。
   - これは VS Code/Cursor のワークスペース設定を利用した補助的な防御であり、他のエディタや設定を無効化・上書きされた環境には適用されません。設定反映後はエディタを再起動し、`test.patch` 等が Explorer と検索結果から除外されること、GitHub の Push Protection が有効であることを確認してください。
