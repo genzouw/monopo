@@ -10,6 +10,8 @@
   - **⚠️ 注意**: `gitleaks` が未インストールの場合、コミットは自動的にブロックされます。意図せぬ秘密情報の混入を防ぐため、gitleaks のインストールが**必須**となっています。
   - **自動セットアップ**: 本リポジトリでは `package.json` の `prepare` スクリプトにより、初回 `bun install` 時に自動で Husky と pre-commit フックがセットアップされます。
   - **必須**: 開発環境には [gitleaks](https://github.com/gitleaks/gitleaks) をインストールしてください。（例: `brew install gitleaks` または GitHub のリリースページからダウンロード）
+- **`secretlint` 連携 (`lint-staged`)**:
+  - Node.js エコシステムに特化した `secretlint` を `lint-staged` に統合し、コミット対象の全ファイルに対して高速なシークレットスキャンを実行します。`gitleaks` と二重化することで検知精度を向上させています。
 - **`.gitignore` と `.gitattributes` による除外・保護**:
   - `.env`, `.env.*` (ただし `.env.example` は除く)
   - `*.pem`, `*.key`, `id_rsa`, `id_ed25519`, `id_ecdsa`, `id_dsa`, `*credentials*.json`, `*secret*.json`, `*.npmrc`, `.netrc`, DBファイル(`*.sqlite` 等) 等
