@@ -65,6 +65,12 @@ id_dsa
 # AI agent workspaces
 *.patch
 *.diff
+.vercel/
+.netlify/
+.wrangler/
+.serverless/
+.sst/
+.envrc
 .cursor/
 .claude/
 .aider*
