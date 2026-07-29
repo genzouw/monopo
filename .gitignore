@@ -32,6 +32,14 @@ coverage
 .jules/
 .Jules/
 
+# Cloud provider & infrastructure local states (Prevent leaking project IDs, local tokens)
+.vercel/
+.netlify/
+.wrangler/
+.serverless/
+.sst/
+.envrc
+
 # Secret and Credential files
 .env
 .env.*
