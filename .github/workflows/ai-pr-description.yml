@@ -1,0 +1,89 @@
+name: AI PR Description Generator
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths-ignore:
+      - '**.md'
+      - '.github/workflows/**'
+
+permissions:
+  contents: read
+
+jobs:
+  generate-description:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Fetch PR Diff
+        id: fetch-diff
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          script: |
+            const diff = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              mediaType: { format: 'diff' }
+            });
+            const truncatedDiff = diff.data.slice(0, 10000);
+            return truncatedDiff;
+
+      - name: Generate Description
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
+          PR_DIFF: ${{ steps.fetch-diff.outputs.result }}
+        with:
+          script: |
+            const prDiff = process.env.PR_DIFF;
+
+            const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のPull Requestの差分情報をもとに、PRテンプレートの以下のセクションのみを生成してください:
+            - 概要 (1〜3行)
+            - 💡 What (追加・修正した内容)
+            - 🎯 Why (なぜこの変更が必要か)
+
+            その他のセクションは無視してください。必ず日本語で記述してください。
+            プロジェクト要件:
+            - 名称には「monopoly」ではなく必ず「monopo」を使用する。
+            - パッケージマネージャには必ずBunを使用する。
+
+            差分:
+            ${prDiff}`;
+
+            const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
+              },
+              body: JSON.stringify({
+                model: 'o3-mini',
+                messages: [{ role: 'user', content: prompt }],
+                reasoning_effort: 'medium',
+                max_completion_tokens: 5000
+              })
+            });
+
+            if (aiRes.ok) {
+              const aiData = await aiRes.json();
+              const description = aiData.choices?.[0]?.message?.content;
+              if (description) {
+                await github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: `### 🤖 AI 生成 PR Description\n\n${description}`
+                });
+              }
+            }
