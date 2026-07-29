@@ -46,3 +46,9 @@ id_dsa -diff export-ignore
 ai-report-*.md -diff export-ignore
 *.patch -diff export-ignore
 *.diff -diff export-ignore
+**/.vercel/** -diff export-ignore
+**/.netlify/** -diff export-ignore
+**/.wrangler/** -diff export-ignore
+**/.serverless/** -diff export-ignore
+**/.sst/** -diff export-ignore
+.envrc -diff export-ignore
