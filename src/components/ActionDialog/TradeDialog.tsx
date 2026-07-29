@@ -263,6 +263,7 @@ export default function TradeDialog({
               }}
               aria-label={LABELS.add10}
               aria-disabled={offerMoney + 10 > currentPlayer.money}
+              title={offerMoney + 10 > currentPlayer.money ? '所持金を超えています' : LABELS.add10}
             >
               +$10
             </button>
@@ -275,6 +276,7 @@ export default function TradeDialog({
               }}
               aria-label={LABELS.add100}
               aria-disabled={offerMoney + 100 > currentPlayer.money}
+              title={offerMoney + 100 > currentPlayer.money ? '所持金を超えています' : LABELS.add100}
             >
               +$100
             </button>
@@ -384,6 +386,7 @@ export default function TradeDialog({
               }}
               aria-label={LABELS.add10}
               aria-disabled={requestMoney + 10 > targetPlayer.money}
+              title={requestMoney + 10 > targetPlayer.money ? '相手の所持金を超えています' : LABELS.add10}
             >
               +$10
             </button>
@@ -398,6 +401,7 @@ export default function TradeDialog({
               }}
               aria-label={LABELS.add100}
               aria-disabled={requestMoney + 100 > targetPlayer.money}
+              title={requestMoney + 100 > targetPlayer.money ? '相手の所持金を超えています' : LABELS.add100}
             >
               +$100
             </button>
