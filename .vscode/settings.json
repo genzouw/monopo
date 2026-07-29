@@ -48,7 +48,13 @@
     "**/ai-report-*.md": true,
     "**/*.log": true,
     "**/*.patch": true,
-    "**/*.diff": true
+    "**/*.diff": true,
+    "**/.vercel/**": true,
+    "**/.netlify/**": true,
+    "**/.wrangler/**": true,
+    "**/.serverless/**": true,
+    "**/.sst/**": true,
+    "**/.envrc": true
   },
   "search.exclude": {
     "**/.env": true,
@@ -99,6 +105,12 @@
     "**/*-report.md": true,
     "**/ai-report-*.md": true,
     "**/*.patch": true,
-    "**/*.diff": true
+    "**/*.diff": true,
+    "**/.vercel/**": true,
+    "**/.netlify/**": true,
+    "**/.wrangler/**": true,
+    "**/.serverless/**": true,
+    "**/.sst/**": true,
+    "**/.envrc": true
   }
 }
