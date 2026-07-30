@@ -54,12 +54,13 @@ jobs:
 
             let searchAnswer = '検索結果の要約なし';
             try {
+              const currentYear = new Date().getFullYear();
               const tavilyRes = await fetch('https://api.tavily.com/search', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                   api_key: process.env.TAVILY_API_KEY,
-                  query: `2025 latest best practices documentation update requirements for pull requests: ${title}`,
+                  query: `${currentYear} latest best practices documentation update requirements for pull requests: ${title}`,
                   search_depth: 'advanced',
                   include_answer: true,
                 }),
