@@ -29,6 +29,7 @@ export default function PurchaseDialog({
             onClick={onBuy}
             aria-disabled={!canAfford}
             aria-describedby={!canAfford ? noMoneyHintId : undefined}
+            title={!canAfford ? 'おかねがたりないよ' : undefined}
           >
             ${space.price}で買う！
           </Button>
