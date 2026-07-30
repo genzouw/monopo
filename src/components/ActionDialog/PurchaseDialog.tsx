@@ -11,6 +11,13 @@ type PurchaseDialogProps = {
   onDecline: () => void;
 };
 
+/**
+ * 物件購入確認ダイアログ。
+ * マス目の物件を購入するかどうかをプレイヤーに確認し、
+ * 所持金が不足している場合は購入ボタンを無効化したうえで、
+ * `title` 属性によるツールチップと `aria-describedby` で結び付けた
+ * 補助メッセージの両方から「おかねがたりないよ」という理由を伝える。
+ */
 export default function PurchaseDialog({
   space,
   currentPlayer,
