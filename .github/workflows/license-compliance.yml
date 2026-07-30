@@ -2,7 +2,7 @@ name: License Compliance Audit
 
 on:
   schedule:
-    # 毎週月曜 09:00 JST (= 日曜 00:00 UTC) に定期監査
+    # 毎週月曜 09:00 JST (= 月曜 00:00 UTC) に定期監査
     - cron: '0 0 * * 1'
   workflow_dispatch:
 
@@ -26,6 +26,12 @@ jobs:
         run: bun install --frozen-lockfile --ignore-scripts
 
       - name: Run License Checker
-        # license-checker-rseidelsohn は license-checker のメンテナンス継続フォークです
-        # 指定された利用禁止ライセンス（GPL, AGPL等）が検出された場合にビルドを失敗させます
-        run: bunx license-checker-rseidelsohn --summary --failOn "GPL;AGPL"
+        # license-checker-rseidelsohn は license-checker のメンテナンス継続フォークです。
+        # devDependencies として package.json / bun.lock に固定し、frozen-lockfile でインストール済みの
+        # バージョンを --no-install で実行することで、サプライチェーンの再現性を担保します。
+        # --failOn はこのツールの実装上、ライセンス文字列の完全一致でのみ判定されるため、
+        # "GPL" / "AGPL" のような総称ではなく、実際に検出され得る SPDX 識別子を明示的に列挙しています。
+        # 指定された利用禁止ライセンス（GPL, AGPL系）が検出された場合にビルドを失敗させます
+        run: >-
+          bunx --no-install license-checker-rseidelsohn --summary --failOn
+          "GPL-2.0-only;GPL-2.0-or-later;GPL-3.0-only;GPL-3.0-or-later;AGPL-3.0-only;AGPL-3.0-or-later;GPL-2.0;GPL-3.0;AGPL-3.0"
