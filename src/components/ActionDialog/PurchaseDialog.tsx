@@ -4,6 +4,8 @@ import Dialog from '../common/Dialog';
 import Button from '../common/Button';
 import styles from './ActionDialog.module.css';
 
+const NO_MONEY_HINT_TEXT = 'おかねがたりないよ';
+
 type PurchaseDialogProps = {
   space: BoardSpace;
   currentPlayer: Player;
@@ -11,6 +13,13 @@ type PurchaseDialogProps = {
   onDecline: () => void;
 };
 
+/**
+ * 物件購入確認ダイアログ。
+ * マス目の物件を購入するかどうかをプレイヤーに確認し、
+ * 所持金が不足している場合は購入ボタンを無効化したうえで、
+ * `title` 属性によるツールチップと `aria-describedby` で結び付けた
+ * 補助メッセージの両方から「おかねがたりないよ」という理由を伝える。
+ */
 export default function PurchaseDialog({
   space,
   currentPlayer,
@@ -29,6 +38,7 @@ export default function PurchaseDialog({
             onClick={onBuy}
             aria-disabled={!canAfford}
             aria-describedby={!canAfford ? noMoneyHintId : undefined}
+            title={!canAfford ? NO_MONEY_HINT_TEXT : undefined}
           >
             ${space.price}で買う！
           </Button>
@@ -46,7 +56,7 @@ export default function PurchaseDialog({
         </div>
         {!canAfford && (
           <div id={noMoneyHintId} className={styles.noMoneyHintTight}>
-            おかねがたりないよ
+            {NO_MONEY_HINT_TEXT}
           </div>
         )}
       </div>
