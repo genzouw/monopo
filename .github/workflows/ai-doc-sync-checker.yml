@@ -144,7 +144,7 @@ jobs:
               return;
             }
 
-            if (analysis.includes('更新不要')) {
+            if (analysis.trim() === '更新不要') {
               console.log('Documentation update is deemed unnecessary. Skipping comment.');
               return;
             }
