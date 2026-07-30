@@ -4,6 +4,8 @@ import Dialog from '../common/Dialog';
 import Button from '../common/Button';
 import styles from './ActionDialog.module.css';
 
+const NO_MONEY_HINT_TEXT = 'おかねがたりないよ';
+
 type PurchaseDialogProps = {
   space: BoardSpace;
   currentPlayer: Player;
@@ -36,7 +38,7 @@ export default function PurchaseDialog({
             onClick={onBuy}
             aria-disabled={!canAfford}
             aria-describedby={!canAfford ? noMoneyHintId : undefined}
-            title={!canAfford ? 'おかねがたりないよ' : undefined}
+            title={!canAfford ? NO_MONEY_HINT_TEXT : undefined}
           >
             ${space.price}で買う！
           </Button>
@@ -54,7 +56,7 @@ export default function PurchaseDialog({
         </div>
         {!canAfford && (
           <div id={noMoneyHintId} className={styles.noMoneyHintTight}>
-            おかねがたりないよ
+            {NO_MONEY_HINT_TEXT}
           </div>
         )}
       </div>
