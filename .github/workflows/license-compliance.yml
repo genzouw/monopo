@@ -1,0 +1,31 @@
+name: License Compliance Audit
+
+on:
+  schedule:
+    # 毎週月曜 09:00 JST (= 日曜 00:00 UTC) に定期監査
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  license-check:
+    name: Check dependency licenses
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.2.14
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile --ignore-scripts
+
+      - name: Run License Checker
+        # license-checker-rseidelsohn は license-checker のメンテナンス継続フォークです
+        # 指定された利用禁止ライセンス（GPL, AGPL等）が検出された場合にビルドを失敗させます
+        run: bunx license-checker-rseidelsohn --summary --failOn "GPL;AGPL"
