@@ -177,6 +177,27 @@ jobs:
             ${{ runner.os }}-bun-
       - run: bun run sync:ai-guidelines:check
 
+  secretlint:
+    name: Secretlint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.2.14
+      - name: Cache bun dependencies
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+      - run: bun install --frozen-lockfile --ignore-scripts
+      - run: bun run secretlint
+
   banned-files-check:
     name: Banned Files Check
     runs-on: ubuntu-latest
@@ -202,7 +223,7 @@ jobs:
             -o -path "*/.cursor/*" -o -path "*/.claude/*" -o -path "*/.aider*/*" \
             -o -path "*/.continue/*" -o -path "*/.jules/*" -o -path "*/.cline/*" \
             -o -path "*/.windsurf/*" -o -path "*/.trae/*" -o -path "*/.roo/*" \
-            \) -not -name ".env.example" -not -path "*/node_modules/*" -not -path "*/.git/*" || true)
+            \) -not -name ".env.example" -not -path "./.secretlintrc.json" -not -path "*/node_modules/*" -not -path "*/.git/*" || true)
 
           if [ -n "$BANNED_FILES" ]; then
             echo "::error::❌ Banned files detected! Please remove them from the repository:"

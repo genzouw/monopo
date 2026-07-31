@@ -40,8 +40,6 @@ jobs:
                 topic: 'news',
                 days: 7,
                 search_depth: 'advanced',
-                topic: 'news',
-                days: 7,
                 include_answer: true,
               }),
             });
