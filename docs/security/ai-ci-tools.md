@@ -111,3 +111,10 @@ PR作成時にソースコードの変更が既存のドキュメント（README
    - このワークフローを動作させるには、リポジトリ管理者権限を持つユーザーが GitHub のリポジトリの `Settings > Secrets and variables > Actions` にて、以下のシークレットを登録してください。
      - `GH_MODELS_TOKEN`: GitHub Models へのアクセス用トークン
      - `TAVILY_API_KEY`: Tavily Search API へのアクセス用キー
+
+## 新規: AI PR Description Generator の設定
+
+PR作成時にGitHub Models (o3-mini) を利用して、PRテンプレートに沿った概要（What, Why等）を自動生成し、コメントとして通知する `.github/workflows/ai-pr-description.yml` を追加しました。
+
+1. **GitHub Secretsの設定 (必須)**
+   - リポジトリ管理者が `Settings > Secrets and variables > Actions` にて `GH_MODELS_TOKEN` を登録している必要があります。
