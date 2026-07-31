@@ -169,9 +169,31 @@ jobs:
               return;
             }
 
+            // synchronize でも起動するため、固定マーカーで既存コメントを探して更新し、
+            // PR に同種のコメントが積み上がるのを防ぐ。
+            const marker = '<!-- ai-doc-sync-checker -->';
+            const body = `${marker}\n### 🤖 AI Documentation Sync Check\n\n${analysis}`;
+            const existingComments = await github.paginate(github.rest.issues.listComments, {
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+            const existing = existingComments.find((c) => c.body?.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                comment_id: existing.id,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body
+              });
+              return;
+            }
+
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `### 🤖 AI Documentation Sync Check\n\n${analysis}`
+              body
             });
