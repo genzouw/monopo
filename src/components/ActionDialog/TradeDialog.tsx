@@ -136,6 +136,18 @@ export default function TradeDialog({
   const isRequestAdd100Disabled = requestMoney + 100 > targetPlayer.money;
   const isRequestClearDisabled = requestMoney === 0;
 
+  // 提案ボタンの説明先IDを一元管理する。
+  // 提示・要求の金額エラーが同時に発生した場合も両方のIDを空白区切りで参照させ、
+  // スクリーンリーダーが片方の理由しか読み上げない状態を防ぐ
+  const proposeDescribedBy =
+    [
+      isTradeEmpty ? tradeEmptyHintId : undefined,
+      isOfferMoneyInvalid ? offerMoneyErrorId : undefined,
+      isRequestMoneyInvalid ? requestMoneyErrorId : undefined,
+    ]
+      .filter((id): id is string => id !== undefined)
+      .join(' ') || undefined;
+
   const handlePropose = () => {
     onPropose({
       fromPlayerId: currentPlayer.id,
@@ -161,15 +173,7 @@ export default function TradeDialog({
               aria-disabled={
                 isTradeEmpty || isOfferMoneyInvalid || isRequestMoneyInvalid
               }
-              aria-describedby={
-                isTradeEmpty
-                  ? tradeEmptyHintId
-                  : isOfferMoneyInvalid
-                    ? offerMoneyErrorId
-                    : isRequestMoneyInvalid
-                      ? requestMoneyErrorId
-                      : undefined
-              }
+              aria-describedby={proposeDescribedBy}
               title={
                 isTradeEmpty
                   ? LABELS.emptyHint
