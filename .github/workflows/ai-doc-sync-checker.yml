@@ -108,14 +108,14 @@ jobs:
             ${prDiff}
             </pr_diff>`;
 
-            const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+            const aiRes = await fetch('https://models.github.ai/inference/chat/completions', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
               },
               body: JSON.stringify({
-                model: 'o3-mini',
+                model: 'openai/o3-mini',
                 messages: [
                   { role: 'developer', content: systemPolicy },
                   { role: 'user', content: externalInput }
