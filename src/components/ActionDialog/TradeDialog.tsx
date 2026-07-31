@@ -127,6 +127,27 @@ export default function TradeDialog({
     offerMoney === 0 &&
     requestMoney === 0;
 
+  // クイック操作ボタンの無効化条件をここで一元管理し、
+  // onClickガード・aria-disabled・titleの3箇所で使い回すことで不整合を防ぐ
+  const isOfferAdd10Disabled = offerMoney + 10 > currentPlayer.money;
+  const isOfferAdd100Disabled = offerMoney + 100 > currentPlayer.money;
+  const isOfferClearDisabled = offerMoney === 0;
+  const isRequestAdd10Disabled = requestMoney + 10 > targetPlayer.money;
+  const isRequestAdd100Disabled = requestMoney + 100 > targetPlayer.money;
+  const isRequestClearDisabled = requestMoney === 0;
+
+  // 提案ボタンの説明先IDを一元管理する。
+  // 提示・要求の金額エラーが同時に発生した場合も両方のIDを空白区切りで参照させ、
+  // スクリーンリーダーが片方の理由しか読み上げない状態を防ぐ
+  const proposeDescribedBy =
+    [
+      isTradeEmpty ? tradeEmptyHintId : undefined,
+      isOfferMoneyInvalid ? offerMoneyErrorId : undefined,
+      isRequestMoneyInvalid ? requestMoneyErrorId : undefined,
+    ]
+      .filter((id): id is string => id !== undefined)
+      .join(' ') || undefined;
+
   const handlePropose = () => {
     onPropose({
       fromPlayerId: currentPlayer.id,
@@ -152,7 +173,14 @@ export default function TradeDialog({
               aria-disabled={
                 isTradeEmpty || isOfferMoneyInvalid || isRequestMoneyInvalid
               }
-              aria-describedby={isTradeEmpty ? tradeEmptyHintId : undefined}
+              aria-describedby={proposeDescribedBy}
+              title={
+                isTradeEmpty
+                  ? LABELS.emptyHint
+                  : isOfferMoneyInvalid || isRequestMoneyInvalid
+                    ? '入力された金額が正しくありません'
+                    : undefined
+              }
             >
               {LABELS.propose}
             </Button>
@@ -258,11 +286,12 @@ export default function TradeDialog({
               type="button"
               className={styles.moneyQuickButton}
               onClick={() => {
-                if (offerMoney + 10 > currentPlayer.money) return;
+                if (isOfferAdd10Disabled) return;
                 setOfferMoney((prev) => clamp(prev + 10, currentPlayer.money));
               }}
               aria-label={LABELS.add10}
-              aria-disabled={offerMoney + 10 > currentPlayer.money}
+              aria-disabled={isOfferAdd10Disabled}
+              title={isOfferAdd10Disabled ? '所持金を超えています' : undefined}
             >
               +$10
             </button>
@@ -270,11 +299,12 @@ export default function TradeDialog({
               type="button"
               className={styles.moneyQuickButton}
               onClick={() => {
-                if (offerMoney + 100 > currentPlayer.money) return;
+                if (isOfferAdd100Disabled) return;
                 setOfferMoney((prev) => clamp(prev + 100, currentPlayer.money));
               }}
               aria-label={LABELS.add100}
-              aria-disabled={offerMoney + 100 > currentPlayer.money}
+              aria-disabled={isOfferAdd100Disabled}
+              title={isOfferAdd100Disabled ? '所持金を超えています' : undefined}
             >
               +$100
             </button>
@@ -282,11 +312,12 @@ export default function TradeDialog({
               type="button"
               className={styles.moneyQuickButtonClear}
               onClick={() => {
-                if (offerMoney === 0) return;
+                if (isOfferClearDisabled) return;
                 setOfferMoney(0);
               }}
               aria-label={LABELS.clearMoney}
-              aria-disabled={offerMoney === 0}
+              aria-disabled={isOfferClearDisabled}
+              title={isOfferClearDisabled ? 'すでに0です' : undefined}
             >
               クリア
             </button>
@@ -379,11 +410,16 @@ export default function TradeDialog({
               type="button"
               className={styles.moneyQuickButton}
               onClick={() => {
-                if (requestMoney + 10 > targetPlayer.money) return;
+                if (isRequestAdd10Disabled) return;
                 setRequestMoney((prev) => clamp(prev + 10, targetPlayer.money));
               }}
               aria-label={LABELS.add10}
-              aria-disabled={requestMoney + 10 > targetPlayer.money}
+              aria-disabled={isRequestAdd10Disabled}
+              title={
+                isRequestAdd10Disabled
+                  ? '相手の所持金を超えています'
+                  : undefined
+              }
             >
               +$10
             </button>
@@ -391,13 +427,18 @@ export default function TradeDialog({
               type="button"
               className={styles.moneyQuickButton}
               onClick={() => {
-                if (requestMoney + 100 > targetPlayer.money) return;
+                if (isRequestAdd100Disabled) return;
                 setRequestMoney((prev) =>
                   clamp(prev + 100, targetPlayer.money),
                 );
               }}
               aria-label={LABELS.add100}
-              aria-disabled={requestMoney + 100 > targetPlayer.money}
+              aria-disabled={isRequestAdd100Disabled}
+              title={
+                isRequestAdd100Disabled
+                  ? '相手の所持金を超えています'
+                  : undefined
+              }
             >
               +$100
             </button>
@@ -405,11 +446,12 @@ export default function TradeDialog({
               type="button"
               className={styles.moneyQuickButtonClear}
               onClick={() => {
-                if (requestMoney === 0) return;
+                if (isRequestClearDisabled) return;
                 setRequestMoney(0);
               }}
               aria-label={LABELS.clearMoney}
-              aria-disabled={requestMoney === 0}
+              aria-disabled={isRequestClearDisabled}
+              title={isRequestClearDisabled ? 'すでに0です' : undefined}
             >
               クリア
             </button>
