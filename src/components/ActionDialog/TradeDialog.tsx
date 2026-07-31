@@ -28,6 +28,25 @@ const LABELS = {
   clearMoney: '金額をクリア',
 } as const;
 
+/** クイック操作ボタンが無効になる理由の文言 */
+const DISABLED_REASONS = {
+  overOwnMoney: '所持金を超えています',
+  overTargetMoney: '相手の所持金を超えています',
+  alreadyZero: 'すでに0です',
+} as const;
+
+/**
+ * 無効状態のボタンについて、理由を含むアクセシブル名を組み立てる。
+ * `title` はホバー依存でスクリーンリーダーやタッチ利用者に届かないため、
+ * `aria-label` 側にも理由を含めて確実に伝える。
+ *
+ * @param label - 有効時のラベル
+ * @param reason - 無効理由（有効な場合は `undefined`）
+ * @returns 無効時は「ラベル。理由」、有効時はラベルそのもの
+ */
+const withDisabledReason = (label: string, reason?: string): string =>
+  reason === undefined ? label : `${label}。${reason}`;
+
 const COLOR_MAP: Record<ColorGroup, string> = {
   brown: 'var(--color-brown)',
   lightblue: 'var(--color-lightblue)',
@@ -127,14 +146,36 @@ export default function TradeDialog({
     offerMoney === 0 &&
     requestMoney === 0;
 
-  // クイック操作ボタンの無効化条件をここで一元管理し、
-  // onClickガード・aria-disabled・titleの3箇所で使い回すことで不整合を防ぐ
-  const isOfferAdd10Disabled = offerMoney + 10 > currentPlayer.money;
-  const isOfferAdd100Disabled = offerMoney + 100 > currentPlayer.money;
-  const isOfferClearDisabled = offerMoney === 0;
-  const isRequestAdd10Disabled = requestMoney + 10 > targetPlayer.money;
-  const isRequestAdd100Disabled = requestMoney + 100 > targetPlayer.money;
-  const isRequestClearDisabled = requestMoney === 0;
+  // クイック操作ボタンの無効理由をここで一元管理し、
+  // onClickガード・aria-disabled・aria-label・titleの4箇所で使い回すことで不整合を防ぐ
+  // （`undefined` = 有効、文字列 = その理由で無効）
+  const offerAdd10Reason =
+    offerMoney + 10 > currentPlayer.money
+      ? DISABLED_REASONS.overOwnMoney
+      : undefined;
+  const offerAdd100Reason =
+    offerMoney + 100 > currentPlayer.money
+      ? DISABLED_REASONS.overOwnMoney
+      : undefined;
+  const offerClearReason =
+    offerMoney === 0 ? DISABLED_REASONS.alreadyZero : undefined;
+  const requestAdd10Reason =
+    requestMoney + 10 > targetPlayer.money
+      ? DISABLED_REASONS.overTargetMoney
+      : undefined;
+  const requestAdd100Reason =
+    requestMoney + 100 > targetPlayer.money
+      ? DISABLED_REASONS.overTargetMoney
+      : undefined;
+  const requestClearReason =
+    requestMoney === 0 ? DISABLED_REASONS.alreadyZero : undefined;
+
+  const isOfferAdd10Disabled = offerAdd10Reason !== undefined;
+  const isOfferAdd100Disabled = offerAdd100Reason !== undefined;
+  const isOfferClearDisabled = offerClearReason !== undefined;
+  const isRequestAdd10Disabled = requestAdd10Reason !== undefined;
+  const isRequestAdd100Disabled = requestAdd100Reason !== undefined;
+  const isRequestClearDisabled = requestClearReason !== undefined;
 
   // 提案ボタンの説明先IDを一元管理する。
   // 提示・要求の金額エラーが同時に発生した場合も両方のIDを空白区切りで参照させ、
@@ -289,9 +330,9 @@ export default function TradeDialog({
                 if (isOfferAdd10Disabled) return;
                 setOfferMoney((prev) => clamp(prev + 10, currentPlayer.money));
               }}
-              aria-label={LABELS.add10}
+              aria-label={withDisabledReason(LABELS.add10, offerAdd10Reason)}
               aria-disabled={isOfferAdd10Disabled}
-              title={isOfferAdd10Disabled ? '所持金を超えています' : undefined}
+              title={offerAdd10Reason}
             >
               +$10
             </button>
@@ -302,9 +343,9 @@ export default function TradeDialog({
                 if (isOfferAdd100Disabled) return;
                 setOfferMoney((prev) => clamp(prev + 100, currentPlayer.money));
               }}
-              aria-label={LABELS.add100}
+              aria-label={withDisabledReason(LABELS.add100, offerAdd100Reason)}
               aria-disabled={isOfferAdd100Disabled}
-              title={isOfferAdd100Disabled ? '所持金を超えています' : undefined}
+              title={offerAdd100Reason}
             >
               +$100
             </button>
@@ -315,9 +356,12 @@ export default function TradeDialog({
                 if (isOfferClearDisabled) return;
                 setOfferMoney(0);
               }}
-              aria-label={LABELS.clearMoney}
+              aria-label={withDisabledReason(
+                LABELS.clearMoney,
+                offerClearReason,
+              )}
               aria-disabled={isOfferClearDisabled}
-              title={isOfferClearDisabled ? 'すでに0です' : undefined}
+              title={offerClearReason}
             >
               クリア
             </button>
@@ -413,13 +457,9 @@ export default function TradeDialog({
                 if (isRequestAdd10Disabled) return;
                 setRequestMoney((prev) => clamp(prev + 10, targetPlayer.money));
               }}
-              aria-label={LABELS.add10}
+              aria-label={withDisabledReason(LABELS.add10, requestAdd10Reason)}
               aria-disabled={isRequestAdd10Disabled}
-              title={
-                isRequestAdd10Disabled
-                  ? '相手の所持金を超えています'
-                  : undefined
-              }
+              title={requestAdd10Reason}
             >
               +$10
             </button>
@@ -432,13 +472,12 @@ export default function TradeDialog({
                   clamp(prev + 100, targetPlayer.money),
                 );
               }}
-              aria-label={LABELS.add100}
+              aria-label={withDisabledReason(
+                LABELS.add100,
+                requestAdd100Reason,
+              )}
               aria-disabled={isRequestAdd100Disabled}
-              title={
-                isRequestAdd100Disabled
-                  ? '相手の所持金を超えています'
-                  : undefined
-              }
+              title={requestAdd100Reason}
             >
               +$100
             </button>
@@ -449,9 +488,12 @@ export default function TradeDialog({
                 if (isRequestClearDisabled) return;
                 setRequestMoney(0);
               }}
-              aria-label={LABELS.clearMoney}
+              aria-label={withDisabledReason(
+                LABELS.clearMoney,
+                requestClearReason,
+              )}
               aria-disabled={isRequestClearDisabled}
-              title={isRequestClearDisabled ? 'すでに0です' : undefined}
+              title={requestClearReason}
             >
               クリア
             </button>
