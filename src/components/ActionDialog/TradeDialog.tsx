@@ -153,6 +153,13 @@ export default function TradeDialog({
                 isTradeEmpty || isOfferMoneyInvalid || isRequestMoneyInvalid
               }
               aria-describedby={isTradeEmpty ? tradeEmptyHintId : undefined}
+              title={
+                isTradeEmpty
+                  ? LABELS.emptyHint
+                  : isOfferMoneyInvalid || isRequestMoneyInvalid
+                    ? '入力された金額が正しくありません'
+                    : undefined
+              }
             >
               {LABELS.propose}
             </Button>
@@ -263,6 +270,7 @@ export default function TradeDialog({
               }}
               aria-label={LABELS.add10}
               aria-disabled={offerMoney + 10 > currentPlayer.money}
+              title={offerMoney + 10 > currentPlayer.money ? '所持金を超えています' : undefined}
             >
               +$10
             </button>
@@ -275,6 +283,7 @@ export default function TradeDialog({
               }}
               aria-label={LABELS.add100}
               aria-disabled={offerMoney + 100 > currentPlayer.money}
+              title={offerMoney + 100 > currentPlayer.money ? '所持金を超えています' : undefined}
             >
               +$100
             </button>
@@ -287,6 +296,7 @@ export default function TradeDialog({
               }}
               aria-label={LABELS.clearMoney}
               aria-disabled={offerMoney === 0}
+              title={offerMoney === 0 ? 'すでに0です' : undefined}
             >
               クリア
             </button>
@@ -384,6 +394,7 @@ export default function TradeDialog({
               }}
               aria-label={LABELS.add10}
               aria-disabled={requestMoney + 10 > targetPlayer.money}
+              title={requestMoney + 10 > targetPlayer.money ? '相手の所持金を超えています' : undefined}
             >
               +$10
             </button>
@@ -398,6 +409,7 @@ export default function TradeDialog({
               }}
               aria-label={LABELS.add100}
               aria-disabled={requestMoney + 100 > targetPlayer.money}
+              title={requestMoney + 100 > targetPlayer.money ? '相手の所持金を超えています' : undefined}
             >
               +$100
             </button>
@@ -410,6 +422,7 @@ export default function TradeDialog({
               }}
               aria-label={LABELS.clearMoney}
               aria-disabled={requestMoney === 0}
+              title={requestMoney === 0 ? 'すでに0です' : undefined}
             >
               クリア
             </button>
