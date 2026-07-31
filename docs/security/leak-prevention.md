@@ -10,9 +10,12 @@
   - **⚠️ 注意**: `gitleaks` が未インストールの場合、コミットは自動的にブロックされます。意図せぬ秘密情報の混入を防ぐため、gitleaks のインストールが**必須**となっています。
   - **自動セットアップ**: 本リポジトリでは `package.json` の `prepare` スクリプトにより、初回 `bun install` 時に自動で Husky と pre-commit フックがセットアップされます。
   - **必須**: 開発環境には [gitleaks](https://github.com/gitleaks/gitleaks) をインストールしてください。（例: `brew install gitleaks` または GitHub のリリースページからダウンロード）
+- **`secretlint` 連携 (`lint-staged`)**:
+  - Node.js エコシステムに特化した `secretlint` を `lint-staged` に統合し、`.secretlintignore` で除外したロックファイル等を除くコミット対象のファイルに対して高速なシークレットスキャンを実行します。`gitleaks` と二重化することで検知精度を向上させています。
 - **`.gitignore` と `.gitattributes` による除外・保護**:
   - `.env`, `.env.*` (ただし `.env.example` は除く)
   - `*.pem`, `*.key`, `id_rsa`, `id_ed25519`, `id_ecdsa`, `id_dsa`, `*credentials*.json`, `*secret*.json`, `*.npmrc`, `.netrc`, DBファイル(`*.sqlite` 等) 等
+  - クラウド・インフラ系ツールのローカル状態ディレクトリやファイル（`.vercel/`, `.netlify/`, `.wrangler/`, `.serverless/`, `.sst/`, `.envrc` 等）は、クラウド識別子やデプロイ用の一時トークンが含まれるリスクがあるため除外しています。
   - AI エージェントの作業跡（`.copilot/`, `.cursor/`, `.claude/`, `.aider*`, `.cline/`, `.windsurf/`, `.trae/`, `.roo/` 等）やエディタのローカル履歴（`.history/`）、デバッグ等で出力されるログファイル・レポートファイル（`*.log`, `*-report.md`）、ソースコードの差分ファイル（`*.patch`, `*.diff`）はローカル環境特有の秘密情報や未公開コードが含まれるリスクがあるため除外しています。
   - **さらに、`.gitattributes` により、これらの秘密情報ファイルが誤って `git add` された場合でも、diff の中身がレビュー画面・ログ・PR 上で表示されない（`-diff` によりバイナリ扱いとなり `Binary files differ` 表示）よう、またリポジトリのアーカイブに含まれないよう（`export-ignore`）設定し、二重に保護しています。**
 - **VS Code / Cursor 用安全側プリセット (`.vscode/settings.json`)**: リポジトリに事前に設定されたプリセットにより、ローカルエディタのエクスプローラーや検索からシークレットファイル (`.env`, `*.pem`, `id_rsa`等) やAIエージェントの作業跡 (`.copilot/`, `.cursor/`, `.claude/` 等に加え `ai-report-*.md` などの一時ファイル)、エディタ履歴 (`.history/`)、ソースコードの差分ファイル（`*.patch`, `*.diff`）などを除外 (`files.exclude`, `search.exclude`) し、誤露出・誤操作のリスクを低減します。コミット防止は `.gitignore` および各種フック（`gitleaks`、`forbid-sensitive-files`）で担保します。
@@ -58,6 +61,11 @@
   - `gitleaks.yml`、`trufflehog.yml`、および `trivy.yml` には定期実行トリガー（毎週月曜日）が設定されており、Gitコミット履歴全体のスキャンおよび最新の脆弱性情報の取得を自動で行います。TruffleHog は定期監査においても有効なシークレットを継続的に監視します。
 - **サプライチェーン・セキュリティ監視 (SBOM生成)**:
   - `sbom.yml` には定期実行トリガー（毎週月曜日）が設定されており、リポジトリ全体のソフトウェア部品表 (SBOM) を自動生成し、GitHub Dependency Graph にアップロードします。これにより、依存関係に起因する脆弱性やサプライチェーンリスクの可視化と管理を行います。
+- **ライセンスコンプライアンス監視**:
+  - `license-compliance.yml` には定期実行トリガー（毎週月曜日）が設定されており、依存パッケージに商用利用の支障となるライセンス (GPL, AGPL等) が含まれていないかを自動で走査・検証します。
+  - 監査ツール本体 (`license-checker-rseidelsohn`) は `package.json` の `devDependencies` と `bun.lock` に固定（ピン留め）されており、`bun install --frozen-lockfile` でインストールされたバージョンを `bunx --no-install` で実行することで、サプライチェーンの再現性を担保しています。
+  - `--failOn` はライセンス文字列の完全一致で判定されるため、`GPL` / `AGPL` のような総称ではなく、`GPL-2.0-only` / `GPL-2.0-or-later` / `GPL-3.0-only` / `GPL-3.0-or-later` / `AGPL-3.0-only` / `AGPL-3.0-or-later`（および互換のため旧来の短縮識別子 `GPL-2.0` / `GPL-3.0` / `AGPL-3.0`）といった実際に検出され得る SPDX 識別子を明示的に列挙して検出しています。
+  - **既知の制限**: このツールの `--failOn` は単純な文字列完全一致のため、`(MIT OR GPL-3.0-only)` のような複合（デュアルライセンス）の SPDX 式には一致せず、検出漏れとなる場合があります。これはツール側の既知の制約であり、検出結果は必ず `--summary` の出力を目視でも確認してください。
 
 ## 開発者の皆様へお願い
 

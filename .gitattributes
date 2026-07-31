@@ -28,6 +28,13 @@ id_dsa -diff export-ignore
 *service-account*.json -diff export-ignore
 *serviceaccount*.json -diff export-ignore
 *.tfstate* -diff export-ignore
+# Cloud provider & infrastructure local states
+.vercel/** -diff export-ignore
+.netlify/** -diff export-ignore
+.wrangler/** -diff export-ignore
+.serverless/** -diff export-ignore
+.sst/** -diff export-ignore
+.envrc -diff export-ignore
 # AI agent workspaces (to prevent local context leakage in diffs/archives)
 .history/** -diff export-ignore
 .copilot/** -diff export-ignore
@@ -46,3 +53,9 @@ id_dsa -diff export-ignore
 ai-report-*.md -diff export-ignore
 *.patch -diff export-ignore
 *.diff -diff export-ignore
+**/.vercel/** -diff export-ignore
+**/.netlify/** -diff export-ignore
+**/.wrangler/** -diff export-ignore
+**/.serverless/** -diff export-ignore
+**/.sst/** -diff export-ignore
+.envrc -diff export-ignore
