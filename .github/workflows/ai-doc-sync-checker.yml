@@ -108,25 +108,34 @@ jobs:
             ${prDiff}
             </pr_diff>`;
 
-            const aiRes = await fetch('https://models.github.ai/inference/chat/completions', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
-              },
-              body: JSON.stringify({
-                model: 'openai/o3-mini',
-                messages: [
-                  { role: 'developer', content: systemPolicy },
-                  { role: 'user', content: externalInput }
-                ],
-                // o系列モデルの max_completion_tokens は推論トークンと可視出力トークンの合算上限。
-                // 'high' だと推論だけで予算を使い切り、可視出力が空 (finish_reason: 'length') になる恐れがあるため
-                // まずは 'medium' を既定とし、品質とトークン消費を見ながら調整する。
-                reasoning_effort: 'medium',
-                max_completion_tokens: 15000
-              })
-            });
+            // 本ステップは補助的な判定処理のため、DNS 障害・接続リセット・タイムアウトでは
+            // 警告ログのみを残して正常終了させ、PR チェックを赤くしない。
+            let aiRes;
+            try {
+              aiRes = await fetch('https://models.github.ai/inference/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
+                },
+                signal: AbortSignal.timeout(120000),
+                body: JSON.stringify({
+                  model: 'openai/o3-mini',
+                  messages: [
+                    { role: 'developer', content: systemPolicy },
+                    { role: 'user', content: externalInput }
+                  ],
+                  // o系列モデルの max_completion_tokens は推論トークンと可視出力トークンの合算上限。
+                  // 'high' だと推論だけで予算を使い切り、可視出力が空 (finish_reason: 'length') になる恐れがあるため
+                  // まずは 'medium' を既定とし、品質とトークン消費を見ながら調整する。
+                  reasoning_effort: 'medium',
+                  max_completion_tokens: 15000
+                })
+              });
+            } catch (error) {
+              console.warn(`AI Analysis request failed: ${String(error)}`);
+              return;
+            }
 
             if (!aiRes.ok) {
               const errBody = await aiRes.text().catch(() => '');
