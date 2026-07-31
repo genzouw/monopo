@@ -29,6 +29,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          # 既定の json エンコードだと差分が JSON.stringify され、
+          # 改行がエスケープされた1行文字列になり AI の判定精度が落ちるため string を指定する。
+          result-encoding: string
           script: |
             const diff = await github.rest.pulls.get({
               owner: context.repo.owner,
