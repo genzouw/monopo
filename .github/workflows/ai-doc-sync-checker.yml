@@ -57,9 +57,14 @@ jobs:
               const currentYear = new Date().getFullYear();
               const tavilyRes = await fetch('https://api.tavily.com/search', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                  'Content-Type': 'application/json',
+                  // Tavily の公式な認証方式は Authorization ヘッダ。ボディへのキー埋め込みは非推奨。
+                  'Authorization': `Bearer ${process.env.TAVILY_API_KEY}`,
+                },
+                // 応答が返らない場合にランナー上限まで滞留するのを防ぐ。
+                signal: AbortSignal.timeout(30000),
                 body: JSON.stringify({
-                  api_key: process.env.TAVILY_API_KEY,
                   query: `${currentYear} latest best practices documentation update requirements for pull requests: ${title}`,
                   search_depth: 'advanced',
                   include_answer: true,
