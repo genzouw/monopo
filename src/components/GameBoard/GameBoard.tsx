@@ -431,7 +431,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                 aria-disabled={isRolling}
                 aria-describedby={isRolling ? rollingHintId : undefined}
               >
-                🎲 さいころをふる！
+                {isRolling ? '🎲 ふっています...' : '🎲 さいころをふる！'}
               </Button>
               {isRolling && (
                 <span
