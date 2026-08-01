@@ -34,6 +34,7 @@ import ForceBuyDialog from '../ActionDialog/ForceBuyDialog';
 import StockDialog from '../ActionDialog/StockDialog';
 import LoanDialog from '../ActionDialog/LoanDialog';
 import InsuranceDialog from '../ActionDialog/InsuranceDialog';
+import EconomyIndicator from './EconomyIndicator';
 import { useSound } from '../../sound/useSound';
 import styles from './GameBoard.module.css';
 
@@ -336,6 +337,15 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
     [state.dice.rolled, state.dice.values, isRolling, handleRollComplete],
   );
 
+  // 景気インジケーターも children と同様に参照を安定させ、MiniMap の React.memo を無効化しない。
+  const economyElement = useMemo(
+    () =>
+      state.features?.macroEconomy && state.economyStatus ? (
+        <EconomyIndicator status={state.economyStatus} />
+      ) : undefined,
+    [state.features?.macroEconomy, state.economyStatus],
+  );
+
   // ⚡ Bolt: アニメーション中の再レンダリングごとのマッピングを防ぐ。
   const tradeOfferSpaces = useMemo(() => {
     const trade = state.trade;
@@ -403,6 +413,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           propertyStates={state.propertyStates}
           players={displayPlayers}
           onSpaceClick={handleSpaceClick}
+          overlay={economyElement}
         >
           {diceElement}
         </MiniMap>
