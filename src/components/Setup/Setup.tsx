@@ -62,6 +62,11 @@ const DEFAULT_NAMES = [
 ];
 const DEFAULT_TOKENS: string[] = [TOKENS[0], TOKENS[1], TOKENS[2], TOKENS[3]];
 const START_GUIDE_MSG = 'すべてのプレイヤーのなまえを入力してね';
+// プレイヤー人数の増減ボタンが無効化されたときの理由文言。
+// title 属性と aria-describedby が参照する説明用 span の両方から参照し、
+// 文言の二重管理を避ける。
+const MIN_PLAYERS_DISABLED_MSG = 'これ以上減らせません';
+const MAX_PLAYERS_DISABLED_MSG = 'これ以上増やせません';
 
 /**
  * ゲーム開始前の初期設定画面コンポーネント。
@@ -167,6 +172,9 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
             setPlayerCount((c) => c - 1);
           }}
           aria-disabled={playerCount <= MIN_PLAYERS}
+          title={
+            playerCount <= MIN_PLAYERS ? MIN_PLAYERS_DISABLED_MSG : undefined
+          }
           aria-label="プレイヤーを減らす"
           aria-describedby={
             playerCount <= MIN_PLAYERS
@@ -188,6 +196,9 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
             setPlayerCount((c) => c + 1);
           }}
           aria-disabled={playerCount >= MAX_PLAYERS}
+          title={
+            playerCount >= MAX_PLAYERS ? MAX_PLAYERS_DISABLED_MSG : undefined
+          }
           aria-label="プレイヤーを増やす"
           aria-describedby={
             playerCount >= MAX_PLAYERS
@@ -205,7 +216,7 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
           role="status"
           aria-live="polite"
         >
-          これ以上減らせません
+          {MIN_PLAYERS_DISABLED_MSG}
         </span>
       )}
       {playerCount >= MAX_PLAYERS && (
@@ -215,7 +226,7 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
           role="status"
           aria-live="polite"
         >
-          これ以上増やせません
+          {MAX_PLAYERS_DISABLED_MSG}
         </span>
       )}
       <div className={styles.subtitle}>
