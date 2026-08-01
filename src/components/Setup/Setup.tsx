@@ -167,6 +167,7 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
             setPlayerCount((c) => c - 1);
           }}
           aria-disabled={playerCount <= MIN_PLAYERS}
+          title={playerCount <= MIN_PLAYERS ? 'これ以上減らせません' : undefined}
           aria-label="プレイヤーを減らす"
           aria-describedby={
             playerCount <= MIN_PLAYERS
@@ -188,6 +189,7 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
             setPlayerCount((c) => c + 1);
           }}
           aria-disabled={playerCount >= MAX_PLAYERS}
+          title={playerCount >= MAX_PLAYERS ? 'これ以上増やせません' : undefined}
           aria-label="プレイヤーを増やす"
           aria-describedby={
             playerCount >= MAX_PLAYERS
