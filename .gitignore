@@ -44,8 +44,6 @@ coverage
 .env
 .env.*
 !.env.example
-!.secretlintrc.json
-!.github/workflows/secretlint.yml
 *.pem
 *.key
 *credentials*.json
@@ -56,6 +54,10 @@ coverage
 *secret*.yml
 *secret*.yaml
 *secret*.env
+# secretlint 自体の設定・ワークフローは機密ファイルではないため除外
+# （gitignore は後勝ちのため、上の *secret* パターンより後に置く必要がある）
+!.secretlintrc.json
+!.github/workflows/secretlint.yml
 *.npmrc
 .netrc
 *.p12
