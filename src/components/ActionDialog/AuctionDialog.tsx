@@ -71,6 +71,11 @@ export default function AuctionDialog({
               ? noMoneyHintId
               : undefined
           }
+          title={
+            !activePlayer || activePlayer.money < auction.currentBid + 10
+              ? NO_MONEY_HINT_TEXT
+              : undefined
+          }
         >
           +$10
         </Button>
@@ -84,6 +89,11 @@ export default function AuctionDialog({
           aria-describedby={
             activePlayer && activePlayer.money < auction.currentBid + 50
               ? noMoneyHintId
+              : undefined
+          }
+          title={
+            !activePlayer || activePlayer.money < auction.currentBid + 50
+              ? NO_MONEY_HINT_TEXT
               : undefined
           }
         >
@@ -101,6 +111,12 @@ export default function AuctionDialog({
             activePlayer &&
             activePlayer.money < auction.currentBid + MAX_BID_INCREMENT
               ? noMoneyHintId
+              : undefined
+          }
+          title={
+            !activePlayer ||
+            activePlayer.money < auction.currentBid + MAX_BID_INCREMENT
+              ? NO_MONEY_HINT_TEXT
               : undefined
           }
         >
