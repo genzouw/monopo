@@ -125,3 +125,7 @@ PRの作成・更新・再オープン時にAIがコードをレビューし、�
 
 1. **GitHub Secretsの設定**
    - 追加のAPIキー設定やシークレット登録は不要です。デフォルトの `GITHUB_TOKEN` を使用して動作します。
+
+2. **リポジトリ設定 (必須)**
+   - `.github/workflows/ai-codeball-approver.yml` はPRの自動承認・ラベル付与のために `pull-requests: write` / `issues: write` を利用します。これを機能させるには、リポジトリの `Settings > Actions > General > Workflow permissions` にて `Allow GitHub Actions to create and approve pull requests` を有効にしてください。
+   - フォークからのPR（`pull_request` イベント）では `GITHUB_TOKEN` に書き込み権限が付与されないため、フォークPRに対しては自動承認・ラベル付与が行われない場合があります。
