@@ -10,6 +10,8 @@ type MiniMapProps = {
   players: Player[];
   onSpaceClick: (position: number) => void;
   children?: React.ReactNode;
+  /** 盤面中央の空きスペース上部に重ねて表示する要素（景気インジケーターなど） */
+  overlay?: React.ReactNode;
 };
 
 function getGridPosition(position: number): { row: number; col: number } {
@@ -28,6 +30,7 @@ const MiniMap = memo(function MiniMap({
   players,
   onSpaceClick,
   children,
+  overlay,
 }: MiniMapProps) {
   // ⚡ Bolt: group players by position once (O(N)) to avoid O(N*M) nested filtering over 40 spaces.
   const playersByPosition = useMemo(() => {
@@ -74,7 +77,10 @@ const MiniMap = memo(function MiniMap({
             />
           );
         })}
-        <div className={styles.miniCenter}>{children ?? '🎲'}</div>
+        <div className={styles.miniCenter}>
+          {overlay && <div className={styles.miniCenterOverlay}>{overlay}</div>}
+          {children ?? '🎲'}
+        </div>
       </div>
     </div>
   );

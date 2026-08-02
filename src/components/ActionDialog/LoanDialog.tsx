@@ -8,6 +8,7 @@ import {
   LOAN_INTEREST_RATES,
 } from '../../game/systems/loan';
 import { calculateTotalAssets } from '../../game/rules';
+import { getEconomyLabel } from '../common/economyDisplay';
 import Dialog from '../common/Dialog';
 import Button from '../common/Button';
 import styles from './ActionDialog.module.css';
@@ -63,16 +64,7 @@ export default function LoanDialog({
     parsedRepay <= loanBalance &&
     parsedRepay <= currentPlayer.money;
 
-  const economyLabel =
-    state.economyStatus === 'boom'
-      ? '好況'
-      : state.economyStatus === 'normal'
-        ? '通常'
-        : state.economyStatus === 'recession'
-          ? '不況'
-          : state.economyStatus === 'crisis'
-            ? '金融危機'
-            : '—';
+  const economyLabel = getEconomyLabel(state.economyStatus);
 
   return (
     <Dialog
