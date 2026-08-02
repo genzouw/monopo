@@ -4,18 +4,22 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
+permissions:
+  contents: read
+
 jobs:
   codeball:
     runs-on: ubuntu-latest
     name: Codeball Approver
     permissions:
       contents: read
+      issues: write
       pull-requests: write
     steps:
       - name: Codeball
         uses: sturdy-dev/codeball-action@102067b9f537482cee112577655c85fda56d8926 # v2.6.0
         with:
-          approvePullRequests: "true"
-          labelPullRequestsWhenApproved: "true"
-          labelPullRequestsWhenReviewNeeded: "false"
-          failJobsWhenReviewNeeded: "false"
+          approvePullRequests: 'true'
+          labelPullRequestsWhenApproved: 'true'
+          labelPullRequestsWhenReviewNeeded: 'false'
+          failJobsWhenReviewNeeded: 'false'
