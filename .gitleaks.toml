@@ -85,8 +85,8 @@ regexes = [
 
 [[rules]]
 id = "monopo-ai-api-key"
-description = "AI サービス (OpenAI, Anthropic 等) の API キーハードコード検知"
-regex = '''(?i)(?:sk-proj-[a-zA-Z0-9\-_]{100,}|sk-[a-zA-Z0-9]{48}|sk-ant-api03-[a-zA-Z0-9\-_]{95})'''
+description = "AI サービス (OpenAI, Anthropic, Groq, OpenRouter, DeepSeek 等) の API キーハードコード検知"
+regex = '''(?i)(?:sk-proj-[a-zA-Z0-9\-_]{100,}|sk-[a-zA-Z0-9]{48}|sk-ant-api03-[a-zA-Z0-9\-_]{95}|gsk_[a-zA-Z0-9]{33}|sk-or-v1-[a-f0-9]{64}|sk-[a-f0-9]{32})'''
 tags = ["ai", "api-key", "credential"]
 secretGroup = 0
 entropy = 0.0
