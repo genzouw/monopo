@@ -118,3 +118,14 @@ PR作成時にGitHub Models (o3-mini) を利用して、PRテンプレートに�
 
 1. **GitHub Secretsの設定 (必須)**
    - リポジトリ管理者が `Settings > Secrets and variables > Actions` にて `GH_MODELS_TOKEN` を登録している必要があります。
+
+## 新規: AI Codeball PR Approver の設定
+
+PRの作成・更新・再オープン時にAIがコードをレビューし、安全な変更と判断された場合に自動で承認（Approve）を行う `.github/workflows/ai-codeball-approver.yml` を追加しました。OSS向けの無料AIコードレビューツールである Codeball (`sturdy-dev/codeball-action`) を利用しています。
+
+1. **GitHub Secretsの設定**
+   - 追加のAPIキー設定やシークレット登録は不要です。デフォルトの `GITHUB_TOKEN` を使用して動作します。
+
+2. **リポジトリ設定 (必須)**
+   - `.github/workflows/ai-codeball-approver.yml` はPRの自動承認・ラベル付与のために `pull-requests: write` / `issues: write` を利用します。これを機能させるには、リポジトリの `Settings > Actions > General > Workflow permissions` にて `Allow GitHub Actions to create and approve pull requests` を有効にしてください。
+   - フォークからのPR（`pull_request` イベント）では `GITHUB_TOKEN` に書き込み権限が付与されないため、フォークPRに対しては自動承認・ラベル付与が行われない場合があります。
