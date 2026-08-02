@@ -1,4 +1,4 @@
-import type { FeatureFlags, GameState } from './types';
+import type { EconomyStatus, FeatureFlags, GameState } from './types';
 import {
   TOKENS,
   MIN_PLAYERS,
@@ -13,6 +13,14 @@ const LEGACY_STORAGE_KEY = 'monopoly-save';
 const LEGACY_SETUP_KEY = 'monopoly-setup';
 // サロゲートペア等を考慮したコードユニット長の上限（DoS対策の早期リジェクト用）
 const MAX_NAME_UNIT_LENGTH = MAX_NAME_LENGTH * RAW_LENGTH_LIMIT_MULTIPLIER;
+// P2-a 拡張: economyStatus として許容する値（不正値は loadGame でトリムし、
+// EconomyIndicator / LOAN_INTEREST_RATES 等での存在しないキー参照によるクラッシュを防ぐ）
+const VALID_ECONOMY_STATUSES: readonly EconomyStatus[] = [
+  'boom',
+  'normal',
+  'recession',
+  'crisis',
+];
 
 function readWithLegacyFallback(key: string, legacyKey: string): string | null {
   const current = localStorage.getItem(key);
@@ -61,6 +69,16 @@ export function loadGame(): GameState | null {
       !state.players.every((p) => p !== null && typeof p === 'object')
     ) {
       return null;
+    }
+    // Security Enhancement: economyStatus は macroEconomy 有効時に
+    // ECONOMY_DISPLAY / LOAN_INTEREST_RATES 等へそのままキーとして渡されるため、
+    // 未知の値（改ざん・旧形式データ由来）が残っているとUI描画がクラッシュしうる。
+    // 許容値以外は undefined に落として安全側に倒す。
+    if (
+      state.economyStatus !== undefined &&
+      !VALID_ECONOMY_STATUSES.includes(state.economyStatus)
+    ) {
+      state.economyStatus = undefined;
     }
     return state;
   } catch {
