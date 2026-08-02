@@ -121,7 +121,7 @@ PR作成時にGitHub Models (o3-mini) を利用して、PRテンプレートに�
 
 ## 新規: AI Codeball PR Approver の設定
 
-PR作成時にAIがコードをレビューし、安全な変更と判断された場合に自動で承認（Approve）を行う `.github/workflows/ai-codeball-approver.yml` を追加しました。OSS向けの無料AIコードレビューツールである Codeball (`sturdy-dev/codeball-action`) を利用しています。
+PRの作成・更新・再オープン時にAIがコードをレビューし、安全な変更と判断された場合に自動で承認（Approve）を行う `.github/workflows/ai-codeball-approver.yml` を追加しました。OSS向けの無料AIコードレビューツールである Codeball (`sturdy-dev/codeball-action`) を利用しています。
 
 1. **GitHub Secretsの設定**
    - 追加のAPIキー設定やシークレット登録は不要です。デフォルトの `GITHUB_TOKEN` を使用して動作します。
