@@ -159,7 +159,7 @@ entropy = 0.0
 [[rules]]
 id = "monopo-payment-token"
 description = "Payment トークン (Stripe 等) のハードコード検知"
-regex = '''(?i)(?:sk_live|rk_live)_[a-zA-Z0-9]{24,99}'''
+regex = '''\b(?:sk_live|rk_live)_[a-zA-Z0-9]{24,99}\b'''
 tags = ["payment", "api-key", "credential"]
 secretGroup = 0
 entropy = 0.0
