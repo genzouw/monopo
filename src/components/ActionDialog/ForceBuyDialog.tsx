@@ -46,6 +46,7 @@ export default function ForceBuyDialog({
             onClick={onBuy}
             aria-disabled={!canAfford}
             aria-describedby={!canAfford ? noMoneyHintId : undefined}
+            title={!canAfford ? 'おかねがたりないよ' : undefined}
           >
             ${cost.toLocaleString()}で買いとる！
           </Button>

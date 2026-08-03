@@ -441,6 +441,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                 onClick={handleRoll}
                 aria-disabled={isRolling}
                 aria-describedby={isRolling ? rollingHintId : undefined}
+                title={isRolling ? '現在さいころをころがしています' : undefined}
               >
                 {isRolling ? '🎲 ふっています...' : '🎲 さいころをふる！'}
               </Button>
