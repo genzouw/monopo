@@ -30,6 +30,12 @@ jobs:
             ${{ runner.os }}-promptfoo-
 
       - name: Run promptfoo evaluation
+        # pull_request（pull_request_target ではない）トリガーのため、フォーク由来のPRには
+        # GitHub Actions の仕組みにより GH_MODELS_TOKEN 等のSecretsは渡されない。
+        # 同一リポジトリのブランチから作成されたPR（書き込み権限を持つ協力者のみ作成可能）でのみ
+        # Secretsが利用可能であり、これは既存のリポジトリ書き込み権限と同等の信頼範囲である。
+        # GH_MODELS_TOKEN は models: read のみを持つ fine-grained PAT に限定し、
+        # 漏えい時の影響範囲を GitHub Models の利用に限定すること（権限要件は docs/security/ai-ci-tools.md 参照）。
         uses: promptfoo/promptfoo-action@04839e664f52212b877170219dab0d7ad2bf6440 # promptfoo-action-v1.3.4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
