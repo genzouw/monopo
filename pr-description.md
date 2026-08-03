@@ -1,42 +1,15 @@
-## 背景
+### 💡 What
+- `ai-issue-plan.yml` に Tavily Search API を連携し、Issueの内容に加えて最新の開発ベストプラクティスを検索してプロンプトのコンテキストに追加するように修正しました。
+- `ai-prompt-evaluator.yml` に `GH_MODELS_TOKEN` の環境変数を注入し、Promptfooが GitHub Models を利用できるように設定を追加しました。
+- `prompts/promptfooconfig.yaml` および `prompts/sample-prompt.json` の初期設定ファイルを追加し、GitHub Models へのAPIキー連携を構成しました。
+- `docs/security/ai-ci-tools.md` に、Tavily API キーおよび GH_MODELS_TOKEN などの手動設定手順に関するドキュメントを追加・更新しました。
 
-事前調査により、本リポジトリには `gitleaks`、`trufflehog`、`trivy` 等の堅牢なシークレット検知基盤が整備されていることが確認できました。
-しかし、Node.js エコシステムに特化した `secretlint` の検査範囲が CI (`ci.yml`) のメインジョブに組み込まれている関係上、`main` ブランチのみ（対象ブランチへの push および main 宛の PR）に限定されているというギャップがありました。
+### 🎯 Why
+- AIを活用した開発自動化パイプラインのプロトタイピングおよび最適化を目的とし、無料のOSSやGitHub公式の環境で利用できる形に構成を改善するため。
+- Issueから実装計画を生成する際、最新トレンド（RAG）を反映させることでAIの回答精度を高めるため。
+- プロンプトの評価ワークフロー（Promptfoo）において、有料のAPIに依存せずGitHub Modelsを利用可能にするため。
 
-## 現状認識（事前調査結果のサマリー）
-
-- 既存防御策: `ci.yml`、`gitleaks.yml`、`trufflehog.yml`、`trivy.yml` 等の手厚いスキャン環境が導入済み
-- 未カバー領域: `secretlint` による検査が全ブランチを対象にしておらず、さらに定期監査のスケジュール実行対象からも外れている
-- 直近の漏洩リスク兆候: 特になし。既存ツールによる二重・三重の防御は機能している。
-
-## このPRで導入・強化するもの
-
-- 対象: 新規ワークフロー `.github/workflows/secretlint.yml` の追加、および `.github/workflows/ci.yml` からのジョブ分離
-- ツール名とバージョン: secretlint (バージョンは `ci.yml` から引き継ぎ、bun 環境を構築して実行)
-- 期待される効果: 全ブランチでの PR および push 時に `secretlint` が実行されるようになり、さらに週次のスケジュール実行が追加されることで、検知範囲を拡張し、既存のスキャン（gitleaks / trufflehog 等）を補完する。
-
-## 検知漏れリスクと補完策
-
-- 検知できないケース: 完全に未知のパターン、または `.secretlintignore` で明示的に無視された自動生成ファイル内の値
-- 補完策: 既に導入されている `gitleaks` (エントロピー検知・カスタムルール) と `trufflehog` (有効性検証) との多層防御によって補完する。
-
-## マージ前に必要な手動作業（チェックリスト）
-
-レビュアーは PR をマージする前に必ず以下を実施してください。
-本 PR の CI は手動作業完了を前提に通る設計です。
-
-- [ ] GitHub リポジトリ設定で、すでに Push protection が有効になっていることを確認する。
-
-## マージ後の確認手順
-
-- [ ] 次の push / PR で `Secretlint` ワークフローが各ブランチで green になることを確認
-- [ ] 日曜日の UTC 20:00 (JST 月曜 05:00) にスケジュール実行が発火することを確認
-
-## ロールバック手順
-
-万一 CI スピードへの悪影響や誤検知が多発した場合、本 PR を revert することで元の `ci.yml` 経由の `main` ブランチ限定実行に戻ります。
-
-## 参考情報
-
-- 公式ドキュメント: なし
-- 比較検討した他案: 新規ツールの導入も検討したが、現状の多層防御構成 (`gitleaks`, `trufflehog`, `trivy` 等) の完成度が高いため、既存ツールである `secretlint` の対象範囲を強化するアプローチを選択した。
+### 📝 事前作業 (Manual Setup Instructions)
+このPRをマージする前に、必ずリポジトリ管理者が以下の GitHub Secrets の設定を行ってください。
+- `GH_MODELS_TOKEN`: GitHub Models へのアクセス用トークン (Settings > Secrets and variables > Actions に登録)
+- `TAVILY_API_KEY`: Tavily Search API へのアクセス用キー (Settings > Secrets and variables > Actions に登録)

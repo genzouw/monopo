@@ -1,3 +1,5 @@
-description: 'Monopo prompt evaluation config'
+description: "Sample prompt evaluation"
 providers:
-  - id: 'github:openai/o3-mini'
+  - id: "github:models:o3-mini"
+    config:
+      apiKey: "envar:GH_MODELS_TOKEN"
