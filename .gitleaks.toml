@@ -146,3 +146,31 @@ regex = '''(?i)(?:pinecone|pc)_[a-z0-9_]*key[\s]*[:=][\s]*["']?[0-9a-f]{8}-[0-9a
 tags = ["ai", "api-key", "credential", "pinecone"]
 secretGroup = 0
 entropy = 0.0
+
+[[rules]]
+id = "monopo-observability-token"
+description = "Observability トークン (Sentry, Datadog 等) のハードコード検知"
+regex = '''(?i)(?:sentry[_-]?auth[_-]?token[\s]*[:=][\s]*["']?[a-zA-Z0-9]{64}["']?|datadog[_-]?api[_-]?key[\s]*[:=][\s]*["']?[a-zA-Z0-9]{32}["']?)'''
+tags = ["observability", "api-key", "credential"]
+secretGroup = 0
+entropy = 0.0
+
+[[rules]]
+id = "monopo-payment-token"
+description = "Payment トークン (Stripe 等) のハードコード検知"
+regex = '''(?i)(?:sk_live|rk_live)_[a-zA-Z0-9]{24,99}'''
+tags = ["payment", "api-key", "credential"]
+secretGroup = 0
+entropy = 0.0
+
+[[rules]]
+id = "monopo-gcp-service-account"
+description = "GCP サービスアカウントメールアドレスのハードコード検知"
+regex = '''(?i)[a-z0-9-]+@[a-z0-9-]+\.iam\.gserviceaccount\.com'''
+tags = ["cloud", "gcp", "service-account", "identifier"]
+secretGroup = 0
+entropy = 0.0
+[rules.allowlist]
+regexes = [
+    '''(?i)example@dummy\.iam\.gserviceaccount\.com'''
+]
