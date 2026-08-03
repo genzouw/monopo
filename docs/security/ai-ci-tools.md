@@ -75,16 +75,37 @@ Issueの内容をもとに自動でコードを修正する `.github/workflows/a
    - 既存の `GH_MODELS_TOKEN` に加え、`TAVILY_API_KEY` の設定が必要です。
    - `Settings > Secrets and variables > Actions` で設定されているか確認してください。
 
+## 更新: AI Issue Plan の設定
+
+Issueの内容をもとに実装に必要なファイルのリストと大まかなタスクリストを生成する `.github/workflows/ai-issue-plan.yml` において、Tavily Search APIの統合を行いました。
+
+1. **GitHub Secretsの設定 (必須)**
+   - 既存の `GH_MODELS_TOKEN` に加え、`TAVILY_API_KEY` の設定が必要です。
+   - `Settings > Secrets and variables > Actions` で設定されているか確認してください。
+
+2. **Issueタイトル・本文の外部送信に関する判断基準**
+   - `issues.opened` はリポジトリの可視性に関わらず発火するため、Issue タイトル・本文に機密情報が含まれる可能性がある**非公開リポジトリでは Tavily Search API への送信自体をスキップ**します（`context.payload.repository.private` を判定）。
+   - 公開リポジトリでは、Issue タイトル・本文はもとより公開情報のため送信対象としますが、Tavily は取得したクエリ内容を第三者の検索インデックスプロバイダと共有する場合がある点に留意してください（[Tavily Privacy Policy](https://tavily.com/privacy)）。
+   - オプトアウトしたい場合は、当該ワークフローの `isPrivateRepo` 判定を `true` 固定に変更するか、ワークフロー自体を無効化してください。
+
+3. **コスト制御**
+   - 公開リポジトリでは誰でも Issue を作成でき、Issue作成のたびに Tavily API 呼び出しが発生するため、`search_depth` は高コスト（2クレジット/回）な `advanced` ではなく低コスト（1クレジット/回）な `basic` を使用しています。
+
 ## 新規: Promptfoo (AI Prompt Evaluator) の設定
 
 PR作成時にプロンプトへの変更（`prompts/**`）が含まれている場合、変更前と変更後のプロンプトを自動的に評価・比較し、PRにコメントとしてレポートを通知する `.github/workflows/ai-prompt-evaluator.yml` を追加しました。
 最新のLLMセキュリティテスト、およびプロンプトの回帰テストを目的としています。
 
-1. **GitHub Secretsの設定**
-   - 無料で利用可能な GitHub Models を評価モデルとして使用しますが、認証には `models: read` 権限を付与したビルトインの `GITHUB_TOKEN` を使用しているため、`GH_MODELS_TOKEN` を含む追加のシークレット登録は不要です。
-2. **現時点のステータス（スキャフォルド）**
-   - 導入時点では評価対象となる `prompts/*.json` および `tests`（アサーション）・`redteam`（脆弱性診断）設定は未整備であり、評価パイプラインの土台（スキャフォルド）のみを導入しています。
-   - 実際のプロンプト・tests・redteam設定の追加は別途Issueで対応します。
+1. **GitHub Secretsの設定 (必須)**
+   - 無料で利用可能な GitHub Models を評価モデルとして使用しますが、Actionの環境変数に `GH_MODELS_TOKEN` の注入が必要です。
+   - `Settings > Secrets and variables > Actions` にて、`GH_MODELS_TOKEN` をシークレットとして登録してください。
+   - `GH_MODELS_TOKEN` に fine-grained PAT（Personal Access Token）を使用する場合は、`models: read` 権限を明示的に付与する必要があります。リポジトリの Workflow 権限（`permissions:`）だけでは GitHub Models へのアクセス権は付与されません。
+   - GitHub Models には無料枠（レート制限あり）と有料枠があります。呼び出し頻度が増えて無料枠のレート制限に達する場合は、有料枠への切り替えおよび予算管理を検討してください。
+
+2. **Secrets の信頼範囲について**
+   - 本ワークフローは `pull_request`（`pull_request_target` ではない）トリガーで、変更後の `prompts/promptfooconfig.yaml` を用いて評価を実行します。
+   - GitHub Actions の仕様上、フォーク由来のPRには `GH_MODELS_TOKEN` 等のSecretsは渡されないため、フォークPRによる秘密情報の持ち出しはできません。
+   - 一方、同一リポジトリのブランチから作成されたPR（書き込み権限を持つ協力者のみ作成可能）ではSecretsが利用されるため、`prompts/**` の変更を含むPRは他の変更と同様にレビューを行ってください。
 
 ## 更新: AI Tech News Digest の設定
 
