@@ -25,7 +25,8 @@ regexes = [
     '''(?i)@example\.(com|org|net)$''',
     '''(?i)@test\.(com|org|net)$''',
     '''(?i)@dummy\.(com|org|net)$''',
-    '''(?i)@.*\.invalid$'''
+    '''(?i)@.*\.invalid$''',
+    '''(?i)@dummy\.iam\.gserviceaccount\.com$'''
 ]
 
 [[rules]]
