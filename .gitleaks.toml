@@ -149,8 +149,8 @@ entropy = 0.0
 
 [[rules]]
 id = "monopo-observability-token"
-description = "Observability トークン (Sentry, Datadog 等) のハードコード検知"
-regex = '''(?i)(?:sentry[_-]?auth[_-]?token[\s]*[:=][\s]*["']?[a-zA-Z0-9]{64}["']?|datadog[_-]?api[_-]?key[\s]*[:=][\s]*["']?[a-zA-Z0-9]{32}["']?)'''
+description = "Observability トークン (Sentry 構造化トークン, Datadog API/APPキー等) のハードコード検知"
+regex = '''(?:sntrys_[A-Za-z0-9+/=_-]{20,}|(?i)(?:datadog|dd)[_-]?(?:api|app)[_-]?key[\s]*[:=][\s]*["']?[a-zA-Z0-9]{32}["']?)'''
 tags = ["observability", "api-key", "credential"]
 secretGroup = 0
 entropy = 0.0
