@@ -167,7 +167,7 @@ entropy = 0.0
 [[rules]]
 id = "monopo-gcp-service-account"
 description = "GCP サービスアカウントメールアドレスのハードコード検知"
-regex = '''(?i)[a-z0-9-]+@[a-z0-9-]+\.iam\.gserviceaccount\.com'''
+regex = '''(?i)[a-z0-9-]+@(?:[a-z0-9-]+\.iam\.gserviceaccount\.com|cloudservices\.gserviceaccount\.com|appspot\.gserviceaccount\.com|developer\.gserviceaccount\.com)'''
 tags = ["cloud", "gcp", "service-account", "identifier"]
 secretGroup = 0
 entropy = 0.0
