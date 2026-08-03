@@ -1,10 +1,10 @@
 import { useId } from 'react';
 import type { Player } from '../../game/types';
+import { JAIL_FINE } from '../../game/reducer';
 import Dialog from '../common/Dialog';
 import Button from '../common/Button';
 import styles from './ActionDialog.module.css';
 
-const JAIL_FINE = 50;
 /**
  * 罰金不足時の理由メッセージ。ネイティブツールチップ用の `title` と
  * 画面上の補助ヒント（`aria-describedby`）の両方で同じ文言を使い回すことで、
