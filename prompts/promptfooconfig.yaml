@@ -2,7 +2,7 @@ description: 'Sample prompt evaluation'
 providers:
   - id: 'github:openai/o3-mini'
     config:
-      apiKey: 'envar:GH_MODELS_TOKEN'
+      apiKey: 'envar:GH_MODELS_TOKEN' # pragma: allowlist secret
 tests:
   - description: 'パッケージマネージャーの規約に沿って Bun を回答すること'
     assert:
