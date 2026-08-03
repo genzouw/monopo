@@ -5,6 +5,12 @@ import Button from '../common/Button';
 import styles from './ActionDialog.module.css';
 
 const JAIL_FINE = 50;
+/**
+ * 罰金不足時の理由メッセージ。ネイティブツールチップ用の `title` と
+ * 画面上の補助ヒント（`aria-describedby`）の両方で同じ文言を使い回すことで、
+ * 表示内容がずれる（ドリフトする）のを防ぐ。
+ */
+const noMoneyHintText = `おかねがたりないよ（$${JAIL_FINE}ひつよう）`;
 
 type JailDialogProps = {
   currentPlayer: Player;
@@ -18,6 +24,9 @@ type JailDialogProps = {
  * 「罰金を払って出る」「釈放カードを使う」「ゾロ目チャレンジ」の 3 つの脱出手段を提示し、
  * 所持金が不足している場合は罰金ボタンを無効化したうえで
  * `aria-describedby` で結び付けた補助メッセージから理由を伝える。
+ * カスタムボタンは `disabled` ではなく `aria-disabled` でクリックを抑止しているため、
+ * ネイティブの `disabled` が持つツールチップ表示が失われる。そのため `title` にも
+ * `noMoneyHintText` と同じ理由文言を設定し、マウスユーザーへもホバーで無効理由を伝えられるようにしている。
  * 釈放カードを所持している場合は、その旨をヒントとして併記する。
  */
 export default function JailDialog({
@@ -38,7 +47,7 @@ export default function JailDialog({
             onClick={onPayFine}
             aria-disabled={!canPayFine}
             aria-describedby={!canPayFine ? noMoneyHintId : undefined}
-            title={!canPayFine ? `おかねがたりないよ（$${JAIL_FINE}ひつよう）` : undefined}
+            title={!canPayFine ? noMoneyHintText : undefined}
           >
             ${JAIL_FINE}はらって出る
           </Button>
@@ -58,7 +67,7 @@ export default function JailDialog({
         <div>どうやってでる？</div>
         {!canPayFine && (
           <div id={noMoneyHintId} className={styles.noMoneyHintTight}>
-            おかねがたりないよ（${JAIL_FINE}ひつよう）
+            {noMoneyHintText}
           </div>
         )}
         {hasCards && (

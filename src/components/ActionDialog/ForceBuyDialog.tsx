@@ -18,6 +18,9 @@ type ForceBuyDialogProps = {
  * 他プレイヤー所有の土地を強制的に5倍価格で買い取るアクションを表示し、
  * 所持金が不足している場合は購入ボタンを無効化したうえで
  * `aria-describedby` で結び付けた補助メッセージから理由を伝える。
+ * カスタムボタンは `disabled` ではなく `aria-disabled` でクリックを抑止しているため、
+ * ネイティブの `disabled` が持つツールチップ表示が失われる。そのため `title` にも
+ * 同じ理由文言を設定し、マウスユーザーへもホバーで無効理由を伝えられるようにしている。
  */
 export default function ForceBuyDialog({
   space,

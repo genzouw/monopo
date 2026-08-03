@@ -83,6 +83,9 @@ const COLOR_LABEL: Record<string, string> = {
  * 破産 / カード等）を統括し、`gameReducer` の状態に応じて表示を切り替える。
  * アニメーション中の高頻度な再レンダリングに備え、配列変換やハンドラは
  * `useMemo` / `useCallback` でメモ化している。
+ * サイコロボタンはロール中、`disabled` ではなく `aria-disabled` でクリックを抑止しているため、
+ * ネイティブの `disabled` が持つツールチップ表示が失われる。そのため `title` にも
+ * `aria-describedby` と同じ理由文言を設定し、マウスユーザーへもホバーで無効理由を伝えられるようにしている。
  *
  * @param props - コンポーネントの引数
  * @param props.state - `gameReducer` が管理するゲーム全体の状態
