@@ -118,3 +118,8 @@ PR作成時にGitHub Models (o3-mini) を利用して、PRテンプレートに�
 
 1. **GitHub Secretsの設定 (必須)**
    - リポジトリ管理者が `Settings > Secrets and variables > Actions` にて `GH_MODELS_TOKEN` を登録している必要があります。
+
+## 削除: AI Codeball PR Approver について
+
+PRの自動承認を行う `.github/workflows/ai-codeball-approver.yml`（Codeball, `sturdy-dev/codeball-action`）を導入していましたが、本リポジトリのAction許可リスト（`genzouw` 所有 / GitHub作成 / Marketplace検証済み / 個別許可パターンのいずれかに限定）に `sturdy-dev/codeball-action` が含まれておらず、CIが恒常的に失敗する状態となっていたため削除しました。
+再導入する場合は、リポジトリ管理者が `Settings > Actions > General > Allow select actions and reusable workflows` にて `sturdy-dev/codeball-action` を許可リストに追加した上で対応してください。
