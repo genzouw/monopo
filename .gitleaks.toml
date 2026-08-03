@@ -173,5 +173,5 @@ secretGroup = 0
 entropy = 0.0
 [rules.allowlist]
 regexes = [
-    '''(?i)example@dummy\.iam\.gserviceaccount\.com'''
+    '''(?i)^example@dummy\.iam\.gserviceaccount\.com$'''
 ]
