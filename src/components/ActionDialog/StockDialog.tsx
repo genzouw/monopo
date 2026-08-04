@@ -63,6 +63,17 @@ export default function StockDialog({
         <div className={styles.propertyPrice}>
           もってるおかね: ${currentPlayer.money.toLocaleString()}
         </div>
+        {groups.length === 0 && (
+          <div
+            style={{
+              textAlign: 'center',
+              padding: 16,
+              color: 'var(--color-text-light)',
+            }}
+          >
+            うっているかぶがないよ
+          </div>
+        )}
         {groups.map((color) => {
           const market = stockMarket[color];
           if (!market) return null;
