@@ -135,6 +135,13 @@ export default function BuildDialog({
                         ? `${hintIdBase}-build-${space.id}`
                         : undefined
                     }
+                    title={
+                      !canBuild || !canAffordBuild
+                        ? !canBuild
+                          ? 'たてられないよ'
+                          : 'おかねがたりないよ'
+                        : undefined
+                    }
                   >
                     たてる
                   </Button>
@@ -157,6 +164,7 @@ export default function BuildDialog({
                     aria-describedby={
                       !canSell ? `${hintIdBase}-sell-${space.id}` : undefined
                     }
+                    title={!canSell ? 'うれないよ' : undefined}
                   >
                     うる
                   </Button>
