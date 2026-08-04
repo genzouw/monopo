@@ -63,6 +63,17 @@ export default function StockDialog({
         <div className={styles.propertyPrice}>
           もってるおかね: ${currentPlayer.money.toLocaleString()}
         </div>
+        {groups.length === 0 && (
+          <div
+            style={{
+              textAlign: 'center',
+              padding: 16,
+              color: 'var(--color-text-light)',
+            }}
+          >
+            うっているかぶがないよ
+          </div>
+        )}
         {groups.map((color) => {
           const market = stockMarket[color];
           if (!market) return null;
@@ -112,6 +123,7 @@ export default function StockDialog({
                 onClick={() => onBuy(color, SHARES_PER_TRADE)}
                 aria-disabled={!canBuy}
                 aria-describedby={!canBuy ? buyDescId : undefined}
+                title={!canBuy ? buyDisabledReason : undefined}
               >
                 かう (+1)
               </Button>
@@ -121,6 +133,7 @@ export default function StockDialog({
                 onClick={() => onSell(color, SHARES_PER_TRADE)}
                 aria-disabled={!canSell}
                 aria-describedby={!canSell ? sellDescId : undefined}
+                title={!canSell ? 'もっていないよ' : undefined}
               >
                 うる (-1)
               </Button>

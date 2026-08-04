@@ -106,6 +106,14 @@ export default function BuildDialog({
             board,
           );
           const canAffordBuild = currentPlayer.money >= (space.houseCost ?? 0);
+          // 無効理由をここで一元管理し、title・補助テキスト表示の両方で使い回すことで不整合を防ぐ
+          // （`undefined` = 有効、文字列 = その理由で無効）
+          const buildDisabledReason = !canBuild
+            ? 'たてられないよ'
+            : !canAffordBuild
+              ? 'おかねがたりないよ'
+              : undefined;
+          const sellDisabledReason = !canSell ? 'うれないよ' : undefined;
           return (
             <div key={space.id} className={styles.buildItem}>
               {space.color && (
@@ -129,22 +137,23 @@ export default function BuildDialog({
                   <Button
                     size="small"
                     onClick={() => onBuild(space.id)}
-                    aria-disabled={!canBuild || !canAffordBuild}
+                    aria-disabled={buildDisabledReason !== undefined}
                     aria-describedby={
-                      !canBuild || !canAffordBuild
+                      buildDisabledReason !== undefined
                         ? `${hintIdBase}-build-${space.id}`
                         : undefined
                     }
+                    title={buildDisabledReason}
                   >
                     たてる
                   </Button>
-                  {(!canBuild || !canAffordBuild) && (
+                  {buildDisabledReason !== undefined && (
                     <div
                       id={`${hintIdBase}-build-${space.id}`}
                       className={styles.noMoneyHintTight}
                       role="status"
                     >
-                      {!canBuild ? 'たてられないよ' : 'おかねがたりないよ'}
+                      {buildDisabledReason}
                     </div>
                   )}
                 </div>
@@ -153,20 +162,23 @@ export default function BuildDialog({
                     size="small"
                     variant="secondary"
                     onClick={() => onSell(space.id)}
-                    aria-disabled={!canSell}
+                    aria-disabled={sellDisabledReason !== undefined}
                     aria-describedby={
-                      !canSell ? `${hintIdBase}-sell-${space.id}` : undefined
+                      sellDisabledReason !== undefined
+                        ? `${hintIdBase}-sell-${space.id}`
+                        : undefined
                     }
+                    title={sellDisabledReason}
                   >
                     うる
                   </Button>
-                  {!canSell && (
+                  {sellDisabledReason !== undefined && (
                     <div
                       id={`${hintIdBase}-sell-${space.id}`}
                       className={styles.noMoneyHintTight}
                       role="status"
                     >
-                      うれないよ
+                      {sellDisabledReason}
                     </div>
                   )}
                 </div>
