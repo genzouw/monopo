@@ -31,7 +31,9 @@ repos:
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.12
     hooks:
-      - id: actionlint
+      # actionlint-docker を使用することで、内部に同梱された shellcheck や pyflakes が
+      # 利用可能になり、run: ブロックのインジェクション・構文エラーの検知が有効になります。
+      - id: actionlint-docker
 
   # 旧名 woodruffw/zizmor-pre-commit は zizmorcore/zizmor-pre-commit にリネーム済み。
   # 旧名は 301 リダイレクトで解決するが、旧名で誰かが新規リポジトリを作成した時点で
