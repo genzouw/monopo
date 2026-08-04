@@ -30,6 +30,7 @@
   - **自動依存解決**: `pre-commit` framework が実行する gitleaks フックには、システム依存の `gitleaks-system` ではなく、pre-commit が自動で依存関係を解決して実行する `gitleaks` を使用することで、CI 環境や新規開発者の環境での実行エラーを防ぎ、安定性を向上させています（なお、9〜12行目の `.husky/pre-commit` 経由の gitleaks 実行には、引き続きローカルへの gitleaks インストールが必要です）。
 - **`actionlint` および `zizmor` フック (pre-commit)**: `.github/workflows/` 配下の YAML ファイルに対して、コミット前に `actionlint` と `zizmor` を実行します。
   - **`actionlint` の外部ツール連携**: `actionlint` 単体ではカバーしきれない `run:` ブロック内のシェルスクリプトや Python スクリプトのインジェクションリスク、構文エラーをローカルでより確実に検知するため、`actionlint-docker` フックを使用し、内部に同梱された `shellcheck` および `pyflakes` を連携させています。
+    - **必須（Docker）**: `actionlint-docker` は Docker イメージとして実行されるため、`.github/workflows/` 配下のファイルをコミットする際は事前に Docker（Docker Desktop 等）を起動しておく必要があります。Docker が未起動の場合、コミット時にこのフックが失敗しブロックされます。`pre-commit run --all-files` を実行することで、コミット前にローカルで動作確認できます。
   - **`zizmor` の検査範囲**: `zizmor` はワークフローファイルに加えて `.github/dependabot.yml` および `action.yml` / `action.yaml`（コンポジットアクション）も検査対象に含みます。
   - **実行モードの固定**: `args: ['--no-progress', '--offline']` により**オフラインモードに固定**しています。`zizmor` は `GH_TOKEN` / `GITHUB_TOKEN` / `ZIZMOR_GITHUB_TOKEN` のいずれかが環境変数にあると自動でオンラインモードへ切り替わり、追加検知によってコミットがブロックされます。固定しない場合「トークンを export している開発者だけコミットできない」状態となり、その回避に使われる `git commit --no-verify` が gitleaks を含む**すべての**フックを無効化してしまうため、ローカルはオフラインに固定しています。オンライン検査は CI (`.github/workflows/zizmor.yml`) が担当します。
   - これにより、インジェクションリスクや不適切な権限指定といった CI 固有の脆弱性を**ローカルで早期に検知します**。ただし `git commit --no-verify` やフック未インストールの場合は素通りするため、これは「未然の防止」ではなく早期検知の層です。すり抜けた場合は CI の `zizmor.yml` で検知します。
