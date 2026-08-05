@@ -99,6 +99,7 @@ export default function MortgageDialog({
                           ? `${hintIdBase}-unmortgage-${space.id}`
                           : undefined
                       }
+                      title={!canDoUnmortgage ? 'おかねがたりないよ' : undefined}
                     >
                       かえす
                     </Button>
@@ -123,6 +124,7 @@ export default function MortgageDialog({
                           ? `${hintIdBase}-mortgage-${space.id}`
                           : undefined
                       }
+                      title={!canDoMortgage ? '家があるグループだよ' : undefined}
                     >
                       かりる
                     </Button>

@@ -162,6 +162,7 @@ export default function LoanDialog({
                   aria-describedby={
                     !canBorrow && borrowAmount !== '' ? borrowHintId : undefined
                   }
+                  title={!canBorrow && borrowAmount !== '' ? 'かりられる上限をこえているか、正しくないよ' : undefined}
                 >
                   かりる
                 </Button>
@@ -218,6 +219,7 @@ export default function LoanDialog({
                   aria-describedby={
                     !canRepay && repayAmount !== '' ? repayHintId : undefined
                   }
+                  title={!canRepay && repayAmount !== '' ? (parsedRepay > currentPlayer.money ? 'おかねがたりないよ' : '返済する金額を正しく入力してね') : undefined}
                 >
                   返済する
                 </Button>

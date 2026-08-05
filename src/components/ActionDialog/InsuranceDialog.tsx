@@ -161,6 +161,7 @@ export default function InsuranceDialog({
                       aria-describedby={
                         !canAfford ? `${hintIdBase}-buy-${space.id}` : undefined
                       }
+                      title={!canAfford ? 'おかねがたりないよ' : undefined}
                     >
                       入る（${premium}）
                     </Button>
