@@ -97,6 +97,7 @@ describe('InsuranceDialog', () => {
     );
     const buyButton = screen.getByRole('button', { name: /入る/ });
     expect(buyButton).toHaveAttribute('aria-disabled', 'true');
+    expect(buyButton).toHaveAttribute('title', 'おかねがたりないよ');
     expect(screen.getByText('おかねがたりないよ')).toBeInTheDocument();
     fireEvent.click(buyButton);
     expect(onBuy).not.toHaveBeenCalled();
