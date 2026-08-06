@@ -44,7 +44,7 @@ regexes = [
 [[rules]]
 id = "monopo-cloud-id"
 description = "クラウドリソース識別子 (AWS Account ID, GCP Project ID, Azure Subscription ID) の露出"
-regex = '''(?i)(?:(?:aws_account_id|account_id)[\s]*[:=][\s]*["']?\d{12}["']?|(?:gcp_project|project_id)[\s]*[:=][\s]*["']?[a-z][a-z0-9-]{5,29}["']?|(?:azure_subscription_id|subscription_id)[\s]*[:=][\s]*["']?[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}["']?)'''
+regex = '''(?i)(?:(?:aws_account_id|account_id)[\s]*[:=][\s]*["']?\d{12}["']?|(?:gcp_project|project_id)[\s]*[:=][\s]*["']?[a-z][a-z0-9-]{5,29}["']?|\bazure_subscription_id\b[\s]*[:=][\s]*["']?[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}["']?)'''
 tags = ["cloud", "identifier"]
 secretGroup = 0
 entropy = 0.0
