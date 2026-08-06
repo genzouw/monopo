@@ -8,6 +8,16 @@
 
 - 追加の手動のAPIキー設定等は不要です（CodeRabbit側でデフォルトで提供される機能を明示的にONにしています）。
 
+## 新規: CodeAnt AI CI Scan の設定
+
+SAST/SCA/Secretsスキャンを自動実行する `.github/workflows/codeant-ci-scan.yml`（`CodeAnt-AI/codeant-ci-scan-action`）を追加しました。
+
+1. **GitHub Secretsの設定 (必須)**
+   - リポジトリ管理者権限を持つユーザーが `Settings > Secrets and variables > Actions` にて `ACCESS_TOKEN_GITHUB` を登録してください。
+   - このトークンはCodeAnt AI側の認証に使用されるため、**本リポジトリ専用に発行した最小権限（Fine-grained PAT等）のトークン**を使用し、組織全体・複数リポジトリにまたがる広いスコープのトークンを使い回さないでください。
+2. **未設定時の挙動**
+   - `ACCESS_TOKEN_GITHUB` が未登録の場合、ワークフローは `::warning::` ログを出力したうえでスキャン実行ステップをスキップします（CI自体は失敗しません）。
+
 ## PR-Agentの設定（既存）
 
 `.pr_agent.toml` での類似Issue/PR検索機能を利用するためには、以下の手動設定が必要です。
