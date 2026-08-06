@@ -48,6 +48,7 @@ id_dsa -diff export-ignore
 .windsurf/** -diff export-ignore
 .trae/** -diff export-ignore
 .roo/** -diff export-ignore
+.cascade/** -diff export-ignore
 *.log -diff export-ignore
 *-report.md -diff export-ignore
 ai-report-*.md -diff export-ignore
