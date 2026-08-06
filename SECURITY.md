@@ -72,3 +72,8 @@ TruffleHog および pre-commit（gitleaks/detect-secrets）による CI スキ�
 ### 接続文字列・バックエンドURLのハードコード禁止
 
 データベース（PostgreSQL, MongoDB, MySQL）やキャッシュ（Redis）への完全な接続文字列（`postgres://...` や `redis://...` 等）のソースコードへのハードコードは、`.gitleaks.toml` のカスタムルール (`monopo-connection-string`) によって検知・ブロックされます。パスワードが含まれていない場合でも、環境によって接続先が変わるべき値であるため、必ず環境変数経由で設定してください。
+
+### 追加のカスタム漏洩検知・抑止対策 (Gitleaks 強化)
+
+クラウドリソースの識別子（Azure Subscription ID など）や、最新の AI サービストークン（OpenAI Service Account Token など）がコードベースにハードコードされるリスクを防ぐため、リポジトリ直下の `.gitleaks.toml` カスタムルールを拡張しました。
+これにより、標準の Gitleaks ルールではカバーしきれない特定のクラウドプロバイダや AI ツールの識別子がローカルおよび CI の双方で早期に検知・ブロックされ、漏洩リスクをさらに低減しています。
