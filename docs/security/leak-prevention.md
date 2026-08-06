@@ -121,3 +121,8 @@ CI の監査ワークフロー (`.github/workflows/permissions-audit.yml`) に�
 ### Dependabot による pre-commit ツールの自動更新
 
 シークレット検知ツール（gitleaks, trufflehog, detect-secrets）を含む `pre-commit` フックのバージョンを常に最新かつ安全に保つため、`.github/dependabot.yml` にて `pre-commit` エコシステムの自動更新を有効化しています。これにより、新しいシークレットパターンへの対応や脆弱性修正が継続的かつ自動で取り込まれ、漏洩防止の防御力が維持されます。
+
+### 追加のカスタム漏洩検知・抑止対策 (Gitleaks 強化)
+
+クラウドリソースの識別子（Azure Subscription ID など）や、最新の AI サービストークン（OpenAI Service Account Token など）がコードベースにハードコードされるリスクを防ぐため、リポジトリ直下の `.gitleaks.toml` カスタムルールを拡張しました。
+これにより、標準の Gitleaks ルールではカバーしきれない特定のクラウドプロバイダや AI ツールの識別子がローカルおよび CI の双方で早期に検知・ブロックされ、漏洩リスクをさらに低減しています。
