@@ -5,6 +5,7 @@ import styles from './PlayerPanel.module.css';
 
 const LABEL_LOAN_BALANCE = 'ローン残高';
 const UNIT_CURRENCY = 'ドル';
+const DISABLED_REASON_TEXT = '他のプレイヤーの操作中や処理中は詳細を見られません';
 
 type PlayerPanelProps = {
   allPlayers: Player[];
@@ -67,6 +68,7 @@ const MemoizedPlayerChip = memo(function MemoizedPlayerChip({
         aria-current={isActive ? 'true' : 'false'}
         aria-disabled={!onPlayerClick}
         aria-describedby={!onPlayerClick ? playerDescriptionId : undefined}
+        title={!onPlayerClick ? DISABLED_REASON_TEXT : undefined}
         className={[
           styles.playerChip,
           isActive && styles.playerChipActive,
@@ -111,7 +113,7 @@ const MemoizedPlayerChip = memo(function MemoizedPlayerChip({
       </button>
       {!onPlayerClick && (
         <span id={playerDescriptionId} className={styles.helperText}>
-          他のプレイヤーの操作中や処理中は詳細を見られません
+          {DISABLED_REASON_TEXT}
         </span>
       )}
     </div>
