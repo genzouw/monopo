@@ -91,6 +91,7 @@ id_dsa
 .windsurf/
 .trae/
 .roo/
+.cascade/
 *-report.md
 
 # Security tool binaries (downloaded during setup, must not be committed)
