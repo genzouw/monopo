@@ -74,6 +74,13 @@ export default function MortgageDialog({
             board,
           );
           const unmortgageCost = Math.floor((space.mortgageValue ?? 0) * 1.1);
+          // title・aria-describedby・ヒント表示で同じ理由文言を使い回し、表示の齟齬（ドリフト）を防ぐ
+          const unmortgageDisabledReason = canDoUnmortgage
+            ? undefined
+            : 'おかねがたりないよ';
+          const mortgageDisabledReason = canDoMortgage
+            ? undefined
+            : '家があるグループだよ';
           return (
             <div key={space.id} className={styles.buildItem}>
               <div className={styles.buildItemContent}>
@@ -95,19 +102,20 @@ export default function MortgageDialog({
                       onClick={() => onUnmortgage(space.id)}
                       aria-disabled={!canDoUnmortgage}
                       aria-describedby={
-                        !canDoUnmortgage
+                        unmortgageDisabledReason
                           ? `${hintIdBase}-unmortgage-${space.id}`
                           : undefined
                       }
+                      title={unmortgageDisabledReason}
                     >
                       かえす
                     </Button>
-                    {!canDoUnmortgage && (
+                    {unmortgageDisabledReason && (
                       <div
                         id={`${hintIdBase}-unmortgage-${space.id}`}
                         className={styles.noMoneyHintTight}
                       >
-                        おかねがたりないよ
+                        {unmortgageDisabledReason}
                       </div>
                     )}
                   </>
@@ -119,19 +127,20 @@ export default function MortgageDialog({
                       onClick={() => onMortgage(space.id)}
                       aria-disabled={!canDoMortgage}
                       aria-describedby={
-                        !canDoMortgage
+                        mortgageDisabledReason
                           ? `${hintIdBase}-mortgage-${space.id}`
                           : undefined
                       }
+                      title={mortgageDisabledReason}
                     >
                       かりる
                     </Button>
-                    {!canDoMortgage && (
+                    {mortgageDisabledReason && (
                       <div
                         id={`${hintIdBase}-mortgage-${space.id}`}
                         className={styles.noMoneyHintTight}
                       >
-                        家があるグループだよ
+                        {mortgageDisabledReason}
                       </div>
                     )}
                   </>
