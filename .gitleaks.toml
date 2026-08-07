@@ -175,3 +175,43 @@ entropy = 0.0
 regexes = [
     '''(?i)^example@dummy\.iam\.gserviceaccount\.com$'''
 ]
+
+[[rules]]
+id = "monopo-basic-auth-url"
+description = "Basic認証情報を含むURLのハードコード検知"
+regex = '''(?i)https?://[^/"'\s:]+:[^/"'\s@]+@[^/"'\s]+'''
+tags = ["credential", "basic-auth", "url"]
+secretGroup = 0
+entropy = 0.0
+[rules.allowlist]
+regexes = [
+    '''(?i)https?://(?:user|dummy|test):(?:pass|dummy|test)@.*'''
+]
+
+[[rules]]
+id = "monopo-line-token"
+description = "LINE Messaging API / Login 関連のトークン・シークレット検知"
+regex = '''(?i)(?:line|channel)[_-]?(?:access[_-]?token|secret)[\s]*[:=][\s]*["']?[A-Za-z0-9+/=]{20,}["']?'''
+tags = ["saas", "api-key", "credential", "line"]
+secretGroup = 0
+entropy = 0.0
+
+[[rules]]
+id = "monopo-notion-api-key"
+description = "Notion API キー (Internal Integration Token) のハードコード検知"
+regex = '''(?i)secret_[a-zA-Z0-9]{43}'''
+tags = ["saas", "api-key", "credential", "notion"]
+secretGroup = 0
+entropy = 0.0
+
+[[rules]]
+id = "monopo-generic-bearer-token"
+description = "汎用的な Bearer トークンのハードコード検知"
+regex = '''(?i)bearer\s+[A-Za-z0-9\-\._~\+/]+=*'''
+tags = ["credential", "bearer", "token"]
+secretGroup = 0
+entropy = 0.0
+[rules.allowlist]
+regexes = [
+    '''(?i)bearer\s+\$\{.*\}'''
+]

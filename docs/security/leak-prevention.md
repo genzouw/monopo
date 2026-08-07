@@ -126,3 +126,8 @@ CI の監査ワークフロー (`.github/workflows/permissions-audit.yml`) に�
 
 クラウドリソースの識別子（Azure Subscription ID など）や、最新の AI サービストークン（OpenAI Service Account Token など）がコードベースにハードコードされるリスクを防ぐため、リポジトリ直下の `.gitleaks.toml` カスタムルールを拡張しました。
 これにより、標準の Gitleaks ルールではカバーしきれない特定のクラウドプロバイダや AI ツールの識別子がローカルおよび CI の双方で早期に検知・ブロックされ、漏洩リスクをさらに低減しています。
+
+### 追加のカスタム漏洩検知・抑止対策 (Gitleaks 強化 - 汎用トークン・Basic認証対応)
+
+LINE Messaging API や Notion などの SaaS API キー、および Basic 認証 URL、汎用的な Bearer トークンがコードベースにハードコードされるリスクを防ぐため、リポジトリ直下の `.gitleaks.toml` カスタムルールをさらに拡張しました。
+これにより、特定のクラウドプロバイダや AI ツール以外の、一般的な SaaS 連携時のクレデンシャル露出リスクもローカルおよび CI の双方で早期に検知・ブロックされます。
