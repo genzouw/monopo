@@ -1,0 +1,36 @@
+name: CodeAnt AI CI Scan
+
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    branches: ['main']
+    paths-ignore:
+      - '**.md'
+
+permissions:
+  contents: read
+
+jobs:
+  codeant_scan:
+    name: Run CodeAnt CI scan
+    runs-on: ubuntu-latest
+    env:
+      HAS_ACCESS_TOKEN_GITHUB: ${{ secrets.ACCESS_TOKEN_GITHUB != '' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: ACCESS_TOKEN_GITHUB 未設定時の警告
+        if: ${{ env.HAS_ACCESS_TOKEN_GITHUB != 'true' }}
+        run: echo "::warning::ACCESS_TOKEN_GITHUB が未設定のため、CodeAnt CI Scan をスキップします。設定手順は docs/security/ai-ci-tools.md を参照してください。"
+
+      - name: Run CodeAnt CI Scan
+        if: ${{ env.HAS_ACCESS_TOKEN_GITHUB == 'true' }}
+        uses: CodeAnt-AI/codeant-ci-scan-action@82f83c97a923b626244fdbf9b749ae37308eaf9e # v0.0.5
+        with:
+          access_token: ${{ secrets.ACCESS_TOKEN_GITHUB }}
+          scanners: 'sast,sca,secrets'
+          scan_timeout: '600'

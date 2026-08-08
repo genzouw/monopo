@@ -42,7 +42,7 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
     "husky": "9.1.7",
-    "jsdom": "^29.1.1",
+    "jsdom": "^30.0.0",
     "@secretlint/secretlint-rule-preset-recommend": "^13.0.4",
     "license-checker-rseidelsohn": "5.0.1",
     "lint-staged": "^17.0.5",
