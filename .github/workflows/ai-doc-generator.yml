@@ -56,9 +56,8 @@ jobs:
             try {
               const tavilyRes = await fetch('https://api.tavily.com/search', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.TAVILY_API_KEY}` },
                 body: JSON.stringify({
-                  api_key: process.env.TAVILY_API_KEY,
                   query: `2025 latest best practices for AI auto-generating documentation from pull requests`,
                   search_depth: 'advanced',
                   include_answer: true,
