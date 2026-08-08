@@ -433,6 +433,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
         allPlayers={state.players}
         currentPlayerIndex={state.currentPlayerIndex}
         onPlayerClick={handlePlayerClick}
+        disabled={isRolling || animatingPosition !== null}
       />
 
       <div className={styles.actions}>
