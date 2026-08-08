@@ -88,9 +88,9 @@ jobs:
             const tavilyRes = await fetch('https://api.tavily.com/search', {
               method: 'POST',
               headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${process.env.TAVILY_API_KEY}`
-                },
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.TAVILY_API_KEY}`
+              },
               body: JSON.stringify({
                 query: query.slice(0, 400),
                 search_depth: 'advanced',
