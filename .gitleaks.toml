@@ -191,7 +191,7 @@ regexes = [
 [[rules]]
 id = "monopo-line-token"
 description = "LINE Messaging API / Login 関連のトークン・シークレット検知"
-regex = '''(?i)(?:line|channel)[_-]?(?:access[_-]?token|secret)[\s]*[:=][\s]*["']?[A-Za-z0-9+/=]{20,}["']?'''
+regex = '''(?i)\b(?:line|channel)[_-]?(?:access[_-]?token|secret)[\s]*[:=][\s]*["']?[A-Za-z0-9+/=]{20,}["']?'''
 tags = ["saas", "api-key", "credential", "line"]
 secretGroup = 0
 entropy = 0.0
