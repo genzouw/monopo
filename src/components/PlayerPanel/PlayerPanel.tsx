@@ -5,18 +5,23 @@ import styles from './PlayerPanel.module.css';
 
 const LABEL_LOAN_BALANCE = 'ローン残高';
 const UNIT_CURRENCY = 'ドル';
-const DISABLED_REASON_TEXT = '他のプレイヤーの操作中や処理中は詳細を見られません';
+const DISABLED_REASON_TEXT =
+  '他のプレイヤーの操作中や処理中は詳細を見られません';
 
 type PlayerPanelProps = {
   allPlayers: Player[];
   currentPlayerIndex: number;
   onPlayerClick?: (playerId: string) => void;
+  /** サイコロを振っている最中やコマの移動アニメーション中など、他プレイヤーの操作・処理中であるかどうか */
+  disabled?: boolean;
 };
 
 type MemoizedPlayerChipProps = {
   player: Player;
   isActive: boolean;
   onPlayerClick?: (playerId: string) => void;
+  /** 他プレイヤーの操作・処理中であるかどうか */
+  disabled?: boolean;
 };
 
 // ⚡ Bolt: React.memo() のカスタム比較関数を追加し、PlayerChip の不要な再レンダリングを防止する。
@@ -27,6 +32,7 @@ const arePlayerChipsEqual = (
   return (
     prevProps.isActive === nextProps.isActive &&
     prevProps.onPlayerClick === nextProps.onPlayerClick &&
+    prevProps.disabled === nextProps.disabled &&
     (prevProps.player === nextProps.player ||
       (prevProps.player.id === nextProps.player.id &&
         prevProps.player.token === nextProps.player.token &&
@@ -47,8 +53,11 @@ const MemoizedPlayerChip = memo(function MemoizedPlayerChip({
   player,
   isActive,
   onPlayerClick,
+  disabled,
 }: MemoizedPlayerChipProps) {
   const playerDescriptionId = useId();
+  // `onPlayerClick` が渡されていない場合に加え、他プレイヤーの操作・処理中（`disabled`）も無効理由の対象とする。
+  const isDisabled = disabled || !onPlayerClick;
   return (
     <div className={styles.playerChipContainer}>
       <button
@@ -66,9 +75,9 @@ const MemoizedPlayerChip = memo(function MemoizedPlayerChip({
           (onPlayerClick ? ' 詳細を見る' : '')
         }
         aria-current={isActive ? 'true' : 'false'}
-        aria-disabled={!onPlayerClick}
-        aria-describedby={!onPlayerClick ? playerDescriptionId : undefined}
-        title={!onPlayerClick ? DISABLED_REASON_TEXT : undefined}
+        aria-disabled={isDisabled}
+        aria-describedby={isDisabled ? playerDescriptionId : undefined}
+        title={isDisabled ? DISABLED_REASON_TEXT : undefined}
         className={[
           styles.playerChip,
           isActive && styles.playerChipActive,
@@ -77,7 +86,7 @@ const MemoizedPlayerChip = memo(function MemoizedPlayerChip({
           .filter(Boolean)
           .join(' ')}
         onClick={(e) => {
-          if (!onPlayerClick) {
+          if (isDisabled || !onPlayerClick) {
             e.stopPropagation();
             return;
           }
@@ -111,7 +120,7 @@ const MemoizedPlayerChip = memo(function MemoizedPlayerChip({
           </span>
         )}
       </button>
-      {!onPlayerClick && (
+      {isDisabled && (
         <span id={playerDescriptionId} className={styles.helperText}>
           {DISABLED_REASON_TEXT}
         </span>
@@ -120,10 +129,16 @@ const MemoizedPlayerChip = memo(function MemoizedPlayerChip({
   );
 }, arePlayerChipsEqual);
 
+/**
+ * プレイヤー一覧をチップ形式で表示するパネル。
+ * `disabled` が true の間（サイコロを振っている最中やコマの移動アニメーション中など）は、
+ * 各チップをクリック不可にし、無効理由のツールチップを表示する。
+ */
 const PlayerPanel = memo(function PlayerPanel({
   allPlayers,
   currentPlayerIndex,
   onPlayerClick,
+  disabled,
 }: PlayerPanelProps) {
   return (
     <div className={styles.allPlayers}>
@@ -133,6 +148,7 @@ const PlayerPanel = memo(function PlayerPanel({
           player={player}
           isActive={idx === currentPlayerIndex}
           onPlayerClick={onPlayerClick}
+          disabled={disabled}
         />
       ))}
     </div>
