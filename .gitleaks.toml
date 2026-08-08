@@ -199,7 +199,7 @@ entropy = 0.0
 [[rules]]
 id = "monopo-notion-api-key"
 description = "Notion API キー (Internal Integration Token: 新形式 ntn_ / レガシー形式 secret_) のハードコード検知"
-regex = '''(?i)(?:secret_[a-zA-Z0-9]{43}|ntn_[A-Za-z0-9]{40,50})'''
+regex = '''(?i)(?:secret_[a-zA-Z0-9]{43}|ntn_[A-Za-z0-9]{40,50})\b'''
 tags = ["saas", "api-key", "credential", "notion"]
 secretGroup = 0
 entropy = 0.0
