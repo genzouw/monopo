@@ -100,7 +100,7 @@ const MemoizedPlayerChip = memo(function MemoizedPlayerChip({
           <span
             className={styles.jailBadge}
             aria-hidden="true"
-            title={`信用スコア: ${player.creditScore}`}
+            title={isDisabled ? undefined : `信用スコア: ${player.creditScore}`}
           >
             📊{player.creditScore}
           </span>
@@ -109,7 +109,9 @@ const MemoizedPlayerChip = memo(function MemoizedPlayerChip({
           <span
             className={styles.jailBadge}
             aria-hidden="true"
-            title={`ローン残高: $${player.loanBalance}`}
+            title={
+              isDisabled ? undefined : `ローン残高: $${player.loanBalance}`
+            }
           >
             🏦${player.loanBalance}
           </span>
