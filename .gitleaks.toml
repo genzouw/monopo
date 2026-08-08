@@ -185,7 +185,7 @@ secretGroup = 0
 entropy = 0.0
 [rules.allowlist]
 regexes = [
-    '''(?i)https?://(?:user|dummy|test):(?:pass|dummy|test)@.*'''
+    '''(?i)https?://(?:user|dummy|test):(?:pass|dummy|test)@(?:localhost|127\.0\.0\.1)(?:[:/?]|$)'''
 ]
 
 [[rules]]
