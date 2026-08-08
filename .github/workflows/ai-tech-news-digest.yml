@@ -33,10 +33,7 @@ jobs:
             // Web Search via Tavily
             const tavilyRes = await fetch('https://api.tavily.com/search', {
               method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.TAVILY_API_KEY}`
-              },
+              headers: { 'Content-Type': 'application/json', ...(process.env.TAVILY_API_KEY ? { 'Authorization': `Bearer ${process.env.TAVILY_API_KEY}` } : {}) },
               body: JSON.stringify({
                 query: `${year} latest AI coding tools free open source github actions cicd`,
                 topic: 'news',
