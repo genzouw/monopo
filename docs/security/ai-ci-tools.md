@@ -135,6 +135,11 @@ GitHub Marketplace の [Code Review AI](https://github.com/marketplace/code-revi
 1. **GitHub App のインストール (必須)**
    - [Code Review AI ページ](https://github.com/marketplace/code-review-ai) から対象リポジトリへ GitHub App としてインストールしてください。
    - 無料プラン (Free tier) で公開リポジトリに対して利用可能です。追加の設定や API キーの登録は不要です。
+2. **セキュリティ上の留意点**
+   - 要求権限は `metadata: read` / `issues: write` / `pull requests: write` です。コード本体（`contents`）への権限は要求しません。
+   - パブリッシャーは GitHub 未検証（Verified Owner ではない）で、組織の 2FA 必須化も行われていません。パブリッシャー側のアカウント侵害時、PR・Issue へ書き込まれるリスクを許容できる範囲でのみ導入してください。
+   - PR の差分は外部サービス（`code-review-ai.web.app`）へ送信されます。本リポジトリは公開のため差分自体は公開情報ですが、非公開リポジトリへ横展開しない方針とします。
+   - 問題が発生した場合は `Settings > Integrations > Applications` から即時アンインストールしてください。
 
 ## 新規: Open Code Review の設定
 
