@@ -52,9 +52,9 @@ jobs:
               const tavilyRes = await fetch('https://api.tavily.com/search', {
                 method: 'POST',
                 headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.TAVILY_API_KEY}`
-              },
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${process.env.TAVILY_API_KEY}`
+                },
                 body: JSON.stringify({
                   query: `2025 latest software development bug fix solution for: ${title}`,
                   search_depth: 'advanced',
