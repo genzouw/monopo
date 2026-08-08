@@ -127,6 +127,16 @@ PR作成時にプロンプトへの変更（`prompts/**`）が含まれている
      - `GH_MODELS_TOKEN`: GitHub Models APIにアクセスするためのトークン。
      - `TAVILY_API_KEY`: Tavily Search APIを利用するためのAPIキー。
 
+
+## 新規: Code Review AI の設定
+
+GitHub Marketplace の [Code Review AI](https://github.com/marketplace/code-review-ai) を利用した、AIによるプルリクエストの自動レビュー・品質向上ツールを導入しました。
+このツールは、コードベースの文脈を理解し、潜在的な問題の検出と具体的な修正案を提示します。
+
+1. **GitHub App のインストール (必須)**
+   - [Code Review AI ページ](https://github.com/marketplace/code-review-ai) から対象リポジトリへ GitHub App としてインストールしてください。
+   - 無料プラン (Free tier) で公開リポジトリに対して利用可能です。追加の設定や API キーの登録は不要です。
+
 ## 新規: Open Code Review の設定
 
 PR作成時にAI生成コードのハルシネーションや非推奨API、ロジックのギャップを検出するローカルLLMベースの品質ゲートとして `raye-deng/open-code-review@v2.1.5` を導入しました。
