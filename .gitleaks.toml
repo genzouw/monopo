@@ -207,7 +207,7 @@ entropy = 0.0
 [[rules]]
 id = "monopo-generic-bearer-token"
 description = "汎用的な Bearer トークンのハードコード検知"
-regex = '''(?i)bearer\s+[A-Za-z0-9\-\._~\+/]+=*'''
+regex = '''(?i)bearer\s+[A-Za-z0-9\-\._~\+/]{20,}=*'''
 tags = ["credential", "bearer", "token"]
 secretGroup = 0
 entropy = 0.0
