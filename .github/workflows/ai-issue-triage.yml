@@ -28,10 +28,7 @@ jobs:
             // 1. Tavily Search
             const tavilyRes = await fetch('https://api.tavily.com/search', {
               method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.TAVILY_API_KEY}`
-              },
+              headers: { 'Content-Type': 'application/json', ...(process.env.TAVILY_API_KEY ? { 'Authorization': `Bearer ${process.env.TAVILY_API_KEY}` } : {}) },
               body: JSON.stringify({
                 query: `2025 latest Issue triage context for: ${title}`,
                 search_depth: 'advanced',

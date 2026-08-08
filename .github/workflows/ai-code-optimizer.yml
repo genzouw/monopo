@@ -49,7 +49,7 @@ jobs:
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.TAVILY_API_KEY}`
+                ...(process.env.TAVILY_API_KEY ? { 'Authorization': `Bearer ${process.env.TAVILY_API_KEY}` } : {})
               },
               body: JSON.stringify({
                 query: "2025 latest React 19 Bun TypeScript performance security best practices",
