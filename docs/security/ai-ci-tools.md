@@ -134,7 +134,8 @@ GitHub Marketplace の [Code Review AI](https://github.com/marketplace/code-revi
 
 1. **GitHub App のインストール (必須)**
    - [Code Review AI ページ](https://github.com/marketplace/code-review-ai) から対象リポジトリへ GitHub App としてインストールしてください。
-   - 無料プラン (Free tier) で公開リポジトリに対して利用可能です。追加の設定や API キーの登録は不要です。
+   - 無料プラン (Free tier) の上限は **1 リポジトリ / 月 10 レビュー**です。本リポジトリの PR 流量では月の早い段階で上限に達し、それ以降はレビューコメントが投稿されません（エラー通知はありません）。
+   - 上限到達時に CI が失敗することはないため、レビューが来ないこと自体は異常ではない点に注意してください。
 2. **セキュリティ上の留意点**
    - 要求権限は `metadata: read` / `issues: write` / `pull requests: write` です。コード本体（`contents`）への権限は要求しません。
    - パブリッシャーは GitHub 未検証（Verified Owner ではない）で、組織の 2FA 必須化も行われていません。パブリッシャー側のアカウント侵害時、PR・Issue へ書き込まれるリスクを許容できる範囲でのみ導入してください。
