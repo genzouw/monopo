@@ -130,7 +130,7 @@ PR作成時にプロンプトへの変更（`prompts/**`）が含まれている
 ## 新規: Code Review AI の設定
 
 GitHub Marketplace の [Code Review AI](https://github.com/marketplace/code-review-ai) を利用した、AIによるプルリクエストの自動レビュー・品質向上ツールを導入しました。
-このツールは、コードベースの文脈を理解し、潜在的な問題の検出と具体的な修正案を提示します。
+このツールは、Pull Request の差分に対して潜在的な問題の検出と修正案の提示を行います（リポジトリ全体を読み込む `contents` 権限は要求しません）。
 
 1. **GitHub App のインストール (必須)**
    - [Code Review AI ページ](https://github.com/marketplace/code-review-ai) から対象リポジトリへ GitHub App としてインストールしてください。
