@@ -29,6 +29,8 @@
     - **トラブルシューティング**: 誤検知が出た場合は `# pragma: allowlist secret` コメントをその行末に追加するか、`detect-secrets scan --baseline .secrets.baseline` でベースラインを更新して既知の誤検知として登録してください。また、ローカル環境に `detect-secrets` をインストール（例: `pip install detect-secrets`）後、`detect-secrets audit .secrets.baseline` を実行してインタラクティブに誤検知を確認・登録することもできます。
   - **自動依存解決**: `pre-commit` framework が実行する gitleaks フックには、システム依存の `gitleaks-system` ではなく、pre-commit が自動で依存関係を解決して実行する `gitleaks` を使用することで、CI 環境や新規開発者の環境での実行エラーを防ぎ、安定性を向上させています（なお、9〜12行目の `.husky/pre-commit` 経由の gitleaks 実行には、引き続きローカルへの gitleaks インストールが必要です）。
 - **`actionlint` および `zizmor` フック (pre-commit)**: `.github/workflows/` 配下の YAML ファイルに対して、コミット前に `actionlint` と `zizmor` を実行します。
+  - **`actionlint` の外部ツール連携**: `actionlint` 単体ではカバーしきれない `run:` ブロック内のシェルスクリプトや Python スクリプトのインジェクションリスク、構文エラーをローカルでより確実に検知するため、`actionlint-docker` フックを使用し、内部に同梱された `shellcheck` および `pyflakes` を連携させています。
+    - **必須（Docker）**: `actionlint-docker` は Docker イメージとして実行されるため、`.github/workflows/` 配下のファイルをコミットする際は事前に Docker（Docker Desktop 等）を起動しておく必要があります。Docker が未起動の場合、コミット時にこのフックが失敗しブロックされます。`pre-commit run --all-files` を実行することで、コミット前にローカルで動作確認できます。
   - **`zizmor` の検査範囲**: `zizmor` はワークフローファイルに加えて `.github/dependabot.yml` および `action.yml` / `action.yaml`（コンポジットアクション）も検査対象に含みます。
   - **実行モードの固定**: `args: ['--no-progress', '--offline']` により**オフラインモードに固定**しています。`zizmor` は `GH_TOKEN` / `GITHUB_TOKEN` / `ZIZMOR_GITHUB_TOKEN` のいずれかが環境変数にあると自動でオンラインモードへ切り替わり、追加検知によってコミットがブロックされます。固定しない場合「トークンを export している開発者だけコミットできない」状態となり、その回避に使われる `git commit --no-verify` が gitleaks を含む**すべての**フックを無効化してしまうため、ローカルはオフラインに固定しています。オンライン検査は CI (`.github/workflows/zizmor.yml`) が担当します。
   - これにより、インジェクションリスクや不適切な権限指定といった CI 固有の脆弱性を**ローカルで早期に検知します**。ただし `git commit --no-verify` やフック未インストールの場合は素通りするため、これは「未然の防止」ではなく早期検知の層です。すり抜けた場合は CI の `zizmor.yml` で検知します。
@@ -42,7 +44,7 @@
   - 全てのブランチへの push および全ての PR、さらに週次のスケジュールで `secretlint` のジョブを実行し、Node.js エコシステムに特化したシークレット漏洩スキャンを行います。これにより、ローカルのフックをすり抜けた場合でも追加の検知層として機能します（ただし、未知のパターンや `.secretlintignore` で除外した対象までは検知できません）。
 - **Gitleaks ワークフロー (`.github/workflows/gitleaks.yml`)**:
   - 全ての PR とすべてのブランチへのプッシュ時に、対象となるソースコードをスキャンし、シークレットの漏洩があれば CI がエラー（赤検知）となります。正規表現とエントロピーによるパターンベースの検知を行います。
-  - **カスタムルールの適用**: リポジトリ直下の `.gitleaks.toml` を使用し、デフォルトの Gitleaks ルールに加えて、個別の汎用ルール（例: メールアドレスや国内電話番号・マイナンバー等の個人情報 [PII] のハードコード、クラウド識別子 [AWS Account ID / GCP Project ID]、内部IPアドレス、各種 SaaS トークン）も追加で検知するように強化されています。
+  - **カスタムルールの適用**: リポジトリ直下の `.gitleaks.toml` を使用し、デフォルトの Gitleaks ルールに加えて、個別の汎用ルール（例: メールアドレスや国内電話番号・マイナンバー等の個人情報 [PII] のハードコード、クラウド識別子 [AWS Account ID / GCP Project ID / GCP サービスアカウント]、内部IPアドレス、各種 SaaS・AI トークン (Groq, OpenRouter, DeepSeek 含む)、Observability トークン (Sentry, Datadog)、Payment トークン (Stripe)）も追加で検知するように強化されています。
 - **TruffleHog ワークフロー (`.github/workflows/trufflehog.yml`)**:
   - `gitleaks` を補完する形で、実際に外部プロバイダ API に対して有効性を検証できたシークレット（有効性検証済み）のみを検知します（`--only-verified`）。誤検知を減らしつつ、漏洩したキーが現在も利用可能かどうかの重大なリスクを即座にブロックします。
 - **Trivy ワークフロー (`.github/workflows/trivy.yml`)**:
@@ -119,3 +121,15 @@ CI の監査ワークフロー (`.github/workflows/permissions-audit.yml`) に�
 ### Dependabot による pre-commit ツールの自動更新
 
 シークレット検知ツール（gitleaks, trufflehog, detect-secrets）を含む `pre-commit` フックのバージョンを常に最新かつ安全に保つため、`.github/dependabot.yml` にて `pre-commit` エコシステムの自動更新を有効化しています。これにより、新しいシークレットパターンへの対応や脆弱性修正が継続的かつ自動で取り込まれ、漏洩防止の防御力が維持されます。
+
+### 追加のカスタム漏洩検知・抑止対策 (Gitleaks 強化)
+
+クラウドリソースの識別子（Azure Subscription ID など）や、最新の AI サービストークン（OpenAI Service Account Token など）がコードベースにハードコードされるリスクを防ぐため、リポジトリ直下の `.gitleaks.toml` カスタムルールを拡張しました。
+これにより、標準の Gitleaks ルールではカバーしきれない特定のクラウドプロバイダや AI ツールの識別子がローカルおよび CI の双方で早期に検知・ブロックされ、漏洩リスクをさらに低減しています。
+
+### 追加のカスタム漏洩検知・抑止対策 (Gitleaks 強化 - 汎用トークン・Basic認証対応)
+
+LINE Messaging API や Notion などの SaaS API キー、および Basic 認証 URL、汎用的な Bearer トークンがコードベースにハードコードされるリスクを防ぐため、リポジトリ直下の `.gitleaks.toml` カスタムルールをさらに拡張しました。
+これにより、特定のクラウドプロバイダや AI ツール以外の、一般的な SaaS 連携時のクレデンシャル露出リスクもローカルおよび CI の双方で早期に検知・ブロックされます。
+
+- **Notion API キー**: 2024年9月25日以降に発行される新形式トークン（`ntn_` プレフィックス）と、それ以前から継続利用されているレガシー形式トークン（`secret_` プレフィックス）の両方を検知対象としています。

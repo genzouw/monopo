@@ -37,6 +37,16 @@ export default function AuctionDialog({
     ? playersById[auction.currentBidderId]
     : null;
   const activePlayer = players[auction.activePlayerIndex];
+  // ツールチップ（title）とスクリーンリーダー向け説明（aria-describedby）で
+  // 「おかねが足りない」判定を必ず同じ条件から算出し、両者の食い違いを防ぐ。
+  // activePlayer が存在しない場合はお金の問題ではないため、この判定には含めない。
+  const isNoMoneyFor10 =
+    !!activePlayer && activePlayer.money < auction.currentBid + 10;
+  const isNoMoneyFor50 =
+    !!activePlayer && activePlayer.money < auction.currentBid + 50;
+  const isNoMoneyForMax =
+    !!activePlayer &&
+    activePlayer.money < auction.currentBid + MAX_BID_INCREMENT;
 
   return (
     <Dialog title="オークション！">
@@ -66,11 +76,8 @@ export default function AuctionDialog({
           aria-disabled={
             !activePlayer || activePlayer.money < auction.currentBid + 10
           }
-          aria-describedby={
-            activePlayer && activePlayer.money < auction.currentBid + 10
-              ? noMoneyHintId
-              : undefined
-          }
+          aria-describedby={isNoMoneyFor10 ? noMoneyHintId : undefined}
+          title={isNoMoneyFor10 ? NO_MONEY_HINT_TEXT : undefined}
         >
           +$10
         </Button>
@@ -81,11 +88,8 @@ export default function AuctionDialog({
           aria-disabled={
             !activePlayer || activePlayer.money < auction.currentBid + 50
           }
-          aria-describedby={
-            activePlayer && activePlayer.money < auction.currentBid + 50
-              ? noMoneyHintId
-              : undefined
-          }
+          aria-describedby={isNoMoneyFor50 ? noMoneyHintId : undefined}
+          title={isNoMoneyFor50 ? NO_MONEY_HINT_TEXT : undefined}
         >
           +$50
         </Button>
@@ -97,12 +101,8 @@ export default function AuctionDialog({
             !activePlayer ||
             activePlayer.money < auction.currentBid + MAX_BID_INCREMENT
           }
-          aria-describedby={
-            activePlayer &&
-            activePlayer.money < auction.currentBid + MAX_BID_INCREMENT
-              ? noMoneyHintId
-              : undefined
-          }
+          aria-describedby={isNoMoneyForMax ? noMoneyHintId : undefined}
+          title={isNoMoneyForMax ? NO_MONEY_HINT_TEXT : undefined}
         >
           +${MAX_BID_INCREMENT}
         </Button>
@@ -110,12 +110,11 @@ export default function AuctionDialog({
           パス
         </Button>
       </div>
-      {activePlayer &&
-        activePlayer.money < auction.currentBid + MAX_BID_INCREMENT && (
-          <div id={noMoneyHintId} className={styles.noMoneyHint} role="status">
-            {NO_MONEY_HINT_TEXT}
-          </div>
-        )}
+      {isNoMoneyForMax && (
+        <div id={noMoneyHintId} className={styles.noMoneyHint} role="status">
+          {NO_MONEY_HINT_TEXT}
+        </div>
+      )}
     </Dialog>
   );
 }

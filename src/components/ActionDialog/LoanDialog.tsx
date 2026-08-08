@@ -8,6 +8,7 @@ import {
   LOAN_INTEREST_RATES,
 } from '../../game/systems/loan';
 import { calculateTotalAssets } from '../../game/rules';
+import { getEconomyLabel } from '../common/economyDisplay';
 import Dialog from '../common/Dialog';
 import Button from '../common/Button';
 import styles from './ActionDialog.module.css';
@@ -63,16 +64,19 @@ export default function LoanDialog({
     parsedRepay <= loanBalance &&
     parsedRepay <= currentPlayer.money;
 
-  const economyLabel =
-    state.economyStatus === 'boom'
-      ? '好況'
-      : state.economyStatus === 'normal'
-        ? '通常'
-        : state.economyStatus === 'recession'
-          ? '不況'
-          : state.economyStatus === 'crisis'
-            ? '金融危機'
-            : '—';
+  const economyLabel = getEconomyLabel(state.economyStatus);
+
+  // title・aria-describedby・ヒント表示で同じ理由文言を使い回し、表示の齟齬（ドリフト）を防ぐ
+  const borrowDisabledReason =
+    !canBorrow && borrowAmount !== ''
+      ? 'かりられる上限をこえているか、正しくないよ'
+      : undefined;
+  const repayDisabledReason =
+    !canRepay && repayAmount !== ''
+      ? parsedRepay > currentPlayer.money
+        ? 'おかねがたりないよ'
+        : '返済する金額を正しく入力してね'
+      : undefined;
 
   return (
     <Dialog
@@ -168,19 +172,20 @@ export default function LoanDialog({
                   }}
                   aria-disabled={!canBorrow}
                   aria-describedby={
-                    !canBorrow && borrowAmount !== '' ? borrowHintId : undefined
+                    borrowDisabledReason ? borrowHintId : undefined
                   }
+                  title={borrowDisabledReason}
                 >
                   かりる
                 </Button>
               </div>
-              {!canBorrow && borrowAmount !== '' && (
+              {borrowDisabledReason && (
                 <div
                   id={borrowHintId}
                   className={styles.noMoneyHintTight}
                   role="alert"
                 >
-                  かりられる上限をこえているか、正しくないよ
+                  {borrowDisabledReason}
                 </div>
               )}
             </div>
@@ -224,21 +229,20 @@ export default function LoanDialog({
                   }}
                   aria-disabled={!canRepay}
                   aria-describedby={
-                    !canRepay && repayAmount !== '' ? repayHintId : undefined
+                    repayDisabledReason ? repayHintId : undefined
                   }
+                  title={repayDisabledReason}
                 >
                   返済する
                 </Button>
               </div>
-              {!canRepay && repayAmount !== '' && (
+              {repayDisabledReason && (
                 <div
                   id={repayHintId}
                   className={styles.noMoneyHintTight}
                   role="alert"
                 >
-                  {parsedRepay > currentPlayer.money
-                    ? 'おかねがたりないよ'
-                    : '返済する金額を正しく入力してね'}
+                  {repayDisabledReason}
                 </div>
               )}
             </div>

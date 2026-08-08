@@ -116,12 +116,25 @@
   grid-column: 2 / 11;
   grid-row: 2 / 11;
   background: var(--color-bg);
+  /* 中央の空きスペースにオーバーレイ（景気インジケーター）を重ねるための基準 */
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: clamp(20px, 5cqi, 36px);
   font-weight: 900;
   color: var(--color-primary);
+}
+/* 中央スペースの上部に重ねる表示枠。サイコロは中央のままにするため absolute で浮かせる */
+.miniCenterOverlay {
+  position: absolute;
+  top: 6%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: initial;
+  font-weight: initial;
+  color: initial;
+  z-index: 1;
 }
 .miniToken {
   font-size: clamp(12px, 3.2cqi, 24px);

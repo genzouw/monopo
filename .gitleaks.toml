@@ -25,7 +25,8 @@ regexes = [
     '''(?i)@example\.(com|org|net)$''',
     '''(?i)@test\.(com|org|net)$''',
     '''(?i)@dummy\.(com|org|net)$''',
-    '''(?i)@.*\.invalid$'''
+    '''(?i)@.*\.invalid$''',
+    '''(?i)@dummy\.iam\.gserviceaccount\.com$'''
 ]
 
 [[rules]]
@@ -42,8 +43,8 @@ regexes = [
 
 [[rules]]
 id = "monopo-cloud-id"
-description = "クラウドリソース識別子 (AWS Account ID, GCP Project ID) の露出"
-regex = '''(?i)(?:(?:aws_account_id|account_id)[\s]*[:=][\s]*["']?\d{12}["']?|(?:gcp_project|project_id)[\s]*[:=][\s]*["']?[a-z][a-z0-9-]{5,29}["']?)'''
+description = "クラウドリソース識別子 (AWS Account ID, GCP Project ID, Azure Subscription ID) の露出"
+regex = '''(?i)(?:(?:aws_account_id|account_id)[\s]*[:=][\s]*["']?\d{12}["']?|(?:gcp_project|project_id)[\s]*[:=][\s]*["']?[a-z][a-z0-9-]{5,29}["']?|\bazure_subscription_id\b[\s]*[:=][\s]*["']?[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}["']?)'''
 tags = ["cloud", "identifier"]
 secretGroup = 0
 entropy = 0.0
@@ -85,8 +86,8 @@ regexes = [
 
 [[rules]]
 id = "monopo-ai-api-key"
-description = "AI サービス (OpenAI, Anthropic 等) の API キーハードコード検知"
-regex = '''(?i)(?:sk-proj-[a-zA-Z0-9\-_]{100,}|sk-[a-zA-Z0-9]{48}|sk-ant-api03-[a-zA-Z0-9\-_]{95})'''
+description = "AI サービス (OpenAI, Anthropic, Groq, OpenRouter, DeepSeek 等) の API キーハードコード検知"
+regex = '''(?i)(?:\bsk-proj-[a-zA-Z0-9\-_]{100,}|\bsk-svc-[a-zA-Z0-9\-_]{100,}|sk-[a-zA-Z0-9]{48}|sk-ant-api03-[a-zA-Z0-9\-_]{95}|gsk_[a-zA-Z0-9]{52}\b|sk-or-v1-[a-f0-9]{64}|\bsk-[a-f0-9]{32}\b)'''
 tags = ["ai", "api-key", "credential"]
 secretGroup = 0
 entropy = 0.0
@@ -146,3 +147,71 @@ regex = '''(?i)(?:pinecone|pc)_[a-z0-9_]*key[\s]*[:=][\s]*["']?[0-9a-f]{8}-[0-9a
 tags = ["ai", "api-key", "credential", "pinecone"]
 secretGroup = 0
 entropy = 0.0
+
+[[rules]]
+id = "monopo-observability-token"
+description = "Observability トークン (Sentry 構造化トークン, Datadog API/APPキー等) のハードコード検知"
+regex = '''(?:sntrys_[A-Za-z0-9+/=_-]{20,}|(?i)(?:datadog|dd)[_-]?(?:api|app)[_-]?key[\s]*[:=][\s]*["']?[a-zA-Z0-9]{32}["']?)'''
+tags = ["observability", "api-key", "credential"]
+secretGroup = 0
+entropy = 0.0
+
+[[rules]]
+id = "monopo-payment-token"
+description = "Payment トークン (Stripe Secret/Restricted キー, live/test 両方) のハードコード検知"
+regex = '''\b(?:sk|rk)_(?:live|test)_[a-zA-Z0-9]{24,99}\b'''
+tags = ["payment", "api-key", "credential"]
+secretGroup = 0
+entropy = 0.0
+
+[[rules]]
+id = "monopo-gcp-service-account"
+description = "GCP サービスアカウントメールアドレスのハードコード検知"
+regex = '''(?i)[a-z0-9-]+@(?:[a-z0-9-]+\.iam\.gserviceaccount\.com|cloudservices\.gserviceaccount\.com|appspot\.gserviceaccount\.com|developer\.gserviceaccount\.com)'''
+tags = ["cloud", "gcp", "service-account", "identifier"]
+secretGroup = 0
+entropy = 0.0
+[rules.allowlist]
+regexes = [
+    '''(?i)^example@dummy\.iam\.gserviceaccount\.com$'''
+]
+
+[[rules]]
+id = "monopo-basic-auth-url"
+description = "Basic認証情報を含むURLのハードコード検知"
+regex = '''(?i)https?://[^/"'\s:]+:[^/"'\s@]+@[^/"'\s]+'''
+tags = ["credential", "basic-auth", "url"]
+secretGroup = 0
+entropy = 0.0
+[rules.allowlist]
+regexes = [
+    '''(?i)https?://(?:user|dummy|test):(?:pass|dummy|test)@(?:localhost|127\.0\.0\.1)(?:[:/?]|$)'''
+]
+
+[[rules]]
+id = "monopo-line-token"
+description = "LINE Messaging API / Login 関連のトークン・シークレット検知"
+regex = '''(?i)\b(?:line|channel)[_-]?(?:access[_-]?token|secret)[\s]*[:=][\s]*["']?[A-Za-z0-9+/=]{20,}["']?'''
+tags = ["saas", "api-key", "credential", "line"]
+secretGroup = 0
+entropy = 0.0
+
+[[rules]]
+id = "monopo-notion-api-key"
+description = "Notion API キー (Internal Integration Token: 新形式 ntn_ / レガシー形式 secret_) のハードコード検知"
+regex = '''(?i)(?:secret_[a-zA-Z0-9]{43}|ntn_[A-Za-z0-9]{40,50})\b'''
+tags = ["saas", "api-key", "credential", "notion"]
+secretGroup = 0
+entropy = 0.0
+
+[[rules]]
+id = "monopo-generic-bearer-token"
+description = "汎用的な Bearer トークンのハードコード検知"
+regex = '''(?i)bearer\s+[A-Za-z0-9\-\._~\+/]{20,}=*'''
+tags = ["credential", "bearer", "token"]
+secretGroup = 0
+entropy = 0.0
+[rules.allowlist]
+regexes = [
+    '''(?i)bearer\s+\$\{.*\}'''
+]

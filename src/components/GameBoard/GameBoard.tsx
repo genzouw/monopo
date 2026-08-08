@@ -34,6 +34,7 @@ import ForceBuyDialog from '../ActionDialog/ForceBuyDialog';
 import StockDialog from '../ActionDialog/StockDialog';
 import LoanDialog from '../ActionDialog/LoanDialog';
 import InsuranceDialog from '../ActionDialog/InsuranceDialog';
+import EconomyIndicator from './EconomyIndicator';
 import { useSound } from '../../sound/useSound';
 import styles from './GameBoard.module.css';
 
@@ -82,6 +83,9 @@ const COLOR_LABEL: Record<string, string> = {
  * 破産 / カード等）を統括し、`gameReducer` の状態に応じて表示を切り替える。
  * アニメーション中の高頻度な再レンダリングに備え、配列変換やハンドラは
  * `useMemo` / `useCallback` でメモ化している。
+ * サイコロボタンはロール中、`disabled` ではなく `aria-disabled` でクリックを抑止しているため、
+ * ネイティブの `disabled` が持つツールチップ表示が失われる。そのため `title` にも
+ * `aria-describedby` と同じ理由文言を設定し、マウスユーザーへもホバーで無効理由を伝えられるようにしている。
  *
  * @param props - コンポーネントの引数
  * @param props.state - `gameReducer` が管理するゲーム全体の状態
@@ -336,6 +340,15 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
     [state.dice.rolled, state.dice.values, isRolling, handleRollComplete],
   );
 
+  // 景気インジケーターも children と同様に参照を安定させ、MiniMap の React.memo を無効化しない。
+  const economyElement = useMemo(
+    () =>
+      state.features?.macroEconomy && state.economyStatus ? (
+        <EconomyIndicator status={state.economyStatus} />
+      ) : undefined,
+    [state.features?.macroEconomy, state.economyStatus],
+  );
+
   // ⚡ Bolt: アニメーション中の再レンダリングごとのマッピングを防ぐ。
   const tradeOfferSpaces = useMemo(() => {
     const trade = state.trade;
@@ -403,6 +416,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           propertyStates={state.propertyStates}
           players={displayPlayers}
           onSpaceClick={handleSpaceClick}
+          overlay={economyElement}
         >
           {diceElement}
         </MiniMap>
@@ -419,6 +433,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
         allPlayers={state.players}
         currentPlayerIndex={state.currentPlayerIndex}
         onPlayerClick={handlePlayerClick}
+        disabled={isRolling || animatingPosition !== null}
       />
 
       <div className={styles.actions}>
@@ -430,6 +445,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                 onClick={handleRoll}
                 aria-disabled={isRolling}
                 aria-describedby={isRolling ? rollingHintId : undefined}
+                title={isRolling ? '現在さいころをころがしています' : undefined}
               >
                 {isRolling ? '🎲 ふっています...' : '🎲 さいころをふる！'}
               </Button>

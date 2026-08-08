@@ -140,6 +140,40 @@ describe('saveGame / loadGame', () => {
     expect(loadGame()).toBeNull();
   });
 
+  // P2-a 拡張: economyStatus のサニタイズ（不正値によるUIクラッシュ防止）
+  it('economyStatusが不正な値ならundefinedに矯正される', () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        ...createPlayingState(),
+        economyStatus: 'invalid-status',
+      }),
+    );
+    const loaded = loadGame();
+    expect(loaded).not.toBeNull();
+    expect(loaded?.economyStatus).toBeUndefined();
+  });
+
+  it('economyStatusが正当な値ならそのまま復元される', () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        ...createPlayingState(),
+        economyStatus: 'recession',
+      }),
+    );
+    const loaded = loadGame();
+    expect(loaded?.economyStatus).toBe('recession');
+  });
+
+  it('economyStatusが未指定ならundefinedのまま復元される', () => {
+    const loaded = (() => {
+      saveGame(createPlayingState());
+      return loadGame();
+    })();
+    expect(loaded?.economyStatus).toBeUndefined();
+  });
+
   it('saveGameはlocalStorageの例外を握りつぶす', () => {
     const spy = vi
       .spyOn(Storage.prototype, 'setItem')

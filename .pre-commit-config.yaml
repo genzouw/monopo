@@ -23,7 +23,7 @@ repos:
         stages: [commit]
 
   - repo: https://github.com/trufflesecurity/trufflehog
-    rev: v3.95.9
+    rev: v3.96.0
     hooks:
       - id: trufflehog
         stages: [commit]
@@ -31,7 +31,14 @@ repos:
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.12
     hooks:
-      - id: actionlint
+      # actionlint-docker を使用することで、内部に同梱された shellcheck や pyflakes が
+      # 利用可能になり、run: ブロックのインジェクション・構文エラーの検知が有効になります。
+      # entry を digest 固定することで、tag が指す実体を差し替えられても
+      # 意図しないイメージを実行しないようにしています（CWE-494: 整合性チェックなしのコード取得対策）。
+      # digest は docker.io/rhysd/actionlint:1.7.12 に対応するもの。
+      # 将来 rev（フック定義）を更新する際は、対応する digest も併せて更新してください。
+      - id: actionlint-docker
+        entry: docker.io/rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667
 
   # 旧名 woodruffw/zizmor-pre-commit は zizmorcore/zizmor-pre-commit にリネーム済み。
   # 旧名は 301 リダイレクトで解決するが、旧名で誰かが新規リポジトリを作成した時点で
@@ -57,5 +64,5 @@ repos:
         name: Prevent committing sensitive files and AI workspaces
         entry: '❌ Error: Attempted to commit banned sensitive files or AI workspaces. Please remove them from your commit (e.g., git reset HEAD <file>).'
         language: fail
-        files: '(?i)(\.env$|\.env\..*|.*\.pem$|.*\.key$|id_rsa$|id_ed25519$|id_ecdsa$|id_dsa$|.*credentials.*\.(json|ya?ml|env)$|.*secret.*\.(json|ya?ml|env)$|\.npmrc$|\.netrc$|.*\.(p12|pfx|keystore|sqlite|sqlite3|db)$|service-?account.*\.(json|ya?ml|env)$|\.tfstate.*|(^|/)\.vercel/|(^|/)\.netlify/|(^|/)\.wrangler/|(^|/)\.serverless/|(^|/)\.sst/|(^|/)\.envrc$|(^|/)\.history/|(^|/)\.copilot/|(^|/)\.cursor/|(^|/)\.claude/|(^|/)\.aider[^/]*|(^|/)\.continue/|(^|/)\.jules/|(^|/)\.cline/|(^|/)\.windsurf/|(^|/)\.trae/|(^|/)\.roo/|.*\.log$|.*-report\.md$|ai-report-.*\.md$|(^|/)[^/]*\.patch$|(^|/)[^/]*\.diff$)'
+        files: '(?i)(\.env$|\.env\..*|.*\.pem$|.*\.key$|id_rsa$|id_ed25519$|id_ecdsa$|id_dsa$|.*credentials.*\.(json|ya?ml|env)$|.*secret.*\.(json|ya?ml|env)$|\.npmrc$|\.netrc$|.*\.(p12|pfx|keystore|sqlite|sqlite3|db)$|service-?account.*\.(json|ya?ml|env)$|\.tfstate.*|(^|/)\.vercel/|(^|/)\.netlify/|(^|/)\.wrangler/|(^|/)\.serverless/|(^|/)\.sst/|(^|/)\.envrc$|(^|/)\.history/|(^|/)\.copilot/|(^|/)\.cursor/|(^|/)\.claude/|(^|/)\.aider[^/]*|(^|/)\.continue/|(^|/)\.jules/|(^|/)\.cline/|(^|/)\.windsurf/|(^|/)\.trae/|(^|/)\.roo/|(^|/)\.cascade/|.*\.log$|.*-report\.md$|ai-report-.*\.md$|(^|/)[^/]*\.patch$|(^|/)[^/]*\.diff$)'
         exclude: '\.env\.example$|^\.secretlintrc\.json$|^\.github/workflows/secretlint\.yml$'

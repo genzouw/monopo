@@ -118,6 +118,10 @@ export default function InsuranceDialog({
           const insured = isPropertyInsured(insuranceState, space.id);
           const premium = calculatePremium(space.price ?? 0);
           const canAfford = currentPlayer.money >= premium;
+          // title・aria-describedby・ヒント表示で同じ理由文言を使い回し、表示の齟齬（ドリフト）を防ぐ
+          const buyDisabledReason = canAfford
+            ? undefined
+            : 'おかねがたりないよ';
           return (
             <div key={space.id} className={styles.buildItem}>
               {space.color && (
@@ -159,18 +163,21 @@ export default function InsuranceDialog({
                       onClick={() => onBuy(space.id)}
                       aria-disabled={!canAfford}
                       aria-describedby={
-                        !canAfford ? `${hintIdBase}-buy-${space.id}` : undefined
+                        buyDisabledReason
+                          ? `${hintIdBase}-buy-${space.id}`
+                          : undefined
                       }
+                      title={buyDisabledReason}
                     >
                       入る（${premium}）
                     </Button>
-                    {!canAfford && (
+                    {buyDisabledReason && (
                       <div
                         id={`${hintIdBase}-buy-${space.id}`}
                         className={styles.noMoneyHintTight}
                         role="status"
                       >
-                        おかねがたりないよ
+                        {buyDisabledReason}
                       </div>
                     )}
                   </>
