@@ -82,6 +82,7 @@ jobs:
                   'Content-Type': 'application/json',
                   'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
                 },
+                signal: AbortSignal.timeout(120000),
                 body: JSON.stringify({
                   model: 'o3-mini',
                   messages: [
