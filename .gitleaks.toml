@@ -217,6 +217,29 @@ regexes = [
 ]
 
 [[rules]]
+id = "monopo-ai-token-assignment"
+description = "AI トークン・APIキーのハードコード検知 (変数名ベースの汎用検知)"
+regex = '''(?i)\b(?:GH_MODELS_TOKEN|TAVILY_API_KEY|OPENAI_API_KEY|ANTHROPIC_API_KEY|GROQ_API_KEY|DEEPSEEK_API_KEY)\b[\s]*[:=][\s]*["']?([A-Za-z0-9._\-+/=]{10,})["']?'''
+tags = ["ai", "api-key", "credential", "assignment"]
+secretGroup = 1
+entropy = 0.0
+[rules.allowlist]
+regexTarget = "secret"
+regexes = [
+    '''(?i)^\$\{[^}]+\}$''',
+    '''(?i)^<REDACTED>$''',
+    '''(?i)^dummy(?:[-_](?:token|value|key))?$'''
+]
+
+[[rules]]
+id = "monopo-local-tunnel-url"
+description = "デバッグ用ローカルトンネル (ngrok, localtunnel, Cloudflare Quick Tunnels 等) の URL 露出"
+regex = '''(?i)https?://[a-z0-9-]+\.(?:ngrok-free\.app|ngrok\.io|loca\.lt|localtunnel\.me|trycloudflare\.com)(?:[:/?#]|$)'''
+tags = ["infrastructure", "tunnel", "debug"]
+secretGroup = 0
+entropy = 0.0
+
+[[rules]]
 id = "monopo-modern-paas-token"
 description = "Modern PaaS/DBaaS トークン (Figma, Render, PlanetScale, Fly.io, Neon 等) のハードコード検知"
 regex = '''\b(figd_[a-zA-Z0-9\-_]{43}|rnd_[a-zA-Z0-9]{32,}|pscale_tkn_[a-zA-Z0-9\-_]{43}|fm2_[a-zA-Z0-9\-_]{40,}|neon_[a-zA-Z0-9]{64})(?:$|[^a-zA-Z0-9\-_])'''
