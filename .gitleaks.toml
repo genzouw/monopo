@@ -219,7 +219,7 @@ regexes = [
 [[rules]]
 id = "monopo-slack-token"
 description = "Slack Token (Bot/User/App) のハードコード検知"
-regex = '''(?i)(?:xox[pboar]-[0-9]{10,13}-[0-9]{10,13}-[0-9a-zA-Z]{24,32})'''
+regex = '''(?i)\b(?:xox[pboar]-[0-9]{10,13}-[0-9]{10,13}-[0-9a-zA-Z]{24,32})\b'''
 tags = ["saas", "api-key", "credential", "slack"]
 secretGroup = 0
 entropy = 0.0
@@ -235,7 +235,7 @@ entropy = 0.0
 [[rules]]
 id = "monopo-figma-token"
 description = "Figma Personal Access Token のハードコード検知"
-regex = '''(?i)(?:figd_[a-zA-Z0-9\-_]{39,43})'''
+regex = '''(?i)\b(?:figd_[a-zA-Z0-9\-_]{39,43})\b'''
 tags = ["saas", "api-key", "credential", "figma"]
 secretGroup = 0
 entropy = 0.0
