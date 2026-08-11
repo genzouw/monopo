@@ -80,4 +80,4 @@ TruffleHog および pre-commit（gitleaks/detect-secrets）による CI スキ�
 
 ### 追加のカスタム漏洩検知・抑止対策 (Gitleaks 強化 - Modern PaaS/DBaaS対応)
 
-Vite / React 系のモダンな技術スタックにおいて利用頻度が高い PaaS や DBaaS (Figma, Render, PlanetScale, Fly.io, Neon 等) の API トークンがコードベースにハードコードされるリスクを防ぐため、リポジトリ直下の `.gitleaks.toml` カスタムルール (`monopo-modern-paas-token`) を追加しました。これにより、標準の Gitleaks ルールではカバーしきれない特有のフォーマットのシークレットも、コミット前および CI にて即座に検知・ブロックされます。
+Vite / React 系のモダンな技術スタックにおいて利用頻度が高い PaaS や DBaaS (Figma, Render, PlanetScale, Fly.io, Neon 等) の API トークンがコードベースにハードコードされるリスクを防ぐため、リポジトリ直下の `.gitleaks.toml` カスタムルール (`monopo-modern-paas-token`) を追加しました。検知対象は正規表現で定義された特定のプレフィックス・文字数の形式（`figd_` 43文字、`rnd_` 32文字以上、`pscale_tkn_` 43文字、`fm2_` 40文字以上、`neon_` 64文字）に限定されており、各サービスの API トークン全般を網羅するものではありません。これにより、上記フォーマットに一致するシークレットが、コミット前および CI にて検知・ブロックされます。
