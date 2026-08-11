@@ -34,24 +34,25 @@ jobs:
             const prNumber = pr.number;
 
             // 1. Tavily Search for breaking changes or release notes
-            const tavilyRes = await fetch('https://api.tavily.com/search', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', ...(process.env.TAVILY_API_KEY ? { 'Authorization': `Bearer ${process.env.TAVILY_API_KEY}` } : {}) },
-              body: JSON.stringify({
-                query: `breaking changes or release notes for: ${title}`,
-                search_depth: 'advanced',
-                include_answer: true,
-              }),
-            });
-
             let searchAnswer = '検索結果の要約なし';
-            if (tavilyRes.ok) {
-              try {
+            try {
+              const tavilyRes = await fetch('https://api.tavily.com/search', {
+                method: 'POST',
+                signal: AbortSignal.timeout(30000),
+                headers: { 'Content-Type': 'application/json', ...(process.env.TAVILY_API_KEY ? { 'Authorization': `Bearer ${process.env.TAVILY_API_KEY}` } : {}) },
+                body: JSON.stringify({
+                  query: `breaking changes or release notes for: ${title}`,
+                  search_depth: 'basic',
+                  include_answer: true,
+                }),
+              });
+
+              if (tavilyRes.ok) {
                 const searchData = await tavilyRes.json();
                 searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
-              } catch (e) {
-                console.log('Failed to parse Tavily response');
               }
+            } catch (e) {
+              console.warn('Tavily search request failed or timed out:', e.message);
             }
 
             const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のDependabotによる依存関係更新のプルリクエストとWeb検索結果を分析し、更新内容の要約と、潜在的な破壊的変更やリスク、確認すべきポイントを日本語で提示してください。
@@ -64,19 +65,26 @@ jobs:
             Web検索によるリリースノートや破壊的変更のヒント: ${searchAnswer}`;
 
             // GitHub Models (公開リポジトリで無料・OpenAI互換API)
-            const response = await fetch('https://models.inference.ai.azure.com/chat/completions', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
-              },
-              body: JSON.stringify({
-                model: 'o3-mini',
-                messages: [{ role: 'user', content: prompt }],
-                reasoning_effort: 'high',
-                max_completion_tokens: 15000
-              })
-            });
+            let response;
+            try {
+              response = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+                method: 'POST',
+                signal: AbortSignal.timeout(30000),
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
+                },
+                body: JSON.stringify({
+                  model: 'o3-mini',
+                  messages: [{ role: 'user', content: prompt }],
+                  reasoning_effort: 'high',
+                  max_completion_tokens: 15000
+                })
+              });
+            } catch (e) {
+              console.warn('GitHub Models request failed or timed out:', e.message);
+              return;
+            }
 
             if (!response.ok) {
               const errorBody = await response.text().catch(() => '<failed to read body>');
