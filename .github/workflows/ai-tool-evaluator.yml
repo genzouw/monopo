@@ -48,13 +48,14 @@ jobs:
 
             const tavilyRes = await fetch('https://api.tavily.com/search', {
               method: 'POST',
+              signal: AbortSignal.timeout(30000),
               headers: {
                 'Content-Type': 'application/json',
                 ...(process.env.TAVILY_API_KEY ? { 'Authorization': `Bearer ${process.env.TAVILY_API_KEY}` } : {})
               },
               body: JSON.stringify({
                 query: "2025 latest AI coding tools automated PR review free open source best practices security",
-                search_depth: 'advanced'
+                search_depth: 'basic'
               })
             });
 
@@ -76,6 +77,7 @@ jobs:
 
             const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
               method: 'POST',
+              signal: AbortSignal.timeout(30000),
               headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
