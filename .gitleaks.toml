@@ -215,3 +215,25 @@ entropy = 0.0
 regexes = [
     '''(?i)bearer\s+\$\{.*\}'''
 ]
+
+[[rules]]
+id = "monopo-ai-token-assignment"
+description = "AI トークン・APIキーのハードコード検知 (変数名ベースの汎用検知)"
+regex = '''(?i)(?:GH_MODELS_TOKEN|TAVILY_API_KEY|OPENAI_API_KEY|ANTHROPIC_API_KEY|GROQ_API_KEY|DEEPSEEK_API_KEY)[\s]*[:=][\s]*["'][A-Za-z0-9\-_+/=]{10,}["']'''
+tags = ["ai", "api-key", "credential", "assignment"]
+secretGroup = 0
+entropy = 0.0
+[rules.allowlist]
+regexes = [
+    '''(?i)["']\$\{[^}]+\}["']''',
+    '''(?i)["']<REDACTED>["']''',
+    '''(?i)["']dummy.*["']'''
+]
+
+[[rules]]
+id = "monopo-local-tunnel-url"
+description = "デバッグ用ローカルトンネル (ngrok, localtunnel, Cloudflare Quick Tunnels 等) の URL 露出"
+regex = '''(?i)https?://[a-z0-9-]+\.(?:ngrok-free\.app|ngrok\.io|loca\.lt|trycloudflare\.com)'''
+tags = ["infrastructure", "tunnel", "debug"]
+secretGroup = 0
+entropy = 0.0
