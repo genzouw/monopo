@@ -149,3 +149,8 @@ Slack や Discord などのコミュニケーションツール、および Figm
 - **Slack Token**: Bot/User/App の各トークン（`xoxb-` / `xoxp-` / `xapp-` 等）に加え、Token Rotation 有効時に発行される `xoxe.xoxp-` / `xoxe.xoxb-` 形式のトークンも検知対象です（Webhook URL は対象外）。
 - **Discord**: Bot Token に加え、Webhook URL（`discord.com` / `discordapp.com` の `/api/webhooks/...`）も検知対象です。
 - **Figma**: Personal Access Token（`figd_` プレフィックス）のみが検知対象で、Webhook URL は対象外です。
+
+### 追加のカスタム漏洩検知・抑止対策 (Gitleaks 強化 - 最新 AI プロバイダ・Cloudflare 対応)
+
+開発で利用頻度が高まっている新しい AI プロバイダ (Cohere, Mistral, Perplexity, Together AI, Azure OpenAI 等) や VectorDB (Qdrant, Weaviate, Milvus)、および Cloudflare の API トークン・アカウント ID がハードコードされるリスクを防ぐため、リポジトリ直下の `.gitleaks.toml` カスタムルールをさらに拡張しました。
+これにより、特定の新しいプロバイダのクレデンシャル露出リスクもローカルおよび CI の双方で早期に検知・ブロックされます。
