@@ -31,22 +31,26 @@ jobs:
             const year = new Date().getFullYear();
 
             // Web Search via Tavily
-            const tavilyRes = await fetch('https://api.tavily.com/search', {
-              method: 'POST',
-              signal: AbortSignal.timeout(30000),
-              headers: { 'Content-Type': 'application/json', ...(process.env.TAVILY_API_KEY ? { 'Authorization': `Bearer ${process.env.TAVILY_API_KEY}` } : {}) },
-              body: JSON.stringify({
-                query: `${year} latest AI coding tools free open source github actions cicd`,
-                topic: 'news',
-                days: 7,
-                search_depth: 'basic',
-                include_answer: true,
-              }),
-            });
-
             let searchData = { answer: '検索結果なし', results: [] };
-            if (tavilyRes.ok) {
-              searchData = await tavilyRes.json();
+            try {
+              const tavilyRes = await fetch('https://api.tavily.com/search', {
+                method: 'POST',
+                signal: AbortSignal.timeout(30000),
+                headers: { 'Content-Type': 'application/json', ...(process.env.TAVILY_API_KEY ? { 'Authorization': `Bearer ${process.env.TAVILY_API_KEY}` } : {}) },
+                body: JSON.stringify({
+                  query: `${year} latest AI coding tools free open source github actions cicd`,
+                  topic: 'news',
+                  days: 7,
+                  search_depth: 'basic',
+                  include_answer: true,
+                }),
+              });
+
+              if (tavilyRes.ok) {
+                searchData = await tavilyRes.json();
+              }
+            } catch (e) {
+              console.warn('Tavily search request failed or timed out:', e.message);
             }
 
             const searchContext = (searchData.answer || '').slice(0, MAX_CHARS) + '\n' + (searchData.results?.map(r => r.content).join('\n') || '').slice(0, MAX_CHARS);
@@ -60,25 +64,29 @@ jobs:
             検索結果:
             ${searchContext}`;
 
-            const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
-              method: 'POST',
-              signal: AbortSignal.timeout(30000),
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
-              },
-              body: JSON.stringify({
-                model: 'o3-mini',
-                messages: [{ role: 'user', content: prompt }],
-                reasoning_effort: 'high',
-                max_completion_tokens: 15000
-              })
-            });
-
             let report = 'レポート生成失敗';
-            if (aiRes.ok) {
-              const aiData = await aiRes.json();
-              report = aiData.choices?.[0]?.message?.content || report;
+            try {
+              const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+                method: 'POST',
+                signal: AbortSignal.timeout(30000),
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
+                },
+                body: JSON.stringify({
+                  model: 'o3-mini',
+                  messages: [{ role: 'user', content: prompt }],
+                  reasoning_effort: 'high',
+                  max_completion_tokens: 15000
+                })
+              });
+
+              if (aiRes.ok) {
+                const aiData = await aiRes.json();
+                report = aiData.choices?.[0]?.message?.content || report;
+              }
+            } catch (e) {
+              console.warn('GitHub Models request failed or timed out:', e.message);
             }
 
             if (report) {
