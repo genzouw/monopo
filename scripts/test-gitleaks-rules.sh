@@ -32,9 +32,9 @@ trap 'rm -rf "$WORKDIR"' EXIT
 d="-"
 n10="1234567890"
 n13="1234567890123"
-rand_a="mQk93XrPz8LdT2wYbNc6Vh0F"
-rand_b="j5AgQ7RsWn2Ehf3"
-rand_hex="3f9a1c7e2b5d8046f1c9a7b3e5d2f0864c1a7b3e5d2f0864c1a7b3e5d2f08641"
+rand_a="mQk93XrPz8LdT2wYbNc6Vh0F"  # pragma: allowlist secret
+rand_b="j5AgQ7RsWn2Ehf3"  # pragma: allowlist secret
+rand_hex="3f9a1c7e2b5d8046f1c9a7b3e5d2f0864c1a7b3e5d2f0864c1a7b3e5d2f08641"  # pragma: allowlist secret
 webhook_host="discord.com"
 webhook_host_app="discordapp.com"
 webhook_path="api/webhooks"
