@@ -80,7 +80,9 @@ jobs:
                 const searchData = await tavilyRes.json();
                 searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
               }
-            } catch (e) {}
+            } catch (e) {
+              console.warn('Tavily search request failed or timed out:', e.message);
+            }
 
             const prompt = `あなたはアクセシビリティ(A11y)およびUI/UXの専門家です。
             以下のPRの差分、プロジェクトのコードベース、および最新のWeb検索のベストプラクティスをもとに、
@@ -119,7 +121,9 @@ jobs:
                 const aiData = await aiRes.json();
                 analysis = aiData.choices?.[0]?.message?.content;
               }
-            } catch (e) {}
+            } catch (e) {
+              console.warn('GitHub Models request failed or timed out:', e.message);
+            }
 
             if (analysis) {
               await github.rest.issues.createComment({
