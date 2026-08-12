@@ -38,8 +38,8 @@ jobs:
               try {
                 const res = await fetch('https://api.tavily.com/search', {
                   method: 'POST',
-                  signal: AbortSignal.timeout(30000),
                   headers: { 'Content-Type': 'application/json', ...(process.env.TAVILY_API_KEY ? { 'Authorization': `Bearer ${process.env.TAVILY_API_KEY}` } : {}) },
+                  signal: AbortSignal.timeout(30000),
                   body: JSON.stringify({
                     query,
                     search_depth: 'basic',
@@ -59,7 +59,7 @@ jobs:
                   console.log(`Tavily request failed: ${res.status} ${res.statusText}`);
                 }
               } catch (e) {
-                console.warn('Tavily search request failed or timed out:', e.message);
+                console.warn('Tavily search failed:', String(e));
               }
               return data;
             }
@@ -117,11 +117,11 @@ jobs:
             try {
               const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
                 method: 'POST',
-                signal: AbortSignal.timeout(30000),
                 headers: {
                   'Content-Type': 'application/json',
                   'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
                 },
+                signal: AbortSignal.timeout(120000),
                 body: JSON.stringify({
                   model: 'o3-mini',
                   messages: [{ role: 'user', content: prompt }],
@@ -143,7 +143,7 @@ jobs:
                 console.log('Response body:', errorBody);
               }
             } catch (e) {
-              console.warn('GitHub Models request failed or timed out:', e.message);
+              console.warn('GitHub Models request failed:', String(e));
             }
 
             if (report) {

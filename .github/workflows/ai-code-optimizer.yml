@@ -49,11 +49,11 @@ jobs:
             try {
               const tavilyRes = await fetch('https://api.tavily.com/search', {
                 method: 'POST',
-                signal: AbortSignal.timeout(30000),
                 headers: {
                   'Content-Type': 'application/json',
                   ...(process.env.TAVILY_API_KEY ? { 'Authorization': `Bearer ${process.env.TAVILY_API_KEY}` } : {})
                 },
+                signal: AbortSignal.timeout(30000),
                 body: JSON.stringify({
                   query: "2025 latest React 19 Bun TypeScript performance security best practices",
                   search_depth: 'basic'
@@ -65,7 +65,7 @@ jobs:
                 searchContext = searchData.results?.map(r => r.content).join('\n') || '';
               }
             } catch (e) {
-              console.warn('Tavily search request failed or timed out:', e.message);
+              console.warn('Tavily search failed:', String(e));
             }
 
             const prompt = `あなたは熟練のDevOpsエンジニアおよびソフトウェアアーキテクトです。
@@ -80,14 +80,15 @@ jobs:
             【コードベース概要 (XML)】
             ${codebase}`;
 
+            let aiRes;
             try {
-              const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+              aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
                 method: 'POST',
-                signal: AbortSignal.timeout(30000),
                 headers: {
                   'Content-Type': 'application/json',
                   'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
                 },
+                signal: AbortSignal.timeout(120000),
                 body: JSON.stringify({
                   model: 'o3-mini',
                   messages: [{ role: 'user', content: prompt }],
@@ -95,20 +96,21 @@ jobs:
                   max_completion_tokens: 15000
                 })
               });
-
-              if (aiRes.ok) {
-                const aiData = await aiRes.json();
-                const report = aiData.choices?.[0]?.message?.content;
-                if (report) {
-                  await github.rest.issues.create({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    title: `🤖 AI定期コード最適化レポート (${new Date().toISOString().split('T')[0]})`,
-                    body: `### 🤖 AI Code Optimization Report\n\n${report}`,
-                    labels: ['enhancement', 'ai-generated']
-                  });
-                }
-              }
             } catch (e) {
-              console.warn('GitHub Models request failed or timed out:', e.message);
+              console.warn('GitHub Models request failed:', String(e));
+              return;
+            }
+
+            if (aiRes.ok) {
+              const aiData = await aiRes.json();
+              const report = aiData.choices?.[0]?.message?.content;
+              if (report) {
+                await github.rest.issues.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title: `🤖 AI定期コード最適化レポート (${new Date().toISOString().split('T')[0]})`,
+                  body: `### 🤖 AI Code Optimization Report\n\n${report}`,
+                  labels: ['enhancement', 'ai-generated']
+                });
+              }
             }

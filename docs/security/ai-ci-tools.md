@@ -169,3 +169,10 @@ PR作成時にGitHub Models (o3-mini) を利用して、PRテンプレートに�
 
 PRの自動承認を行う `.github/workflows/ai-codeball-approver.yml`（Codeball, `sturdy-dev/codeball-action`）を導入していましたが、本リポジトリのAction許可リスト（`genzouw` 所有 / GitHub作成 / Marketplace検証済み / 個別許可パターンのいずれかに限定）に `sturdy-dev/codeball-action` が含まれておらず、CIが恒常的に失敗する状態となっていたため削除しました。
 再導入する場合は、リポジトリ管理者が `Settings > Actions > General > Allow select actions and reusable workflows` にて `sturdy-dev/codeball-action` を許可リストに追加した上で対応してください。
+
+## AI連携ワークフロー全体の最適化について
+
+各AI関連ワークフローでは、CIの持続可能性と安定性向上のため以下の最適化を実施しています。
+
+- **Tavily Search APIの検索深度**: 全てのワークフローで `search_depth` を `basic` に設定しています。`advanced` はクレジット消費が激しくなりますが、技術検索では `basic` で十分な鮮度の情報が得られるためコスト削減を優先しています。
+- **タイムアウトの設定**: 外部APIへのFetchリクエストに対し、Tavily Search APIには30秒、GitHub Models APIには120秒の `AbortSignal.timeout` を設定し、無応答によるGitHub Actionsランナーの滞留（ハング）を防止しています。
