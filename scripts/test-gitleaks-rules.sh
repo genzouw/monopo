@@ -91,6 +91,22 @@ for rule in monopo-slack-token monopo-discord-token monopo-figma-token; do
 done
 
 echo ""
+echo "── ルール間の重複検知チェック (Figma トークンが monopo-figma-token 以外で検知されないこと) ──"
+# figd_ トークンは monopo-modern-paas-token とも正規表現レンジが重複しやすいため、
+# 同一トークンが複数の RuleID で検知される（重複アラート）ことがないかを個別に確認する。
+figma_report="$WORKDIR/figma-report.json"
+printf '%s\n' "$figma_token" >"$WORKDIR/figma-only.txt"
+gitleaks detect --no-git --config "$CONFIG" --source "$WORKDIR/figma-only.txt" \
+  --report-format json --report-path "$figma_report" --exit-code 0 >/dev/null
+figma_rule_ids=$(jq -r '[.[].RuleID] | unique | join(",")' "$figma_report")
+if [ "$figma_rule_ids" != "monopo-figma-token" ]; then
+  echo "❌ Figma トークンが想定外の RuleID セットで検知されました（重複検知の疑い）: $figma_rule_ids"
+  exit_code=1
+else
+  echo "✅ monopo-figma-token のみが検知（monopo-modern-paas-token 等との重複なし）"
+fi
+
+echo ""
 echo "── 非検知対象フィクスチャのスキャン (誤検知が発生しないこと) ──"
 neg_report="$WORKDIR/negative-report.json"
 gitleaks detect --no-git --config "$CONFIG" --source "$WORKDIR/negative.txt" \

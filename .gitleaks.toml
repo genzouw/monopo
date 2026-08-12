@@ -241,8 +241,8 @@ entropy = 0.0
 
 [[rules]]
 id = "monopo-modern-paas-token"
-description = "Modern PaaS/DBaaS トークン (Figma, Render, PlanetScale, Fly.io, Neon 等) のハードコード検知"
-regex = '''\b(figd_[a-zA-Z0-9\-_]{43}|rnd_[a-zA-Z0-9]{32,}|pscale_tkn_[a-zA-Z0-9\-_]{43}|fm2_[a-zA-Z0-9\-_]{40,}|neon_[a-zA-Z0-9]{64})(?:$|[^a-zA-Z0-9\-_])'''
+description = "Modern PaaS/DBaaS トークン (Render, PlanetScale, Fly.io, Neon 等) のハードコード検知（Figma は monopo-figma-token で検知）"
+regex = '''\b(rnd_[a-zA-Z0-9]{32,}|pscale_tkn_[a-zA-Z0-9\-_]{43}|fm2_[a-zA-Z0-9\-_]{40,}|neon_[a-zA-Z0-9]{64})(?:$|[^a-zA-Z0-9\-_])'''
 tags = ["saas", "api-key", "credential", "paas", "dbaas"]
 secretGroup = 1
 entropy = 0.0
