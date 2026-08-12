@@ -249,8 +249,8 @@ entropy = 0.0
 
 [[rules]]
 id = "monopo-slack-token"
-description = "Slack Token (Bot/User/App) のハードコード検知"
-regex = '''(?i)\b(?:xox[pboar]-[0-9]{10,13}-[0-9]{10,13}-[0-9a-zA-Z]{24,32})\b'''
+description = "Slack Token (Bot/User/App、および Token Rotation 有効時の xoxe.xoxp-/xoxe.xoxb- 形式) のハードコード検知"
+regex = '''(?i)\b(?:xox[pboar]-(?:[0-9]{10,13}-){2,3}[0-9a-zA-Z]{24,32}|xapp-[0-9]{1,2}-[A-Za-z0-9]{10,13}-[0-9]{10,13}-[0-9a-fA-F]{64}|xoxe\.xox[pb]-[0-9]-[A-Za-z0-9_-]{130,200})\b'''
 tags = ["saas", "api-key", "credential", "slack"]
 secretGroup = 0
 entropy = 0.0
