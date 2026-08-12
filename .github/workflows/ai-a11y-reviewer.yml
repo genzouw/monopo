@@ -80,7 +80,9 @@ jobs:
                 const searchData = await tavilyRes.json();
                 searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
               }
-            } catch (e) {}
+            } catch (e) {
+              console.warn('Tavily search failed:', String(e));
+            }
 
             const prompt = `あなたはアクセシビリティ(A11y)およびUI/UXの専門家です。
             以下のPRの差分、プロジェクトのコードベース、および最新のWeb検索のベストプラクティスをもとに、
@@ -102,7 +104,7 @@ jobs:
             try {
               const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
                 method: 'POST',
-                signal: AbortSignal.timeout(30000),
+                signal: AbortSignal.timeout(120000),
                 headers: {
                   'Content-Type': 'application/json',
                   'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
@@ -119,7 +121,9 @@ jobs:
                 const aiData = await aiRes.json();
                 analysis = aiData.choices?.[0]?.message?.content;
               }
-            } catch (e) {}
+            } catch (e) {
+              console.warn('AI inference failed:', String(e));
+            }
 
             if (analysis) {
               await github.rest.issues.createComment({

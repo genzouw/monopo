@@ -30,26 +30,30 @@ jobs:
             const query = title;
 
             // 1. Tavily Search
-            const tavilyRes = await fetch('https://api.tavily.com/search', {
-              method: 'POST',
-                signal: AbortSignal.timeout(30000),
-              headers: { 'Content-Type': 'application/json', ...(process.env.TAVILY_API_KEY ? { 'Authorization': `Bearer ${process.env.TAVILY_API_KEY}` } : {}) },
-              body: JSON.stringify({
-                query: `2025 latest ${query}`,
-                search_depth: 'basic',
-                include_answer: true,
-              }),
-            });
-
             let searchData = { answer: '要約なし', results: [] };
-            if (tavilyRes.ok) {
-              try {
-                searchData = await tavilyRes.json();
-              } catch (e) {
-                console.log('Failed to parse Tavily response as JSON:', e);
+            try {
+              const tavilyRes = await fetch('https://api.tavily.com/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...(process.env.TAVILY_API_KEY ? { 'Authorization': `Bearer ${process.env.TAVILY_API_KEY}` } : {}) },
+                signal: AbortSignal.timeout(30000),
+                body: JSON.stringify({
+                  query: `2025 latest ${query}`,
+                  search_depth: 'basic',
+                  include_answer: true,
+                }),
+              });
+
+              if (tavilyRes.ok) {
+                try {
+                  searchData = await tavilyRes.json();
+                } catch (e) {
+                  console.log('Failed to parse Tavily response as JSON:', e);
+                }
+              } else {
+                console.log(`Tavily request failed: ${tavilyRes.status} ${tavilyRes.statusText}`);
               }
-            } else {
-              console.log(`Tavily request failed: ${tavilyRes.status} ${tavilyRes.statusText}`);
+            } catch (e) {
+              console.warn('Tavily search failed:', String(e));
             }
             const searchAnswer = (searchData.answer || '要約なし').slice(0, MAX_SEARCH_ANSWER_CHARS);
 
@@ -66,33 +70,37 @@ jobs:
 
             // GitHub Models (公開リポジトリで無料・OpenAI互換API)
             // GH_MODELS_TOKEN で認証
-            const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
-              method: 'POST',
-                signal: AbortSignal.timeout(30000),
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
-              },
-              body: JSON.stringify({
-                model: 'o3-mini',
-                messages: [{ role: 'user', content: prompt }],
-                reasoning_effort: 'high',
-                max_completion_tokens: 15000
-              })
-            });
-
             let plan = '実装計画の生成に失敗しました。';
-            if (aiRes.ok) {
-              try {
-                const aiData = await aiRes.json();
-                plan = aiData.choices?.[0]?.message?.content || plan;
-              } catch (e) {
-                console.log('Failed to parse GitHub Models response as JSON:', e);
+            try {
+              const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
+                },
+                signal: AbortSignal.timeout(120000),
+                body: JSON.stringify({
+                  model: 'o3-mini',
+                  messages: [{ role: 'user', content: prompt }],
+                  reasoning_effort: 'high',
+                  max_completion_tokens: 15000
+                })
+              });
+
+              if (aiRes.ok) {
+                try {
+                  const aiData = await aiRes.json();
+                  plan = aiData.choices?.[0]?.message?.content || plan;
+                } catch (e) {
+                  console.log('Failed to parse GitHub Models response as JSON:', e);
+                }
+              } else {
+                const errorBody = await aiRes.text().catch(() => '<failed to read body>');
+                console.log(`GitHub Models request failed: ${aiRes.status} ${aiRes.statusText}`);
+                console.log('Response body:', errorBody);
               }
-            } else {
-              const errorBody = await aiRes.text().catch(() => '<failed to read body>');
-              console.log(`GitHub Models request failed: ${aiRes.status} ${aiRes.statusText}`);
-              console.log('Response body:', errorBody);
+            } catch (e) {
+              console.warn('GitHub Models request failed:', String(e));
             }
 
             let body = `### 🤖 AI リサーチ結果 & 実装計画\n\n${plan}\n\n#### 参考ソース\n`;
