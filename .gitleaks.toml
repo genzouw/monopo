@@ -215,3 +215,58 @@ entropy = 0.0
 regexes = [
     '''(?i)bearer\s+\$\{.*\}'''
 ]
+
+[[rules]]
+id = "monopo-ai-token-assignment"
+description = "AI トークン・APIキーのハードコード検知 (変数名ベースの汎用検知)"
+regex = '''(?i)\b(?:GH_MODELS_TOKEN|TAVILY_API_KEY|OPENAI_API_KEY|ANTHROPIC_API_KEY|GROQ_API_KEY|DEEPSEEK_API_KEY)\b[\s]*[:=][\s]*["']?([A-Za-z0-9._\-+/=]{10,})["']?'''
+tags = ["ai", "api-key", "credential", "assignment"]
+secretGroup = 1
+entropy = 0.0
+[rules.allowlist]
+regexTarget = "secret"
+regexes = [
+    '''(?i)^\$\{[^}]+\}$''',
+    '''(?i)^<REDACTED>$''',
+    '''(?i)^dummy(?:[-_](?:token|value|key))?$'''
+]
+
+[[rules]]
+id = "monopo-local-tunnel-url"
+description = "デバッグ用ローカルトンネル (ngrok, localtunnel, Cloudflare Quick Tunnels 等) の URL 露出"
+regex = '''(?i)https?://[a-z0-9-]+\.(?:ngrok-free\.app|ngrok\.io|loca\.lt|localtunnel\.me|trycloudflare\.com)(?:[:/?#]|$)'''
+tags = ["infrastructure", "tunnel", "debug"]
+secretGroup = 0
+entropy = 0.0
+
+[[rules]]
+id = "monopo-modern-paas-token"
+description = "Modern PaaS/DBaaS トークン (Render, PlanetScale, Fly.io, Neon 等) のハードコード検知（Figma は monopo-figma-token で検知）"
+regex = '''\b(rnd_[a-zA-Z0-9]{32,}|pscale_tkn_[a-zA-Z0-9\-_]{43}|fm2_[a-zA-Z0-9\-_]{40,}|neon_[a-zA-Z0-9]{64})(?:$|[^a-zA-Z0-9\-_])'''
+tags = ["saas", "api-key", "credential", "paas", "dbaas"]
+secretGroup = 1
+entropy = 0.0
+
+[[rules]]
+id = "monopo-slack-token"
+description = "Slack Token (Bot/User/App、および Token Rotation 有効時の xoxe.xoxp-/xoxe.xoxb- 形式) のハードコード検知"
+regex = '''(?i)\b(?:xox[pboar]-(?:[0-9]{10,13}-){2,3}[0-9a-zA-Z]{24,32}|xapp-[0-9]{1,2}-[A-Za-z0-9]{10,13}-[0-9]{10,13}-[0-9a-fA-F]{64}|xoxe\.xox[pb]-[0-9]-[A-Za-z0-9_-]{130,200})\b'''
+tags = ["saas", "api-key", "credential", "slack"]
+secretGroup = 0
+entropy = 0.0
+
+[[rules]]
+id = "monopo-discord-token"
+description = "Discord Bot Token / Webhook URL のハードコード検知"
+regex = '''(?i)(?:\b[M-Za-z0-9_-]{24}\.[M-Za-z0-9_-]{6}\.[M-Za-z0-9_-]{27}\b|\bdiscord(?:app)?\.com\/api\/webhooks\/[0-9]{17,19}\/[A-Za-z0-9_-]{60,68})'''
+tags = ["saas", "api-key", "credential", "discord"]
+secretGroup = 0
+entropy = 0.0
+
+[[rules]]
+id = "monopo-figma-token"
+description = "Figma Personal Access Token のハードコード検知"
+regex = '''(?i)\b(?:figd_[a-zA-Z0-9\-_]{39,43})\b'''
+tags = ["saas", "api-key", "credential", "figma"]
+secretGroup = 0
+entropy = 0.0
