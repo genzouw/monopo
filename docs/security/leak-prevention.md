@@ -143,5 +143,9 @@ AI エージェントの開発・デバッグ環境に特有の漏洩リスク�
 
 ### 追加のカスタム漏洩検知・抑止対策 (Gitleaks 強化 - コミュニケーション・デザインツール対応)
 
-Slack や Discord などのコミュニケーションツール、および Figma などのデザインツールの API トークン・Webhook URL がコードベースにハードコードされるリスクを防ぐため、リポジトリ直下の `.gitleaks.toml` カスタムルールをさらに拡張しました。
+Slack や Discord などのコミュニケーションツール、および Figma などのデザインツールの API トークンがコードベースにハードコードされるリスクを防ぐため、リポジトリ直下の `.gitleaks.toml` カスタムルールをさらに拡張しました。
 これにより、外部コラボレーションツール連携時のクレデンシャル露出リスクもローカルおよび CI の双方で早期に検知・ブロックされます。
+
+- **Slack Token**: Bot/User/App の各トークン（`xoxb-` / `xoxp-` / `xapp-` 等）に加え、Token Rotation 有効時に発行される `xoxe.xoxp-` / `xoxe.xoxb-` 形式のトークンも検知対象です（Webhook URL は対象外）。
+- **Discord**: Bot Token に加え、Webhook URL（`discord.com` / `discordapp.com` の `/api/webhooks/...`）も検知対象です。
+- **Figma**: Personal Access Token（`figd_` プレフィックス）のみが検知対象で、Webhook URL は対象外です。
