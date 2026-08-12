@@ -64,7 +64,7 @@ jobs:
             検索結果:
             ${searchContext}`;
 
-            let report = 'レポート生成失敗';
+            let report;
             try {
               const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
                 method: 'POST',
