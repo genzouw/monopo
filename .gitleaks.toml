@@ -258,7 +258,7 @@ entropy = 0.0
 [[rules]]
 id = "monopo-discord-token"
 description = "Discord Bot Token / Webhook URL のハードコード検知"
-regex = '''(?i)(?:[M-Za-z0-9_-]{24}\.[M-Za-z0-9_-]{6}\.[M-Za-z0-9_-]{27}|discord(?:app)?\.com\/api\/webhooks\/[0-9]{17,19}\/[A-Za-z0-9_-]{60,68})'''
+regex = '''(?i)(?:\b[M-Za-z0-9_-]{24}\.[M-Za-z0-9_-]{6}\.[M-Za-z0-9_-]{27}\b|\bdiscord(?:app)?\.com\/api\/webhooks\/[0-9]{17,19}\/[A-Za-z0-9_-]{60,68})'''
 tags = ["saas", "api-key", "credential", "discord"]
 secretGroup = 0
 entropy = 0.0
