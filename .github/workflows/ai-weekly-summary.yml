@@ -115,7 +115,7 @@ jobs:
 
             let report;
             try {
-              const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+              const aiRes = await fetch('https://models.github.ai/inference/chat/completions', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',

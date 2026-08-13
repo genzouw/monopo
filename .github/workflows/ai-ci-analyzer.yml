@@ -124,7 +124,7 @@ jobs:
             // GH_MODELS_TOKEN で認証
             let response;
             try {
-              response = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+              response = await fetch('https://models.github.ai/inference/chat/completions', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
