@@ -146,6 +146,49 @@ else
 fi
 
 echo ""
+echo "── 列挙された変数名を個別に回帰テスト (各変数名が対応する RuleID・検知行と一致すること) ──"
+# 代表1変数の検知だけでは、他の列挙名の正規表現（例: MISTRAL_API_KEY 等）が壊れても
+# 気づけない。列挙された全変数名を1行ずつのフィクスチャとして生成し、行番号ベースで
+# 期待する RuleID と実際の検知行が一致するかを個別に確認する。
+ai_vars=(COHERE_API_KEY MISTRAL_API_KEY PERPLEXITY_API_KEY TOGETHER_API_KEY GEMINI_API_KEY VERTEX_AI_CREDENTIALS AZURE_OPENAI_API_KEY AZURE_OPENAI_KEY QDRANT_API_KEY WEAVIATE_API_KEY MILVUS_API_KEY)
+cf_vars=(CLOUDFLARE_API_KEY CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID CLOUDFLARE_ZONE_ID CF_API_KEY CF_API_TOKEN)
+
+per_var_fixture="$WORKDIR/per-var.txt"
+: >"$per_var_fixture"
+for var in "${ai_vars[@]}"; do
+  printf '%s%s%s%s%s%s\n' "$var" "$eq" "$qt" "$rand_a" "${rand_b:0:2}" "$qt" >>"$per_var_fixture"
+done
+for var in "${cf_vars[@]}"; do
+  printf '%s%s%s%s%s%s\n' "$var" "$eq" "$qt" "$rand_b" "${rand_a:0:10}" "$qt" >>"$per_var_fixture"
+done
+
+per_var_report="$WORKDIR/per-var-report.json"
+gitleaks detect --no-git --config "$CONFIG" --source "$per_var_fixture" \
+  --report-format json --report-path "$per_var_report" --exit-code 0 >/dev/null
+
+line_no=0
+for var in "${ai_vars[@]}"; do
+  line_no=$((line_no + 1))
+  match_count=$(jq "[.[] | select(.RuleID == \"monopo-ai-token-assignment-extended\" and .StartLine == $line_no)] | length" "$per_var_report")
+  if [ "$match_count" -ne 1 ]; then
+    echo "❌ ${var} (${line_no}行目) が monopo-ai-token-assignment-extended として検知されませんでした"
+    exit_code=1
+  else
+    echo "✅ ${var} (${line_no}行目): monopo-ai-token-assignment-extended として検知"
+  fi
+done
+for var in "${cf_vars[@]}"; do
+  line_no=$((line_no + 1))
+  match_count=$(jq "[.[] | select(.RuleID == \"monopo-cloudflare-token-assignment\" and .StartLine == $line_no)] | length" "$per_var_report")
+  if [ "$match_count" -ne 1 ]; then
+    echo "❌ ${var} (${line_no}行目) が monopo-cloudflare-token-assignment として検知されませんでした"
+    exit_code=1
+  else
+    echo "✅ ${var} (${line_no}行目): monopo-cloudflare-token-assignment として検知"
+  fi
+done
+
+echo ""
 echo "── 非検知対象フィクスチャのスキャン (誤検知が発生しないこと) ──"
 neg_report="$WORKDIR/negative-report.json"
 gitleaks detect --no-git --config "$CONFIG" --source "$WORKDIR/negative.txt" \
