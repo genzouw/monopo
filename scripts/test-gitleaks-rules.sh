@@ -89,6 +89,10 @@ ai_envref_assignment="${ai_var}${eq}${env_ref_val}"  # ${...} 参照は許可リ
 ai_redacted_assignment="${ai_var}${eq}${qt}${redacted_val}${qt}"  # <REDACTED> は許可リスト対象
 ai_dummy_assignment="${ai_var}${eq}${qt}${dummy_val}${qt}"  # dummy 系は許可リスト対象
 vertex_path_assignment="${vertex_var}${eq}${qt}./keys/vertex.json${qt}"  # ファイルパス形状の値は allowlist で除外
+# 値の末尾に許可文字集合外の文字（!）が続く場合、接頭辞だけで検知しないことの回帰ケース
+# （例: COHERE_API_KEY="abcdefghij!" は "abcdefghij" として誤検知されてはならない）
+ai_boundary_assignment="${ai_var}${eq}${qt}${rand_a:0:10}!${qt}"
+ai_boundary_assignment_unquoted="${ai_var}${eq}${rand_a:0:10}!"
 
 {
   printf '%s\n' "this-is-not-a-real-token-just-a-word"
@@ -103,6 +107,8 @@ vertex_path_assignment="${vertex_var}${eq}${qt}./keys/vertex.json${qt}"  # フ�
   printf '%s\n' "$ai_envref_assignment"
   printf '%s\n' "$ai_redacted_assignment"
   printf '%s\n' "$ai_dummy_assignment"
+  printf '%s\n' "$ai_boundary_assignment"
+  printf '%s\n' "$ai_boundary_assignment_unquoted"
   printf '%s\n' "$vertex_path_assignment"
 } >"$WORKDIR/negative.txt"
 
