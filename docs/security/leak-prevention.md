@@ -155,7 +155,7 @@ Slack や Discord などのコミュニケーションツール、および Figm
 開発で利用頻度が高まっている新しい AI プロバイダ (Cohere, Mistral, Perplexity, Together AI, Azure OpenAI 等) や VectorDB (Qdrant, Weaviate, Milvus)、および Cloudflare の API トークン・アカウント ID がハードコードされるリスクを防ぐため、リポジトリ直下の `.gitleaks.toml` カスタムルールをさらに拡張しました。
 これにより、特定の新しいプロバイダのクレデンシャル露出リスクもローカルおよび CI の双方で早期に検知・ブロックされます。
 
-**検知範囲**: 上記ルール（`monopo-ai-token-assignment-extended` / `monopo-cloudflare-token-assignment`）は、列挙された変数名（例: `COHERE_API_KEY`, `CLOUDFLARE_API_TOKEN` 等）への代入形式かつ値が10文字以上・限定文字集合（英数字・`._-+/=`）の場合のみを検知対象とします。未認識の変数名、10文字未満の値、代入形式でない生のトークン文字列は検知対象外です。また `${...}` のような環境変数参照、`<REDACTED>`、`dummy` 系のプレースホルダー値は許可リストにより検知対象から除外されます。このため、これらのルールのみで漏洩を完全に防げるわけではなく、有効性検証を行う **TruffleHog** や **Secretlint** による補完層と組み合わせて多層的に防御しています（各ツールにもそれぞれ検知の限界があります）。
+**検知範囲**: 上記ルール（`monopo-ai-token-assignment-extended` / `monopo-cloudflare-token-assignment`）は、列挙された変数名（例: `COHERE_API_KEY`, `CLOUDFLARE_API_TOKEN` 等）への代入形式かつ値が10文字以上・限定文字集合（英数字・`._-+/=`）の場合のみを検知対象とします。未認識の変数名、10文字未満の値、代入形式でない生のトークン文字列は検知対象外です。また `${...}` のような環境変数参照、`<REDACTED>`、`dummy` 系のプレースホルダー値は許可リストにより検知対象から除外されます。`VERTEX_AI_CREDENTIALS` に代入されたファイルパス形状の値（例: `./keys/vertex.json` のような `.json` パス）も同様に許可リストで検知対象から除外されます。一方、サービスアカウントの認証情報を JSON 形式のまま直接代入した場合（例: `VERTEX_AI_CREDENTIALS='{"type":"service_account",...}'`）は、別ルール `monopo-vertex-ai-credentials-json` により検知します。このため、これらのルールのみで漏洩を完全に防げるわけではなく、有効性検証を行う **TruffleHog** や **Secretlint** による補完層と組み合わせて多層的に防御しています（各ツールにもそれぞれ検知の限界があります）。
 
 **マージ前後の確認チェックリスト**:
 

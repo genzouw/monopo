@@ -295,6 +295,18 @@ regexes = [
 ]
 
 [[rules]]
+id = "monopo-vertex-ai-credentials-json"
+description = "VERTEX_AI_CREDENTIALS へのサービスアカウント JSON 認証情報の直接代入を検知（ファイルパスの直接代入は monopo-ai-token-assignment-extended の allowlist で除外済み）"
+# 上記 monopo-ai-token-assignment-extended の値キャプチャ（[A-Za-z0-9._\-+/=]{10,}）は
+# `{` を許可文字集合に含まないため、`VERTEX_AI_CREDENTIALS='{"type":"service_account",...}'` の
+# ようにサービスアカウント JSON を直接代入した場合に未検知となる。本ルールはその値形状
+# （中括弧で始まり中括弧で終わる、ネストしない単一階層の JSON）のみを対象に個別で検知する。
+regex = '''(?i)\bVERTEX_AI_CREDENTIALS\b[\s]*[:=][\s]*["']?(\{[^{}]{10,}\})'''
+tags = ["ai", "api-key", "credential", "assignment", "vertex-ai"]
+secretGroup = 1
+entropy = 0.0
+
+[[rules]]
 id = "monopo-cloudflare-token-assignment"
 description = "Cloudflare API トークンのハードコード検知 (変数名ベース)"
 # 値の終端条件については上記 monopo-ai-token-assignment-extended のコメントを参照。

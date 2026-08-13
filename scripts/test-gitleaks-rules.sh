@@ -65,6 +65,8 @@ cf_assignment="${cf_var}${eq}${qt}${rand_b}${rand_a:0:10}${qt}"
 # VERTEX_AI_CREDENTIALS へのアクセストークン/認証情報値の直接代入（ファイルパス形状ではない）は
 # 検知対象とする（ファイルパス形状の値のみ allowlist で除外する。下記 vertex_path_assignment 参照）
 vertex_assignment="${vertex_var}${eq}${qt}${rand_b}${rand_a:0:12}${qt}"
+# サービスアカウント JSON をそのまま直接代入したケース（monopo-vertex-ai-credentials-json で検知）
+vertex_json_assignment="${vertex_var}${eq}${qt}{${qt}type${qt}:${qt}service_account${qt},${qt}private_key${qt}:${qt}${rand_a}${rand_b}${qt}}${qt}"
 
 {
   printf '%s\n' "$slack_bot"
@@ -76,6 +78,7 @@ vertex_assignment="${vertex_var}${eq}${qt}${rand_b}${rand_a:0:12}${qt}"
   printf '%s\n' "$ai_assignment"
   printf '%s\n' "$cf_assignment"
   printf '%s\n' "$vertex_assignment"
+  printf '%s\n' "$vertex_json_assignment"
 } >"$WORKDIR/positive.txt"
 
 # --- 非検知対象（true negative）フィクスチャ: 類似するが無効な値 ---
@@ -89,6 +92,8 @@ ai_envref_assignment="${ai_var}${eq}${env_ref_val}"  # ${...} 参照は許可リ
 ai_redacted_assignment="${ai_var}${eq}${qt}${redacted_val}${qt}"  # <REDACTED> は許可リスト対象
 ai_dummy_assignment="${ai_var}${eq}${qt}${dummy_val}${qt}"  # dummy 系は許可リスト対象
 vertex_path_assignment="${vertex_var}${eq}${qt}./keys/vertex.json${qt}"  # ファイルパス形状の値は allowlist で除外
+# 中括弧内が10文字未満の JSON 風の値は monopo-vertex-ai-credentials-json でも検知しないことの回帰ケース
+vertex_json_short="${vertex_var}${eq}${qt}{${qt}a${qt}:${qt}1${qt}}${qt}"
 # 値の末尾に許可文字集合外の文字（!）が続く場合、接頭辞だけで検知しないことの回帰ケース
 # （例: COHERE_API_KEY="abcdefghij!" は "abcdefghij" として誤検知されてはならない） # pragma: allowlist secret
 ai_boundary_assignment="${ai_var}${eq}${qt}${rand_a:0:10}!${qt}"
@@ -110,6 +115,7 @@ ai_boundary_assignment_unquoted="${ai_var}${eq}${rand_a:0:10}!"
   printf '%s\n' "$ai_boundary_assignment"
   printf '%s\n' "$ai_boundary_assignment_unquoted"
   printf '%s\n' "$vertex_path_assignment"
+  printf '%s\n' "$vertex_json_short"
 } >"$WORKDIR/negative.txt"
 
 exit_code=0
@@ -119,7 +125,7 @@ pos_report="$WORKDIR/positive-report.json"
 gitleaks detect --no-git --config "$CONFIG" --source "$WORKDIR/positive.txt" \
   --report-format json --report-path "$pos_report" --exit-code 0 >/dev/null
 
-for rule in monopo-slack-token monopo-discord-token monopo-figma-token monopo-ai-token-assignment-extended monopo-cloudflare-token-assignment; do
+for rule in monopo-slack-token monopo-discord-token monopo-figma-token monopo-ai-token-assignment-extended monopo-cloudflare-token-assignment monopo-vertex-ai-credentials-json; do
   count=$(jq "[.[] | select(.RuleID == \"$rule\")] | length" "$pos_report")
   if [ "$count" -lt 1 ]; then
     echo "❌ $rule が検知対象フィクスチャで検知されませんでした（回帰）"
@@ -194,7 +200,7 @@ neg_report="$WORKDIR/negative-report.json"
 gitleaks detect --no-git --config "$CONFIG" --source "$WORKDIR/negative.txt" \
   --report-format json --report-path "$neg_report" --exit-code 0 >/dev/null
 
-for rule in monopo-slack-token monopo-discord-token monopo-figma-token monopo-ai-token-assignment-extended monopo-cloudflare-token-assignment; do
+for rule in monopo-slack-token monopo-discord-token monopo-figma-token monopo-ai-token-assignment-extended monopo-cloudflare-token-assignment monopo-vertex-ai-credentials-json; do
   count=$(jq "[.[] | select(.RuleID == \"$rule\")] | length" "$neg_report")
   if [ "$count" -gt 0 ]; then
     echo "❌ $rule が非検知対象フィクスチャで誤検知されました（${count}件）"
