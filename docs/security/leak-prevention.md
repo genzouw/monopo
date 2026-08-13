@@ -159,7 +159,7 @@ Slack や Discord などのコミュニケーションツール、および Figm
 
 **マージ前後の確認チェックリスト**:
 
-- [ ] GitHub repo settings → Code security → Push protection が有効になっていることを確認する。
+- [ ] GitHub リポジトリ設定 → Code security and analysis（コードのセキュリティと分析）→ Push protection（プッシュ保護）が有効になっていることを確認する。
 - [ ] 開発チーム全体へ、新しいプロバイダの API キーをコミットしないよう周知する。
 - [ ] マージ後、次の push / PR で Gitleaks workflow が green になることを確認する。
 - [ ] マージ後、ローカルで Gitleaks のフックが新しいルールで動作することを確認する。
