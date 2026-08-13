@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # .gitleaks.toml のカスタムルール（monopo-slack-token / monopo-discord-token /
-# monopo-figma-token）の検知範囲を固定するための回帰テスト。
+# monopo-figma-token / monopo-ai-token-assignment-extended /
+# monopo-cloudflare-token-assignment）の検知範囲を固定するための回帰テスト。
 #
 # 有効なトークン形式のフィクスチャが検知され（true positive）、
 # 類似するが無効な値のフィクスチャが誤検知されない（true negative）ことを検証する。
@@ -40,6 +41,18 @@ webhook_host_app="discordapp.com"
 webhook_path="api/webhooks"
 webhook_id="123456789012345678"
 
+# --- 変数名ベースルール（monopo-ai-token-assignment-extended /
+#     monopo-cloudflare-token-assignment）組み立て用の断片 ---
+eq="="
+qt='"'
+ai_var="COHERE_API_KEY"
+cf_var="CLOUDFLARE_API_TOKEN"
+vertex_var="VERTEX_AI_CREDENTIALS"
+ai_var_suffix_only="MY_${ai_var}"  # \b の単語境界チェック用（部分一致で誤検知しないこと）
+env_ref_val='${COHERE_API_KEY}'
+redacted_val="<REDACTED>"
+dummy_val="dummy-token"
+
 # --- 検知対象（true positive）フィクスチャ ---
 slack_bot="xoxb${d}${n10}${d}${n10}${d}${rand_a}"
 slack_user="xoxp${d}${n10}${d}${n10}${d}${n10}${d}${rand_a}${rand_b:0:4}"
@@ -47,6 +60,13 @@ slack_app="xapp${d}1${d}A0${rand_a:0:9}${d}${n13}${d}${rand_hex}"
 slack_rotated="xoxe.xoxp${d}1${d}${rand_a}${rand_b}${rand_a}${rand_b}${rand_a}${rand_b}${rand_a}${rand_b:0:5}"
 discord_webhook="https://${webhook_host}/${webhook_path}/${webhook_id}/${rand_a}${rand_b}${rand_a}"
 figma_token="figd_${rand_a}${rand_b}"
+ai_assignment="${ai_var}${eq}${qt}${rand_a}${qt}"
+cf_assignment="${cf_var}${eq}${qt}${rand_b}${rand_a:0:10}${qt}"
+# VERTEX_AI_CREDENTIALS へのアクセストークン/認証情報値の直接代入（ファイルパス形状ではない）は
+# 検知対象とする（ファイルパス形状の値のみ allowlist で除外する。下記 vertex_path_assignment 参照）
+vertex_assignment="${vertex_var}${eq}${qt}${rand_b}${rand_a:0:12}${qt}"
+# サービスアカウント JSON をそのまま直接代入したケース（monopo-vertex-ai-credentials-json で検知）
+vertex_json_assignment="${vertex_var}${eq}${qt}{${qt}type${qt}:${qt}service_account${qt},${qt}private_key${qt}:${qt}${rand_a}${rand_b}${qt}}${qt}"
 
 {
   printf '%s\n' "$slack_bot"
@@ -55,6 +75,10 @@ figma_token="figd_${rand_a}${rand_b}"
   printf '%s\n' "$slack_rotated"
   printf '%s\n' "$discord_webhook"
   printf '%s\n' "$figma_token"
+  printf '%s\n' "$ai_assignment"
+  printf '%s\n' "$cf_assignment"
+  printf '%s\n' "$vertex_assignment"
+  printf '%s\n' "$vertex_json_assignment"
 } >"$WORKDIR/positive.txt"
 
 # --- 非検知対象（true negative）フィクスチャ: 類似するが無効な値 ---
@@ -62,6 +86,18 @@ slack_badtype="xoxz${d}${n10}${d}${n10}${d}${rand_a}"
 discord_substr1="https://my${webhook_host_app}/${webhook_path}/${webhook_id}/${rand_a}${rand_b}${rand_a}"
 discord_substr2="https://some${webhook_host}/${webhook_path}/${webhook_id}/${rand_a}${rand_b}${rand_a}"
 figma_badprefix="not${figma_token}"
+ai_short_assignment="${ai_var}${eq}${qt}${rand_a:0:9}${qt}"  # 9文字（10文字未満）
+ai_unknown_assignment="${ai_var_suffix_only}${eq}${qt}${rand_a}${qt}"  # 変数名が部分一致のみ
+ai_envref_assignment="${ai_var}${eq}${env_ref_val}"  # ${...} 参照は許可リスト対象
+ai_redacted_assignment="${ai_var}${eq}${qt}${redacted_val}${qt}"  # <REDACTED> は許可リスト対象
+ai_dummy_assignment="${ai_var}${eq}${qt}${dummy_val}${qt}"  # dummy 系は許可リスト対象
+vertex_path_assignment="${vertex_var}${eq}${qt}./keys/vertex.json${qt}"  # ファイルパス形状の値は allowlist で除外
+# 中括弧内が10文字未満の JSON 風の値は monopo-vertex-ai-credentials-json でも検知しないことの回帰ケース
+vertex_json_short="${vertex_var}${eq}${qt}{${qt}a${qt}:${qt}1${qt}}${qt}"
+# 値の末尾に許可文字集合外の文字（!）が続く場合、接頭辞だけで検知しないことの回帰ケース
+# （例: COHERE_API_KEY="abcdefghij!" は "abcdefghij" として誤検知されてはならない） # pragma: allowlist secret
+ai_boundary_assignment="${ai_var}${eq}${qt}${rand_a:0:10}!${qt}"
+ai_boundary_assignment_unquoted="${ai_var}${eq}${rand_a:0:10}!"
 
 {
   printf '%s\n' "this-is-not-a-real-token-just-a-word"
@@ -71,16 +107,25 @@ figma_badprefix="not${figma_token}"
   printf '%s\n' "$discord_substr1"
   printf '%s\n' "$discord_substr2"
   printf '%s\n' "$figma_badprefix"
+  printf '%s\n' "$ai_short_assignment"
+  printf '%s\n' "$ai_unknown_assignment"
+  printf '%s\n' "$ai_envref_assignment"
+  printf '%s\n' "$ai_redacted_assignment"
+  printf '%s\n' "$ai_dummy_assignment"
+  printf '%s\n' "$ai_boundary_assignment"
+  printf '%s\n' "$ai_boundary_assignment_unquoted"
+  printf '%s\n' "$vertex_path_assignment"
+  printf '%s\n' "$vertex_json_short"
 } >"$WORKDIR/negative.txt"
 
 exit_code=0
 
-echo "── 検知対象フィクスチャのスキャン (monopo-slack/discord/figma-token が検知されること) ──"
+echo "── 検知対象フィクスチャのスキャン (monopo-slack/discord/figma-token/ai-token-assignment-extended/cloudflare-token-assignment が検知されること) ──"
 pos_report="$WORKDIR/positive-report.json"
 gitleaks detect --no-git --config "$CONFIG" --source "$WORKDIR/positive.txt" \
   --report-format json --report-path "$pos_report" --exit-code 0 >/dev/null
 
-for rule in monopo-slack-token monopo-discord-token monopo-figma-token; do
+for rule in monopo-slack-token monopo-discord-token monopo-figma-token monopo-ai-token-assignment-extended monopo-cloudflare-token-assignment monopo-vertex-ai-credentials-json; do
   count=$(jq "[.[] | select(.RuleID == \"$rule\")] | length" "$pos_report")
   if [ "$count" -lt 1 ]; then
     echo "❌ $rule が検知対象フィクスチャで検知されませんでした（回帰）"
@@ -107,12 +152,55 @@ else
 fi
 
 echo ""
+echo "── 列挙された変数名を個別に回帰テスト (各変数名が対応する RuleID・検知行と一致すること) ──"
+# 代表1変数の検知だけでは、他の列挙名の正規表現（例: MISTRAL_API_KEY 等）が壊れても
+# 気づけない。列挙された全変数名を1行ずつのフィクスチャとして生成し、行番号ベースで
+# 期待する RuleID と実際の検知行が一致するかを個別に確認する。
+ai_vars=(COHERE_API_KEY MISTRAL_API_KEY PERPLEXITY_API_KEY TOGETHER_API_KEY GEMINI_API_KEY VERTEX_AI_CREDENTIALS AZURE_OPENAI_API_KEY AZURE_OPENAI_KEY QDRANT_API_KEY WEAVIATE_API_KEY MILVUS_API_KEY)
+cf_vars=(CLOUDFLARE_API_KEY CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID CLOUDFLARE_ZONE_ID CF_API_KEY CF_API_TOKEN)
+
+per_var_fixture="$WORKDIR/per-var.txt"
+: >"$per_var_fixture"
+for var in "${ai_vars[@]}"; do
+  printf '%s%s%s%s%s%s\n' "$var" "$eq" "$qt" "$rand_a" "${rand_b:0:2}" "$qt" >>"$per_var_fixture"
+done
+for var in "${cf_vars[@]}"; do
+  printf '%s%s%s%s%s%s\n' "$var" "$eq" "$qt" "$rand_b" "${rand_a:0:10}" "$qt" >>"$per_var_fixture"
+done
+
+per_var_report="$WORKDIR/per-var-report.json"
+gitleaks detect --no-git --config "$CONFIG" --source "$per_var_fixture" \
+  --report-format json --report-path "$per_var_report" --exit-code 0 >/dev/null
+
+line_no=0
+for var in "${ai_vars[@]}"; do
+  line_no=$((line_no + 1))
+  match_count=$(jq "[.[] | select(.RuleID == \"monopo-ai-token-assignment-extended\" and .StartLine == $line_no)] | length" "$per_var_report")
+  if [ "$match_count" -ne 1 ]; then
+    echo "❌ ${var} (${line_no}行目) が monopo-ai-token-assignment-extended として検知されませんでした"
+    exit_code=1
+  else
+    echo "✅ ${var} (${line_no}行目): monopo-ai-token-assignment-extended として検知"
+  fi
+done
+for var in "${cf_vars[@]}"; do
+  line_no=$((line_no + 1))
+  match_count=$(jq "[.[] | select(.RuleID == \"monopo-cloudflare-token-assignment\" and .StartLine == $line_no)] | length" "$per_var_report")
+  if [ "$match_count" -ne 1 ]; then
+    echo "❌ ${var} (${line_no}行目) が monopo-cloudflare-token-assignment として検知されませんでした"
+    exit_code=1
+  else
+    echo "✅ ${var} (${line_no}行目): monopo-cloudflare-token-assignment として検知"
+  fi
+done
+
+echo ""
 echo "── 非検知対象フィクスチャのスキャン (誤検知が発生しないこと) ──"
 neg_report="$WORKDIR/negative-report.json"
 gitleaks detect --no-git --config "$CONFIG" --source "$WORKDIR/negative.txt" \
   --report-format json --report-path "$neg_report" --exit-code 0 >/dev/null
 
-for rule in monopo-slack-token monopo-discord-token monopo-figma-token; do
+for rule in monopo-slack-token monopo-discord-token monopo-figma-token monopo-ai-token-assignment-extended monopo-cloudflare-token-assignment monopo-vertex-ai-credentials-json; do
   count=$(jq "[.[] | select(.RuleID == \"$rule\")] | length" "$neg_report")
   if [ "$count" -gt 0 ]; then
     echo "❌ $rule が非検知対象フィクスチャで誤検知されました（${count}件）"
