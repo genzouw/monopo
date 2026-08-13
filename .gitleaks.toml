@@ -274,10 +274,10 @@ entropy = 0.0
 [[rules]]
 id = "monopo-ai-token-assignment-extended"
 description = "追加のAI トークン・APIキーのハードコード検知 (変数名ベースの汎用検知)"
-# 注: VERTEX_AI_CREDENTIALS はサービスアカウント JSON ファイルへのパスを保持するのが一般的で、
-# トークン文字列を保持する他の変数と異なり、値に "." や "/" を含むファイルパス
-# (例: ./keys/vertex.json) を誤検知するため対象から除外している。
-regex = '''(?i)\b(?:COHERE_API_KEY|MISTRAL_API_KEY|PERPLEXITY_API_KEY|TOGETHER_API_KEY|GEMINI_API_KEY|AZURE_OPENAI_API_KEY|AZURE_OPENAI_KEY|QDRANT_API_KEY|WEAVIATE_API_KEY|MILVUS_API_KEY)\b[\s]*[:=][\s]*["']?([A-Za-z0-9._\-+/=]{10,})["']?'''
+# 注: VERTEX_AI_CREDENTIALS はサービスアカウント JSON ファイルへのパスを保持するのが一般的だが、
+# アクセストークンや認証情報文字列を直接代入するケースも漏洩リスクがあるため検知対象に含める。
+# ファイルパス形状の値（例: ./keys/vertex.json）のみを下記 allowlist で個別に除外する。
+regex = '''(?i)\b(?:COHERE_API_KEY|MISTRAL_API_KEY|PERPLEXITY_API_KEY|TOGETHER_API_KEY|GEMINI_API_KEY|VERTEX_AI_CREDENTIALS|AZURE_OPENAI_API_KEY|AZURE_OPENAI_KEY|QDRANT_API_KEY|WEAVIATE_API_KEY|MILVUS_API_KEY)\b[\s]*[:=][\s]*["']?([A-Za-z0-9._\-+/=]{10,})["']?'''
 tags = ["ai", "api-key", "credential", "assignment"]
 secretGroup = 1
 entropy = 0.0
@@ -286,7 +286,8 @@ regexTarget = "secret"
 regexes = [
     '''(?i)^\$\{[^}]+\}$''',
     '''(?i)^<REDACTED>$''',
-    '''(?i)^dummy(?:[-_](?:token|value|key))?$'''
+    '''(?i)^dummy(?:[-_](?:token|value|key))?$''',
+    '''(?i)^(?:\.{1,2}/|~/|/)?(?:[A-Za-z0-9_.-]+/)*[A-Za-z0-9_.-]+\.json$'''
 ]
 
 [[rules]]

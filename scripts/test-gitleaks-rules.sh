@@ -47,6 +47,7 @@ eq="="
 qt='"'
 ai_var="COHERE_API_KEY"
 cf_var="CLOUDFLARE_API_TOKEN"
+vertex_var="VERTEX_AI_CREDENTIALS"
 ai_var_suffix_only="MY_${ai_var}"  # \b の単語境界チェック用（部分一致で誤検知しないこと）
 env_ref_val='${COHERE_API_KEY}'
 redacted_val="<REDACTED>"
@@ -61,6 +62,9 @@ discord_webhook="https://${webhook_host}/${webhook_path}/${webhook_id}/${rand_a}
 figma_token="figd_${rand_a}${rand_b}"
 ai_assignment="${ai_var}${eq}${qt}${rand_a}${qt}"
 cf_assignment="${cf_var}${eq}${qt}${rand_b}${rand_a:0:10}${qt}"
+# VERTEX_AI_CREDENTIALS へのアクセストークン/認証情報値の直接代入（ファイルパス形状ではない）は
+# 検知対象とする（ファイルパス形状の値のみ allowlist で除外する。下記 vertex_path_assignment 参照）
+vertex_assignment="${vertex_var}${eq}${qt}${rand_b}${rand_a:0:12}${qt}"
 
 {
   printf '%s\n' "$slack_bot"
@@ -71,6 +75,7 @@ cf_assignment="${cf_var}${eq}${qt}${rand_b}${rand_a:0:10}${qt}"
   printf '%s\n' "$figma_token"
   printf '%s\n' "$ai_assignment"
   printf '%s\n' "$cf_assignment"
+  printf '%s\n' "$vertex_assignment"
 } >"$WORKDIR/positive.txt"
 
 # --- 非検知対象（true negative）フィクスチャ: 類似するが無効な値 ---
@@ -83,7 +88,7 @@ ai_unknown_assignment="${ai_var_suffix_only}${eq}${qt}${rand_a}${qt}"  # 変数�
 ai_envref_assignment="${ai_var}${eq}${env_ref_val}"  # ${...} 参照は許可リスト対象
 ai_redacted_assignment="${ai_var}${eq}${qt}${redacted_val}${qt}"  # <REDACTED> は許可リスト対象
 ai_dummy_assignment="${ai_var}${eq}${qt}${dummy_val}${qt}"  # dummy 系は許可リスト対象
-vertex_path_assignment="VERTEX_AI_CREDENTIALS${eq}${qt}./keys/vertex.json${qt}"  # ルール対象外の変数名
+vertex_path_assignment="${vertex_var}${eq}${qt}./keys/vertex.json${qt}"  # ファイルパス形状の値は allowlist で除外
 
 {
   printf '%s\n' "this-is-not-a-real-token-just-a-word"
