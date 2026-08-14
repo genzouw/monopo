@@ -44,7 +44,7 @@ repos:
   # 旧名は 301 リダイレクトで解決するが、旧名で誰かが新規リポジトリを作成した時点で
   # リダイレクトは失われるため、正規名で参照する。
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
-    rev: v1.28.0
+    rev: v1.29.0
     hooks:
       # --offline を明示し、実行モードを環境非依存に固定する。
       # zizmor は GH_TOKEN / GITHUB_TOKEN / ZIZMOR_GITHUB_TOKEN のいずれかが
