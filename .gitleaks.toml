@@ -321,3 +321,32 @@ regexes = [
     '''(?i)^<REDACTED>$''',
     '''(?i)^dummy(?:[-_](?:token|value|key))?$'''
 ]
+
+[[rules]]
+id = "monopo-vite-exposed-secret"
+description = "Vite クライアントサイドへのシークレット露出防止 (VITE_ プレフィックスが付与された機密性の高い変数名の検知)"
+# 値の終端条件については上記 monopo-ai-token-assignment-extended のコメントを参照。
+regex = '''(?i)\bVITE_[A-Z0-9_]*(?:SECRET|PRIVATE|PASSWORD|CREDENTIAL|AUTH|TOKEN|API_KEY|OPENAI|ANTHROPIC|COHERE|MISTRAL|GEMINI|TAVILY|GROQ|DEEPSEEK|SERVICE_ROLE)[A-Z0-9_]*\b[\s]*[:=][\s]*["']?([A-Za-z0-9._\-+/=]{10,})(?:["']|[\s,;)]|$)'''
+tags = ["vite", "frontend", "credential", "assignment"]
+secretGroup = 1
+entropy = 0.0
+[[rules.allowlists]]
+regexTarget = "secret"
+regexes = [
+    '''(?i)^\$\{[^}]+\}$''',
+    '''(?i)^<REDACTED>$''',
+    '''(?i)^dummy(?:[-_](?:token|value|key|password))?$''',
+    '''(?i)^(?:your|my|change[-_]?me|placeholder|sample|example|todo)[a-z0-9._-]*$''',
+    '''(?i)^x{8,}$'''
+]
+# Firebase Web の authDomain（例: VITE_FIREBASE_AUTH_DOMAIN）や Auth0 SPA の
+# domain/clientId（例: VITE_AUTH0_DOMAIN, VITE_AUTH0_CLIENT_ID）は、仕様上クライアントに
+# 公開される値であり秘密情報ではないため、変数名ベースで検知対象から除外する
+# （VITE_AUTH0_CLIENT_ID は本 allowlist で除外後も gitleaks 既定の generic-api-key
+# ルールでは引き続き検知され得る）。
+[[rules.allowlists]]
+regexTarget = "match"
+regexes = [
+    '''(?i)\bVITE_[A-Z0-9_]*AUTH[A-Z0-9_]*_DOMAIN\b''',
+    '''(?i)\bVITE_AUTH0_CLIENT_ID\b'''
+]
