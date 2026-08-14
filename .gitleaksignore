@@ -1,0 +1,15 @@
+# Gitleaks の履歴スキャン（--log-opts="--all"）向け許可リスト。
+# ここに列挙するのは、後続コミットで修正済み・無害と判明したドキュメント例文などの
+# 誤検知のみ。実際の認証情報が含まれていた場合はここに追加せず、直ちにローテーションする。
+#
+# dbd47be: docs/security/leak-prevention.md の VERTEX_AI_CREDENTIALS 検知範囲の説明文中にある
+# JSON形式の例示文字列（'{"type":"service_account",...}'）が、追加した
+# monopo-vertex-ai-credentials-json ルールに自己検知された。実値ではなくドキュメント上の
+# 例示に過ぎないため、次コミット(0d2db28)で本文に gitleaks:allow を追記済みだが、
+# 履歴スキャンでは修正前のコミット自体が引き続き検知されるため、フィンガープリント単位で
+# 明示的に許可する。
+dbd47be06ff67ecc34ab1eddb7984c5234cd4aed:docs/security/leak-prevention.md:monopo-vertex-ai-credentials-json:158
+# 上記と同一コミット・同一箇所の検知だが、リポジトリ全体の履歴走査時（対象ブランチ数が
+# 多い環境）ではリネーム追跡の挙動差により、gitleaks がリネーム前のパス
+# （docs/ プレフィックスなし）で報告するケースを確認したため、念のため両方のパス表記を許可する。
+dbd47be06ff67ecc34ab1eddb7984c5234cd4aed:security/leak-prevention.md:monopo-vertex-ai-credentials-json:158
