@@ -120,6 +120,9 @@ jobs:
               if (aiRes.ok) {
                 const aiData = await aiRes.json();
                 analysis = aiData.choices?.[0]?.message?.content;
+              } else {
+                const errBody = await aiRes.text().catch(() => '');
+                console.warn(`AI Accessibility Review failed: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
               }
             } catch (e) {
               console.warn('GitHub Models request failed or timed out:', String(e));

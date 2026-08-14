@@ -135,7 +135,8 @@ jobs:
                  console.log('AIの出力が期待されるJSON形式ではありませんでした:', analysis);
               }
             } else {
-              console.log('AIリクエストが失敗しました:', await aiRes.text());
+              const errBody = await aiRes.text().catch(() => '');
+              console.warn(`AI Issue Autofix failed: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
             }
 
       - name: Run Generated Fix Script

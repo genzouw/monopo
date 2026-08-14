@@ -101,16 +101,20 @@ jobs:
               return;
             }
 
-            if (aiRes.ok) {
-              const aiData = await aiRes.json();
-              const report = aiData.choices?.[0]?.message?.content;
-              if (report) {
-                await github.rest.issues.create({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  title: `🤖 AI定期コード最適化レポート (${new Date().toISOString().split('T')[0]})`,
-                  body: `### 🤖 AI Code Optimization Report\n\n${report}`,
-                  labels: ['enhancement', 'ai-generated']
-                });
-              }
+            if (!aiRes.ok) {
+              const errBody = await aiRes.text().catch(() => '');
+              console.warn(`AI Code Optimization failed: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
+              return;
+            }
+
+            const aiData = await aiRes.json();
+            const report = aiData.choices?.[0]?.message?.content;
+            if (report) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `🤖 AI定期コード最適化レポート (${new Date().toISOString().split('T')[0]})`,
+                body: `### 🤖 AI Code Optimization Report\n\n${report}`,
+                labels: ['enhancement', 'ai-generated']
+              });
             }

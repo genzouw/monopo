@@ -81,6 +81,9 @@ jobs:
                 } catch (e) {
                   console.log('Failed to parse GitHub Models response as JSON:', e);
                 }
+              } else {
+                const errBody = await aiRes.text().catch(() => '');
+                console.warn(`AI Test Generation failed: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
               }
             } catch (e) {
               console.warn('GitHub Models request failed:', String(e));

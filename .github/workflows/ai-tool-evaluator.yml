@@ -100,15 +100,19 @@ jobs:
               return;
             }
 
-            if (aiRes.ok) {
-              const aiData = await aiRes.json();
-              const evaluation = aiData.choices?.[0]?.message?.content;
-              if (evaluation) {
-                await github.rest.issues.createComment({
-                  issue_number: context.issue.number,
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  body: `### 🤖 AI 自動ツール＆設定評価\n\n${evaluation}`
-                });
-              }
+            if (!aiRes.ok) {
+              const errBody = await aiRes.text().catch(() => '');
+              console.warn(`AI Tool Evaluation failed: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
+              return;
+            }
+
+            const aiData = await aiRes.json();
+            const evaluation = aiData.choices?.[0]?.message?.content;
+            if (evaluation) {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `### 🤖 AI 自動ツール＆設定評価\n\n${evaluation}`
+              });
             }

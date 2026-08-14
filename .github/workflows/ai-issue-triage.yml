@@ -94,6 +94,9 @@ jobs:
                      analysis = content;
                   }
                 } catch (e) {}
+              } else {
+                const errBody = await aiRes.text().catch(() => '');
+                console.warn(`AI Issue Triage failed: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
               }
             } catch (e) {
               console.warn('GitHub Models request failed:', String(e));

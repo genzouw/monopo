@@ -123,6 +123,9 @@ jobs:
               if (aiRes.ok) {
                 const aiData = await aiRes.json();
                 analysis = aiData.choices?.[0]?.message?.content;
+              } else {
+                const errBody = await aiRes.text().catch(() => '');
+                console.warn(`AI Architecture Review failed: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
               }
             } catch (e) {
               console.error('AI inference failed:', e);
