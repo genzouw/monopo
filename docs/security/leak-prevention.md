@@ -175,7 +175,7 @@ Vite では `VITE_` から始まる環境変数がクライアントサイドの
 **検知範囲と限界**: `monopo-vite-exposed-secret` は、`VITE_` プレフィックス配下に機密キーワード（`SECRET` / `PRIVATE` / `PASSWORD` / `CREDENTIAL` / `AUTH` / `TOKEN` / `API_KEY`、および `OPENAI` / `ANTHROPIC` / `COHERE` / `MISTRAL` / `GEMINI` / `TAVILY` / `GROQ` / `DEEPSEEK` / `SERVICE_ROLE` といったプロバイダ名）を含む変数への**代入形式**かつ、値が**10文字以上・限定文字集合（英数字・`._-+/=`）**の場合のみを検知対象とします。したがって以下は**検知対象外**です。
 
 - 上記キーワードを含まない変数名（例: `VITE_MY_KEYSTORE`）への機密値の代入
-- `!` や `@` などの**記号を含む値**（例: `VITE_DATABASE_PASSWORD="p@ssw0rd!123"`）。他の変数名ベースルール（`monopo-ai-token-assignment-extended` 等）と検知範囲を揃えるため、意図的に文字集合を限定しています
+- `!` や `@` などの**記号を含む値**（例: `VITE_DATABASE_PASSWORD="p@ssw0rd!123"` # pragma: allowlist secret）。他の変数名ベースルール（`monopo-ai-token-assignment-extended` 等）と検知範囲を揃えるため、意図的に文字集合を限定しています
 - 10文字未満の値、代入形式でない生のトークン文字列
 - `${...}` のような環境変数参照、`<REDACTED>`、`dummy` 系のプレースホルダー値（allowlist により除外）
 
