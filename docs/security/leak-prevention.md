@@ -163,3 +163,28 @@ Slack や Discord などのコミュニケーションツール、および Figm
 - [ ] 開発チーム全体へ、新しいプロバイダの API キーをコミットしないよう周知する。
 - [ ] マージ後、次の push / PR で Gitleaks workflow が green になることを確認する。
 - [ ] マージ後、ローカルで Gitleaks のフックが新しいルールで動作することを確認する。
+
+### 追加のカスタム漏洩検知・抑止対策 (Gitleaks 強化 - Vite クライアントサイド露出防止)
+
+Vite では `VITE_` から始まる環境変数がクライアントサイドのビルド成果物にそのまま公開される仕様となっています。開発者が誤ってバックエンド用のシークレット（例: `VITE_OPENAI_API_KEY`、`VITE_DATABASE_PASSWORD` など）を定義してフロントエンドに秘密情報を露出させてしまうリスクを防ぐため、リポジトリ直下の `.gitleaks.toml` カスタムルール (`monopo-vite-exposed-secret`) を追加しました。
+これにより、秘匿すべきキーワードを含む `VITE_` プレフィックスの変数への代入がローカルおよび CI の双方で早期に検知・ブロックされます。
+
+> [!IMPORTANT]
+> **`VITE_` 変数には機密値を設定しないでください。** `VITE_` プレフィックスの値はビルド成果物に平文で埋め込まれ、ブラウザから誰でも閲覧できます。本ルールは「うっかり」を減らすための**補助的な検知層**であり、露出を防ぐ保証にはなりません。バックエンド用のシークレットはサーバーサイド（GitHub Actions Secrets 等）にのみ保持してください。
+
+**検知範囲と限界**: `monopo-vite-exposed-secret` は、`VITE_` プレフィックス配下に機密キーワード（`SECRET` / `PRIVATE` / `PASSWORD` / `CREDENTIAL` / `AUTH` / `TOKEN` / `API_KEY`、および `OPENAI` / `ANTHROPIC` / `COHERE` / `MISTRAL` / `GEMINI` / `TAVILY` / `GROQ` / `DEEPSEEK` / `SERVICE_ROLE` といったプロバイダ名）を含む変数への**代入形式**かつ、値が**10文字以上・限定文字集合（英数字・`._-+/=`）**の場合のみを検知対象とします。したがって以下は**検知対象外**です。
+
+- 上記キーワードを含まない変数名（例: `VITE_MY_KEYSTORE`）への機密値の代入
+- `!` や `@` などの**記号を含む値**（例: `VITE_DATABASE_PASSWORD="p@ssw0rd!123"`）。他の変数名ベースルール（`monopo-ai-token-assignment-extended` 等）と検知範囲を揃えるため、意図的に文字集合を限定しています <!-- pragma: allowlist secret -->
+- 10文字未満の値、代入形式でない生のトークン文字列
+- `${...}` のような環境変数参照、`<REDACTED>`、`dummy` 系のプレースホルダー値、および `your` / `my` / `change-me` / `placeholder` / `sample` / `example` / `todo` から始まる値や `x` を8文字以上連続する値（`.env.example` の定番プレースホルダー。allowlist により除外）
+- `VITE_FIREBASE_AUTH_DOMAIN` や `VITE_AUTH0_DOMAIN` / `VITE_AUTH0_CLIENT_ID` のように、Firebase Web の `authDomain` や Auth0 SPA の domain・clientId など**仕様上ブラウザに公開される値**を保持する変数名（allowlist により除外。ただし `VITE_AUTH0_CLIENT_ID` は gitleaks 既定の `generic-api-key` ルールでは引き続き検知され得ます）
+
+また、**リポジトリ外に設定された環境変数は Gitleaks のスキャン対象外**です。GitHub Actions の Secrets / Variables や、Vercel などホスティングサービスの環境変数設定に `VITE_` プレフィックスの機密値が登録されていないかは、**マージ前に人手で確認**してください。
+
+**マージ前後の確認チェックリスト（Vite 露出防止）**:
+
+- [ ] `.env` / `.env.*` および CI 設定に、機密値を持つ `VITE_` 変数が存在しないことを確認する。
+- [ ] GitHub Actions の Secrets / Variables に `VITE_` プレフィックスの機密値が登録されていないことを確認する。
+- [ ] Vercel などホスティングサービスを利用する場合、その環境変数設定にも `VITE_` プレフィックスの機密値が無いことを確認する。
+- [ ] `bash scripts/test-gitleaks-rules.sh` を実行し、キーワードごとの回帰テストが green になることを確認する。
