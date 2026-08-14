@@ -42,12 +42,13 @@ webhook_path="api/webhooks"
 webhook_id="123456789012345678"
 
 # --- 変数名ベースルール（monopo-ai-token-assignment-extended /
-#     monopo-cloudflare-token-assignment）組み立て用の断片 ---
+#     monopo-cloudflare-token-assignment / monopo-vite-exposed-secret）組み立て用の断片 ---
 eq="="
 qt='"'
 ai_var="COHERE_API_KEY"
 cf_var="CLOUDFLARE_API_TOKEN"
 vertex_var="VERTEX_AI_CREDENTIALS"
+vite_var="VITE_OPENAI_API_KEY"
 ai_var_suffix_only="MY_${ai_var}"  # \b の単語境界チェック用（部分一致で誤検知しないこと）
 env_ref_val='${COHERE_API_KEY}'
 redacted_val="<REDACTED>"
@@ -62,6 +63,7 @@ discord_webhook="https://${webhook_host}/${webhook_path}/${webhook_id}/${rand_a}
 figma_token="figd_${rand_a}${rand_b}"
 ai_assignment="${ai_var}${eq}${qt}${rand_a}${qt}"
 cf_assignment="${cf_var}${eq}${qt}${rand_b}${rand_a:0:10}${qt}"
+vite_assignment="${vite_var}${eq}${qt}${rand_a}${qt}"
 # VERTEX_AI_CREDENTIALS へのアクセストークン/認証情報値の直接代入（ファイルパス形状ではない）は
 # 検知対象とする（ファイルパス形状の値のみ allowlist で除外する。下記 vertex_path_assignment 参照）
 vertex_assignment="${vertex_var}${eq}${qt}${rand_b}${rand_a:0:12}${qt}"
@@ -77,6 +79,7 @@ vertex_json_assignment="${vertex_var}${eq}${qt}{${qt}type${qt}:${qt}service_acco
   printf '%s\n' "$figma_token"
   printf '%s\n' "$ai_assignment"
   printf '%s\n' "$cf_assignment"
+  printf '%s\n' "$vite_assignment"
   printf '%s\n' "$vertex_assignment"
   printf '%s\n' "$vertex_json_assignment"
 } >"$WORKDIR/positive.txt"
@@ -94,6 +97,7 @@ ai_dummy_assignment="${ai_var}${eq}${qt}${dummy_val}${qt}"  # dummy 系は許可
 vertex_path_assignment="${vertex_var}${eq}${qt}./keys/vertex.json${qt}"  # ファイルパス形状の値は allowlist で除外
 # 中括弧内が10文字未満の JSON 風の値は monopo-vertex-ai-credentials-json でも検知しないことの回帰ケース
 vertex_json_short="${vertex_var}${eq}${qt}{${qt}a${qt}:${qt}1${qt}}${qt}"
+vite_short_assignment="${vite_var}${eq}${qt}${rand_a:0:9}${qt}"
 # 値の末尾に許可文字集合外の文字（!）が続く場合、接頭辞だけで検知しないことの回帰ケース
 # （例: COHERE_API_KEY="abcdefghij!" は "abcdefghij" として誤検知されてはならない） # pragma: allowlist secret
 ai_boundary_assignment="${ai_var}${eq}${qt}${rand_a:0:10}!${qt}"
@@ -116,6 +120,7 @@ ai_boundary_assignment_unquoted="${ai_var}${eq}${rand_a:0:10}!"
   printf '%s\n' "$ai_boundary_assignment_unquoted"
   printf '%s\n' "$vertex_path_assignment"
   printf '%s\n' "$vertex_json_short"
+  printf '%s\n' "$vite_short_assignment"
 } >"$WORKDIR/negative.txt"
 
 exit_code=0
@@ -125,7 +130,7 @@ pos_report="$WORKDIR/positive-report.json"
 gitleaks detect --no-git --config "$CONFIG" --source "$WORKDIR/positive.txt" \
   --report-format json --report-path "$pos_report" --exit-code 0 >/dev/null
 
-for rule in monopo-slack-token monopo-discord-token monopo-figma-token monopo-ai-token-assignment-extended monopo-cloudflare-token-assignment monopo-vertex-ai-credentials-json; do
+for rule in monopo-slack-token monopo-discord-token monopo-figma-token monopo-ai-token-assignment-extended monopo-cloudflare-token-assignment monopo-vertex-ai-credentials-json monopo-vite-exposed-secret; do
   count=$(jq "[.[] | select(.RuleID == \"$rule\")] | length" "$pos_report")
   if [ "$count" -lt 1 ]; then
     echo "❌ $rule が検知対象フィクスチャで検知されませんでした（回帰）"
@@ -200,7 +205,7 @@ neg_report="$WORKDIR/negative-report.json"
 gitleaks detect --no-git --config "$CONFIG" --source "$WORKDIR/negative.txt" \
   --report-format json --report-path "$neg_report" --exit-code 0 >/dev/null
 
-for rule in monopo-slack-token monopo-discord-token monopo-figma-token monopo-ai-token-assignment-extended monopo-cloudflare-token-assignment monopo-vertex-ai-credentials-json; do
+for rule in monopo-slack-token monopo-discord-token monopo-figma-token monopo-ai-token-assignment-extended monopo-cloudflare-token-assignment monopo-vertex-ai-credentials-json monopo-vite-exposed-secret; do
   count=$(jq "[.[] | select(.RuleID == \"$rule\")] | length" "$neg_report")
   if [ "$count" -gt 0 ]; then
     echo "❌ $rule が非検知対象フィクスチャで誤検知されました（${count}件）"
