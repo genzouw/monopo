@@ -177,7 +177,8 @@ Vite では `VITE_` から始まる環境変数がクライアントサイドの
 - 上記キーワードを含まない変数名（例: `VITE_MY_KEYSTORE`）への機密値の代入
 - `!` や `@` などの**記号を含む値**（例: `VITE_DATABASE_PASSWORD="p@ssw0rd!123"` # pragma: allowlist secret）。他の変数名ベースルール（`monopo-ai-token-assignment-extended` 等）と検知範囲を揃えるため、意図的に文字集合を限定しています
 - 10文字未満の値、代入形式でない生のトークン文字列
-- `${...}` のような環境変数参照、`<REDACTED>`、`dummy` 系のプレースホルダー値（allowlist により除外）
+- `${...}` のような環境変数参照、`<REDACTED>`、`dummy` 系のプレースホルダー値、および `your` / `my` / `change-me` / `placeholder` / `sample` / `example` / `todo` から始まる値や `x` を8文字以上連続する値（`.env.example` の定番プレースホルダー。allowlist により除外）
+- `VITE_FIREBASE_AUTH_DOMAIN` や `VITE_AUTH0_DOMAIN` / `VITE_AUTH0_CLIENT_ID` のように、Firebase Web の `authDomain` や Auth0 SPA の domain・clientId など**仕様上ブラウザに公開される値**を保持する変数名（allowlist により除外。ただし `VITE_AUTH0_CLIENT_ID` は gitleaks 既定の `generic-api-key` ルールでは引き続き検知され得ます）
 
 また、**リポジトリ外に設定された環境変数は Gitleaks のスキャン対象外**です。GitHub Actions の Secrets / Variables や、Vercel などホスティングサービスの環境変数設定に `VITE_` プレフィックスの機密値が登録されていないかは、**マージ前に人手で確認**してください。
 

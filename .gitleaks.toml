@@ -335,7 +335,9 @@ regexTarget = "secret"
 regexes = [
     '''(?i)^\$\{[^}]+\}$''',
     '''(?i)^<REDACTED>$''',
-    '''(?i)^dummy(?:[-_](?:token|value|key|password))?$'''
+    '''(?i)^dummy(?:[-_](?:token|value|key|password))?$''',
+    '''(?i)^(?:your|my|change[-_]?me|placeholder|sample|example|todo)[a-z0-9._-]*$''',
+    '''(?i)^x{8,}$'''
 ]
 # Firebase Web の authDomain（例: VITE_FIREBASE_AUTH_DOMAIN）や Auth0 SPA の
 # domain/clientId（例: VITE_AUTH0_DOMAIN, VITE_AUTH0_CLIENT_ID）は、仕様上クライアントに

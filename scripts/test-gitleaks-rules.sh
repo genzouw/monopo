@@ -109,6 +109,9 @@ vite_dummy_assignment="VITE_DATABASE_PASSWORD${eq}${qt}dummy-password${qt}"
 vite_firebase_auth_domain="VITE_FIREBASE_AUTH_DOMAIN${eq}${qt}myapp-1234.firebaseapp.com${qt}"
 vite_auth0_domain="VITE_AUTH0_DOMAIN${eq}${qt}dev-abc123.us.auth0.com${qt}"
 vite_auth0_client_id="VITE_AUTH0_CLIENT_ID${eq}${qt}${rand_a}${qt}"
+# .env.example で使われる定番プレースホルダーは allowlist（secret target）で除外される
+vite_placeholder_your="VITE_API_TOKEN${eq}${qt}your_token_here${qt}"
+vite_placeholder_changeme="VITE_APP_SECRET${eq}${qt}CHANGE_ME_PLEASE${qt}"
 # 値の末尾に許可文字集合外の文字（!）が続く場合、接頭辞だけで検知しないことの回帰ケース
 # （例: COHERE_API_KEY="abcdefghij!" は "abcdefghij" として誤検知されてはならない） # pragma: allowlist secret
 ai_boundary_assignment="${ai_var}${eq}${qt}${rand_a:0:10}!${qt}"
@@ -138,6 +141,8 @@ ai_boundary_assignment_unquoted="${ai_var}${eq}${rand_a:0:10}!"
   printf '%s\n' "$vite_firebase_auth_domain"
   printf '%s\n' "$vite_auth0_domain"
   printf '%s\n' "$vite_auth0_client_id"
+  printf '%s\n' "$vite_placeholder_your"
+  printf '%s\n' "$vite_placeholder_changeme"
 } >"$WORKDIR/negative.txt"
 
 exit_code=0
