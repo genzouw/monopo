@@ -104,6 +104,11 @@ vite_public_assignment="VITE_APP_TITLE${eq}${qt}${rand_a}${qt}"
 # ${...} 参照・dummy 系プレースホルダーは vite ルールの allowlist 対象
 vite_envref_assignment="${vite_var}${eq}${env_ref_val}"
 vite_dummy_assignment="VITE_DATABASE_PASSWORD${eq}${qt}dummy-password${qt}"
+# Firebase Web の authDomain / Auth0 SPA の domain・clientId は仕様上クライアントに
+# 公開される値であり、monopo-vite-exposed-secret の allowlist（match target）で除外される
+vite_firebase_auth_domain="VITE_FIREBASE_AUTH_DOMAIN${eq}${qt}myapp-1234.firebaseapp.com${qt}"
+vite_auth0_domain="VITE_AUTH0_DOMAIN${eq}${qt}dev-abc123.us.auth0.com${qt}"
+vite_auth0_client_id="VITE_AUTH0_CLIENT_ID${eq}${qt}${rand_a}${qt}"
 # 値の末尾に許可文字集合外の文字（!）が続く場合、接頭辞だけで検知しないことの回帰ケース
 # （例: COHERE_API_KEY="abcdefghij!" は "abcdefghij" として誤検知されてはならない） # pragma: allowlist secret
 ai_boundary_assignment="${ai_var}${eq}${qt}${rand_a:0:10}!${qt}"
@@ -130,6 +135,9 @@ ai_boundary_assignment_unquoted="${ai_var}${eq}${rand_a:0:10}!"
   printf '%s\n' "$vite_public_assignment"
   printf '%s\n' "$vite_envref_assignment"
   printf '%s\n' "$vite_dummy_assignment"
+  printf '%s\n' "$vite_firebase_auth_domain"
+  printf '%s\n' "$vite_auth0_domain"
+  printf '%s\n' "$vite_auth0_client_id"
 } >"$WORKDIR/negative.txt"
 
 exit_code=0
