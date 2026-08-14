@@ -46,22 +46,27 @@ jobs:
               mediaType: { format: 'diff' }
             });
 
-            const tavilyRes = await fetch('https://api.tavily.com/search', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                ...(process.env.TAVILY_API_KEY ? { 'Authorization': `Bearer ${process.env.TAVILY_API_KEY}` } : {})
-              },
-              body: JSON.stringify({
-                query: "2025 latest AI coding tools automated PR review free open source best practices security",
-                search_depth: 'advanced'
-              })
-            });
-
             let searchContext = '検索に失敗しました';
-            if (tavilyRes.ok) {
-              const searchData = await tavilyRes.json();
-              searchContext = searchData.results?.map(r => r.content).join('\n') || '';
+            try {
+              const tavilyRes = await fetch('https://api.tavily.com/search', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  ...(process.env.TAVILY_API_KEY ? { 'Authorization': `Bearer ${process.env.TAVILY_API_KEY}` } : {})
+                },
+                signal: AbortSignal.timeout(30000),
+                body: JSON.stringify({
+                  query: "2025 latest AI coding tools automated PR review free open source best practices security",
+                  search_depth: 'basic'
+                })
+              });
+
+              if (tavilyRes.ok) {
+                const searchData = await tavilyRes.json();
+                searchContext = searchData.results?.map(r => r.content).join('\n') || '';
+              }
+            } catch (e) {
+              console.warn('Tavily search failed:', String(e));
             }
 
             const prompt = `あなたは熟練のDevOpsエンジニアおよびAIツールスペシャリストです。
@@ -74,19 +79,26 @@ jobs:
             ${diff.data.slice(0, 3000)}
             `;
 
-            const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
-              },
-              body: JSON.stringify({
-                model: 'o3-mini',
-                messages: [{ role: 'user', content: prompt }],
-                reasoning_effort: 'high',
-                max_completion_tokens: 15000
-              })
-            });
+            let aiRes;
+            try {
+              aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
+                },
+                signal: AbortSignal.timeout(120000),
+                body: JSON.stringify({
+                  model: 'o3-mini',
+                  messages: [{ role: 'user', content: prompt }],
+                  reasoning_effort: 'high',
+                  max_completion_tokens: 15000
+                })
+              });
+            } catch (e) {
+              console.warn('GitHub Models request failed:', String(e));
+              return;
+            }
 
             if (aiRes.ok) {
               const aiData = await aiRes.json();

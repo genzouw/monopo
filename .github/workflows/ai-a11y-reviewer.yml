@@ -67,10 +67,11 @@ jobs:
             try {
               const tavilyRes = await fetch('https://api.tavily.com/search', {
                 method: 'POST',
+                signal: AbortSignal.timeout(30000),
                 headers: { 'Content-Type': 'application/json', ...(process.env.TAVILY_API_KEY ? { 'Authorization': `Bearer ${process.env.TAVILY_API_KEY}` } : {}) },
                 body: JSON.stringify({
                   query: `2025 latest Web Content Accessibility Guidelines WCAG React UI UX best practices for: ${title}`,
-                  search_depth: 'advanced',
+                  search_depth: 'basic',
                   include_answer: true,
                 }),
               });
@@ -79,7 +80,9 @@ jobs:
                 const searchData = await tavilyRes.json();
                 searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
               }
-            } catch (e) {}
+            } catch (e) {
+              console.warn('Tavily search request failed or timed out:', String(e));
+            }
 
             const prompt = `あなたはアクセシビリティ(A11y)およびUI/UXの専門家です。
             以下のPRの差分、プロジェクトのコードベース、および最新のWeb検索のベストプラクティスをもとに、
@@ -101,6 +104,7 @@ jobs:
             try {
               const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
                 method: 'POST',
+                signal: AbortSignal.timeout(120000),
                 headers: {
                   'Content-Type': 'application/json',
                   'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
@@ -117,7 +121,9 @@ jobs:
                 const aiData = await aiRes.json();
                 analysis = aiData.choices?.[0]?.message?.content;
               }
-            } catch (e) {}
+            } catch (e) {
+              console.warn('GitHub Models request failed or timed out:', String(e));
+            }
 
             if (analysis) {
               await github.rest.issues.createComment({

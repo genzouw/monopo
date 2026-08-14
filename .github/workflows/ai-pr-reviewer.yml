@@ -71,9 +71,10 @@ jobs:
               const tavilyRes = await fetch('https://api.tavily.com/search', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', ...(process.env.TAVILY_API_KEY ? { 'Authorization': `Bearer ${process.env.TAVILY_API_KEY}` } : {}) },
+                signal: AbortSignal.timeout(30000),
                 body: JSON.stringify({
                   query: `2025 latest pull request code review best practices for: ${title}`,
-                  search_depth: 'advanced',
+                  search_depth: 'basic',
                   include_answer: true,
                 }),
               });
@@ -110,25 +111,32 @@ jobs:
             ${prDiff}
             </pr_diff>`;
 
-            const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
-              },
-              body: JSON.stringify({
-                model: 'o3-mini',
-                messages: [
-                  { role: 'developer', content: systemPolicy },
-                  { role: 'user', content: externalInput }
-                ],
-                // o系列モデルの max_completion_tokens は推論トークンと可視出力トークンの合算上限。
-                // 'high' だと推論だけで予算を使い切り、可視出力が空 (finish_reason: 'length') になる恐れがあるため
-                // まずは 'medium' を既定とし、品質とトークン消費を見ながら調整する。
-                reasoning_effort: 'medium',
-                max_completion_tokens: 15000
-              })
-            });
+            let aiRes;
+            try {
+              aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
+                },
+                signal: AbortSignal.timeout(120000),
+                body: JSON.stringify({
+                  model: 'o3-mini',
+                  messages: [
+                    { role: 'developer', content: systemPolicy },
+                    { role: 'user', content: externalInput }
+                  ],
+                  // o系列モデルの max_completion_tokens は推論トークンと可視出力トークンの合算上限。
+                  // 'high' だと推論だけで予算を使い切り、可視出力が空 (finish_reason: 'length') になる恐れがあるため
+                  // まずは 'medium' を既定とし、品質とトークン消費を見ながら調整する。
+                  reasoning_effort: 'medium',
+                  max_completion_tokens: 15000
+                })
+              });
+            } catch (e) {
+              console.warn(`AI Review request failed: ${String(e)}`);
+              return;
+            }
 
             if (!aiRes.ok) {
               // status を残し、無言失敗（ティア別出力上限超過など）の原因追跡を可能にする。
