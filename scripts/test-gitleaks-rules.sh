@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # .gitleaks.toml のカスタムルール（monopo-slack-token / monopo-discord-token /
 # monopo-figma-token / monopo-ai-token-assignment-extended /
-# monopo-cloudflare-token-assignment）の検知範囲を固定するための回帰テスト。
+# monopo-cloudflare-token-assignment / monopo-vite-exposed-secret）の検知範囲を
+# 固定するための回帰テスト。
 #
 # 有効なトークン形式のフィクスチャが検知され（true positive）、
 # 類似するが無効な値のフィクスチャが誤検知されない（true negative）ことを検証する。
@@ -97,7 +98,12 @@ ai_dummy_assignment="${ai_var}${eq}${qt}${dummy_val}${qt}"  # dummy 系は許可
 vertex_path_assignment="${vertex_var}${eq}${qt}./keys/vertex.json${qt}"  # ファイルパス形状の値は allowlist で除外
 # 中括弧内が10文字未満の JSON 風の値は monopo-vertex-ai-credentials-json でも検知しないことの回帰ケース
 vertex_json_short="${vertex_var}${eq}${qt}{${qt}a${qt}:${qt}1${qt}}${qt}"
-vite_short_assignment="${vite_var}${eq}${qt}${rand_a:0:9}${qt}"
+vite_short_assignment="${vite_var}${eq}${qt}${rand_a:0:9}${qt}"  # 9文字（10文字未満）
+# 機密キーワードを含まない VITE_ 変数（クライアントに公開して問題ない設定値）は検知対象外
+vite_public_assignment="VITE_APP_TITLE${eq}${qt}${rand_a}${qt}"
+# ${...} 参照・dummy 系プレースホルダーは vite ルールの allowlist 対象
+vite_envref_assignment="${vite_var}${eq}${env_ref_val}"
+vite_dummy_assignment="VITE_DATABASE_PASSWORD${eq}${qt}dummy-password${qt}"
 # 値の末尾に許可文字集合外の文字（!）が続く場合、接頭辞だけで検知しないことの回帰ケース
 # （例: COHERE_API_KEY="abcdefghij!" は "abcdefghij" として誤検知されてはならない） # pragma: allowlist secret
 ai_boundary_assignment="${ai_var}${eq}${qt}${rand_a:0:10}!${qt}"
@@ -121,6 +127,9 @@ ai_boundary_assignment_unquoted="${ai_var}${eq}${rand_a:0:10}!"
   printf '%s\n' "$vertex_path_assignment"
   printf '%s\n' "$vertex_json_short"
   printf '%s\n' "$vite_short_assignment"
+  printf '%s\n' "$vite_public_assignment"
+  printf '%s\n' "$vite_envref_assignment"
+  printf '%s\n' "$vite_dummy_assignment"
 } >"$WORKDIR/negative.txt"
 
 exit_code=0
@@ -163,6 +172,28 @@ echo "── 列挙された変数名を個別に回帰テスト (各変数名�
 # 期待する RuleID と実際の検知行が一致するかを個別に確認する。
 ai_vars=(COHERE_API_KEY MISTRAL_API_KEY PERPLEXITY_API_KEY TOGETHER_API_KEY GEMINI_API_KEY VERTEX_AI_CREDENTIALS AZURE_OPENAI_API_KEY AZURE_OPENAI_KEY QDRANT_API_KEY WEAVIATE_API_KEY MILVUS_API_KEY)
 cf_vars=(CLOUDFLARE_API_KEY CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID CLOUDFLARE_ZONE_ID CF_API_KEY CF_API_TOKEN)
+# monopo-vite-exposed-secret は変数名の「完全一致」ではなく、VITE_ プレフィックス配下の
+# キーワード（SECRET / PASSWORD / OPENAI 等）の部分一致で検知する。キーワードごとに分岐が
+# 存在するため、代表1変数（VITE_OPENAI_API_KEY）の検知だけでは他のキーワード分岐が壊れても
+# 気づけない。正規表現に列挙された全キーワードを1つずつ網羅する変数名を生成して検証する。
+vite_vars=(
+  VITE_APP_SECRET            # SECRET
+  VITE_PRIVATE_KEY           # PRIVATE
+  VITE_DATABASE_PASSWORD     # PASSWORD
+  VITE_GCP_CREDENTIAL        # CREDENTIAL
+  VITE_BASIC_AUTH            # AUTH
+  VITE_ACCESS_TOKEN          # TOKEN
+  VITE_STRIPE_API_KEY        # API_KEY
+  VITE_OPENAI_API_KEY        # OPENAI
+  VITE_ANTHROPIC_KEY         # ANTHROPIC
+  VITE_COHERE_KEY            # COHERE
+  VITE_MISTRAL_KEY           # MISTRAL
+  VITE_GEMINI_KEY            # GEMINI
+  VITE_TAVILY_KEY            # TAVILY
+  VITE_GROQ_KEY              # GROQ
+  VITE_DEEPSEEK_KEY          # DEEPSEEK
+  VITE_SUPABASE_SERVICE_ROLE # SERVICE_ROLE
+)
 
 per_var_fixture="$WORKDIR/per-var.txt"
 : >"$per_var_fixture"
@@ -171,6 +202,9 @@ for var in "${ai_vars[@]}"; do
 done
 for var in "${cf_vars[@]}"; do
   printf '%s%s%s%s%s%s\n' "$var" "$eq" "$qt" "$rand_b" "${rand_a:0:10}" "$qt" >>"$per_var_fixture"
+done
+for var in "${vite_vars[@]}"; do
+  printf '%s%s%s%s%s%s\n' "$var" "$eq" "$qt" "$rand_a" "${rand_b:0:2}" "$qt" >>"$per_var_fixture"
 done
 
 per_var_report="$WORKDIR/per-var-report.json"
@@ -196,6 +230,16 @@ for var in "${cf_vars[@]}"; do
     exit_code=1
   else
     echo "✅ ${var} (${line_no}行目): monopo-cloudflare-token-assignment として検知"
+  fi
+done
+for var in "${vite_vars[@]}"; do
+  line_no=$((line_no + 1))
+  match_count=$(jq "[.[] | select(.RuleID == \"monopo-vite-exposed-secret\" and .StartLine == $line_no)] | length" "$per_var_report")
+  if [ "$match_count" -ne 1 ]; then
+    echo "❌ ${var} (${line_no}行目) が monopo-vite-exposed-secret として検知されませんでした"
+    exit_code=1
+  else
+    echo "✅ ${var} (${line_no}行目): monopo-vite-exposed-secret として検知"
   fi
 done
 
