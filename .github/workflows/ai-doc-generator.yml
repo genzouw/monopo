@@ -116,10 +116,11 @@ jobs:
                 const aiData = await aiRes.json();
                 generatedDoc = aiData.choices?.[0]?.message?.content;
               } else {
-                console.log(`Azure inference failed: ${aiRes.status}`);
+                const errBody = await aiRes.text().catch(() => '');
+                console.warn(`AI Doc Generation failed: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
               }
             } catch (e) {
-              console.log('Azure inference request failed:', e);
+              console.warn('GitHub Models request failed:', String(e));
             }
 
             if (generatedDoc) {
