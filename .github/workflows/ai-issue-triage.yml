@@ -98,7 +98,9 @@ jobs:
                   } else {
                      analysis = content;
                   }
-                } catch (e) {}
+                } catch (e) {
+                  core.warning(`AI Issue Triage returned unparsable content: ${String(e)}`);
+                }
               } else {
                 const errBody = await aiRes.text().catch(() => '');
                 core.warning(`AI Issue Triage failed: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
