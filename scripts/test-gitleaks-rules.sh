@@ -106,7 +106,10 @@ frontend_envref_assignment="${frontend_var}${eq}${env_ref_val}"
 frontend_dummy_assignment="NUXT_PUBLIC_DATABASE_PASSWORD${eq}${qt}dummy-password${qt}"
 # Firebase Web の authDomain / Auth0 SPA の domain・clientId は仕様上クライアントに
 # 公開される値であり、monopo-frontend-exposed-secret の allowlist（match target）で除外される
-frontend_firebase_auth_domain="GATSBY_FIREBASE_AUTH_DOMAIN${eq}${qt}myapp-1234.firebaseapp.com${qt}"
+# 値は secret target の許可プレースホルダー（^(?:your|my|change-me|placeholder|sample|example|todo)...）に
+# 先に一致しないよう、"my" 等で始まらない値を使う（そうでないと match target の
+# ドメイン/clientId allowlist を一度も通らずに negative 判定となり、回帰対象を検証できない）
+frontend_firebase_auth_domain="GATSBY_FIREBASE_AUTH_DOMAIN${eq}${qt}acme-1234.firebaseapp.com${qt}"
 frontend_auth0_domain="NEXT_PUBLIC_AUTH0_DOMAIN${eq}${qt}dev-abc123.us.auth0.com${qt}"
 frontend_auth0_client_id="NEXT_PUBLIC_AUTH0_CLIENT_ID${eq}${qt}${rand_a}${qt}"
 # .env.example で使われる定番プレースホルダーは allowlist（secret target）で除外される
