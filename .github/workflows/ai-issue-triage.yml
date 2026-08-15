@@ -63,7 +63,8 @@ jobs:
             Issue本文: ${issueBody}
             検索結果の要約: ${searchAnswer}`;
 
-            let analysis = 'ラベルの提案に失敗しました。';
+            // 生成に失敗した場合は null のままとし、Issue へのコメント投稿自体を見送る
+            let analysis = null;
             let parsedResult = null;
             try {
               // GH_MODELS_TOKEN 未設定時は API を叩かずに中断し、Actions の注釈で検知できるようにする
@@ -106,14 +107,19 @@ jobs:
               core.warning(`GitHub Models request failed: ${String(e)}`);
             }
 
-            const body = `### 🤖 AI Issue トリアージ提案\n\n${analysis}`;
+            // ラベル付与は成否に関わらず後続で判定するため、ここでは return せずコメント投稿だけを見送る
+            if (analysis) {
+              const body = `### 🤖 AI Issue トリアージ提案\n\n${analysis}`;
 
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: body
-            });
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body
+              });
+            } else {
+              core.warning('AI Issue トリアージ提案を生成できなかったため Issue へのコメントを見送ります。');
+            }
 
             if (parsedResult && parsedResult.label) {
                try {

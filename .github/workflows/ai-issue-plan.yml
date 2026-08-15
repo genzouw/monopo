@@ -79,7 +79,8 @@ jobs:
             ${searchAnswer}
             </web_search_summary>`;
 
-            let plan = 'タスクリストの生成に失敗しました。';
+            // 生成に失敗した場合は null のままとし、Issue へのコメント投稿自体を見送る
+            let plan = null;
             try {
               // GH_MODELS_TOKEN 未設定時は API を叩かずに中断し、Actions の注釈で検知できるようにする
               if (!process.env.GH_MODELS_TOKEN) {
@@ -116,6 +117,11 @@ jobs:
               }
             } catch (e) {
               core.warning(`GitHub Models request failed: ${String(e)}`);
+            }
+
+            if (!plan) {
+              core.warning('AI 実装計画を生成できなかったため Issue へのコメントを見送ります。');
+              return;
             }
 
             const body = `### 🤖 AI 実装計画 (たたき台)\n\n${plan}`;
