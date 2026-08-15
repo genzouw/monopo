@@ -342,12 +342,16 @@ regexes = [
 # Firebase Web の authDomain（例: VITE_FIREBASE_AUTH_DOMAIN）や Auth0 SPA の
 # domain/clientId（例: VITE_AUTH0_DOMAIN, VITE_AUTH0_CLIENT_ID）は、仕様上クライアントに
 # 公開される値であり秘密情報ではないため、変数名ベースで検知対象から除外する
-# （VITE_AUTH0_CLIENT_ID は本 allowlist で除外後も gitleaks 既定の generic-api-key
+# （このallowlistで除外後も、値の形状次第では gitleaks 既定の generic-api-key
 # ルールでは引き続き検知され得る）。
-# 注: プレフィックス直後が FIREBASE_AUTH_DOMAIN / AUTH0_DOMAIN に完全一致する変数名のみを
-# 除外対象とする。「AUTH」と「_DOMAIN」を含む任意の変数名（例: NEXT_PUBLIC_PRIVATE_AUTH_DOMAIN、
-# VITE_AUTH_SERVER_DOMAIN）まで広く許可すると、PRIVATE 等の機密キーワードを含む変数の
-# 検知漏れにつながるため、Firebase/Auth0 の公開値に対応する変数名のみへ限定している。
+# 注: プレフィックス直後が FIREBASE_AUTH_DOMAIN / AUTH0_DOMAIN / AUTH0_CLIENT_ID に完全一致する
+# 変数名のみを除外対象とする。「AUTH」と「_DOMAIN」を含む任意の変数名（例:
+# NEXT_PUBLIC_PRIVATE_AUTH_DOMAIN、VITE_AUTH_SERVER_DOMAIN）まで広く許可すると、PRIVATE 等の
+# 機密キーワードを含む変数の検知漏れにつながるため、Firebase/Auth0 の公開値に対応する
+# 変数名のみへ限定している。AUTH0_CLIENT_ID も他の2つと同じプレフィックス群（VITE / NEXT_PUBLIC /
+# EXPO_PUBLIC / NUXT_PUBLIC / GATSBY）を対象とする。Auth0 SPA の clientId がブラウザに公開される
+# 値であることはフロントエンドフレームワークの種類とは無関係であり、プレフィックスを非対称に
+# 限定する根拠が無いため。
 # 注2: regexTarget が "match"（変数名と値を含む代入全体）であるため、変数名一致は match の
 # 先頭に固定し、直後に空白の有無を問わず ":" または "=" が続くことも必須とする
 # （^ アンカー + [[:space:]]* + [:=]）。検知側の regex（[\s]*[:=][\s]*）と終端条件を揃えることで、
@@ -358,6 +362,5 @@ regexes = [
 [[rules.allowlists]]
 regexTarget = "match"
 regexes = [
-    '''(?i)^(?:VITE|NEXT_PUBLIC|EXPO_PUBLIC|NUXT_PUBLIC|GATSBY)_(?:FIREBASE_AUTH_DOMAIN|AUTH0_DOMAIN)\b[[:space:]]*[:=]''',
-    '''(?i)^VITE_AUTH0_CLIENT_ID\b[[:space:]]*[:=]'''
+    '''(?i)^(?:VITE|NEXT_PUBLIC|EXPO_PUBLIC|NUXT_PUBLIC|GATSBY)_(?:FIREBASE_AUTH_DOMAIN|AUTH0_DOMAIN|AUTH0_CLIENT_ID)\b[[:space:]]*[:=]'''
 ]

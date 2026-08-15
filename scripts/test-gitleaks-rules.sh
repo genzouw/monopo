@@ -108,7 +108,7 @@ frontend_dummy_assignment="NUXT_PUBLIC_DATABASE_PASSWORD${eq}${qt}dummy-password
 # 公開される値であり、monopo-frontend-exposed-secret の allowlist（match target）で除外される
 frontend_firebase_auth_domain="GATSBY_FIREBASE_AUTH_DOMAIN${eq}${qt}myapp-1234.firebaseapp.com${qt}"
 frontend_auth0_domain="NEXT_PUBLIC_AUTH0_DOMAIN${eq}${qt}dev-abc123.us.auth0.com${qt}"
-frontend_auth0_client_id="VITE_AUTH0_CLIENT_ID${eq}${qt}${rand_a}${qt}"
+frontend_auth0_client_id="NEXT_PUBLIC_AUTH0_CLIENT_ID${eq}${qt}${rand_a}${qt}"
 # .env.example で使われる定番プレースホルダーは allowlist（secret target）で除外される
 frontend_placeholder_your="EXPO_PUBLIC_API_TOKEN${eq}${qt}your_token_here${qt}"
 frontend_placeholder_changeme="NEXT_PUBLIC_APP_SECRET${eq}${qt}CHANGE_ME_PLEASE${qt}"
