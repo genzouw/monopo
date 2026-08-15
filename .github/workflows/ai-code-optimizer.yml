@@ -1,8 +1,11 @@
 name: AI Code Optimizer
 
 on:
-  schedule:
-    - cron: '0 0 * * 0' # 毎週日曜日に実行
+  # GitHub Models が廃止プロセス（retirement brownout）に入り HTTP 410 を返すため、
+  # 移行先が決まるまでスケジュール実行を停止する（詳細は Issue #539）。
+  # 手動実行は workflow_dispatch から可能。復旧時は以下のコメントを解除すること。
+  # schedule:
+  #   - cron: '0 0 * * 0' # 毎週日曜日に実行
   workflow_dispatch:
 
 permissions:
