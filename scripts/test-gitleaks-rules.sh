@@ -147,7 +147,7 @@ ai_boundary_assignment_unquoted="${ai_var}${eq}${rand_a:0:10}!"
 
 exit_code=0
 
-echo "── 検知対象フィクスチャのスキャン (monopo-slack/discord/figma-token/ai-token-assignment-extended/cloudflare-token-assignment が検知されること) ──"
+echo "── 検知対象フィクスチャのスキャン (monopo-slack/discord/figma-token/ai-token-assignment-extended/cloudflare-token-assignment/vertex-ai-credentials-json/frontend-exposed-secret が検知されること) ──"
 pos_report="$WORKDIR/positive-report.json"
 gitleaks detect --no-git --config "$CONFIG" --source "$WORKDIR/positive.txt" \
   --report-format json --report-path "$pos_report" --exit-code 0 >/dev/null
