@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # .gitleaks.toml のカスタムルール（monopo-slack-token / monopo-discord-token /
 # monopo-figma-token / monopo-ai-token-assignment-extended /
-# monopo-cloudflare-token-assignment / monopo-vite-exposed-secret）の検知範囲を
+# monopo-cloudflare-token-assignment / monopo-frontend-exposed-secret）の検知範囲を
 # 固定するための回帰テスト。
 #
 # 有効なトークン形式のフィクスチャが検知され（true positive）、
@@ -43,13 +43,13 @@ webhook_path="api/webhooks"
 webhook_id="123456789012345678"
 
 # --- 変数名ベースルール（monopo-ai-token-assignment-extended /
-#     monopo-cloudflare-token-assignment / monopo-vite-exposed-secret）組み立て用の断片 ---
+#     monopo-cloudflare-token-assignment / monopo-frontend-exposed-secret）組み立て用の断片 ---
 eq="="
 qt='"'
 ai_var="COHERE_API_KEY"
 cf_var="CLOUDFLARE_API_TOKEN"
 vertex_var="VERTEX_AI_CREDENTIALS"
-vite_var="VITE_OPENAI_API_KEY"
+vite_var="NEXT_PUBLIC_OPENAI_API_KEY"
 ai_var_suffix_only="MY_${ai_var}"  # \b の単語境界チェック用（部分一致で誤検知しないこと）
 env_ref_val='${COHERE_API_KEY}'
 redacted_val="<REDACTED>"
@@ -100,18 +100,18 @@ vertex_path_assignment="${vertex_var}${eq}${qt}./keys/vertex.json${qt}"  # フ�
 vertex_json_short="${vertex_var}${eq}${qt}{${qt}a${qt}:${qt}1${qt}}${qt}"
 vite_short_assignment="${vite_var}${eq}${qt}${rand_a:0:9}${qt}"  # 9文字（10文字未満）
 # 機密キーワードを含まない VITE_ 変数（クライアントに公開して問題ない設定値）は検知対象外
-vite_public_assignment="VITE_APP_TITLE${eq}${qt}${rand_a}${qt}"
+vite_public_assignment="EXPO_PUBLIC_APP_TITLE${eq}${qt}${rand_a}${qt}"
 # ${...} 参照・dummy 系プレースホルダーは vite ルールの allowlist 対象
 vite_envref_assignment="${vite_var}${eq}${env_ref_val}"
-vite_dummy_assignment="VITE_DATABASE_PASSWORD${eq}${qt}dummy-password${qt}"
+vite_dummy_assignment="NUXT_PUBLIC_DATABASE_PASSWORD${eq}${qt}dummy-password${qt}"
 # Firebase Web の authDomain / Auth0 SPA の domain・clientId は仕様上クライアントに
-# 公開される値であり、monopo-vite-exposed-secret の allowlist（match target）で除外される
-vite_firebase_auth_domain="VITE_FIREBASE_AUTH_DOMAIN${eq}${qt}myapp-1234.firebaseapp.com${qt}"
-vite_auth0_domain="VITE_AUTH0_DOMAIN${eq}${qt}dev-abc123.us.auth0.com${qt}"
+# 公開される値であり、monopo-frontend-exposed-secret の allowlist（match target）で除外される
+vite_firebase_auth_domain="GATSBY_FIREBASE_AUTH_DOMAIN${eq}${qt}myapp-1234.firebaseapp.com${qt}"
+vite_auth0_domain="NEXT_PUBLIC_AUTH0_DOMAIN${eq}${qt}dev-abc123.us.auth0.com${qt}"
 vite_auth0_client_id="VITE_AUTH0_CLIENT_ID${eq}${qt}${rand_a}${qt}"
 # .env.example で使われる定番プレースホルダーは allowlist（secret target）で除外される
-vite_placeholder_your="VITE_API_TOKEN${eq}${qt}your_token_here${qt}"
-vite_placeholder_changeme="VITE_APP_SECRET${eq}${qt}CHANGE_ME_PLEASE${qt}"
+vite_placeholder_your="EXPO_PUBLIC_API_TOKEN${eq}${qt}your_token_here${qt}"
+vite_placeholder_changeme="NEXT_PUBLIC_APP_SECRET${eq}${qt}CHANGE_ME_PLEASE${qt}"
 # 値の末尾に許可文字集合外の文字（!）が続く場合、接頭辞だけで検知しないことの回帰ケース
 # （例: COHERE_API_KEY="abcdefghij!" は "abcdefghij" として誤検知されてはならない） # pragma: allowlist secret
 ai_boundary_assignment="${ai_var}${eq}${qt}${rand_a:0:10}!${qt}"
@@ -152,7 +152,7 @@ pos_report="$WORKDIR/positive-report.json"
 gitleaks detect --no-git --config "$CONFIG" --source "$WORKDIR/positive.txt" \
   --report-format json --report-path "$pos_report" --exit-code 0 >/dev/null
 
-for rule in monopo-slack-token monopo-discord-token monopo-figma-token monopo-ai-token-assignment-extended monopo-cloudflare-token-assignment monopo-vertex-ai-credentials-json monopo-vite-exposed-secret; do
+for rule in monopo-slack-token monopo-discord-token monopo-figma-token monopo-ai-token-assignment-extended monopo-cloudflare-token-assignment monopo-vertex-ai-credentials-json monopo-frontend-exposed-secret; do
   count=$(jq "[.[] | select(.RuleID == \"$rule\")] | length" "$pos_report")
   if [ "$count" -lt 1 ]; then
     echo "❌ $rule が検知対象フィクスチャで検知されませんでした（回帰）"
@@ -185,27 +185,27 @@ echo "── 列挙された変数名を個別に回帰テスト (各変数名�
 # 期待する RuleID と実際の検知行が一致するかを個別に確認する。
 ai_vars=(COHERE_API_KEY MISTRAL_API_KEY PERPLEXITY_API_KEY TOGETHER_API_KEY GEMINI_API_KEY VERTEX_AI_CREDENTIALS AZURE_OPENAI_API_KEY AZURE_OPENAI_KEY QDRANT_API_KEY WEAVIATE_API_KEY MILVUS_API_KEY)
 cf_vars=(CLOUDFLARE_API_KEY CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID CLOUDFLARE_ZONE_ID CF_API_KEY CF_API_TOKEN)
-# monopo-vite-exposed-secret は変数名の「完全一致」ではなく、VITE_ プレフィックス配下の
+# monopo-frontend-exposed-secret は変数名の「完全一致」ではなく、NEXT_PUBLIC_ 等のプレフィックス配下の
 # キーワード（SECRET / PASSWORD / OPENAI 等）の部分一致で検知する。キーワードごとに分岐が
-# 存在するため、代表1変数（VITE_OPENAI_API_KEY）の検知だけでは他のキーワード分岐が壊れても
+# 存在するため、代表1変数（NEXT_PUBLIC_OPENAI_API_KEY）の検知だけでは他のキーワード分岐が壊れても
 # 気づけない。正規表現に列挙された全キーワードを1つずつ網羅する変数名を生成して検証する。
 vite_vars=(
-  VITE_APP_SECRET            # SECRET
-  VITE_PRIVATE_KEY           # PRIVATE
-  VITE_DATABASE_PASSWORD     # PASSWORD
-  VITE_GCP_CREDENTIAL        # CREDENTIAL
-  VITE_BASIC_AUTH            # AUTH
-  VITE_ACCESS_TOKEN          # TOKEN
-  VITE_STRIPE_API_KEY        # API_KEY
-  VITE_OPENAI_API_KEY        # OPENAI
-  VITE_ANTHROPIC_KEY         # ANTHROPIC
-  VITE_COHERE_KEY            # COHERE
-  VITE_MISTRAL_KEY           # MISTRAL
-  VITE_GEMINI_KEY            # GEMINI
-  VITE_TAVILY_KEY            # TAVILY
-  VITE_GROQ_KEY              # GROQ
-  VITE_DEEPSEEK_KEY          # DEEPSEEK
-  VITE_SUPABASE_SERVICE_ROLE # SERVICE_ROLE
+  NEXT_PUBLIC_APP_SECRET            # SECRET
+  EXPO_PUBLIC_PRIVATE_KEY           # PRIVATE
+  NUXT_PUBLIC_DATABASE_PASSWORD     # PASSWORD
+  GATSBY_GCP_CREDENTIAL             # CREDENTIAL
+  VITE_BASIC_AUTH                   # AUTH
+  NEXT_PUBLIC_ACCESS_TOKEN          # TOKEN
+  EXPO_PUBLIC_STRIPE_API_KEY        # API_KEY
+  NUXT_PUBLIC_OPENAI_API_KEY        # OPENAI
+  GATSBY_ANTHROPIC_KEY              # ANTHROPIC
+  VITE_COHERE_KEY                   # COHERE
+  NEXT_PUBLIC_MISTRAL_KEY           # MISTRAL
+  EXPO_PUBLIC_GEMINI_KEY            # GEMINI
+  NUXT_PUBLIC_TAVILY_KEY            # TAVILY
+  GATSBY_GROQ_KEY                   # GROQ
+  VITE_DEEPSEEK_KEY                 # DEEPSEEK
+  NEXT_PUBLIC_SUPABASE_SERVICE_ROLE # SERVICE_ROLE
 )
 
 per_var_fixture="$WORKDIR/per-var.txt"
@@ -247,12 +247,12 @@ for var in "${cf_vars[@]}"; do
 done
 for var in "${vite_vars[@]}"; do
   line_no=$((line_no + 1))
-  match_count=$(jq "[.[] | select(.RuleID == \"monopo-vite-exposed-secret\" and .StartLine == $line_no)] | length" "$per_var_report")
+  match_count=$(jq "[.[] | select(.RuleID == \"monopo-frontend-exposed-secret\" and .StartLine == $line_no)] | length" "$per_var_report")
   if [ "$match_count" -ne 1 ]; then
-    echo "❌ ${var} (${line_no}行目) が monopo-vite-exposed-secret として検知されませんでした"
+    echo "❌ ${var} (${line_no}行目) が monopo-frontend-exposed-secret として検知されませんでした"
     exit_code=1
   else
-    echo "✅ ${var} (${line_no}行目): monopo-vite-exposed-secret として検知"
+    echo "✅ ${var} (${line_no}行目): monopo-frontend-exposed-secret として検知"
   fi
 done
 
@@ -262,7 +262,7 @@ neg_report="$WORKDIR/negative-report.json"
 gitleaks detect --no-git --config "$CONFIG" --source "$WORKDIR/negative.txt" \
   --report-format json --report-path "$neg_report" --exit-code 0 >/dev/null
 
-for rule in monopo-slack-token monopo-discord-token monopo-figma-token monopo-ai-token-assignment-extended monopo-cloudflare-token-assignment monopo-vertex-ai-credentials-json monopo-vite-exposed-secret; do
+for rule in monopo-slack-token monopo-discord-token monopo-figma-token monopo-ai-token-assignment-extended monopo-cloudflare-token-assignment monopo-vertex-ai-credentials-json monopo-frontend-exposed-secret; do
   count=$(jq "[.[] | select(.RuleID == \"$rule\")] | length" "$neg_report")
   if [ "$count" -gt 0 ]; then
     echo "❌ $rule が非検知対象フィクスチャで誤検知されました（${count}件）"
