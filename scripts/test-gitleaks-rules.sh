@@ -198,6 +198,26 @@ else
 fi
 
 echo ""
+echo "── 認証ドメイン allowlist のバイパス防止チェック (許可変数名を無関係な秘密値へ埋め込んでも検知が回避されないこと) ──"
+# 認証ドメイン allowlist（match target）は match の先頭（変数名の直後）に一致することを必須とする
+# （^ アンカー + [[:space:]]* + "="）。アンカーが無いと、allowlist 対象外の秘密変数（例:
+# NEXT_PUBLIC_APP_SECRET）の値の中に許可変数名の文字列を埋め込むだけで（例:
+# NEXT_PUBLIC_APP_SECRET="VITE_AUTH0_DOMAIN=<secret>"）allowlist が誤って一致し、
+# 本来検知すべき秘密の検知を回避できてしまう。その回帰を防ぐ。
+auth_domain_bypass="NEXT_PUBLIC_APP_SECRET${eq}${qt}VITE_AUTH0_DOMAIN${eq}${rand_a}${qt}"
+auth_domain_bypass_report="$WORKDIR/auth-domain-bypass-report.json"
+printf '%s\n' "$auth_domain_bypass" >"$WORKDIR/auth-domain-bypass.txt"
+gitleaks detect --no-git --config "$CONFIG" --source "$WORKDIR/auth-domain-bypass.txt" \
+  --report-format json --report-path "$auth_domain_bypass_report" --exit-code 0 >/dev/null
+auth_domain_bypass_count=$(jq '[.[] | select(.RuleID == "monopo-frontend-exposed-secret")] | length' "$auth_domain_bypass_report")
+if [ "$auth_domain_bypass_count" -lt 1 ]; then
+  echo "❌ 許可変数名を値に埋め込んだ NEXT_PUBLIC_APP_SECRET が monopo-frontend-exposed-secret として検知されませんでした（allowlist バイパスの回帰）"
+  exit_code=1
+else
+  echo "✅ 許可変数名を値に埋め込んでも monopo-frontend-exposed-secret として検知されました（allowlist の先頭アンカーが機能）"
+fi
+
+echo ""
 echo "── 列挙された変数名を個別に回帰テスト (各変数名が対応する RuleID・検知行と一致すること) ──"
 # 代表1変数の検知だけでは、他の列挙名の正規表現（例: MISTRAL_API_KEY 等）が壊れても
 # 気づけない。列挙された全変数名を1行ずつのフィクスチャとして生成し、行番号ベースで
