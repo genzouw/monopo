@@ -221,6 +221,25 @@ else
 fi
 
 echo ""
+echo "── プレースホルダー allowlist の過剰一致防止チェック (プレースホルダー語で始まるだけの実在値が除外されないこと) ──"
+# プレースホルダー allowlist（secret target）は、プレースホルダー語の直後に区切り文字
+# （- / _ / .）が続く場合のみ一致する。区切りを要求しないと、`my` / `example` / `sample` で
+# 始まるだけの camelCase の実在シークレット（プレースホルダー語に区切り無しで英数字が続く値）
+# まで丸ごと検知対象から外れてしまう。その回帰を防ぐ。
+placeholder_prefixed_secret="NEXT_PUBLIC_APP_SECRET${eq}${qt}my${rand_a}${qt}"  # pragma: allowlist secret
+placeholder_prefixed_report="$WORKDIR/placeholder-prefixed-report.json"
+printf '%s\n' "$placeholder_prefixed_secret" >"$WORKDIR/placeholder-prefixed.txt"
+gitleaks detect --no-git --config "$CONFIG" --source "$WORKDIR/placeholder-prefixed.txt" \
+  --report-format json --report-path "$placeholder_prefixed_report" --exit-code 0 >/dev/null
+placeholder_prefixed_count=$(jq '[.[] | select(.RuleID == "monopo-frontend-exposed-secret")] | length' "$placeholder_prefixed_report")
+if [ "$placeholder_prefixed_count" -lt 1 ]; then
+  echo "❌ プレースホルダー語で始まるだけの実在値が monopo-frontend-exposed-secret として検知されませんでした（allowlist が広すぎる回帰）"
+  exit_code=1
+else
+  echo "✅ プレースホルダー語で始まるだけの実在値が monopo-frontend-exposed-secret として検知されました（allowlist が区切り文字を要求）"
+fi
+
+echo ""
 echo "── 列挙された変数名を個別に回帰テスト (各変数名が対応する RuleID・検知行と一致すること) ──"
 # 代表1変数の検知だけでは、他の列挙名の正規表現（例: MISTRAL_API_KEY 等）が壊れても
 # 気づけない。列挙された全変数名を1行ずつのフィクスチャとして生成し、行番号ベースで

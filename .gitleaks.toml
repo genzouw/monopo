@@ -336,7 +336,10 @@ regexes = [
     '''(?i)^\$\{[^}]+\}$''',
     '''(?i)^<REDACTED>$''',
     '''(?i)^dummy(?:[-_](?:token|value|key|password))?$''',
-    '''(?i)^(?:your|my|change[-_]?me|placeholder|sample|example|todo)[a-z0-9._-]*$''',
+    # プレースホルダー語の直後には区切り文字（`-` / `_` / `.`）を要求し、語単独も許す。
+    # 区切りを要求しないと `mySuperSecretValue123` のような camelCase の実在シークレットまで
+    # 除外されてしまうため（`my` / `example` / `sample` 始まりは実際の命名として珍しくない）。
+    '''(?i)^(?:your|my|change[-_]?me|placeholder|sample|example|todo)(?:[-_.][a-z0-9._-]*)?$''',
     '''(?i)^x{8,}$'''
 ]
 # Firebase Web の authDomain（例: VITE_FIREBASE_AUTH_DOMAIN）や Auth0 SPA の
