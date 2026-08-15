@@ -179,6 +179,25 @@ else
 fi
 
 echo ""
+echo "── 認証ドメイン allowlist の限定チェック (Firebase/Auth0 以外の AUTH*_DOMAIN 変数は allowlist 対象外で検知されること) ──"
+# monopo-frontend-exposed-secret の allowlist（match target）は、Firebase の authDomain と
+# Auth0 の domain（FIREBASE_AUTH_DOMAIN / AUTH0_DOMAIN への完全一致）のみを除外対象とする。
+# 「AUTH」と「_DOMAIN」を含む任意の変数名まで広く除外すると、PRIVATE 等の機密キーワードを
+# 含む変数（例: NEXT_PUBLIC_PRIVATE_AUTH_DOMAIN）まで検知漏れとなるため、その回帰を防ぐ。
+auth_domain_leak="NEXT_PUBLIC_PRIVATE_AUTH_DOMAIN${eq}${qt}${rand_a}${qt}"
+auth_domain_report="$WORKDIR/auth-domain-report.json"
+printf '%s\n' "$auth_domain_leak" >"$WORKDIR/auth-domain.txt"
+gitleaks detect --no-git --config "$CONFIG" --source "$WORKDIR/auth-domain.txt" \
+  --report-format json --report-path "$auth_domain_report" --exit-code 0 >/dev/null
+auth_domain_count=$(jq '[.[] | select(.RuleID == "monopo-frontend-exposed-secret")] | length' "$auth_domain_report")
+if [ "$auth_domain_count" -lt 1 ]; then
+  echo "❌ NEXT_PUBLIC_PRIVATE_AUTH_DOMAIN が monopo-frontend-exposed-secret として検知されませんでした（allowlist が広すぎる回帰）"
+  exit_code=1
+else
+  echo "✅ NEXT_PUBLIC_PRIVATE_AUTH_DOMAIN が monopo-frontend-exposed-secret として検知されました（Firebase/Auth0 以外の AUTH*_DOMAIN は allowlist 対象外）"
+fi
+
+echo ""
 echo "── 列挙された変数名を個別に回帰テスト (各変数名が対応する RuleID・検知行と一致すること) ──"
 # 代表1変数の検知だけでは、他の列挙名の正規表現（例: MISTRAL_API_KEY 等）が壊れても
 # 気づけない。列挙された全変数名を1行ずつのフィクスチャとして生成し、行番号ベースで

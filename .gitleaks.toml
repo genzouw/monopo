@@ -344,9 +344,13 @@ regexes = [
 # 公開される値であり秘密情報ではないため、変数名ベースで検知対象から除外する
 # （VITE_AUTH0_CLIENT_ID は本 allowlist で除外後も gitleaks 既定の generic-api-key
 # ルールでは引き続き検知され得る）。
+# 注: プレフィックス直後が FIREBASE_AUTH_DOMAIN / AUTH0_DOMAIN に完全一致する変数名のみを
+# 除外対象とする。「AUTH」と「_DOMAIN」を含む任意の変数名（例: NEXT_PUBLIC_PRIVATE_AUTH_DOMAIN、
+# VITE_AUTH_SERVER_DOMAIN）まで広く許可すると、PRIVATE 等の機密キーワードを含む変数の
+# 検知漏れにつながるため、Firebase/Auth0 の公開値に対応する変数名のみへ限定している。
 [[rules.allowlists]]
 regexTarget = "match"
 regexes = [
-    '''(?i)\b(?:VITE|NEXT_PUBLIC|EXPO_PUBLIC|NUXT_PUBLIC|GATSBY)_[A-Z0-9_]*AUTH[A-Z0-9_]*_DOMAIN\b''',
+    '''(?i)\b(?:VITE|NEXT_PUBLIC|EXPO_PUBLIC|NUXT_PUBLIC|GATSBY)_(?:FIREBASE_AUTH_DOMAIN|AUTH0_DOMAIN)\b''',
     '''(?i)\bVITE_AUTH0_CLIENT_ID\b'''
 ]
