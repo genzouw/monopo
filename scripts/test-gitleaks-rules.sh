@@ -202,7 +202,7 @@ echo "── 認証ドメイン allowlist のバイパス防止チェック (許
 # 認証ドメイン allowlist（match target）は match の先頭（変数名の直後）に一致することを必須とする
 # （^ アンカー + [[:space:]]* + "="）。アンカーが無いと、allowlist 対象外の秘密変数（例:
 # NEXT_PUBLIC_APP_SECRET）の値の中に許可変数名の文字列を埋め込むだけで（例:
-# NEXT_PUBLIC_APP_SECRET="VITE_AUTH0_DOMAIN=<secret>"）allowlist が誤って一致し、
+# NEXT_PUBLIC_APP_SECRET="VITE_AUTH0_DOMAIN=<secret>"）allowlist が誤って一致し、 # pragma: allowlist secret
 # 本来検知すべき秘密の検知を回避できてしまう。その回帰を防ぐ。
 auth_domain_bypass="NEXT_PUBLIC_APP_SECRET${eq}${qt}VITE_AUTH0_DOMAIN${eq}${rand_a}${qt}"
 auth_domain_bypass_report="$WORKDIR/auth-domain-bypass-report.json"

@@ -351,7 +351,7 @@ regexes = [
 # 注2: regexTarget が "match"（変数名と値を含む代入全体）であるため、変数名一致は match の
 # 先頭に固定し、直後に空白の有無を問わず "=" が続くことも必須とする（^ アンカー + [[:space:]]* + =）。
 # 先頭アンカーが無いと、無関係な変数の秘密値の中に許可変数名の文字列を埋め込むだけで
-# （例: NEXT_PUBLIC_API_KEY="VITE_AUTH0_DOMAIN=xxxxxxxxxx"）allowlist が誤って一致し、
+# （例: NEXT_PUBLIC_API_KEY="VITE_AUTH0_DOMAIN=xxxxxxxxxx"）allowlist が誤って一致し、 # pragma: allowlist secret
 # 本来検知すべき秘密の検知を回避されてしまう。
 [[rules.allowlists]]
 regexTarget = "match"
