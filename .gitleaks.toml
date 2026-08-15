@@ -349,13 +349,15 @@ regexes = [
 # VITE_AUTH_SERVER_DOMAIN）まで広く許可すると、PRIVATE 等の機密キーワードを含む変数の
 # 検知漏れにつながるため、Firebase/Auth0 の公開値に対応する変数名のみへ限定している。
 # 注2: regexTarget が "match"（変数名と値を含む代入全体）であるため、変数名一致は match の
-# 先頭に固定し、直後に空白の有無を問わず "=" が続くことも必須とする（^ アンカー + [[:space:]]* + =）。
+# 先頭に固定し、直後に空白の有無を問わず ":" または "=" が続くことも必須とする
+# （^ アンカー + [[:space:]]* + [:=]）。検知側の regex（[\s]*[:=][\s]*）と終端条件を揃えることで、
+# YAML/JSON 形式（KEY: value）の代入も除外漏れなく一致させる。
 # 先頭アンカーが無いと、無関係な変数の秘密値の中に許可変数名の文字列を埋め込むだけで
 # （例: NEXT_PUBLIC_API_KEY="VITE_AUTH0_DOMAIN=xxxxxxxxxx"）allowlist が誤って一致し、 # pragma: allowlist secret
 # 本来検知すべき秘密の検知を回避されてしまう。
 [[rules.allowlists]]
 regexTarget = "match"
 regexes = [
-    '''(?i)^(?:VITE|NEXT_PUBLIC|EXPO_PUBLIC|NUXT_PUBLIC|GATSBY)_(?:FIREBASE_AUTH_DOMAIN|AUTH0_DOMAIN)\b[[:space:]]*=''',
-    '''(?i)^VITE_AUTH0_CLIENT_ID\b[[:space:]]*='''
+    '''(?i)^(?:VITE|NEXT_PUBLIC|EXPO_PUBLIC|NUXT_PUBLIC|GATSBY)_(?:FIREBASE_AUTH_DOMAIN|AUTH0_DOMAIN)\b[[:space:]]*[:=]''',
+    '''(?i)^VITE_AUTH0_CLIENT_ID\b[[:space:]]*[:=]'''
 ]
