@@ -49,7 +49,7 @@ qt='"'
 ai_var="COHERE_API_KEY"
 cf_var="CLOUDFLARE_API_TOKEN"
 vertex_var="VERTEX_AI_CREDENTIALS"
-vite_var="NEXT_PUBLIC_OPENAI_API_KEY"
+frontend_var="NEXT_PUBLIC_OPENAI_API_KEY"
 ai_var_suffix_only="MY_${ai_var}"  # \b の単語境界チェック用（部分一致で誤検知しないこと）
 env_ref_val='${COHERE_API_KEY}'
 redacted_val="<REDACTED>"
@@ -64,7 +64,7 @@ discord_webhook="https://${webhook_host}/${webhook_path}/${webhook_id}/${rand_a}
 figma_token="figd_${rand_a}${rand_b}"
 ai_assignment="${ai_var}${eq}${qt}${rand_a}${qt}"
 cf_assignment="${cf_var}${eq}${qt}${rand_b}${rand_a:0:10}${qt}"
-vite_assignment="${vite_var}${eq}${qt}${rand_a}${qt}"
+frontend_assignment="${frontend_var}${eq}${qt}${rand_a}${qt}"
 # VERTEX_AI_CREDENTIALS へのアクセストークン/認証情報値の直接代入（ファイルパス形状ではない）は
 # 検知対象とする（ファイルパス形状の値のみ allowlist で除外する。下記 vertex_path_assignment 参照）
 vertex_assignment="${vertex_var}${eq}${qt}${rand_b}${rand_a:0:12}${qt}"
@@ -80,7 +80,7 @@ vertex_json_assignment="${vertex_var}${eq}${qt}{${qt}type${qt}:${qt}service_acco
   printf '%s\n' "$figma_token"
   printf '%s\n' "$ai_assignment"
   printf '%s\n' "$cf_assignment"
-  printf '%s\n' "$vite_assignment"
+  printf '%s\n' "$frontend_assignment"
   printf '%s\n' "$vertex_assignment"
   printf '%s\n' "$vertex_json_assignment"
 } >"$WORKDIR/positive.txt"
@@ -98,20 +98,20 @@ ai_dummy_assignment="${ai_var}${eq}${qt}${dummy_val}${qt}"  # dummy 系は許可
 vertex_path_assignment="${vertex_var}${eq}${qt}./keys/vertex.json${qt}"  # ファイルパス形状の値は allowlist で除外
 # 中括弧内が10文字未満の JSON 風の値は monopo-vertex-ai-credentials-json でも検知しないことの回帰ケース
 vertex_json_short="${vertex_var}${eq}${qt}{${qt}a${qt}:${qt}1${qt}}${qt}"
-vite_short_assignment="${vite_var}${eq}${qt}${rand_a:0:9}${qt}"  # 9文字（10文字未満）
-# 機密キーワードを含まない VITE_ 変数（クライアントに公開して問題ない設定値）は検知対象外
-vite_public_assignment="EXPO_PUBLIC_APP_TITLE${eq}${qt}${rand_a}${qt}"
-# ${...} 参照・dummy 系プレースホルダーは vite ルールの allowlist 対象
-vite_envref_assignment="${vite_var}${eq}${env_ref_val}"
-vite_dummy_assignment="NUXT_PUBLIC_DATABASE_PASSWORD${eq}${qt}dummy-password${qt}"
+frontend_short_assignment="${frontend_var}${eq}${qt}${rand_a:0:9}${qt}"  # 9文字（10文字未満）
+# 機密キーワードを含まない公開プレフィックス変数（クライアントに公開して問題ない設定値）は検知対象外
+frontend_public_assignment="EXPO_PUBLIC_APP_TITLE${eq}${qt}${rand_a}${qt}"
+# ${...} 参照・dummy 系プレースホルダーはフロントエンド公開プレフィックスルールの allowlist 対象
+frontend_envref_assignment="${frontend_var}${eq}${env_ref_val}"
+frontend_dummy_assignment="NUXT_PUBLIC_DATABASE_PASSWORD${eq}${qt}dummy-password${qt}"
 # Firebase Web の authDomain / Auth0 SPA の domain・clientId は仕様上クライアントに
 # 公開される値であり、monopo-frontend-exposed-secret の allowlist（match target）で除外される
-vite_firebase_auth_domain="GATSBY_FIREBASE_AUTH_DOMAIN${eq}${qt}myapp-1234.firebaseapp.com${qt}"
-vite_auth0_domain="NEXT_PUBLIC_AUTH0_DOMAIN${eq}${qt}dev-abc123.us.auth0.com${qt}"
-vite_auth0_client_id="VITE_AUTH0_CLIENT_ID${eq}${qt}${rand_a}${qt}"
+frontend_firebase_auth_domain="GATSBY_FIREBASE_AUTH_DOMAIN${eq}${qt}myapp-1234.firebaseapp.com${qt}"
+frontend_auth0_domain="NEXT_PUBLIC_AUTH0_DOMAIN${eq}${qt}dev-abc123.us.auth0.com${qt}"
+frontend_auth0_client_id="VITE_AUTH0_CLIENT_ID${eq}${qt}${rand_a}${qt}"
 # .env.example で使われる定番プレースホルダーは allowlist（secret target）で除外される
-vite_placeholder_your="EXPO_PUBLIC_API_TOKEN${eq}${qt}your_token_here${qt}"
-vite_placeholder_changeme="NEXT_PUBLIC_APP_SECRET${eq}${qt}CHANGE_ME_PLEASE${qt}"
+frontend_placeholder_your="EXPO_PUBLIC_API_TOKEN${eq}${qt}your_token_here${qt}"
+frontend_placeholder_changeme="NEXT_PUBLIC_APP_SECRET${eq}${qt}CHANGE_ME_PLEASE${qt}"
 # 値の末尾に許可文字集合外の文字（!）が続く場合、接頭辞だけで検知しないことの回帰ケース
 # （例: COHERE_API_KEY="abcdefghij!" は "abcdefghij" として誤検知されてはならない） # pragma: allowlist secret
 ai_boundary_assignment="${ai_var}${eq}${qt}${rand_a:0:10}!${qt}"
@@ -134,15 +134,15 @@ ai_boundary_assignment_unquoted="${ai_var}${eq}${rand_a:0:10}!"
   printf '%s\n' "$ai_boundary_assignment_unquoted"
   printf '%s\n' "$vertex_path_assignment"
   printf '%s\n' "$vertex_json_short"
-  printf '%s\n' "$vite_short_assignment"
-  printf '%s\n' "$vite_public_assignment"
-  printf '%s\n' "$vite_envref_assignment"
-  printf '%s\n' "$vite_dummy_assignment"
-  printf '%s\n' "$vite_firebase_auth_domain"
-  printf '%s\n' "$vite_auth0_domain"
-  printf '%s\n' "$vite_auth0_client_id"
-  printf '%s\n' "$vite_placeholder_your"
-  printf '%s\n' "$vite_placeholder_changeme"
+  printf '%s\n' "$frontend_short_assignment"
+  printf '%s\n' "$frontend_public_assignment"
+  printf '%s\n' "$frontend_envref_assignment"
+  printf '%s\n' "$frontend_dummy_assignment"
+  printf '%s\n' "$frontend_firebase_auth_domain"
+  printf '%s\n' "$frontend_auth0_domain"
+  printf '%s\n' "$frontend_auth0_client_id"
+  printf '%s\n' "$frontend_placeholder_your"
+  printf '%s\n' "$frontend_placeholder_changeme"
 } >"$WORKDIR/negative.txt"
 
 exit_code=0
@@ -208,7 +208,7 @@ cf_vars=(CLOUDFLARE_API_KEY CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID CLOUDFLAR
 # キーワード（SECRET / PASSWORD / OPENAI 等）の部分一致で検知する。キーワードごとに分岐が
 # 存在するため、代表1変数（NEXT_PUBLIC_OPENAI_API_KEY）の検知だけでは他のキーワード分岐が壊れても
 # 気づけない。正規表現に列挙された全キーワードを1つずつ網羅する変数名を生成して検証する。
-vite_vars=(
+frontend_vars=(
   NEXT_PUBLIC_APP_SECRET            # SECRET
   EXPO_PUBLIC_PRIVATE_KEY           # PRIVATE
   NUXT_PUBLIC_DATABASE_PASSWORD     # PASSWORD
@@ -235,7 +235,7 @@ done
 for var in "${cf_vars[@]}"; do
   printf '%s%s%s%s%s%s\n' "$var" "$eq" "$qt" "$rand_b" "${rand_a:0:10}" "$qt" >>"$per_var_fixture"
 done
-for var in "${vite_vars[@]}"; do
+for var in "${frontend_vars[@]}"; do
   printf '%s%s%s%s%s%s\n' "$var" "$eq" "$qt" "$rand_a" "${rand_b:0:2}" "$qt" >>"$per_var_fixture"
 done
 
@@ -264,7 +264,7 @@ for var in "${cf_vars[@]}"; do
     echo "✅ ${var} (${line_no}行目): monopo-cloudflare-token-assignment として検知"
   fi
 done
-for var in "${vite_vars[@]}"; do
+for var in "${frontend_vars[@]}"; do
   line_no=$((line_no + 1))
   match_count=$(jq "[.[] | select(.RuleID == \"monopo-frontend-exposed-secret\" and .StartLine == $line_no)] | length" "$per_var_report")
   if [ "$match_count" -ne 1 ]; then
