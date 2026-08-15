@@ -184,7 +184,7 @@ Vite では `VITE_` から始まる環境変数が、Next.js では `NEXT_PUBLIC
 
 **マージ前後の確認チェックリスト（フロントエンド露出防止）**:
 
-- [ ] `.env` / `.env.*` および CI 設定に、機密値を持つ `VITE_` 変数が存在しないことを確認する。
-- [ ] GitHub Actions の Secrets / Variables に `VITE_` プレフィックスの機密値が登録されていないことを確認する。
-- [ ] Vercel などホスティングサービスを利用する場合、その環境変数設定にも `VITE_` プレフィックスの機密値が無いことを確認する。
+- [ ] `.env` / `.env.*` および CI 設定に、機密値を持つ `VITE_`、`NEXT_PUBLIC_`、`EXPO_PUBLIC_`、`NUXT_PUBLIC_`、`GATSBY_` 変数（すべての公開プレフィックス）が存在しないことを確認する。
+- [ ] GitHub Actions の Secrets / Variables に上記すべての公開プレフィックスの機密値が登録されていないことを確認する。
+- [ ] Vercel などホスティングサービスを利用する場合、その環境変数設定にも上記すべての公開プレフィックスの機密値が無いことを確認する。
 - [ ] `bash scripts/test-gitleaks-rules.sh` を実行し、キーワードごとの回帰テストが green になることを確認する。
