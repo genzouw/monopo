@@ -96,13 +96,13 @@ jobs:
                 })
               });
             } catch (e) {
-              console.warn('GitHub Models request failed:', String(e));
+              core.warning(`GitHub Models request failed: ${String(e)}`);
               return;
             }
 
             if (!aiRes.ok) {
               const errBody = await aiRes.text().catch(() => '');
-              console.warn(`AI Tool Evaluation failed: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
+              core.warning(`AI Tool Evaluation failed: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
               return;
             }
 

@@ -96,10 +96,10 @@ jobs:
                 } catch (e) {}
               } else {
                 const errBody = await aiRes.text().catch(() => '');
-                console.warn(`AI Issue Triage failed: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
+                core.warning(`AI Issue Triage failed: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
               }
             } catch (e) {
-              console.warn('GitHub Models request failed:', String(e));
+              core.warning(`GitHub Models request failed: ${String(e)}`);
             }
 
             const body = `### 🤖 AI Issue トリアージ提案\n\n${analysis}`;

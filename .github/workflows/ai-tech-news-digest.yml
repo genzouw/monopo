@@ -86,10 +86,10 @@ jobs:
                 report = aiData.choices?.[0]?.message?.content || report;
               } else {
                 const errBody = await aiRes.text().catch(() => '');
-                console.warn(`AI Tech News Digest failed: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
+                core.warning(`AI Tech News Digest failed: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
               }
             } catch (e) {
-              console.warn('GitHub Models request failed:', String(e));
+              core.warning(`GitHub Models request failed: ${String(e)}`);
             }
 
             if (report) {

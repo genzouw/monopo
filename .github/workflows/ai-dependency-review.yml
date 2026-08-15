@@ -86,14 +86,13 @@ jobs:
                 })
               });
             } catch (e) {
-              console.warn('GitHub Models request failed:', String(e));
+              core.warning(`GitHub Models request failed: ${String(e)}`);
               return;
             }
 
             if (!response.ok) {
               const errorBody = await response.text().catch(() => '<failed to read body>');
-              console.log(`GitHub Models API error: ${response.status} ${response.statusText}`);
-              console.log('Response body:', errorBody);
+              core.warning(`GitHub Models API error: ${response.status} ${response.statusText} ${String(errorBody).slice(0, 500)}`);
               return;
             }
 
@@ -101,7 +100,7 @@ jobs:
             const analysis = data.choices?.[0]?.message?.content;
 
             if (!analysis) {
-              console.log('No analysis returned from GitHub Models.', JSON.stringify(data));
+              core.warning(`No analysis returned from GitHub Models. ${JSON.stringify(data).slice(0, 500)}`);
               return;
             }
 

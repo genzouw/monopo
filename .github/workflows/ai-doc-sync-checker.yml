@@ -133,13 +133,13 @@ jobs:
                 })
               });
             } catch (error) {
-              console.warn(`AI Analysis request failed: ${String(error)}`);
+              core.warning(`AI Analysis request failed: ${String(error)}`);
               return;
             }
 
             if (!aiRes.ok) {
               const errBody = await aiRes.text().catch(() => '');
-              console.warn(`AI Analysis failed: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
+              core.warning(`AI Analysis failed: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
               return;
             }
 
@@ -147,7 +147,7 @@ jobs:
             try {
               aiData = await aiRes.json();
             } catch (error) {
-              console.warn(`AI Analysis returned invalid JSON: ${String(error)}`);
+              core.warning(`AI Analysis returned invalid JSON: ${String(error)}`);
               return;
             }
 
@@ -157,7 +157,7 @@ jobs:
             if (!analysis || analysis.trim().length === 0) {
               // content 空は推論トークンが max_completion_tokens を使い切ったサイン。
               // 無言スキップを避けて finish_reason をログに残す。
-              console.warn(`AI analysis returned empty content (finish_reason: ${choice?.finish_reason ?? 'unknown'}). 推論トークンが max_completion_tokens を使い切った可能性があります。`);
+              core.warning(`AI analysis returned empty content (finish_reason: ${choice?.finish_reason ?? 'unknown'}). 推論トークンが max_completion_tokens を使い切った可能性があります。`);
               return;
             }
 

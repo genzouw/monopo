@@ -108,7 +108,7 @@ jobs:
                 })
               });
             } catch (e) {
-              console.warn('GitHub Models request failed:', String(e));
+              core.warning(`GitHub Models request failed: ${String(e)}`);
               return;
             }
 
@@ -125,18 +125,18 @@ jobs:
                   fs.writeFileSync('auto-fix.cjs', parsed.script);
                   console.log('修正スクリプトが生成されました。');
                 } else {
-                  console.log('JSONレスポンスにスクリプトが含まれていません。');
+                  core.warning('JSONレスポンスにスクリプトが含まれていません。');
                 }
 
                 if (parsed.explanation) {
                    fs.writeFileSync('auto-fix-explanation.txt', parsed.explanation);
                 }
               } catch (err) {
-                 console.log('AIの出力が期待されるJSON形式ではありませんでした:', analysis);
+                 core.warning(`AIの出力が期待されるJSON形式ではありませんでした: ${String(analysis).slice(0, 500)}`);
               }
             } else {
               const errBody = await aiRes.text().catch(() => '');
-              console.warn(`AI Issue Autofix failed: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
+              core.warning(`AI Issue Autofix failed: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
             }
 
       - name: Run Generated Fix Script

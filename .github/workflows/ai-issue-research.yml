@@ -92,15 +92,14 @@ jobs:
                   const aiData = await aiRes.json();
                   plan = aiData.choices?.[0]?.message?.content || plan;
                 } catch (e) {
-                  console.log('Failed to parse GitHub Models response as JSON:', e);
+                  core.warning(`Failed to parse GitHub Models response as JSON: ${String(e)}`);
                 }
               } else {
                 const errorBody = await aiRes.text().catch(() => '<failed to read body>');
-                console.log(`GitHub Models request failed: ${aiRes.status} ${aiRes.statusText}`);
-                console.log('Response body:', errorBody);
+                core.warning(`GitHub Models request failed: ${aiRes.status} ${aiRes.statusText} ${String(errorBody).slice(0, 500)}`);
               }
             } catch (e) {
-              console.warn('GitHub Models request failed:', String(e));
+              core.warning(`GitHub Models request failed: ${String(e)}`);
             }
 
             let body = `### 🤖 AI リサーチ結果 & 実装計画\n\n${plan}\n\n#### 参考ソース\n`;
