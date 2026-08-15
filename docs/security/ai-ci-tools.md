@@ -127,6 +127,21 @@ PR作成時にプロンプトへの変更（`prompts/**`）が含まれている
      - `GH_MODELS_TOKEN`: GitHub Models APIにアクセスするためのトークン。
      - `TAVILY_API_KEY`: Tavily Search APIを利用するためのAPIキー。
 
+## 新規: Code Review AI の設定
+
+GitHub Marketplace の [Code Review AI](https://github.com/marketplace/code-review-ai) を利用した、AIによるプルリクエストの自動レビュー・品質向上ツールを導入しました。
+このツールは、Pull Request の差分に対して潜在的な問題の検出と修正案の提示を行います（リポジトリ全体を読み込む `contents` 権限は要求しません）。
+
+1. **GitHub App のインストール (必須)**
+   - [Code Review AI ページ](https://github.com/marketplace/code-review-ai) から対象リポジトリへ GitHub App としてインストールしてください。
+   - 無料プラン (Free tier) の上限は **1 リポジトリ / 月 10 レビュー**です。本リポジトリの PR 流量では月の早い段階で上限に達し、それ以降はレビューコメントが投稿されません（エラー通知はありません）。
+   - 上限到達時に CI が失敗することはないため、レビューが来ないこと自体は異常ではない点に注意してください。
+2. **セキュリティ上の留意点**
+   - 要求権限は `metadata: read` / `issues: write` / `pull requests: write` です。コード本体（`contents`）への権限は要求しません。
+   - パブリッシャーは GitHub 未検証（Verified Owner ではない）で、組織の 2FA 必須化も行われていません。パブリッシャー側のアカウント侵害時、PR・Issue へ書き込まれるリスクを許容できる範囲でのみ導入してください。
+   - PR の差分は外部サービス（`code-review-ai.web.app`）へ送信されます。本リポジトリは公開のため差分自体は公開情報ですが、非公開リポジトリへ横展開しない方針とします。
+   - 問題が発生した場合は `Settings > Integrations > Applications` から即時アンインストールしてください。
+
 ## 新規: Open Code Review の設定
 
 PR作成時にAI生成コードのハルシネーションや非推奨API、ロジックのギャップを検出するローカルLLMベースの品質ゲートとして `raye-deng/open-code-review@v2.1.5` を導入しました。
@@ -154,3 +169,10 @@ PR作成時にGitHub Models (o3-mini) を利用して、PRテンプレートに�
 
 PRの自動承認を行う `.github/workflows/ai-codeball-approver.yml`（Codeball, `sturdy-dev/codeball-action`）を導入していましたが、本リポジトリのAction許可リスト（`genzouw` 所有 / GitHub作成 / Marketplace検証済み / 個別許可パターンのいずれかに限定）に `sturdy-dev/codeball-action` が含まれておらず、CIが恒常的に失敗する状態となっていたため削除しました。
 再導入する場合は、リポジトリ管理者が `Settings > Actions > General > Allow select actions and reusable workflows` にて `sturdy-dev/codeball-action` を許可リストに追加した上で対応してください。
+
+## AI連携ワークフロー全体の最適化について
+
+各AI関連ワークフローでは、CIの持続可能性と安定性向上のため以下の最適化を実施しています。
+
+- **Tavily Search APIの検索深度**: 全てのワークフローで `search_depth` を `basic` に設定しています。`advanced` はクレジット消費が激しくなりますが、技術検索では `basic` で十分な鮮度の情報が得られるためコスト削減を優先しています。
+- **タイムアウトの設定**: 外部APIへのFetchリクエストに対し、Tavily Search APIには30秒、GitHub Models APIには120秒の `AbortSignal.timeout` を設定し、無応答によるGitHub Actionsランナーの滞留（ハング）を防止しています。
