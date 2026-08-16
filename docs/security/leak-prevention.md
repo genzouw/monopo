@@ -167,7 +167,7 @@ Slack や Discord などのコミュニケーションツール、および Figm
 ### 追加のカスタム漏洩検知・抑止対策 (Gitleaks 強化 - フロントエンド クライアントサイド露出防止)
 
 Vite では `VITE_` から始まる環境変数が、Next.js では `NEXT_PUBLIC_` が、といったように、特定プレフィックスの環境変数がクライアントサイドのビルド成果物にそのまま公開される仕様となっています。開発者が誤ってバックエンド用のシークレット（例: `NEXT_PUBLIC_OPENAI_API_KEY`、`VITE_DATABASE_PASSWORD` など）を定義してフロントエンドに秘密情報を露出させてしまうリスクを防ぐため、リポジトリ直下の `.gitleaks.toml` カスタムルール (`monopo-frontend-exposed-secret`) を追加しました。
-これにより、秘匿すべきキーワードを含む `VITE_` `NEXT_PUBLIC_` `EXPO_PUBLIC_` `NUXT_PUBLIC_` `GATSBY_` プレフィックスの変数への代入がローカルおよび CI の双方で早期に検知・ブロックされます。
+これにより、秘匿すべきキーワードを含む `VITE_` `NEXT_PUBLIC_` `EXPO_PUBLIC_` `NUXT_PUBLIC_` `GATSBY_` `REACT_APP_` `VUE_APP_` `NG_APP_` `PUBLIC_` プレフィックスの変数への代入がローカルおよび CI の双方で早期に検知・ブロックされます。
 
 > [!IMPORTANT]
 > **パブリックプレフィックス変数には機密値を設定しないでください。** これらのプレフィックスの値はビルド成果物に平文で埋め込まれ、ブラウザから誰でも閲覧できます。本ルールは「うっかり」を減らすための**補助的な検知層**であり、露出を防ぐ保証にはなりません。バックエンド用のシークレットはサーバーサイド（GitHub Actions Secrets 等）にのみ保持してください。
@@ -178,13 +178,13 @@ Vite では `VITE_` から始まる環境変数が、Next.js では `NEXT_PUBLIC
 - `!` や `@` などの**記号を含む値**（例: `VITE_DATABASE_PASSWORD="p@ssw0rd!123"`）。他の変数名ベースルール（`monopo-ai-token-assignment-extended` 等）と検知範囲を揃えるため、意図的に文字集合を限定しています <!-- pragma: allowlist secret -->
 - 10文字未満の値、代入形式でない生のトークン文字列
 - `${...}` のような環境変数参照、`<REDACTED>`、`dummy` 系のプレースホルダー値、および `your` / `my` / `change-me` / `placeholder` / `sample` / `example` / `todo` **単独の値、またはそれらの直後に区切り文字（`-` / `_` / `.`）が続く値**（例: `your_token_here` / `my-api-key` / `CHANGE_ME_PLEASE`）や `x` を8文字以上連続する値（`.env.example` の定番プレースホルダー。allowlist により除外）。なお区切り文字を挟まずに続く値（例: `mySuperSecretValue123`）は**実在シークレットとみなして検知対象のまま**です
-- `VITE_FIREBASE_AUTH_DOMAIN` や `NEXT_PUBLIC_AUTH0_DOMAIN` / `NEXT_PUBLIC_AUTH0_CLIENT_ID` のように、Firebase Web の `authDomain` や Auth0 SPA の domain・clientId など**仕様上ブラウザに公開される値**を保持する変数名（`VITE_` `NEXT_PUBLIC_` `EXPO_PUBLIC_` `NUXT_PUBLIC_` `GATSBY_` のいずれのプレフィックスでも allowlist により除外されます。ただし除外後も、値の形状次第では gitleaks 既定の `generic-api-key` ルールでは引き続き検知され得ます）
+- `VITE_FIREBASE_AUTH_DOMAIN` や `NEXT_PUBLIC_AUTH0_DOMAIN` / `NEXT_PUBLIC_AUTH0_CLIENT_ID` のように、Firebase Web の `authDomain` や Auth0 SPA の domain・clientId など**仕様上ブラウザに公開される値**を保持する変数名（`VITE_` `NEXT_PUBLIC_` `EXPO_PUBLIC_` `NUXT_PUBLIC_` `GATSBY_` `REACT_APP_` `VUE_APP_` `NG_APP_` `PUBLIC_` のいずれのプレフィックスでも allowlist により除外されます。ただし除外後も、値の形状次第では gitleaks 既定の `generic-api-key` ルールでは引き続き検知され得ます）
 
 また、**リポジトリ外に設定された環境変数は Gitleaks のスキャン対象外**です。GitHub Actions の Secrets / Variables や、Vercel などホスティングサービスの環境変数設定にパブリックプレフィックスの機密値が登録されていないかは、**マージ前に人手で確認**してください。
 
 **マージ前後の確認チェックリスト（フロントエンド露出防止）**:
 
-- [ ] `.env` / `.env.*` および CI 設定に、機密値を持つ `VITE_`、`NEXT_PUBLIC_`、`EXPO_PUBLIC_`、`NUXT_PUBLIC_`、`GATSBY_` 変数（すべての公開プレフィックス）が存在しないことを確認する。
+- [ ] `.env` / `.env.*` および CI 設定に、機密値を持つ `VITE_`、`NEXT_PUBLIC_`、`EXPO_PUBLIC_`、`NUXT_PUBLIC_`、`GATSBY_`、`REACT_APP_`、`VUE_APP_`、`NG_APP_`、`PUBLIC_` 変数（すべての公開プレフィックス）が存在しないことを確認する。
 - [ ] GitHub Actions の Secrets / Variables に上記すべての公開プレフィックスの機密値が登録されていないことを確認する。
 - [ ] Vercel などホスティングサービスを利用する場合、その環境変数設定にも上記すべての公開プレフィックスの機密値が無いことを確認する。
 - [ ] `bash scripts/test-gitleaks-rules.sh` を実行し、キーワードごとの回帰テストが green になることを確認する。

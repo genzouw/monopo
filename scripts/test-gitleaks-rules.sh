@@ -112,6 +112,9 @@ frontend_dummy_assignment="NUXT_PUBLIC_DATABASE_PASSWORD${eq}${qt}dummy-password
 frontend_firebase_auth_domain="GATSBY_FIREBASE_AUTH_DOMAIN${eq}${qt}acme-1234.firebaseapp.com${qt}"
 frontend_auth0_domain="NEXT_PUBLIC_AUTH0_DOMAIN${eq}${qt}dev-abc123.us.auth0.com${qt}"
 frontend_auth0_client_id="NEXT_PUBLIC_AUTH0_CLIENT_ID${eq}${qt}${rand_a}${qt}"
+# 認証ドメイン allowlist のプレフィックス群は検知側 regex のプレフィックス群と一致させる必要が
+# あるため、後から追加したプレフィックス（REACT_APP_ 等）でも除外されることを固定する
+frontend_auth0_domain_react="REACT_APP_AUTH0_DOMAIN${eq}${qt}dev-abc123.us.auth0.com${qt}"
 # .env.example で使われる定番プレースホルダーは allowlist（secret target）で除外される
 frontend_placeholder_your="EXPO_PUBLIC_API_TOKEN${eq}${qt}your_token_here${qt}"
 frontend_placeholder_changeme="NEXT_PUBLIC_APP_SECRET${eq}${qt}CHANGE_ME_PLEASE${qt}"
@@ -144,6 +147,7 @@ ai_boundary_assignment_unquoted="${ai_var}${eq}${rand_a:0:10}!"
   printf '%s\n' "$frontend_firebase_auth_domain"
   printf '%s\n' "$frontend_auth0_domain"
   printf '%s\n' "$frontend_auth0_client_id"
+  printf '%s\n' "$frontend_auth0_domain_react"
   printf '%s\n' "$frontend_placeholder_your"
   printf '%s\n' "$frontend_placeholder_changeme"
 } >"$WORKDIR/negative.txt"
@@ -264,23 +268,27 @@ cf_vars=(CLOUDFLARE_API_KEY CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID CLOUDFLAR
 # キーワード（SECRET / PASSWORD / OPENAI 等）の部分一致で検知する。キーワードごとに分岐が
 # 存在するため、代表1変数（NEXT_PUBLIC_OPENAI_API_KEY）の検知だけでは他のキーワード分岐が壊れても
 # 気づけない。正規表現に列挙された全キーワードを1つずつ網羅する変数名を生成して検証する。
+# プレフィックスは正規表現に列挙された9種（VITE / NEXT_PUBLIC / EXPO_PUBLIC / NUXT_PUBLIC /
+# GATSBY / REACT_APP / VUE_APP / NG_APP / PUBLIC）をキーワード16種へラウンドロビンで割り当て、
+# 全プレフィックスが最低1回は検証されるようにしている。プレフィックスを増減させた場合は
+# この割り当ても回し直すこと。
 frontend_vars=(
-  NEXT_PUBLIC_APP_SECRET            # SECRET
-  EXPO_PUBLIC_PRIVATE_KEY           # PRIVATE
-  NUXT_PUBLIC_DATABASE_PASSWORD     # PASSWORD
-  GATSBY_GCP_CREDENTIAL             # CREDENTIAL
-  VITE_BASIC_AUTH                   # AUTH
-  NEXT_PUBLIC_ACCESS_TOKEN          # TOKEN
-  EXPO_PUBLIC_STRIPE_API_KEY        # API_KEY
-  NUXT_PUBLIC_OPENAI_API_KEY        # OPENAI
-  GATSBY_ANTHROPIC_KEY              # ANTHROPIC
-  VITE_COHERE_KEY                   # COHERE
-  NEXT_PUBLIC_MISTRAL_KEY           # MISTRAL
-  EXPO_PUBLIC_GEMINI_KEY            # GEMINI
-  NUXT_PUBLIC_TAVILY_KEY            # TAVILY
-  GATSBY_GROQ_KEY                   # GROQ
-  VITE_DEEPSEEK_KEY                 # DEEPSEEK
-  NEXT_PUBLIC_SUPABASE_SERVICE_ROLE # SERVICE_ROLE
+  VITE_APP_SECRET                 # SECRET      / VITE
+  NEXT_PUBLIC_PRIVATE_KEY         # PRIVATE     / NEXT_PUBLIC
+  EXPO_PUBLIC_DATABASE_PASSWORD   # PASSWORD    / EXPO_PUBLIC
+  NUXT_PUBLIC_GCP_CREDENTIAL      # CREDENTIAL  / NUXT_PUBLIC
+  GATSBY_BASIC_AUTH               # AUTH        / GATSBY
+  REACT_APP_ACCESS_TOKEN          # TOKEN       / REACT_APP
+  VUE_APP_STRIPE_API_KEY          # API_KEY     / VUE_APP
+  NG_APP_OPENAI_API_KEY           # OPENAI      / NG_APP
+  PUBLIC_ANTHROPIC_KEY            # ANTHROPIC   / PUBLIC
+  VITE_COHERE_KEY                 # COHERE      / VITE
+  NEXT_PUBLIC_MISTRAL_KEY         # MISTRAL     / NEXT_PUBLIC
+  EXPO_PUBLIC_GEMINI_KEY          # GEMINI      / EXPO_PUBLIC
+  NUXT_PUBLIC_TAVILY_KEY          # TAVILY      / NUXT_PUBLIC
+  GATSBY_GROQ_KEY                 # GROQ        / GATSBY
+  REACT_APP_DEEPSEEK_KEY          # DEEPSEEK    / REACT_APP
+  VUE_APP_SUPABASE_SERVICE_ROLE   # SERVICE_ROLE / VUE_APP
 )
 
 per_var_fixture="$WORKDIR/per-var.txt"
