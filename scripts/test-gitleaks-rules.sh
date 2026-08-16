@@ -122,6 +122,15 @@ frontend_placeholder_changeme="NEXT_PUBLIC_APP_SECRET${eq}${qt}CHANGE_ME_PLEASE$
 # （例: COHERE_API_KEY="abcdefghij!" は "abcdefghij" として誤検知されてはならない） # pragma: allowlist secret
 ai_boundary_assignment="${ai_var}${eq}${qt}${rand_a:0:10}!${qt}"
 ai_boundary_assignment_unquoted="${ai_var}${eq}${rand_a:0:10}!"
+# プレースホルダー allowlist は代入系3ルール（monopo-ai-token-assignment-extended /
+# monopo-cloudflare-token-assignment / monopo-frontend-exposed-secret）で同一内容に
+# 同期する必要がある。同期が崩れると、同じ値が「AI キーだと検知され、フロントエンド変数だと
+# 除外される」といったルール間の非対称を生み、`.env.example` やオンボーディング手順への
+# 例示がルール次第でブロックされる。3ルールへ同じプレースホルダー値を与えて非検知を固定する。
+placeholder_shared_val="your${d}key${d}here"
+ai_placeholder_assignment="CURSOR_API_KEY${eq}${qt}${placeholder_shared_val}${qt}"
+cf_placeholder_assignment="${cf_var}${eq}${qt}${placeholder_shared_val}${qt}"
+frontend_placeholder_shared="VITE_APP_SECRET${eq}${qt}${placeholder_shared_val}${qt}"
 
 {
   printf '%s\n' "this-is-not-a-real-token-just-a-word"
@@ -150,6 +159,9 @@ ai_boundary_assignment_unquoted="${ai_var}${eq}${rand_a:0:10}!"
   printf '%s\n' "$frontend_auth0_domain_react"
   printf '%s\n' "$frontend_placeholder_your"
   printf '%s\n' "$frontend_placeholder_changeme"
+  printf '%s\n' "$ai_placeholder_assignment"
+  printf '%s\n' "$cf_placeholder_assignment"
+  printf '%s\n' "$frontend_placeholder_shared"
 } >"$WORKDIR/negative.txt"
 
 exit_code=0

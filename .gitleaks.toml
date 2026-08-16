@@ -290,7 +290,16 @@ regexTarget = "secret"
 regexes = [
     '''(?i)^\$\{[^}]+\}$''',
     '''(?i)^<REDACTED>$''',
-    '''(?i)^dummy(?:[-_](?:token|value|key))?$''',
+    # ⚠️ プレースホルダー allowlist（次の2行）は代入系3ルール
+    # （monopo-ai-token-assignment-extended / monopo-cloudflare-token-assignment /
+    # monopo-frontend-exposed-secret）で同一内容に同期すること。TOML では配列を共有できないため
+    # 3箇所へ複製している。同期が崩れると、同じ値（例: CURSOR_API_KEY へ代入した `your-key-here`）が
+    # ルールによって検知されたりされなかったりし、`.env.example` やオンボーディング手順への
+    # 例示がルール次第でブロックされる。
+    # 除外対象は「プレースホルダー語だけを区切り文字（`-` / `_` / `.`）で連結した値」に限定する
+    # （区切り以降を自由な文字集合で受けると実在シークレットを飲み込むため）。
+    '''(?i)^(?:your|my|change[-_]?me|placeholder|sample|example|todo|dummy|test|foo|bar|here|please|api|key|token|secret|value|password)(?:[-_.](?:your|my|change[-_]?me|placeholder|sample|example|todo|dummy|test|foo|bar|here|please|api|key|token|secret|value|password))*$''',
+    '''(?i)^x{8,}$''',
     '''(?i)^(?:\.{1,2}/|~/|/)?(?:[A-Za-z0-9_.-]+/)*[A-Za-z0-9_.-]+\.json$'''
 ]
 
@@ -319,7 +328,9 @@ regexTarget = "secret"
 regexes = [
     '''(?i)^\$\{[^}]+\}$''',
     '''(?i)^<REDACTED>$''',
-    '''(?i)^dummy(?:[-_](?:token|value|key))?$'''
+    # ⚠️ 次の2行は代入系3ルールで同期すること（詳細は monopo-ai-token-assignment-extended のコメント参照）
+    '''(?i)^(?:your|my|change[-_]?me|placeholder|sample|example|todo|dummy|test|foo|bar|here|please|api|key|token|secret|value|password)(?:[-_.](?:your|my|change[-_]?me|placeholder|sample|example|todo|dummy|test|foo|bar|here|please|api|key|token|secret|value|password))*$''',
+    '''(?i)^x{8,}$'''
 ]
 
 [[rules]]
@@ -343,6 +354,8 @@ regexTarget = "secret"
 regexes = [
     '''(?i)^\$\{[^}]+\}$''',
     '''(?i)^<REDACTED>$''',
+    # ⚠️ プレースホルダー allowlist（次の2行）は代入系3ルールで同期すること
+    # （詳細は monopo-ai-token-assignment-extended のコメント参照）。
     # プレースホルダー allowlist: 「プレースホルダー語だけを区切り文字（`-` / `_` / `.`）で
     # 連結した値」のみを除外する。区切り文字の後を `[a-z0-9._-]*` のような自由な文字集合に
     # すると値の残り全体を飲み込み、`my-real-production-token-a1b2c3d4` のような実在
