@@ -335,11 +335,13 @@ regexTarget = "secret"
 regexes = [
     '''(?i)^\$\{[^}]+\}$''',
     '''(?i)^<REDACTED>$''',
-    '''(?i)^dummy(?:[-_](?:token|value|key|password))?$''',
-    # プレースホルダー語の直後には区切り文字（`-` / `_` / `.`）を要求し、語単独も許す。
-    # 区切りを要求しないと `mySuperSecretValue123` のような camelCase の実在シークレットまで
-    # 除外されてしまうため（`my` / `example` / `sample` 始まりは実際の命名として珍しくない）。
-    '''(?i)^(?:your|my|change[-_]?me|placeholder|sample|example|todo)(?:[-_.][a-z0-9._-]*)?$''',
+    # プレースホルダー allowlist: 「プレースホルダー語だけを区切り文字（`-` / `_` / `.`）で
+    # 連結した値」のみを除外する。区切り文字の後を `[a-z0-9._-]*` のような自由な文字集合に
+    # すると値の残り全体を飲み込み、`my-real-production-token-a1b2c3d4` のような実在
+    # シークレットが「プレースホルダー語 + 区切り文字」という条件だけで素通りしてしまう
+    # （`.env` を kebab_case / snake_case で書く現場では `my-` / `sample_` / `example.` は
+    # 珍しい接頭辞ではない）。語の連結に限定することでこの穴を塞ぐ。
+    '''(?i)^(?:your|my|change[-_]?me|placeholder|sample|example|todo|dummy|test|foo|bar|here|please|api|key|token|secret|value|password)(?:[-_.](?:your|my|change[-_]?me|placeholder|sample|example|todo|dummy|test|foo|bar|here|please|api|key|token|secret|value|password))*$''',
     '''(?i)^x{8,}$'''
 ]
 # Firebase Web の authDomain（例: VITE_FIREBASE_AUTH_DOMAIN）や Auth0 SPA の

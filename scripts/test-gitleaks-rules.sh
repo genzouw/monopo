@@ -221,23 +221,37 @@ else
 fi
 
 echo ""
-echo "── プレースホルダー allowlist の過剰一致防止チェック (プレースホルダー語で始まるだけの実在値が除外されないこと) ──"
-# プレースホルダー allowlist（secret target）は、プレースホルダー語の直後に区切り文字
-# （- / _ / .）が続く場合のみ一致する。区切りを要求しないと、`my` / `example` / `sample` で
-# 始まるだけの camelCase の実在シークレット（プレースホルダー語に区切り無しで英数字が続く値）
-# まで丸ごと検知対象から外れてしまう。その回帰を防ぐ。
+echo "── プレースホルダー allowlist の過剰一致防止チェック (プレースホルダー語で始まるだけの実在値が区切り文字の有無に関わらず除外されないこと) ──"
+# プレースホルダー allowlist（secret target）は、「プレースホルダー語だけを区切り文字
+# （- / _ / .）で連結した値」にのみ一致する。以下2形状の実在シークレットが除外されない
+# ことを固定する。
+#   1. 区切り無し: `my` / `example` / `sample` で始まるだけの camelCase 値
+#   2. 区切りあり: プレースホルダー語 + 区切り文字の後にプレースホルダー語以外が続く値
+# 特に 2 は、区切りの後を自由な文字集合（[a-z0-9._-]*）で受けると値の残り全体を飲み込み、
+# `my-real-production-token-...` のような実在シークレットが素通りする。その回帰を防ぐ。
 placeholder_prefixed_secret="NEXT_PUBLIC_APP_SECRET${eq}${qt}my${rand_a}${qt}"  # pragma: allowlist secret
+# 区切り文字ありの実在値（プレースホルダー語 "my" + "-" + プレースホルダー語ではない本体）
+placeholder_delimited_secret="EXPO_PUBLIC_API_TOKEN${eq}${qt}my${d}real${d}production${d}${rand_a}${qt}"  # pragma: allowlist secret
 placeholder_prefixed_report="$WORKDIR/placeholder-prefixed-report.json"
-printf '%s\n' "$placeholder_prefixed_secret" >"$WORKDIR/placeholder-prefixed.txt"
+{
+  printf '%s\n' "$placeholder_prefixed_secret"
+  printf '%s\n' "$placeholder_delimited_secret"
+} >"$WORKDIR/placeholder-prefixed.txt"
 gitleaks detect --no-git --config "$CONFIG" --source "$WORKDIR/placeholder-prefixed.txt" \
   --report-format json --report-path "$placeholder_prefixed_report" --exit-code 0 >/dev/null
-placeholder_prefixed_count=$(jq '[.[] | select(.RuleID == "monopo-frontend-exposed-secret")] | length' "$placeholder_prefixed_report")
-if [ "$placeholder_prefixed_count" -lt 1 ]; then
-  echo "❌ プレースホルダー語で始まるだけの実在値が monopo-frontend-exposed-secret として検知されませんでした（allowlist が広すぎる回帰）"
-  exit_code=1
-else
-  echo "✅ プレースホルダー語で始まるだけの実在値が monopo-frontend-exposed-secret として検知されました（allowlist が区切り文字を要求）"
-fi
+for placeholder_line in 1 2; do
+  case "$placeholder_line" in
+  1) placeholder_label="区切り無しでプレースホルダー語で始まるだけの実在値" ;;
+  2) placeholder_label="プレースホルダー語 + 区切り文字に続く実在値" ;;
+  esac
+  placeholder_prefixed_count=$(jq "[.[] | select(.RuleID == \"monopo-frontend-exposed-secret\" and .StartLine == $placeholder_line)] | length" "$placeholder_prefixed_report")
+  if [ "$placeholder_prefixed_count" -lt 1 ]; then
+    echo "❌ ${placeholder_label}が monopo-frontend-exposed-secret として検知されませんでした（allowlist が広すぎる回帰）"
+    exit_code=1
+  else
+    echo "✅ ${placeholder_label}が monopo-frontend-exposed-secret として検知されました（allowlist はプレースホルダー語の連結のみ許可）"
+  fi
+done
 
 echo ""
 echo "── 列挙された変数名を個別に回帰テスト (各変数名が対応する RuleID・検知行と一致すること) ──"
