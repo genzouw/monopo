@@ -254,6 +254,7 @@ export default function TradeDialog({
             const label = getPropertyChipLabel(space);
             return (
               <button
+                type="button"
                 key={space.id}
                 className={`${styles.tradePropertyChip} ${isSelected ? styles.tradePropertyChipSelected : ''}`}
                 onClick={() => toggleOffer(space.id)}
@@ -381,6 +382,7 @@ export default function TradeDialog({
             const label = getPropertyChipLabel(space);
             return (
               <button
+                type="button"
                 key={space.id}
                 className={`${styles.tradePropertyChip} ${isSelected ? styles.tradePropertyChipSelected : ''}`}
                 onClick={() => toggleRequest(space.id)}
