@@ -350,15 +350,6 @@ description = "フロントエンド クライアントサイドへのシーク�
 # PUBLIC_ 単独（SvelteKit / Astro）も同じ性質の公開プレフィックスだが、NEXT_PUBLIC_ 等と
 # 字面が重なって読みづらいため、末尾に独立した alternation として置く（`\b` により
 # NEXT_PUBLIC_ 等の途中一致は起こらない。直前が `_` で単語境界が成立しないため）。
-# AUTH キーワードだけは `AUTH(?:_|\b)` と終端を限定する。キーワード群は前後を `[A-Z0-9_]*` で
-# 挟むため、素の `AUTH` は `AUTHOR` にも部分一致し、`PUBLIC_AUTHOR_ID` / `NEXT_PUBLIC_AUTHOR_HANDLE`
-# のような著者名・ハンドルを置くだけの変数（ブログ / ドキュメントサイトの定番）を誤検知する。
-# 誤検知を allowlist で戻すと `# gitleaks:allow` を機械的に書く習慣がつき検知層の信頼が落ちるため、
-# キーワード側の境界条件で解決する。`GATSBY_BASIC_AUTH`（直後が終端 = `\b`）や
-# `VITE_AUTH_SERVER_DOMAIN`（直後が `_`）の検知は維持される。
-# 副次効果として AUTH0_DOMAIN / AUTH0_CLIENT_ID / AUTH0_AUDIENCE / AUTH0_ORGANIZATION など
-# Auth0 SPA の公開値（`AUTH` の直後が `0`）は検知対象外となり、変数名を allowlist へ足し続ける
-# 往復が不要になる（機密値である AUTH0_CLIENT_SECRET は SECRET キーワードで引き続き検知）。
 regex = '''(?i)\b(?:(?:VITE|NEXT_PUBLIC|EXPO_PUBLIC|NUXT_PUBLIC|GATSBY|REACT_APP|VUE_APP|NG_APP)_|PUBLIC_)[A-Z0-9_]*(?:SECRET|PRIVATE|PASSWORD|CREDENTIAL|AUTH(?:_|\b)|TOKEN|API_KEY|OPENAI|ANTHROPIC|COHERE|MISTRAL|GEMINI|TAVILY|GROQ|DEEPSEEK|SERVICE_ROLE)[A-Z0-9_]*\b["']?[\s]*[:=][\s]*["']?([A-Za-z0-9._\-+/=]{10,})(?:["']|[\s,;)]|$)'''
 tags = ["frontend", "credential", "assignment"]
 secretGroup = 1
@@ -379,30 +370,34 @@ regexes = [
     '''(?i)^(?:your|my|change[-_]?me|placeholder|sample|example|todo|dummy|test|foo|bar|here|please|api|key|token|secret|value|password)(?:[-_.](?:your|my|change[-_]?me|placeholder|sample|example|todo|dummy|test|foo|bar|here|please|api|key|token|secret|value|password))*$''',
     '''(?i)^x{8,}$'''
 ]
-# Firebase Web の authDomain / apiKey（例: VITE_FIREBASE_AUTH_DOMAIN,
-# NEXT_PUBLIC_FIREBASE_API_KEY）は、仕様上クライアントバンドルへ埋め込まれる公開値であり
-# 秘密情報ではないため（Firebase 公式もその前提を明言しており、アクセス制御は Security Rules と
-# API キー制限で行う設計）、変数名ベースで検知対象から除外する
-# （このallowlistで除外後も、値の形状次第では gitleaks 既定の generic-api-key
-# ルールでは引き続き検知され得る）。同じ firebaseConfig に並ぶ2値のうち authDomain だけを
-# 除外すると、2行書いただけで片方が止まる理由を説明できないため、両者を同列に扱う。
-# 除外対象の限定: プレフィックス直後が FIREBASE_AUTH_DOMAIN / FIREBASE_API_KEY に完全一致する
-# 変数名のみを除外対象とする。「AUTH」と「_DOMAIN」を含む任意の変数名（例:
-# NEXT_PUBLIC_PRIVATE_AUTH_DOMAIN、VITE_AUTH_SERVER_DOMAIN）まで広く許可すると、PRIVATE 等の
-# 機密キーワードを含む変数の検知漏れにつながるため。
-# プレフィックス群の同期: このプレフィックス群は上記検知側 regex の対象プレフィックス群と常に
-# 一致させること。片方だけにプレフィックスを足すと、同じ公開値（例: FIREBASE_AUTH_DOMAIN）が
-# プレフィックスによって検知されたりされなかったりする非対称が生まれる
-# （scripts/test-gitleaks-rules.sh がこの alternation の出現回数を assert している）。
-# 終端条件の同期: regexTarget が "match"（変数名と値を含む代入全体）であるため、変数名一致は
-# match の先頭に固定し、直後に空白の有無を問わず ":" または "=" が続くことも必須とする
+# Firebase Web の authDomain（例: VITE_FIREBASE_AUTH_DOMAIN）と apiKey（例:
+# VITE_FIREBASE_API_KEY）は、仕様上クライアントに公開される値であり秘密情報ではないため、
+# 変数名ベースで検知対象から除外する（このallowlistで除外後も、値の形状次第では gitleaks
+# 既定の generic-api-key ルールでは引き続き検知され得る）。
+# apiKey は Firebase Web SDK がクライアントバンドルに埋め込む前提の値であり、公式にも
+# 秘密情報ではないと明言されている（アクセス制御は Security Rules と API キー制限で行う設計。
+# https://firebase.google.com/docs/projects/api-keys）。authDomain のみ除外して apiKey を
+# 除外しないと、同じ firebaseConfig オブジェクト内で片方だけが検知される非対称が生まれる。
+# 注: プレフィックス直後が FIREBASE_AUTH_DOMAIN / FIREBASE_API_KEY に完全一致する変数名のみを
+# 除外対象とする。「AUTH」と「_DOMAIN」を含む任意の変数名（例: NEXT_PUBLIC_PRIVATE_AUTH_DOMAIN、
+# VITE_AUTH_SERVER_DOMAIN）まで広く許可すると、PRIVATE 等の機密キーワードを含む変数の
+# 検知漏れにつながるため、Firebase の公開値に対応する変数名のみへ限定している。
+# なお Auth0 SPA の domain/clientId/audience（例: VITE_AUTH0_DOMAIN）はこの allowlist に
+# 含めていない。検知側 regex の AUTH キーワードは AUTH(?:_|\b) で単語境界を要求するため、
+# "AUTH" の直後が "0" である AUTH0_* はそもそも検知側 regex に一致せず、ここへ加える必要が
+# 無い（PUBLIC_AUTHOR_ID のような無関係な変数名を誤検知しないための境界条件が、副次的に
+# Auth0 の変数名も検知対象から外している）。
+# 注3: このプレフィックス群は上記 regex の対象プレフィックス群と常に一致させること。
+# 片方だけにプレフィックスを足すと、同じ公開値（例: FIREBASE_AUTH_DOMAIN）がプレフィックスに
+# よって検知されたりされなかったりする非対称が生まれる。
+# 注2: regexTarget が "match"（変数名と値を含む代入全体）であるため、変数名一致は match の
+# 先頭に固定し、直後に空白の有無を問わず ":" または "=" が続くことも必須とする
 # （^ アンカー + ["']? + [[:space:]]* + [:=]）。検知側の regex（["']?[\s]*[:=][\s]*）と終端条件を
 # 揃えることで、YAML 形式（KEY: value）に加え、キーが引用符に囲まれる JSON 形式
 # （"KEY": "value"）の代入も除外漏れなく一致させる。検知側にだけ ["']? を足して allowlist 側を
-# 据え置くと、JSON 形式で書いた公開値（例: "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN": "...") が
-# 検知される非対称が生まれるため、両者は必ず同時に更新すること。
-# 先頭アンカーの必要性: アンカーが無いと、無関係な変数の秘密値の中に許可変数名の文字列を
-# 埋め込むだけで
+# 据え置くと、JSON 形式で書いた公開値（例: "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN": "...") が検知
+# される非対称が生まれるため、両者は必ず同時に更新すること。
+# 先頭アンカーが無いと、無関係な変数の秘密値の中に許可変数名の文字列を埋め込むだけで
 # （例: NEXT_PUBLIC_API_KEY="VITE_FIREBASE_AUTH_DOMAIN=xxxxxxxxxx"）allowlist が誤って一致し、 # pragma: allowlist secret
 # 本来検知すべき秘密の検知を回避されてしまう。
 [[rules.allowlists]]
