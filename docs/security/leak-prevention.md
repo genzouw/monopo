@@ -155,7 +155,7 @@ Slack や Discord などのコミュニケーションツール、および Figm
 開発で利用頻度が高まっている新しい AI プロバイダ (Cohere, Mistral, Perplexity, Together AI, Azure OpenAI 等)、最新 AI エディタ・拡張機能 (Cursor, Windsurf, Cline, Codeium 等) や VectorDB (Qdrant, Weaviate, Milvus)、および Cloudflare の API トークン・アカウント ID がハードコードされるリスクを防ぐため、リポジトリ直下の `.gitleaks.toml` カスタムルールをさらに拡張しました。
 これにより、特定の新しいプロバイダやエディタのクレデンシャル露出リスクもローカルおよび CI の双方で早期に検知・ブロックされます。
 
-**検知範囲**: 上記ルール（`monopo-ai-token-assignment-extended` / `monopo-cloudflare-token-assignment`）は、列挙された変数名（例: `COHERE_API_KEY`, `CURSOR_API_KEY`, `CLOUDFLARE_API_TOKEN` 等）への代入形式かつ値が10文字以上・限定文字集合（英数字・`._-+/=`）の場合のみを検知対象とします。未認識の変数名、10文字未満の値、代入形式でない生のトークン文字列は検知対象外です。また `${...}` のような環境変数参照、`<REDACTED>`、およびプレースホルダー語だけを区切り文字で連結した値（`dummy-token` / `your-key-here` 等。詳細は後述のフロントエンド公開プレフィックスルールの節を参照。3ルールで同期）は許可リストにより検知対象から除外されます。`VERTEX_AI_CREDENTIALS` に代入されたファイルパス形状の値（例: `./keys/vertex.json` のような `.json` パス）も同様に許可リストで検知対象から除外されます。一方、サービスアカウントの認証情報を JSON 形式のまま直接代入した場合（例: `VERTEX_AI_CREDENTIALS='{"type":"service_account",...}'` <!-- gitleaks:allow --> ）は、別ルール `monopo-vertex-ai-credentials-json` により検知します。このため、これらのルールのみで漏洩を完全に防げるわけではなく、有効性検証を行う **TruffleHog** や **Secretlint** による補完層と組み合わせて多層的に防御しています（各ツールにもそれぞれ検知の限界があります）。
+**検知範囲**: 上記ルール（`monopo-ai-token-assignment-extended` / `monopo-cloudflare-token-assignment`）は、列挙された変数名（例: `COHERE_API_KEY`, `CURSOR_API_KEY`, `CLOUDFLARE_API_TOKEN` 等）への代入形式（`KEY=value` / `KEY: value` に加え、`vercel.json` や `app.json`（Expo）のようにキーが引用符で囲まれる JSON 形式 `"KEY": "value"` も対象）かつ値が10文字以上・限定文字集合（英数字・`._-+/=`）の場合のみを検知対象とします。未認識の変数名、10文字未満の値、代入形式でない生のトークン文字列は検知対象外です。また `${...}` のような環境変数参照、`<REDACTED>`、およびプレースホルダー語だけを区切り文字で連結した値（`dummy-token` / `your-key-here` 等。詳細は後述のフロントエンド公開プレフィックスルールの節を参照。3ルールで同期）は許可リストにより検知対象から除外されます。`VERTEX_AI_CREDENTIALS` に代入されたファイルパス形状の値（例: `./keys/vertex.json` のような `.json` パス）も同様に許可リストで検知対象から除外されます。一方、サービスアカウントの認証情報を JSON 形式のまま直接代入した場合（例: `VERTEX_AI_CREDENTIALS='{"type":"service_account",...}'` <!-- gitleaks:allow --> ）は、別ルール `monopo-vertex-ai-credentials-json` により検知します。このため、これらのルールのみで漏洩を完全に防げるわけではなく、有効性検証を行う **TruffleHog** や **Secretlint** による補完層と組み合わせて多層的に防御しています（各ツールにもそれぞれ検知の限界があります）。
 
 **マージ前後の確認チェックリスト**:
 
@@ -172,7 +172,7 @@ Vite では `VITE_` から始まる環境変数が、Next.js では `NEXT_PUBLIC
 > [!IMPORTANT]
 > **パブリックプレフィックス変数には機密値を設定しないでください。** これらのプレフィックスの値はビルド成果物に平文で埋め込まれ、ブラウザから誰でも閲覧できます。本ルールは「うっかり」を減らすための**補助的な検知層**であり、露出を防ぐ保証にはなりません。バックエンド用のシークレットはサーバーサイド（GitHub Actions Secrets 等）にのみ保持してください。
 
-**検知範囲と限界**: `monopo-frontend-exposed-secret` は、各プレフィックス配下に機密キーワード（`SECRET` / `PRIVATE` / `PASSWORD` / `CREDENTIAL` / `AUTH` / `TOKEN` / `API_KEY`、および `OPENAI` / `ANTHROPIC` / `COHERE` / `MISTRAL` / `GEMINI` / `TAVILY` / `GROQ` / `DEEPSEEK` / `SERVICE_ROLE` といったプロバイダ名）を含む変数への**代入形式**かつ、値が**10文字以上・限定文字集合（英数字・`._-+/=`）**の場合のみを検知対象とします。したがって以下は**検知対象外**です。
+**検知範囲と限界**: `monopo-frontend-exposed-secret` は、各プレフィックス配下に機密キーワード（`SECRET` / `PRIVATE` / `PASSWORD` / `CREDENTIAL` / `AUTH` / `TOKEN` / `API_KEY`、および `OPENAI` / `ANTHROPIC` / `COHERE` / `MISTRAL` / `GEMINI` / `TAVILY` / `GROQ` / `DEEPSEEK` / `SERVICE_ROLE` といったプロバイダ名）を含む変数への**代入形式**（`KEY=value` / `KEY: value` に加え、`vercel.json` や `app.json`（Expo）、`.vscode/settings.json` のようにキーが引用符で囲まれる JSON 形式 `"KEY": "value"` も対象）かつ、値が**10文字以上・限定文字集合（英数字・`._-+/=`）**の場合のみを検知対象とします。したがって以下は**検知対象外**です。
 
 - 上記キーワードを含まない変数名（例: `VITE_MY_KEYSTORE`）への機密値の代入
 - `!` や `@` などの**記号を含む値**（例: `VITE_DATABASE_PASSWORD="p@ssw0rd!123"`）。他の変数名ベースルール（`monopo-ai-token-assignment-extended` 等）と検知範囲を揃えるため、意図的に文字集合を限定しています <!-- pragma: allowlist secret -->

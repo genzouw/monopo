@@ -45,6 +45,7 @@ webhook_id="123456789012345678"
 # --- 変数名ベースルール（monopo-ai-token-assignment-extended /
 #     monopo-cloudflare-token-assignment / monopo-frontend-exposed-secret）組み立て用の断片 ---
 eq="="
+colon=":"
 qt='"'
 ai_var="COHERE_API_KEY"
 cf_var="CLOUDFLARE_API_TOKEN"
@@ -70,6 +71,17 @@ frontend_assignment="${frontend_var}${eq}${qt}${rand_a}${qt}"
 vertex_assignment="${vertex_var}${eq}${qt}${rand_b}${rand_a:0:12}${qt}"
 # サービスアカウント JSON をそのまま直接代入したケース（monopo-vertex-ai-credentials-json で検知）
 vertex_json_assignment="${vertex_var}${eq}${qt}{${qt}type${qt}:${qt}service_account${qt},${qt}private_key${qt}:${qt}${rand_a}${rand_b}${qt}}${qt}"
+# JSON 形式（キー自体が引用符で囲まれる代入）も代入系3ルールで検知されること。
+# vercel.json / app.json（Expo）/ .vscode/settings.json のように JSON へ設定値を書く構成は
+# 実在するため、YAML 形式（KEY: value）だけでなく JSON 形式（"KEY": "value"）も検知範囲に固定する。
+# 検知側 regex の変数名直後にある ["']? が失われると、これらは低エントロピー値の場合に
+# gitleaks 既定の generic-api-key にも掛からず完全に素通りする。
+json_ai_assignment="${qt}${ai_var}${qt}${colon} ${qt}${rand_a}${qt}"
+json_cf_assignment="${qt}${cf_var}${qt}${colon} ${qt}${rand_b}${rand_a:0:10}${qt}"
+json_frontend_assignment="${qt}${frontend_var}${qt}${colon} ${qt}${rand_a}${qt}"
+# 検知側に ["']? を足したら、認証ドメイン allowlist（match target）にも同じものを足して
+# 対称性を保つ必要がある。片方だけだと JSON 形式で書いた Auth0 の公開値が誤検知される。
+json_frontend_auth0_domain="${qt}NEXT_PUBLIC_AUTH0_DOMAIN${qt}${colon} ${qt}dev-abc123.us.auth0.com${qt}"
 
 {
   printf '%s\n' "$slack_bot"
@@ -117,7 +129,6 @@ frontend_auth0_client_id="NEXT_PUBLIC_AUTH0_CLIENT_ID${eq}${qt}${rand_a}${qt}"
 # 一部のプレフィックス・区切りだけを検証すると、他の組み合わせで allowlist が縮小する回帰
 # （例: 特定プレフィックスだけ除外漏れになる）に気づけないため、全9プレフィックス×2区切りを
 # 個別フィクスチャとして固定する。
-colon=":"
 auth0_domain_prefixes=(VITE NEXT_PUBLIC EXPO_PUBLIC NUXT_PUBLIC GATSBY REACT_APP VUE_APP NG_APP PUBLIC)
 auth0_domain_fixtures=()
 for auth0_domain_prefix in "${auth0_domain_prefixes[@]}"; do
@@ -205,6 +216,42 @@ if [ "$figma_rule_ids" != "monopo-figma-token" ]; then
   exit_code=1
 else
   echo "✅ monopo-figma-token のみが検知（monopo-modern-paas-token 等との重複なし）"
+fi
+
+echo ""
+echo "── JSON 形式（引用符付きキー）の代入チェック (代入系3ルールが \"KEY\": \"value\" も検知し、認証公開値は除外されること) ──"
+# 検知側 regex は変数名の直後に ["']? を持ち、JSON のようにキーが引用符で囲まれる代入も
+# 対象とする。この ["']? が失われると、低エントロピー値を JSON へ書いた場合に gitleaks 既定の
+# generic-api-key にも掛からず完全な素通りとなるため、3ルールすべてで行番号ベースに固定する。
+# 4行目は allowlist（match target）側にも同じ ["']? が同期していることの回帰ケース。
+json_fixture="$WORKDIR/json-assignment.txt"
+{
+  printf '%s\n' "$json_ai_assignment"
+  printf '%s\n' "$json_cf_assignment"
+  printf '%s\n' "$json_frontend_assignment"
+  printf '%s\n' "$json_frontend_auth0_domain"
+} >"$json_fixture"
+json_report="$WORKDIR/json-assignment-report.json"
+gitleaks detect --no-git --config "$CONFIG" --source "$json_fixture" \
+  --report-format json --report-path "$json_report" --exit-code 0 >/dev/null
+json_expected_rules=(monopo-ai-token-assignment-extended monopo-cloudflare-token-assignment monopo-frontend-exposed-secret)
+json_line_no=0
+for json_rule in "${json_expected_rules[@]}"; do
+  json_line_no=$((json_line_no + 1))
+  json_count=$(jq "[.[] | select(.RuleID == \"$json_rule\" and .StartLine == $json_line_no)] | length" "$json_report")
+  if [ "$json_count" -ne 1 ]; then
+    echo "❌ JSON 形式の代入 (${json_line_no}行目) が ${json_rule} として検知されませんでした（引用符付きキーの取りこぼし回帰）"
+    exit_code=1
+  else
+    echo "✅ JSON 形式の代入 (${json_line_no}行目): ${json_rule} として検知"
+  fi
+done
+json_auth0_count=$(jq '[.[] | select(.RuleID == "monopo-frontend-exposed-secret" and .StartLine == 4)] | length' "$json_report")
+if [ "$json_auth0_count" -ne 0 ]; then
+  echo "❌ JSON 形式の AUTH0_DOMAIN (4行目) が誤検知されました（認証ドメイン allowlist に引用符付きキーが同期していない回帰）"
+  exit_code=1
+else
+  echo "✅ JSON 形式の AUTH0_DOMAIN (4行目): 認証ドメイン allowlist で除外"
 fi
 
 echo ""
