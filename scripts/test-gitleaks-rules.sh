@@ -327,6 +327,25 @@ for placeholder_line in 1 2; do
 done
 
 echo ""
+echo "── プレースホルダー allowlist の3ルール同期チェック (代入系3ルールへ同一 regex が複製されていること) ──"
+# プレースホルダー allowlist の regex は .gitleaks.toml の3箇所（monopo-ai-token-assignment-extended /
+# monopo-cloudflare-token-assignment / monopo-frontend-exposed-secret）へ同一文字列で複製されている。
+# TOML では配列を共有できないための複製であり、これまで同期を担保していたのは警告コメントだけだった。
+# 上の非検知フィクスチャ（ai_placeholder_assignment 等）は「3ルールとも your / key / here を持つこと」
+# しか守れず、19語のうち片方にだけ語を足す・消すといった差分は素通りする。regex 行そのものが
+# ちょうど3回出現することを assert し、語を1つ増減した瞬間に落ちるようにする。
+placeholder_allowlist_regex="'''(?i)^(?:your|my|change[-_]?me|placeholder|sample|example|todo|dummy|test|foo|bar|here|please|api|key|token|secret|value|password)(?:[-_.](?:your|my|change[-_]?me|placeholder|sample|example|todo|dummy|test|foo|bar|here|please|api|key|token|secret|value|password))*\$'''"
+placeholder_regex_count=$(grep -cF -- "$placeholder_allowlist_regex" "$CONFIG" || true)
+if [ "$placeholder_regex_count" -ne 3 ]; then
+  echo "❌ プレースホルダー allowlist が代入系3ルールで同期していません（一致行数: ${placeholder_regex_count} / 期待: 3）"
+  echo "   → .gitleaks.toml の3箇所（monopo-ai-token-assignment-extended / monopo-cloudflare-token-assignment / monopo-frontend-exposed-secret）を同一内容に揃えてください"
+  echo "   → regex を意図的に変更した場合は、本スクリプトの placeholder_allowlist_regex も併せて更新してください"
+  exit_code=1
+else
+  echo "✅ プレースホルダー allowlist が代入系3ルールで同期しています（一致行数: 3）"
+fi
+
+echo ""
 echo "── 列挙された変数名を個別に回帰テスト (各変数名が対応する RuleID・検知行と一致すること) ──"
 # 代表1変数の検知だけでは、他の列挙名の正規表現（例: MISTRAL_API_KEY 等）が壊れても
 # 気づけない。列挙された全変数名を1行ずつのフィクスチャとして生成し、行番号ベースで
