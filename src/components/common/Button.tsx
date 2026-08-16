@@ -12,6 +12,7 @@ export default function Button({
   className,
   children,
   onClick,
+  type = 'button',
   'aria-disabled': ariaDisabled,
   ...props
 }: ButtonProps) {
@@ -33,6 +34,7 @@ export default function Button({
 
   return (
     <button
+      type={type}
       className={classes}
       onClick={handleClick}
       aria-disabled={ariaDisabled}
