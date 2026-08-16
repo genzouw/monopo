@@ -80,8 +80,8 @@ json_ai_assignment="${qt}${ai_var}${qt}${colon} ${qt}${rand_a}${qt}"
 json_cf_assignment="${qt}${cf_var}${qt}${colon} ${qt}${rand_b}${rand_a:0:10}${qt}"
 json_frontend_assignment="${qt}${frontend_var}${qt}${colon} ${qt}${rand_a}${qt}"
 # 検知側に ["']? を足したら、認証ドメイン allowlist（match target）にも同じものを足して
-# 対称性を保つ必要がある。片方だけだと JSON 形式で書いた Auth0 の公開値が誤検知される。
-json_frontend_auth0_domain="${qt}NEXT_PUBLIC_AUTH0_DOMAIN${qt}${colon} ${qt}dev-abc123.us.auth0.com${qt}"
+# 対称性を保つ必要がある。片方だけだと JSON 形式で書いた Firebase の公開値が誤検知される。
+json_frontend_firebase_auth_domain="${qt}NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN${qt}${colon} ${qt}acme-1234.firebaseapp.com${qt}"
 
 {
   printf '%s\n' "$slack_bot"
@@ -116,6 +116,11 @@ frontend_public_assignment="EXPO_PUBLIC_APP_TITLE${eq}${qt}${rand_a}${qt}"
 # ${...} 参照・dummy 系プレースホルダーはフロントエンド公開プレフィックスルールの allowlist 対象
 frontend_envref_assignment="${frontend_var}${eq}${env_ref_val}"
 frontend_dummy_assignment="NUXT_PUBLIC_DATABASE_PASSWORD${eq}${qt}dummy-password${qt}"
+# AUTH キーワードは単語境界（"_" または語末）を要求するため、AUTHOR のように「AUTH」を含むが
+# 無関係な変数名（著者名・ハンドル等）は検知対象外とする（PUBLIC_AUTHOR_ID /
+# NEXT_PUBLIC_AUTHOR_HANDLE の誤検知回帰）。
+frontend_author_id="PUBLIC_AUTHOR_ID${eq}${qt}${rand_a:0:15}${qt}"
+frontend_author_handle="NEXT_PUBLIC_AUTHOR_HANDLE${eq}${qt}toshiaki-wakabayashi${qt}"
 # Firebase Web の authDomain / Auth0 SPA の domain・clientId は仕様上クライアントに
 # 公開される値であり、monopo-frontend-exposed-secret の allowlist（match target）で除外される
 # 値は secret target の許可プレースホルダー（^(?:your|my|change-me|placeholder|sample|example|todo)...）に
@@ -177,6 +182,8 @@ frontend_placeholder_shared="VITE_APP_SECRET${eq}${qt}${placeholder_shared_val}$
   printf '%s\n' "$frontend_public_assignment"
   printf '%s\n' "$frontend_envref_assignment"
   printf '%s\n' "$frontend_dummy_assignment"
+  printf '%s\n' "$frontend_author_id"
+  printf '%s\n' "$frontend_author_handle"
   printf '%s\n' "$frontend_firebase_auth_domain"
   printf '%s\n' "$frontend_auth0_client_id"
   printf '%s\n' "$frontend_auth0_audience"
@@ -234,7 +241,7 @@ json_fixture="$WORKDIR/json-assignment.txt"
   printf '%s\n' "$json_ai_assignment"
   printf '%s\n' "$json_cf_assignment"
   printf '%s\n' "$json_frontend_assignment"
-  printf '%s\n' "$json_frontend_auth0_domain"
+  printf '%s\n' "$json_frontend_firebase_auth_domain"
 } >"$json_fixture"
 json_report="$WORKDIR/json-assignment-report.json"
 gitleaks detect --no-git --config "$CONFIG" --source "$json_fixture" \
@@ -251,18 +258,18 @@ for json_rule in "${json_expected_rules[@]}"; do
     echo "✅ JSON 形式の代入 (${json_line_no}行目): ${json_rule} として検知"
   fi
 done
-json_auth0_count=$(jq '[.[] | select(.RuleID == "monopo-frontend-exposed-secret" and .StartLine == 4)] | length' "$json_report")
-if [ "$json_auth0_count" -ne 0 ]; then
-  echo "❌ JSON 形式の AUTH0_DOMAIN (4行目) が誤検知されました（認証ドメイン allowlist に引用符付きキーが同期していない回帰）"
+json_firebase_auth_domain_count=$(jq '[.[] | select(.RuleID == "monopo-frontend-exposed-secret" and .StartLine == 4)] | length' "$json_report")
+if [ "$json_firebase_auth_domain_count" -ne 0 ]; then
+  echo "❌ JSON 形式の FIREBASE_AUTH_DOMAIN (4行目) が誤検知されました（認証ドメイン allowlist に引用符付きキーが同期していない回帰）"
   exit_code=1
 else
-  echo "✅ JSON 形式の AUTH0_DOMAIN (4行目): 認証ドメイン allowlist で除外"
+  echo "✅ JSON 形式の FIREBASE_AUTH_DOMAIN (4行目): 認証ドメイン allowlist で除外"
 fi
 
 echo ""
-echo "── 認証ドメイン allowlist の限定チェック (Firebase/Auth0 以外の AUTH*_DOMAIN 変数は allowlist 対象外で検知されること) ──"
-# monopo-frontend-exposed-secret の allowlist（match target）は、Firebase の authDomain と
-# Auth0 の domain（FIREBASE_AUTH_DOMAIN / AUTH0_DOMAIN への完全一致）のみを除外対象とする。
+echo "── 認証ドメイン allowlist の限定チェック (Firebase 以外の AUTH*_DOMAIN 変数は allowlist 対象外で検知されること) ──"
+# monopo-frontend-exposed-secret の allowlist（match target）は、Firebase の authDomain
+# （FIREBASE_AUTH_DOMAIN への完全一致）のみを除外対象とする。
 # 「AUTH」と「_DOMAIN」を含む任意の変数名まで広く除外すると、PRIVATE 等の機密キーワードを
 # 含む変数（例: NEXT_PUBLIC_PRIVATE_AUTH_DOMAIN）まで検知漏れとなるため、その回帰を防ぐ。
 auth_domain_leak="NEXT_PUBLIC_PRIVATE_AUTH_DOMAIN${eq}${qt}${rand_a}${qt}"
@@ -283,9 +290,9 @@ echo "── 認証ドメイン allowlist のバイパス防止チェック (許
 # 認証ドメイン allowlist（match target）は match の先頭（変数名の直後）に一致することを必須とする
 # （^ アンカー + [[:space:]]* + "="）。アンカーが無いと、allowlist 対象外の秘密変数（例:
 # NEXT_PUBLIC_APP_SECRET）の値の中に許可変数名の文字列を埋め込むだけで（例:
-# NEXT_PUBLIC_APP_SECRET="VITE_AUTH0_DOMAIN=<secret>"）allowlist が誤って一致し、 # pragma: allowlist secret
+# NEXT_PUBLIC_APP_SECRET="VITE_FIREBASE_AUTH_DOMAIN=<secret>"）allowlist が誤って一致し、 # pragma: allowlist secret
 # 本来検知すべき秘密の検知を回避できてしまう。その回帰を防ぐ。
-auth_domain_bypass="NEXT_PUBLIC_APP_SECRET${eq}${qt}VITE_AUTH0_DOMAIN${eq}${rand_a}${qt}"
+auth_domain_bypass="NEXT_PUBLIC_APP_SECRET${eq}${qt}VITE_FIREBASE_AUTH_DOMAIN${eq}${rand_a}${qt}"
 auth_domain_bypass_report="$WORKDIR/auth-domain-bypass-report.json"
 printf '%s\n' "$auth_domain_bypass" >"$WORKDIR/auth-domain-bypass.txt"
 gitleaks detect --no-git --config "$CONFIG" --source "$WORKDIR/auth-domain-bypass.txt" \

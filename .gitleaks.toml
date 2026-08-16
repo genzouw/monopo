@@ -350,7 +350,7 @@ description = "フロントエンド クライアントサイドへのシーク�
 # PUBLIC_ 単独（SvelteKit / Astro）も同じ性質の公開プレフィックスだが、NEXT_PUBLIC_ 等と
 # 字面が重なって読みづらいため、末尾に独立した alternation として置く（`\b` により
 # NEXT_PUBLIC_ 等の途中一致は起こらない。直前が `_` で単語境界が成立しないため）。
-regex = '''(?i)\b(?:(?:VITE|NEXT_PUBLIC|EXPO_PUBLIC|NUXT_PUBLIC|GATSBY|REACT_APP|VUE_APP|NG_APP)_|PUBLIC_)[A-Z0-9_]*(?:SECRET|PRIVATE|PASSWORD|CREDENTIAL|AUTH|TOKEN|API_KEY|OPENAI|ANTHROPIC|COHERE|MISTRAL|GEMINI|TAVILY|GROQ|DEEPSEEK|SERVICE_ROLE)[A-Z0-9_]*\b["']?[\s]*[:=][\s]*["']?([A-Za-z0-9._\-+/=]{10,})(?:["']|[\s,;)]|$)'''
+regex = '''(?i)\b(?:(?:VITE|NEXT_PUBLIC|EXPO_PUBLIC|NUXT_PUBLIC|GATSBY|REACT_APP|VUE_APP|NG_APP)_|PUBLIC_)[A-Z0-9_]*(?:SECRET|PRIVATE|PASSWORD|CREDENTIAL|AUTH(?:_|\b)|TOKEN|API_KEY|OPENAI|ANTHROPIC|COHERE|MISTRAL|GEMINI|TAVILY|GROQ|DEEPSEEK|SERVICE_ROLE)[A-Z0-9_]*\b["']?[\s]*[:=][\s]*["']?([A-Za-z0-9._\-+/=]{10,})(?:["']|[\s,;)]|$)'''
 tags = ["frontend", "credential", "assignment"]
 secretGroup = 1
 entropy = 0.0
@@ -370,40 +370,34 @@ regexes = [
     '''(?i)^(?:your|my|change[-_]?me|placeholder|sample|example|todo|dummy|test|foo|bar|here|please|api|key|token|secret|value|password)(?:[-_.](?:your|my|change[-_]?me|placeholder|sample|example|todo|dummy|test|foo|bar|here|please|api|key|token|secret|value|password))*$''',
     '''(?i)^x{8,}$'''
 ]
-# Firebase Web の authDomain（例: VITE_FIREBASE_AUTH_DOMAIN）や Auth0 SPA の
-# domain/clientId/audience（例: VITE_AUTH0_DOMAIN, VITE_AUTH0_CLIENT_ID,
-# VITE_AUTH0_AUDIENCE）は、仕様上クライアントに
+# Firebase Web の authDomain（例: VITE_FIREBASE_AUTH_DOMAIN）は、仕様上クライアントに
 # 公開される値であり秘密情報ではないため、変数名ベースで検知対象から除外する
 # （このallowlistで除外後も、値の形状次第では gitleaks 既定の generic-api-key
 # ルールでは引き続き検知され得る）。
-# 注: プレフィックス直後が FIREBASE_AUTH_DOMAIN / AUTH0_DOMAIN / AUTH0_CLIENT_ID /
-# AUTH0_AUDIENCE に完全一致する
-# 変数名のみを除外対象とする。「AUTH」と「_DOMAIN」を含む任意の変数名（例:
-# NEXT_PUBLIC_PRIVATE_AUTH_DOMAIN、VITE_AUTH_SERVER_DOMAIN）まで広く許可すると、PRIVATE 等の
-# 機密キーワードを含む変数の検知漏れにつながるため、Firebase/Auth0 の公開値に対応する
-# 変数名のみへ限定している。AUTH0_CLIENT_ID / AUTH0_AUDIENCE も他と同じプレフィックス群を
-# 対象とする。Auth0 SPA の clientId / audience がブラウザに公開される値であることは
-# フロントエンドフレームワークの種類とは無関係であり、プレフィックスを非対称に限定する
-# 根拠が無いため。
-# 注4: audience は変数名に AUTH を含むため検知側 regex に掛かる。`https://` 付きで書けば
-# `:` が値の許可文字集合の外なので素通りするが、スキームを省略して書く例（例:
-# VITE_AUTH0_AUDIENCE=api.example.com/v2）は誤検知となるため、domain / clientId と同じ
-# 公開値として同列に扱う。
+# 注: プレフィックス直後が FIREBASE_AUTH_DOMAIN に完全一致する変数名のみを除外対象とする。
+# 「AUTH」と「_DOMAIN」を含む任意の変数名（例: NEXT_PUBLIC_PRIVATE_AUTH_DOMAIN、
+# VITE_AUTH_SERVER_DOMAIN）まで広く許可すると、PRIVATE 等の機密キーワードを含む変数の
+# 検知漏れにつながるため、Firebase の公開値に対応する変数名のみへ限定している。
+# なお Auth0 SPA の domain/clientId/audience（例: VITE_AUTH0_DOMAIN）はこの allowlist に
+# 含めていない。検知側 regex の AUTH キーワードは AUTH(?:_|\b) で単語境界を要求するため、
+# "AUTH" の直後が "0" である AUTH0_* はそもそも検知側 regex に一致せず、ここへ加える必要が
+# 無い（PUBLIC_AUTHOR_ID のような無関係な変数名を誤検知しないための境界条件が、副次的に
+# Auth0 の変数名も検知対象から外している）。
 # 注3: このプレフィックス群は上記 regex の対象プレフィックス群と常に一致させること。
-# 片方だけにプレフィックスを足すと、同じ公開値（例: AUTH0_DOMAIN）がプレフィックスによって
-# 検知されたりされなかったりする非対称が生まれる。
+# 片方だけにプレフィックスを足すと、同じ公開値（例: FIREBASE_AUTH_DOMAIN）がプレフィックスに
+# よって検知されたりされなかったりする非対称が生まれる。
 # 注2: regexTarget が "match"（変数名と値を含む代入全体）であるため、変数名一致は match の
 # 先頭に固定し、直後に空白の有無を問わず ":" または "=" が続くことも必須とする
 # （^ アンカー + ["']? + [[:space:]]* + [:=]）。検知側の regex（["']?[\s]*[:=][\s]*）と終端条件を
 # 揃えることで、YAML 形式（KEY: value）に加え、キーが引用符に囲まれる JSON 形式
 # （"KEY": "value"）の代入も除外漏れなく一致させる。検知側にだけ ["']? を足して allowlist 側を
-# 据え置くと、JSON 形式で書いた公開値（例: "NEXT_PUBLIC_AUTH0_DOMAIN": "...") が検知される
-# 非対称が生まれるため、両者は必ず同時に更新すること。
+# 据え置くと、JSON 形式で書いた公開値（例: "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN": "...") が検知
+# される非対称が生まれるため、両者は必ず同時に更新すること。
 # 先頭アンカーが無いと、無関係な変数の秘密値の中に許可変数名の文字列を埋め込むだけで
-# （例: NEXT_PUBLIC_API_KEY="VITE_AUTH0_DOMAIN=xxxxxxxxxx"）allowlist が誤って一致し、 # pragma: allowlist secret
+# （例: NEXT_PUBLIC_API_KEY="VITE_FIREBASE_AUTH_DOMAIN=xxxxxxxxxx"）allowlist が誤って一致し、 # pragma: allowlist secret
 # 本来検知すべき秘密の検知を回避されてしまう。
 [[rules.allowlists]]
 regexTarget = "match"
 regexes = [
-    '''(?i)^(?:(?:VITE|NEXT_PUBLIC|EXPO_PUBLIC|NUXT_PUBLIC|GATSBY|REACT_APP|VUE_APP|NG_APP)_|PUBLIC_)(?:FIREBASE_AUTH_DOMAIN|AUTH0_DOMAIN|AUTH0_CLIENT_ID|AUTH0_AUDIENCE)\b["']?[[:space:]]*[:=]'''
+    '''(?i)^(?:(?:VITE|NEXT_PUBLIC|EXPO_PUBLIC|NUXT_PUBLIC|GATSBY|REACT_APP|VUE_APP|NG_APP)_|PUBLIC_)FIREBASE_AUTH_DOMAIN\b["']?[[:space:]]*[:=]'''
 ]
