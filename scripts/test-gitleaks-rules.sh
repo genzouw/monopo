@@ -110,11 +110,20 @@ frontend_dummy_assignment="NUXT_PUBLIC_DATABASE_PASSWORD${eq}${qt}dummy-password
 # 先に一致しないよう、"my" 等で始まらない値を使う（そうでないと match target の
 # ドメイン/clientId allowlist を一度も通らずに negative 判定となり、回帰対象を検証できない）
 frontend_firebase_auth_domain="GATSBY_FIREBASE_AUTH_DOMAIN${eq}${qt}acme-1234.firebaseapp.com${qt}"
-frontend_auth0_domain="NEXT_PUBLIC_AUTH0_DOMAIN${eq}${qt}dev-abc123.us.auth0.com${qt}"
 frontend_auth0_client_id="NEXT_PUBLIC_AUTH0_CLIENT_ID${eq}${qt}${rand_a}${qt}"
-# 認証ドメイン allowlist のプレフィックス群は検知側 regex のプレフィックス群と一致させる必要が
-# あるため、後から追加したプレフィックス（REACT_APP_ 等）でも除外されることを固定する
-frontend_auth0_domain_react="REACT_APP_AUTH0_DOMAIN${eq}${qt}dev-abc123.us.auth0.com${qt}"
+# 認証ドメイン allowlist（.gitleaks.toml Line 393）は AUTH0_DOMAIN について、検知側 regex と
+# 同じ9種のプレフィックス（VITE / NEXT_PUBLIC / EXPO_PUBLIC / NUXT_PUBLIC / GATSBY /
+# REACT_APP / VUE_APP / NG_APP / PUBLIC）と、区切り文字 ":" "=" の両方を許可対象とする。
+# 一部のプレフィックス・区切りだけを検証すると、他の組み合わせで allowlist が縮小する回帰
+# （例: 特定プレフィックスだけ除外漏れになる）に気づけないため、全9プレフィックス×2区切りを
+# 個別フィクスチャとして固定する。
+colon=":"
+auth0_domain_prefixes=(VITE NEXT_PUBLIC EXPO_PUBLIC NUXT_PUBLIC GATSBY REACT_APP VUE_APP NG_APP PUBLIC)
+auth0_domain_fixtures=()
+for auth0_domain_prefix in "${auth0_domain_prefixes[@]}"; do
+  auth0_domain_fixtures+=("${auth0_domain_prefix}_AUTH0_DOMAIN${eq}${qt}dev-abc123.us.auth0.com${qt}")
+  auth0_domain_fixtures+=("${auth0_domain_prefix}_AUTH0_DOMAIN${colon} ${qt}dev-abc123.us.auth0.com${qt}")
+done
 # .env.example で使われる定番プレースホルダーは allowlist（secret target）で除外される
 frontend_placeholder_your="EXPO_PUBLIC_API_TOKEN${eq}${qt}your_token_here${qt}"
 frontend_placeholder_changeme="NEXT_PUBLIC_APP_SECRET${eq}${qt}CHANGE_ME_PLEASE${qt}"
@@ -154,9 +163,10 @@ frontend_placeholder_shared="VITE_APP_SECRET${eq}${qt}${placeholder_shared_val}$
   printf '%s\n' "$frontend_envref_assignment"
   printf '%s\n' "$frontend_dummy_assignment"
   printf '%s\n' "$frontend_firebase_auth_domain"
-  printf '%s\n' "$frontend_auth0_domain"
   printf '%s\n' "$frontend_auth0_client_id"
-  printf '%s\n' "$frontend_auth0_domain_react"
+  for auth0_domain_fixture in "${auth0_domain_fixtures[@]}"; do
+    printf '%s\n' "$auth0_domain_fixture"
+  done
   printf '%s\n' "$frontend_placeholder_your"
   printf '%s\n' "$frontend_placeholder_changeme"
   printf '%s\n' "$ai_placeholder_assignment"
