@@ -162,6 +162,7 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
       )}
       <div className={styles.playerCount}>
         <button
+          type="button"
           className={styles.countButton}
           onClick={(e) => {
             if (playerCount <= MIN_PLAYERS) {
@@ -186,6 +187,7 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
         </button>
         <span role="status">{playerCount}人であそぶ</span>
         <button
+          type="button"
           className={styles.countButton}
           onClick={(e) => {
             if (playerCount >= MAX_PLAYERS) {
@@ -236,6 +238,7 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
         {Array.from({ length: playerCount }).map((_, i) => (
           <div key={i} className={styles.playerRow}>
             <button
+              type="button"
               className={styles.tokenButton}
               onClick={() => {
                 const currentIdx = TOKENS.indexOf(
