@@ -123,6 +123,10 @@ frontend_dummy_assignment="NUXT_PUBLIC_DATABASE_PASSWORD${eq}${qt}dummy-password
 # ドメイン/clientId allowlist を一度も通らずに negative 判定となり、回帰対象を検証できない）
 frontend_firebase_auth_domain="GATSBY_FIREBASE_AUTH_DOMAIN${eq}${qt}acme-1234.firebaseapp.com${qt}"
 frontend_auth0_client_id="NEXT_PUBLIC_AUTH0_CLIENT_ID${eq}${qt}${rand_a}${qt}"
+# audience も domain / clientId と同じく Auth0 SPA がブラウザへ埋め込む公開値。
+# `https://` 付きなら `:` が値の許可文字集合の外なので素通りするが、スキーム省略で書くと
+# 変数名に AUTH を含むため検知側 regex に掛かる。allowlist から漏れると誤検知になる。
+frontend_auth0_audience="VITE_AUTH0_AUDIENCE${eq}${qt}api.example.com/v2${qt}"
 # 認証ドメイン allowlist（.gitleaks.toml Line 393）は AUTH0_DOMAIN について、検知側 regex と
 # 同じ9種のプレフィックス（VITE / NEXT_PUBLIC / EXPO_PUBLIC / NUXT_PUBLIC / GATSBY /
 # REACT_APP / VUE_APP / NG_APP / PUBLIC）と、区切り文字 ":" "=" の両方を許可対象とする。
@@ -175,6 +179,7 @@ frontend_placeholder_shared="VITE_APP_SECRET${eq}${qt}${placeholder_shared_val}$
   printf '%s\n' "$frontend_dummy_assignment"
   printf '%s\n' "$frontend_firebase_auth_domain"
   printf '%s\n' "$frontend_auth0_client_id"
+  printf '%s\n' "$frontend_auth0_audience"
   for auth0_domain_fixture in "${auth0_domain_fixtures[@]}"; do
     printf '%s\n' "$auth0_domain_fixture"
   done
