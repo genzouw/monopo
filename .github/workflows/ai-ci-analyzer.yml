@@ -153,7 +153,13 @@ jobs:
               return;
             }
 
-            const data = await response.json();
+            let data;
+            try {
+              data = await response.json();
+            } catch (e) {
+              core.warning(`GitHub Models response returned invalid JSON: ${String(e)}`);
+              return;
+            }
             const analysis = data.choices?.[0]?.message?.content;
 
             if (!analysis) {

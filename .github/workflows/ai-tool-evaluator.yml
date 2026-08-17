@@ -110,7 +110,13 @@ jobs:
               return;
             }
 
-            const aiData = await aiRes.json();
+            let aiData;
+            try {
+              aiData = await aiRes.json();
+            } catch (e) {
+              core.warning(`GitHub Models response returned invalid JSON: ${String(e)}`);
+              return;
+            }
             const evaluation = aiData.choices?.[0]?.message?.content;
             if (evaluation) {
               await github.rest.issues.createComment({
