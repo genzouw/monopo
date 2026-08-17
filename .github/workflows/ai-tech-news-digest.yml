@@ -53,7 +53,7 @@ jobs:
                 searchData = await tavilyRes.json();
               }
             } catch (e) {
-              console.warn('Tavily search failed:', String(e));
+              core.warning(`Tavily 検索に失敗しました: ${String(e)}`);
             }
 
             const searchContext = (searchData.answer || '').slice(0, MAX_CHARS) + '\n' + (searchData.results?.map(r => r.content).join('\n') || '').slice(0, MAX_CHARS);

@@ -69,10 +69,10 @@ jobs:
                 const searchData = await tavilyRes.json();
                 searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
               } else {
-                console.log(`Tavily search failed: ${tavilyRes.status}`);
+                core.warning(`Tavily 検索に失敗しました: ${tavilyRes.status}`);
               }
             } catch (e) {
-              console.log('Tavily search request failed:', e);
+              core.warning(`Tavily 検索リクエストに失敗しました: ${String(e)}`);
             }
 
             const prompt = `あなたは優れたテクニカルライターであり、ソフトウェアエンジニアです。

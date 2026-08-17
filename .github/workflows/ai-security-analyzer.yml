@@ -80,11 +80,11 @@ jobs:
                   const searchData = await tavilyRes.json();
                   searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
                 } catch (e) {
-                  console.log('Failed to parse Tavily response');
+                  core.warning(`Tavily の応答の解析に失敗しました: ${String(e)}`);
                 }
               }
             } catch (e) {
-              console.warn('Tavily search failed:', String(e));
+              core.warning(`Tavily 検索に失敗しました: ${String(e)}`);
             }
 
             // 固定方針は developer ロールに置き、外部入力（Tavily応答・スキャンログ）は

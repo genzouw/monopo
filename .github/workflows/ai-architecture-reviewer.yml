@@ -84,7 +84,7 @@ jobs:
                 searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
               }
             } catch (e) {
-              console.error('Tavily search failed:', e);
+              core.warning(`Tavily 検索に失敗しました: ${String(e)}`);
             }
 
             const prompt = `あなたはソフトウェアアーキテクチャの専門家です。

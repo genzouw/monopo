@@ -68,7 +68,7 @@ jobs:
                 searchContext = searchData.results?.map(r => r.content).join('\n') || '';
               }
             } catch (e) {
-              console.warn('Tavily search failed:', String(e));
+              core.warning(`Tavily 検索に失敗しました: ${String(e)}`);
             }
 
             const prompt = `あなたは熟練のDevOpsエンジニアおよびソフトウェアアーキテクトです。

@@ -44,7 +44,7 @@ jobs:
                 searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
               }
             } catch (e) {
-              console.log('Failed to fetch or parse Tavily response:', e);
+              core.warning(`Tavily の応答の取得または解析に失敗しました: ${String(e)}`);
             }
 
             const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のIssueの内容とWeb検索による最新のベストプラクティスをもとに、Vitest を使用したテストコードのモック・実装案を日本語の解説とともに作成してください。

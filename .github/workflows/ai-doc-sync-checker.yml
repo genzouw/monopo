@@ -79,7 +79,7 @@ jobs:
                 searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
               }
             } catch (e) {
-              console.log('Tavily search request failed:', e);
+              core.warning(`Tavily 検索リクエストに失敗しました: ${String(e)}`);
             }
 
             const systemPolicy = `あなたは熟練のテクニカルライターおよびソフトウェアエンジニアです。以下のPull Requestの差分、PR情報、および最新のWeb検索ベストプラクティスをもとに、ソースコードの変更が既存のドキュメント（READMEやdocs/配下のファイルなど）の更新を必要としているかどうかを判定し、必要な場合は具体的な更新提案を日本語で提示してください。

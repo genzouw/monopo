@@ -54,7 +54,7 @@ jobs:
                   searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
                 }
               } catch (e) {
-                console.log('Tavily search request failed:', e);
+                core.warning(`Tavily 検索リクエストに失敗しました: ${String(e)}`);
               }
             }
 
