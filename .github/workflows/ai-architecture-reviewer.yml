@@ -129,10 +129,10 @@ jobs:
                 analysis = aiData.choices?.[0]?.message?.content;
               } else {
                 const errBody = await aiRes.text().catch(() => '');
-                core.warning(`AI Architecture Review failed: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
+                core.warning(`AI アーキテクチャレビューに失敗しました: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
               }
             } catch (e) {
-              core.warning(`AI inference failed: ${String(e)}`);
+              core.warning(`AI 推論に失敗しました: ${String(e)}`);
             }
 
             if (analysis) {

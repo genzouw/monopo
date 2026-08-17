@@ -99,14 +99,14 @@ jobs:
                      analysis = content;
                   }
                 } catch (e) {
-                  core.warning(`AI Issue Triage returned unparsable content: ${String(e)}`);
+                  core.warning(`AI Issue トリアージの応答を解析できませんでした: ${String(e)}`);
                 }
               } else {
                 const errBody = await aiRes.text().catch(() => '');
-                core.warning(`AI Issue Triage failed: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
+                core.warning(`AI Issue トリアージに失敗しました: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
               }
             } catch (e) {
-              core.warning(`GitHub Models request failed: ${String(e)}`);
+              core.warning(`GitHub Models へのリクエストに失敗しました: ${String(e)}`);
             }
 
             // ラベル付与は成否に関わらず後続で判定するため、ここでは return せずコメント投稿だけを見送る

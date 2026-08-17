@@ -90,13 +90,13 @@ jobs:
                 })
               });
             } catch (e) {
-              core.warning(`GitHub Models request failed: ${String(e)}`);
+              core.warning(`GitHub Models へのリクエストに失敗しました: ${String(e)}`);
               return;
             }
 
             if (!response.ok) {
               const errorBody = await response.text().catch(() => '<failed to read body>');
-              core.warning(`GitHub Models API error: ${response.status} ${response.statusText} ${String(errorBody).slice(0, 500)}`);
+              core.warning(`GitHub Models API エラー: ${response.status} ${response.statusText} ${String(errorBody).slice(0, 500)}`);
               return;
             }
 
@@ -104,7 +104,7 @@ jobs:
             const analysis = data.choices?.[0]?.message?.content;
 
             if (!analysis) {
-              core.warning(`No analysis returned from GitHub Models. ${JSON.stringify(data).slice(0, 500)}`);
+              core.warning(`GitHub Models から分析結果が返されませんでした。${JSON.stringify(data).slice(0, 500)}`);
               return;
             }
 

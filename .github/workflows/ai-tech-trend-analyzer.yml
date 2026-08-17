@@ -116,14 +116,14 @@ jobs:
                   const aiData = await aiRes.json();
                   report = aiData.choices?.[0]?.message?.content;
                 } catch (e) {
-                  core.warning(`Failed to parse GitHub Models response as JSON: ${String(e)}`);
+                  core.warning(`GitHub Models の応答が不正な JSON でした: ${String(e)}`);
                 }
               } else {
                 const errorBody = await aiRes.text().catch(() => '<failed to read body>');
-                core.warning(`GitHub Models request failed: ${aiRes.status} ${aiRes.statusText} ${String(errorBody).slice(0, 500)}`);
+                core.warning(`GitHub Models へのリクエストに失敗しました: ${aiRes.status} ${aiRes.statusText} ${String(errorBody).slice(0, 500)}`);
               }
             } catch (e) {
-              core.warning(`GitHub Models request failed: ${String(e)}`);
+              core.warning(`GitHub Models へのリクエストに失敗しました: ${String(e)}`);
             }
 
             if (report) {

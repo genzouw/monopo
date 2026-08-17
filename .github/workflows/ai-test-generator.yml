@@ -84,14 +84,14 @@ jobs:
                   const aiData = await aiRes.json();
                   plan = aiData.choices?.[0]?.message?.content || plan;
                 } catch (e) {
-                  core.warning(`Failed to parse GitHub Models response as JSON: ${String(e)}`);
+                  core.warning(`GitHub Models の応答が不正な JSON でした: ${String(e)}`);
                 }
               } else {
                 const errBody = await aiRes.text().catch(() => '');
-                core.warning(`AI Test Generation failed: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
+                core.warning(`AI テスト生成に失敗しました: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
               }
             } catch (e) {
-              core.warning(`GitHub Models request failed: ${String(e)}`);
+              core.warning(`GitHub Models へのリクエストに失敗しました: ${String(e)}`);
             }
 
             if (!plan) {
