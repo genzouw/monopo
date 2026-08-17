@@ -57,7 +57,7 @@ jobs:
       - name: Generate release notes
         id: notes
         if: steps.refs.outputs.base_ref != ''
-        uses: github/copilot-release-notes@5de2dc7851a12e286023745ea7933860bf48b0a2 # v1.0.2
+        uses: github/copilot-release-notes@29ba181a86b88f3acee62a03369033edfa982ab9 # v1.0.3
         with:
           base-ref: ${{ steps.refs.outputs.base_ref }}
           head-ref: ${{ steps.refs.outputs.head_ref }}
