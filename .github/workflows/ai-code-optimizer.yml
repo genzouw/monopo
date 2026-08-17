@@ -104,13 +104,13 @@ jobs:
                 })
               });
             } catch (e) {
-              core.warning(`GitHub Models request failed: ${String(e)}`);
+              core.warning(`GitHub Models へのリクエストに失敗しました: ${String(e)}`);
               return;
             }
 
             if (!aiRes.ok) {
               const errBody = await aiRes.text().catch(() => '');
-              core.warning(`AI Code Optimization failed: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
+              core.warning(`AI コード最適化に失敗しました: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
               return;
             }
 
@@ -121,7 +121,7 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 title: `🤖 AI定期コード最適化レポート (${new Date().toISOString().split('T')[0]})`,
-                body: `### 🤖 AI Code Optimization Report\n\n${report}`,
+                body: `### 🤖 AI コード最適化レポート\n\n${report}`,
                 labels: ['enhancement', 'ai-generated']
               });
             }

@@ -117,14 +117,14 @@ jobs:
                 })
               });
             } catch (e) {
-              core.warning(`AI Test Generation request failed: ${String(e)}`);
+              core.warning(`AI テスト生成のリクエストに失敗しました: ${String(e)}`);
               return;
             }
 
             if (!aiRes.ok) {
               // status を残し、無言失敗（ティア別出力上限超過など）の原因追跡を可能にする。
               const errBody = await aiRes.text().catch(() => '');
-              core.warning(`AI Test Generation failed: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
+              core.warning(`AI テスト生成に失敗しました: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
               return;
             }
             let aiData;
@@ -132,7 +132,7 @@ jobs:
               aiData = await aiRes.json();
             } catch (error) {
               // 2xx でも本文が不正 JSON の場合は例外で step を落とさず警告して離脱する。
-              core.warning(`AI Test Generation returned invalid JSON: ${String(error)}`);
+              core.warning(`AI テスト生成の応答が不正な JSON でした: ${String(error)}`);
               return;
             }
             const choice = aiData?.choices?.[0];
@@ -141,7 +141,7 @@ jobs:
             if (!review) {
               // content 空は推論トークンが max_completion_tokens を使い切ったサイン。
               // 無言スキップを避けて finish_reason をログに残す。
-              core.warning(`AI Test Generation returned empty content (finish_reason: ${choice?.finish_reason ?? 'unknown'}). 推論トークンが max_completion_tokens を使い切った可能性があります。`);
+              core.warning(`AI テスト生成の応答が空でした (finish_reason: ${choice?.finish_reason ?? 'unknown'})。推論トークンが max_completion_tokens を使い切った可能性があります。`);
               return;
             }
 

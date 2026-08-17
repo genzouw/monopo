@@ -112,7 +112,7 @@ jobs:
                 })
               });
             } catch (e) {
-              core.warning(`GitHub Models request failed: ${String(e)}`);
+              core.warning(`GitHub Models へのリクエストに失敗しました: ${String(e)}`);
               return;
             }
 
@@ -140,7 +140,7 @@ jobs:
               }
             } else {
               const errBody = await aiRes.text().catch(() => '');
-              core.warning(`AI Issue Autofix failed: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
+              core.warning(`AI による Issue 自動修正に失敗しました: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
             }
 
       - name: Run Generated Fix Script

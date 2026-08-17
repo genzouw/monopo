@@ -121,10 +121,10 @@ jobs:
                 generatedDoc = aiData.choices?.[0]?.message?.content;
               } else {
                 const errBody = await aiRes.text().catch(() => '');
-                core.warning(`AI Doc Generation failed: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
+                core.warning(`AI ドキュメント生成に失敗しました: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
               }
             } catch (e) {
-              core.warning(`GitHub Models request failed: ${String(e)}`);
+              core.warning(`GitHub Models へのリクエストに失敗しました: ${String(e)}`);
             }
 
             if (generatedDoc) {
