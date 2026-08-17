@@ -103,11 +103,11 @@ jobs:
                   const searchData = await tavilyRes.json();
                   searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
                 } catch (e) {
-                  console.log('Failed to parse Tavily response');
+                  core.warning(`Tavily の応答の解析に失敗しました: ${String(e)}`);
                 }
               }
             } catch (e) {
-              console.warn('Tavily search failed:', String(e));
+              core.warning(`Tavily 検索に失敗しました: ${String(e)}`);
             }
 
             const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のCI失敗ログとWeb検索結果を分析し、エラーの根本原因と具体的な修正案を日本語で提示してください。

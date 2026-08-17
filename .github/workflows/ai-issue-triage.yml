@@ -133,6 +133,6 @@ jobs:
                  });
                  console.log(`Successfully added label: ${parsedResult.label}`);
                } catch (e) {
-                 console.log('Failed to add label', e);
+                 core.warning(`ラベルの付与に失敗しました: ${String(e)}`);
                }
             }

@@ -81,7 +81,7 @@ jobs:
                 searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
               }
             } catch (e) {
-              console.warn('Tavily search request failed or timed out:', String(e));
+              core.warning(`Tavily 検索リクエストが失敗またはタイムアウトしました: ${String(e)}`);
             }
 
             const prompt = `あなたはアクセシビリティ(A11y)およびUI/UXの専門家です。

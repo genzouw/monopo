@@ -64,10 +64,10 @@ jobs:
                 const searchData = await tavilyRes.json();
                 searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
               } else {
-                console.error(`Tavily search failed with status: ${tavilyRes.status}`);
+                core.warning(`Tavily 検索に失敗しました: ステータス ${tavilyRes.status}`);
               }
             } catch (e) {
-              console.error('Tavily search failed:', e);
+              core.warning(`Tavily 検索に失敗しました: ${String(e)}`);
             }
 
             const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のIssueの内容、プロジェクトのコードベース概要、およびWeb検索結果をもとに、このIssueを解決するための具体的なファイルの書き換えを行うNode.jsスクリプト (CommonJS形式、fsモジュール使用) を出力してください。

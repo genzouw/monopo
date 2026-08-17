@@ -47,13 +47,13 @@ jobs:
                 try {
                   searchData = await tavilyRes.json();
                 } catch (e) {
-                  console.log('Failed to parse Tavily response as JSON:', e);
+                  core.warning(`Tavily の応答の JSON 解析に失敗しました: ${String(e)}`);
                 }
               } else {
-                console.log(`Tavily request failed: ${tavilyRes.status} ${tavilyRes.statusText}`);
+                core.warning(`Tavily へのリクエストに失敗しました: ${tavilyRes.status} ${tavilyRes.statusText}`);
               }
             } catch (e) {
-              console.warn('Tavily search failed:', String(e));
+              core.warning(`Tavily 検索に失敗しました: ${String(e)}`);
             }
             const searchAnswer = (searchData.answer || '要約なし').slice(0, MAX_SEARCH_ANSWER_CHARS);
 
