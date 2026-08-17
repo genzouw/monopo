@@ -8,7 +8,7 @@
 > 本ドキュメントに登場する GitHub Models (o3-mini) を利用するワークフロー群は、エンドポイントの廃止により**現在は生成処理が成功しません**。
 > これに伴い、以下の対応を行っています。
 >
-> - スケジュール実行（cron）を停止中: `ai-weekly-summary.yml` / `ai-tech-trend-analyzer.yml` / `ai-tech-news-digest.yml`（手動実行 `workflow_dispatch` のみ可能）
+> - スケジュール実行（cron）を停止中: `ai-weekly-summary.yml` / `ai-tech-trend-analyzer.yml` / `ai-tech-news-digest.yml` / `ai-code-optimizer.yml`（手動実行 `workflow_dispatch` のみ可能）
 > - 生成に失敗した場合は Issue / PR へのコメント投稿を見送り、`core.warning` で Actions の注釈に記録
 >
 > 以下の「無料で利用可能」「週次で自動生成される」といった記述は、**代替モデルを選定して復旧させた場合の前提**として読んでください。
