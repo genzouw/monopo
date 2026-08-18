@@ -1,50 +1,58 @@
-name: AI Code Optimizer
+name: AI Dependency Research
 
 on:
-  schedule:
-    - cron: '0 0 * * 0' # 毎週日曜日に実行
-  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'package.json'
 
 permissions:
   contents: read
 
 jobs:
-  optimize-code:
+  research-dependencies:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       issues: write
+      pull-requests: write
     steps:
       - name: Checkout Code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
-        with:
-          bun-version: 1.2.14
-
-      - name: Bundle Codebase Context with Repomix
-        run: bunx repomix@1.16.0 --style xml --output codebase.xml
-
-      - name: Generate Optimization Report
+      - name: Analyze Added Dependencies and Comment
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
+          GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }} # pragma: allowlist secret
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
         with:
           script: |
-            const fs = require('fs');
+            const diff = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              mediaType: { format: 'diff' }
+            });
 
-            let codebase = '<empty>';
-            try {
-              codebase = fs.readFileSync('codebase.xml', 'utf8').slice(0, 15000);
-            } catch (e) {
-              console.log('Repomix output not found.');
+            const addedDeps = [];
+            const lines = diff.data.split('\n');
+            for (const line of lines) {
+              if (line.startsWith('+') && line.includes('": "') && !line.startsWith('+++')) {
+                const match = line.match(/\+[\s]*"([^"]+)":/);
+                if (match && match[1]) {
+                  addedDeps.push(match[1]);
+                }
+              }
             }
 
+            if (addedDeps.length === 0) {
+              console.log('No new dependencies found.');
+              return;
+            }
+
+            const query = `2025 security vulnerability issues best practices for npm packages: ${addedDeps.join(', ')}`;
             let searchContext = '検索結果なし';
             try {
               const tavilyRes = await fetch('https://api.tavily.com/search', {
@@ -55,7 +63,7 @@ jobs:
                 },
                 signal: AbortSignal.timeout(30000),
                 body: JSON.stringify({
-                  query: "2025 latest React 19 Bun TypeScript performance security best practices",
+                  query: query,
                   search_depth: 'basic'
                 })
               });
@@ -68,17 +76,12 @@ jobs:
               console.warn('Tavily search failed:', String(e));
             }
 
-            const prompt = `あなたは熟練のDevOpsエンジニアおよびソフトウェアアーキテクトです。
-            以下の最新ベストプラクティス（Web検索結果）とプロジェクトのコードベース概要をもとに、コードの品質向上、パフォーマンス最適化、およびセキュリティ強化のための具体的な改善提案を日本語で出力してください。
-            プロジェクト要件:
-            - 名称には「monopoly」ではなく必ず「monopo」を使用する。
-            - パッケージマネージャには必ずBunを使用する。
+            const prompt = `あなたはセキュリティエンジニアです。
+            以下のPRで新しく追加されたパッケージ（${addedDeps.join(', ')}）について、Tavily Search APIの検索結果をもとに、最新のセキュリティリスクや導入の品質向上に関するインサイトを日本語で提供してください。
 
-            【最新のベストプラクティス】
+            【検索結果】
             ${searchContext.slice(0, 3000)}
-
-            【コードベース概要 (XML)】
-            ${codebase}`;
+            `;
 
             let aiRes;
             try {
@@ -103,14 +106,13 @@ jobs:
 
             if (aiRes.ok) {
               const aiData = await aiRes.json();
-              const report = aiData.choices?.[0]?.message?.content;
-              if (report) {
-                await github.rest.issues.create({
+              const evaluation = aiData.choices?.[0]?.message?.content;
+              if (evaluation) {
+                await github.rest.issues.createComment({
+                  issue_number: context.issue.number,
                   owner: context.repo.owner,
                   repo: context.repo.repo,
-                  title: `🤖 AI定期コード最適化レポート (${new Date().toISOString().split('T')[0]})`,
-                  body: `### 🤖 AI Code Optimization Report\n\n${report}`,
-                  labels: ['enhancement', 'ai-generated']
+                  body: `### 🛡️ AI 依存関係セキュリティリサーチ\n\n${evaluation}`
                 });
               }
             }

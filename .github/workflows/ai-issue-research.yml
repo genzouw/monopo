@@ -72,7 +72,7 @@ jobs:
             // GH_MODELS_TOKEN で認証
             let plan = '実装計画の生成に失敗しました。';
             try {
-              const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+              const aiRes = await fetch('https://models.github.ai/inference/chat/completions', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
