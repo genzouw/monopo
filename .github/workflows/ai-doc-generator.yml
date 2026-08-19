@@ -97,7 +97,7 @@ jobs:
 
             let generatedDoc = null;
             try {
-              const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+              const aiRes = await fetch('https://models.github.ai/inference/chat/completions', {
                 method: 'POST',
                 signal: AbortSignal.timeout(120000),
                 headers: {
