@@ -29,30 +29,46 @@ jobs:
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
         with:
           script: |
-            const diff = await github.rest.pulls.get({
+            const pr = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.issue.number,
-              mediaType: { format: 'diff' }
             });
 
-            const addedDeps = [];
-            const lines = diff.data.split('\n');
-            for (const line of lines) {
-              if (line.startsWith('+') && line.includes('": "') && !line.startsWith('+++')) {
-                const match = line.match(/\+[\s]*"([^"]+)":/);
-                if (match && match[1]) {
-                  addedDeps.push(match[1]);
-                }
+            async function getDependencyNames(ref) {
+              try {
+                const res = await github.rest.repos.getContent({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  path: 'package.json',
+                  ref,
+                });
+                const content = Buffer.from(res.data.content, 'base64').toString('utf8');
+                const pkg = JSON.parse(content);
+                return new Set([
+                  ...Object.keys(pkg.dependencies || {}),
+                  ...Object.keys(pkg.devDependencies || {}),
+                ]);
+              } catch (e) {
+                console.warn(`package.json (${ref}) の取得に失敗しました:`, String(e));
+                return new Set();
               }
             }
+
+            const [baseDeps, headDeps] = await Promise.all([
+              getDependencyNames(pr.data.base.sha),
+              getDependencyNames(pr.data.head.sha),
+            ]);
+
+            const addedDeps = [...headDeps].filter((dep) => !baseDeps.has(dep));
 
             if (addedDeps.length === 0) {
               console.log('No new dependencies found.');
               return;
             }
 
-            const query = `2025 security vulnerability issues best practices for npm packages: ${addedDeps.join(', ')}`;
+            const currentYear = new Date().getUTCFullYear();
+            const query = `${currentYear} security vulnerability issues best practices for npm packages: ${addedDeps.join(', ')}`;
             let searchContext = '検索結果なし';
             try {
               const tavilyRes = await fetch('https://api.tavily.com/search', {
