@@ -45,13 +45,22 @@ jobs:
                 });
                 const content = Buffer.from(res.data.content, 'base64').toString('utf8');
                 const pkg = JSON.parse(content);
-                return new Set([
-                  ...Object.keys(pkg.dependencies || {}),
-                  ...Object.keys(pkg.devDependencies || {}),
-                ]);
+                return {
+                  ok: true,
+                  names: new Set([
+                    ...Object.keys(pkg.dependencies || {}),
+                    ...Object.keys(pkg.devDependencies || {}),
+                  ]),
+                };
               } catch (e) {
-                console.warn(`package.json (${ref}) の取得に失敗しました:`, String(e));
-                return new Set();
+                // package.json が本当に存在しない（404）場合のみ「依存関係なし」として扱う。
+                // それ以外の取得・解析失敗は呼び出し元へ失敗状態を伝播し、誤検知を防ぐ。
+                if (e.status === 404) {
+                  console.warn(`package.json (${ref}) が見つかりませんでした。`);
+                  return { ok: true, names: new Set() };
+                }
+                console.warn(`package.json (${ref}) の取得または解析に失敗しました:`, String(e));
+                return { ok: false, names: new Set() };
               }
             }
 
@@ -60,7 +69,12 @@ jobs:
               getDependencyNames(pr.data.head.sha),
             ]);
 
-            const addedDeps = [...headDeps].filter((dep) => !baseDeps.has(dep));
+            if (!baseDeps.ok || !headDeps.ok) {
+              console.warn('依存関係の取得に失敗したため、依存関係比較とコメント投稿を中止します。');
+              return;
+            }
+
+            const addedDeps = [...headDeps.names].filter((dep) => !baseDeps.names.has(dep));
 
             if (addedDeps.length === 0) {
               console.log('No new dependencies found.');
