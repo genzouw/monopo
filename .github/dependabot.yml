@@ -24,6 +24,10 @@ updates:
     pull-request-branch-name:
       separator: '/'
     groups:
+      security:
+        patterns:
+          - 'secretlint'
+          - '@secretlint/*'
       eslint:
         patterns:
           - 'eslint*'
@@ -88,6 +92,10 @@ updates:
       include: 'scope'
     pull-request-branch-name:
       separator: '/'
+    groups:
+      actions:
+        patterns:
+          - '*'
     ignore:
       # v23.x 以降は Node.js 24 ランタイム要求のため、GitHub Actions runner が
       # node24 を正式サポートするまではメジャーアップデートを停止する。
@@ -125,5 +133,9 @@ updates:
     # 脆弱性修正の取り込みが遅延することはない。
     cooldown:
       default-days: 7
+    groups:
+      pre-commit-hooks:
+        patterns:
+          - '*'
     commit-message:
       prefix: 'chore'
