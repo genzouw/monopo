@@ -38,11 +38,11 @@
 
 - ローカルAIエージェントやAI-native IDE（Windsurf, Trae, Aider, Cline, Roo Code, Continue.devなど）を利用する際は、リポジトリ固有のルールを遵守し、作業ディレクトリ（`.aider*`、`.continue/`、`.windsurf`、`.roo/`、`.trae/` など）をコミットしないように注意してください。
 - 本リポジトリでは無料・オープンソースのベストプラクティスに基づき、GitHub Models (o3-mini) を利用した自作の AI PR Reviewer を導入し、SaaS依存を低減しつつ高度なコードレビューを自動化しています。
-- 定期的に（毎週）最新のフロントエンド（React 19, Bun等）やAI CI/CDのトレンドを要約し、チームの継続的な学習を促進するための AI Weekly Tech Trend Analyzer (`.github/workflows/ai-tech-trend-analyzer.yml`) プロトタイプを導入しています。
+- 最新のフロントエンド（React 19, Bun等）やAI CI/CDのトレンドを要約し、チームの継続的な学習を促進するための AI Weekly Tech Trend Analyzer (`.github/workflows/ai-tech-trend-analyzer.yml`) プロトタイプを導入しています。**GitHub Models (o3-mini) の廃止に伴い、スケジュール実行（cron）は現在停止中です（Refs #539）。** 手動実行（`workflow_dispatch`）のみ可能です。
 
 - 最新のAIエージェント（GitHub Copilot Agent, GPT-5.5, Claude 3.7, DeepSeek-R1 連携等）を利用する際は、生成されたコードのセキュリティリスク（機密情報の出力やインジェクション脆弱性）をローカルで必ず検証し、自動レビューツールとの多層的なチェックを行ってください。
 
 - 新たなAIツールやサービスを導入する際は、公開リポジトリにおいて無料で利用可能であることを前提としてください。また、それらを設定するための手動の事前作業（Secretsへのトークン追加など）は必ずプルリクエストの説明に記載してください。
-- 週次の開発進捗の要約や課題分析には、GitHub Models (o3-mini) と Tavily Search API を連携した自動プロジェクトマネジメントツール (`.github/workflows/ai-weekly-summary.yml`) を活用し、最新トレンドに基づく品質向上の提案を Issue として生成します。利用にあたっては、リポジトリの Secrets に `GH_MODELS_TOKEN` と `TAVILY_API_KEY` の事前登録が必須です（未登録の場合、週次サマリー生成が失敗します）。
+- 開発進捗の要約や課題分析には、GitHub Models (o3-mini) と Tavily Search API を連携した自動プロジェクトマネジメントツール (`.github/workflows/ai-weekly-summary.yml`) を用意しています。利用にあたっては、リポジトリの Secrets に `GH_MODELS_TOKEN` と `TAVILY_API_KEY` の事前登録が必須です。**GitHub Models (o3-mini) の廃止によりスケジュール実行（cron）は現在停止中で、週次での自動生成は行われません（Refs #539）。** 再開する場合は代替モデルの選定が必要です。
 
 - `CLAUDE.md` は Claude Code 向けの設定ファイルとして自動生成されます。

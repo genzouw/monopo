@@ -2,6 +2,17 @@
 
 このドキュメントでは、本リポジトリに導入されたAI自動化ツールおよびCI/CDパイプラインの設定について記載します。
 
+> [!IMPORTANT]
+> **GitHub Models (o3-mini) 廃止に伴う稼働状況について（Refs #539）**
+>
+> 本ドキュメントに登場する GitHub Models (o3-mini) を利用するワークフロー群は、エンドポイントの廃止により**現在は生成処理が成功しません**。
+> これに伴い、以下の対応を行っています。
+>
+> - スケジュール実行（cron）を停止中: `ai-weekly-summary.yml` / `ai-tech-trend-analyzer.yml` / `ai-tech-news-digest.yml` / `ai-code-optimizer.yml`（手動実行 `workflow_dispatch` のみ可能）
+> - 生成に失敗した場合は Issue / PR へのコメント投稿を見送り、`core.warning` で Actions の注釈に記録
+>
+> 以下の「無料で利用可能」「週次で自動生成される」といった記述は、**代替モデルを選定して復旧させた場合の前提**として読んでください。
+
 ## CodeRabbitとサーチサービスの設定
 
 `.coderabbit.yaml` にて、AIレビュー品質向上のためのWeb検索（サーチサービス連携）を有効化しました。
@@ -43,7 +54,7 @@ SAST/SCA/Secretsスキャンを自動実行する `.github/workflows/codeant-ci-
 ## 新規: AI Accessibility Reviewer の設定
 
 フロントエンドの変更に対して、WCAG 準拠やUI/UXの観点でAIが自動レビューを行う `.github/workflows/ai-a11y-reviewer.yml` を追加しました。
-無料の GitHub Models (o3-mini) と Tavily Search API を利用して最新のトレンドで評価します。
+GitHub Models (o3-mini) と Tavily Search API を利用して最新のトレンドで評価します（GitHub Models は現在廃止済みのため、代替モデルの選定が必要です。Refs #539）。
 
 1. **GitHub Secretsの設定 (必須)**
    - このワークフローを動作させるには、リポジトリ管理者権限を持つユーザーが GitHub のリポジトリの `Settings > Secrets and variables > Actions` にて、以下のシークレットを登録してください。
@@ -52,7 +63,8 @@ SAST/SCA/Secretsスキャンを自動実行する `.github/workflows/codeant-ci-
 
 ## 新規: AI Weekly Project Summary の設定
 
-週次のプロジェクト活動（コミット・PR）のサマリーと、最新のAI/CI-CDトレンド分析を自動生成し、Issueとして起票する `.github/workflows/ai-weekly-summary.yml` を追加しました。
+プロジェクト活動（コミット・PR）のサマリーと、最新のAI/CI-CDトレンド分析を自動生成し、Issueとして起票する `.github/workflows/ai-weekly-summary.yml` を追加しました。
+**GitHub Models 廃止によりスケジュール実行（cron）は停止中で、週次での自動起票は行われません（Refs #539）。** 手動実行（`workflow_dispatch`）のみ可能です。
 
 1. **GitHub Secretsの設定 (必須・リポジトリ管理者権限が必要)**
    - このワークフローを動作させるには、リポジトリ管理者権限を持つユーザーが GitHub のリポジトリの `Settings > Secrets and variables > Actions` にて、以下のシークレットを登録してください。
@@ -107,10 +119,10 @@ PR作成時にプロンプトへの変更（`prompts/**`）が含まれている
 最新のLLMセキュリティテスト、およびプロンプトの回帰テストを目的としています。
 
 1. **GitHub Secretsの設定 (必須)**
-   - 無料で利用可能な GitHub Models を評価モデルとして使用しますが、Actionの環境変数に `GH_MODELS_TOKEN` の注入が必要です。
+   - GitHub Models を評価モデルとして使用しますが、Actionの環境変数に `GH_MODELS_TOKEN` の注入が必要です（GitHub Models は現在廃止済み。Refs #539）。
    - `Settings > Secrets and variables > Actions` にて、`GH_MODELS_TOKEN` をシークレットとして登録してください。
    - `GH_MODELS_TOKEN` に fine-grained PAT（Personal Access Token）を使用する場合は、`models: read` 権限を明示的に付与する必要があります。リポジトリの Workflow 権限（`permissions:`）だけでは GitHub Models へのアクセス権は付与されません。
-   - GitHub Models には無料枠（レート制限あり）と有料枠があります。呼び出し頻度が増えて無料枠のレート制限に達する場合は、有料枠への切り替えおよび予算管理を検討してください。
+   - GitHub Models には無料枠（レート制限あり）と有料枠がありました。現在はエンドポイントが廃止されているため、代替モデル選定時に改めて料金体系とレート制限を確認してください（Refs #539）。
 
 2. **Secrets の信頼範囲について**
    - 本ワークフローは `pull_request`（`pull_request_target` ではない）トリガーで、変更後の `prompts/promptfooconfig.yaml` を用いて評価を実行します。
@@ -119,7 +131,8 @@ PR作成時にプロンプトへの変更（`prompts/**`）が含まれている
 
 ## 更新: AI Tech News Digest の設定
 
-週次のAI・自動化トレンドダイジェストを生成する `.github/workflows/ai-tech-news-digest.yml` において、Tavily Search API の `topic: 'news'` と `days: 7` パラメータを追加し、より最新の技術ニュースに特化して情報を取得できるように最適化しました。
+AI・自動化トレンドダイジェストを生成する `.github/workflows/ai-tech-news-digest.yml` において、Tavily Search API の `topic: 'news'` と `days: 7` パラメータを追加し、より最新の技術ニュースに特化して情報を取得できるように最適化しました。
+**GitHub Models 廃止によりスケジュール実行（cron）は停止中です（Refs #539）。** 手動実行（`workflow_dispatch`）のみ可能です。
 
 1. **GitHub Secretsの設定 (必須)**
    - 本設定には**リポジトリ管理者権限**が必要です。
