@@ -1,8 +1,11 @@
 name: AI Weekly Project Summary
 
 on:
-  schedule:
-    - cron: '0 8 * * 5' # 毎週金曜日の午前8時（UTC）に実行
+  # GitHub Models が廃止プロセス（retirement brownout）に入り HTTP 410 を返すため、
+  # 移行先が決まるまでスケジュール実行を停止する（詳細は Issue #539）。
+  # 手動実行は workflow_dispatch から可能。復旧時は以下のコメントを解除すること。
+  # schedule:
+  #   - cron: '0 8 * * 5' # 毎週金曜日の午前8時（UTC）に実行
   workflow_dispatch:
 
 permissions:
@@ -53,13 +56,13 @@ jobs:
                   try {
                     data = await res.json();
                   } catch (e) {
-                    console.log('Failed to parse Tavily response as JSON:', e);
+                    core.warning(`Tavily の応答の JSON 解析に失敗しました: ${String(e)}`);
                   }
                 } else {
-                  console.log(`Tavily request failed: ${res.status} ${res.statusText}`);
+                  core.warning(`Tavily へのリクエストに失敗しました: ${res.status} ${res.statusText}`);
                 }
               } catch (e) {
-                console.warn('Tavily search failed:', String(e));
+                core.warning(`Tavily 検索に失敗しました: ${String(e)}`);
               }
               return data;
             }
@@ -115,7 +118,11 @@ jobs:
 
             let report;
             try {
-              const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+              // GH_MODELS_TOKEN 未設定時は API を叩かずに中断し、Actions の注釈で検知できるようにする
+              if (!process.env.GH_MODELS_TOKEN) {
+                throw new Error('GH_MODELS_TOKEN が未設定です。リポジトリの Secrets に GH_MODELS_TOKEN を登録してください。');
+              }
+              const aiRes = await fetch('https://models.github.ai/inference/chat/completions', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -123,7 +130,7 @@ jobs:
                 },
                 signal: AbortSignal.timeout(120000),
                 body: JSON.stringify({
-                  model: 'o3-mini',
+                  model: 'openai/o3-mini',
                   messages: [{ role: 'user', content: prompt }],
                   reasoning_effort: 'high',
                   max_completion_tokens: 15000
@@ -135,15 +142,14 @@ jobs:
                   const aiData = await aiRes.json();
                   report = aiData.choices?.[0]?.message?.content;
                 } catch (e) {
-                  console.log('Failed to parse GitHub Models response as JSON:', e);
+                  core.warning(`GitHub Models の応答が不正な JSON でした: ${String(e)}`);
                 }
               } else {
                 const errorBody = await aiRes.text().catch(() => '<failed to read body>');
-                console.log(`GitHub Models request failed: ${aiRes.status} ${aiRes.statusText}`);
-                console.log('Response body:', errorBody);
+                core.warning(`GitHub Models へのリクエストに失敗しました: ${aiRes.status} ${aiRes.statusText} ${String(errorBody).slice(0, 500)}`);
               }
             } catch (e) {
-              console.warn('GitHub Models request failed:', String(e));
+              core.warning(`GitHub Models へのリクエストに失敗しました: ${String(e)}`);
             }
 
             if (report) {

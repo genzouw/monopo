@@ -44,7 +44,7 @@ jobs:
                 searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
               }
             } catch (e) {
-              console.log('Failed to fetch or parse Tavily response:', e);
+              core.warning(`Tavily の応答の取得または解析に失敗しました: ${String(e)}`);
             }
 
             const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のIssueの内容とWeb検索による最新のベストプラクティスをもとに、Vitest を使用したテストコードのモック・実装案を日本語の解説とともに作成してください。
@@ -57,9 +57,14 @@ jobs:
             検索結果の要約: ${searchAnswer}
             `;
 
-            let plan = 'テストコードの生成に失敗しました。';
+            // 生成に失敗した場合は null のままとし、Issue へのコメント投稿自体を見送る
+            let plan = null;
             try {
-              const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+              // GH_MODELS_TOKEN 未設定時は API を叩かずに中断し、Actions の注釈で検知できるようにする
+              if (!process.env.GH_MODELS_TOKEN) {
+                throw new Error('GH_MODELS_TOKEN が未設定です。リポジトリの Secrets に GH_MODELS_TOKEN を登録してください。');
+              }
+              const aiRes = await fetch('https://models.github.ai/inference/chat/completions', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -67,7 +72,7 @@ jobs:
                 },
                 signal: AbortSignal.timeout(120000),
                 body: JSON.stringify({
-                  model: 'o3-mini',
+                  model: 'openai/o3-mini',
                   messages: [{ role: 'user', content: prompt }],
                   reasoning_effort: 'high',
                   max_completion_tokens: 15000
@@ -79,11 +84,19 @@ jobs:
                   const aiData = await aiRes.json();
                   plan = aiData.choices?.[0]?.message?.content || plan;
                 } catch (e) {
-                  console.log('Failed to parse GitHub Models response as JSON:', e);
+                  core.warning(`GitHub Models の応答が不正な JSON でした: ${String(e)}`);
                 }
+              } else {
+                const errBody = await aiRes.text().catch(() => '');
+                core.warning(`AI テスト生成に失敗しました: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
               }
             } catch (e) {
-              console.warn('GitHub Models request failed:', String(e));
+              core.warning(`GitHub Models へのリクエストに失敗しました: ${String(e)}`);
+            }
+
+            if (!plan) {
+              core.warning('AI 自動テストコード生成提案を生成できなかったため Issue へのコメントを見送ります。');
+              return;
             }
 
             const body = `### 🤖 AI 自動テストコード生成提案\n\n${plan}`;
