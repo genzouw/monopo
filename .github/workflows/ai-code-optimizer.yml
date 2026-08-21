@@ -114,7 +114,13 @@ jobs:
               return;
             }
 
-            const aiData = await aiRes.json();
+            let aiData;
+            try {
+              aiData = await aiRes.json();
+            } catch (e) {
+              core.warning(`GitHub Models の応答が不正な JSON でした: ${String(e)}`);
+              return;
+            }
             const report = aiData.choices?.[0]?.message?.content;
             if (!report) {
               // content 空は推論トークンが max_completion_tokens を使い切ったサイン。

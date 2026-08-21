@@ -100,7 +100,13 @@ jobs:
               return;
             }
 
-            const data = await response.json();
+            let data;
+            try {
+              data = await response.json();
+            } catch (e) {
+              core.warning(`GitHub Models の応答が不正な JSON でした: ${String(e)}`);
+              return;
+            }
             const analysis = data.choices?.[0]?.message?.content;
 
             if (!analysis) {
