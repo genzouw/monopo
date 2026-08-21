@@ -174,7 +174,9 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
           }}
           aria-disabled={playerCount <= MIN_PLAYERS}
           title={
-            playerCount <= MIN_PLAYERS ? MIN_PLAYERS_DISABLED_MSG : undefined
+            playerCount <= MIN_PLAYERS
+              ? MIN_PLAYERS_DISABLED_MSG
+              : 'プレイヤーを減らす'
           }
           aria-label="プレイヤーを減らす"
           aria-describedby={
@@ -199,7 +201,9 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
           }}
           aria-disabled={playerCount >= MAX_PLAYERS}
           title={
-            playerCount >= MAX_PLAYERS ? MAX_PLAYERS_DISABLED_MSG : undefined
+            playerCount >= MAX_PLAYERS
+              ? MAX_PLAYERS_DISABLED_MSG
+              : 'プレイヤーを増やす'
           }
           aria-label="プレイヤーを増やす"
           aria-describedby={
