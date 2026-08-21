@@ -118,11 +118,15 @@ jobs:
               return;
             }
             const evaluation = aiData.choices?.[0]?.message?.content;
-            if (evaluation) {
-              await github.rest.issues.createComment({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: `### 🤖 AI 自動ツール＆設定評価\n\n${evaluation}`
-              });
+            if (!evaluation) {
+              // content 空は推論トークンが max_completion_tokens を使い切ったサイン。
+              core.warning(`GitHub Models から分析結果が返されませんでした。${JSON.stringify(aiData).slice(0, 500)}`);
+              return;
             }
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `### 🤖 AI 自動ツール＆設定評価\n\n${evaluation}`
+            });

@@ -127,6 +127,10 @@ jobs:
               if (aiRes.ok) {
                 const aiData = await aiRes.json();
                 analysis = aiData.choices?.[0]?.message?.content;
+                if (!analysis) {
+                  // content 空は推論トークンが max_completion_tokens を使い切ったサイン。
+                  core.warning(`GitHub Models から分析結果が返されませんでした。${JSON.stringify(aiData).slice(0, 500)}`);
+                }
               } else {
                 const errBody = await aiRes.text().catch(() => '');
                 core.warning(`AI アーキテクチャレビューに失敗しました: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
