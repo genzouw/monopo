@@ -1,8 +1,11 @@
 name: AI Code Optimizer
 
 on:
-  schedule:
-    - cron: '0 0 * * 0' # 毎週日曜日に実行
+  # GitHub Models が廃止プロセス（retirement brownout）に入り HTTP 410 を返すため、
+  # 移行先が決まるまでスケジュール実行を停止する（詳細は Issue #539）。
+  # 手動実行は workflow_dispatch から可能。復旧時は以下のコメントを解除すること。
+  # schedule:
+  #   - cron: '0 0 * * 0' # 毎週日曜日に実行
   workflow_dispatch:
 
 permissions:
@@ -65,7 +68,7 @@ jobs:
                 searchContext = searchData.results?.map(r => r.content).join('\n') || '';
               }
             } catch (e) {
-              console.warn('Tavily search failed:', String(e));
+              core.warning(`Tavily 検索に失敗しました: ${String(e)}`);
             }
 
             const prompt = `あなたは熟練のDevOpsエンジニアおよびソフトウェアアーキテクトです。
@@ -82,6 +85,10 @@ jobs:
 
             let aiRes;
             try {
+              // GH_MODELS_TOKEN 未設定時は API を叩かずに中断し、Actions の注釈で検知できるようにする
+              if (!process.env.GH_MODELS_TOKEN) {
+                throw new Error('GH_MODELS_TOKEN が未設定です。リポジトリの Secrets に GH_MODELS_TOKEN を登録してください。');
+              }
               aiRes = await fetch('https://models.github.ai/inference/chat/completions', {
                 method: 'POST',
                 headers: {
@@ -90,27 +97,41 @@ jobs:
                 },
                 signal: AbortSignal.timeout(120000),
                 body: JSON.stringify({
-                  model: 'o3-mini',
+                  model: 'openai/o3-mini',
                   messages: [{ role: 'user', content: prompt }],
                   reasoning_effort: 'high',
                   max_completion_tokens: 15000
                 })
               });
             } catch (e) {
-              console.warn('GitHub Models request failed:', String(e));
+              core.warning(`GitHub Models へのリクエストに失敗しました: ${String(e)}`);
               return;
             }
 
-            if (aiRes.ok) {
-              const aiData = await aiRes.json();
-              const report = aiData.choices?.[0]?.message?.content;
-              if (report) {
-                await github.rest.issues.create({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  title: `🤖 AI定期コード最適化レポート (${new Date().toISOString().split('T')[0]})`,
-                  body: `### 🤖 AI Code Optimization Report\n\n${report}`,
-                  labels: ['enhancement', 'ai-generated']
-                });
-              }
+            if (!aiRes.ok) {
+              const errBody = await aiRes.text().catch(() => '');
+              core.warning(`AI コード最適化に失敗しました: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
+              return;
             }
+
+            let aiData;
+            try {
+              aiData = await aiRes.json();
+            } catch (e) {
+              core.warning(`GitHub Models の応答が不正な JSON でした: ${String(e)}`);
+              return;
+            }
+            const report = aiData.choices?.[0]?.message?.content;
+            if (!report) {
+              // content 空は推論トークンが max_completion_tokens を使い切ったサイン。
+              core.warning(`GitHub Models から分析結果が返されませんでした。${JSON.stringify(aiData).slice(0, 500)}`);
+              return;
+            }
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🤖 AI定期コード最適化レポート (${new Date().toISOString().split('T')[0]})`,
+              body: `### 🤖 AI コード最適化レポート\n\n${report}`,
+              labels: ['enhancement', 'ai-generated']
+            });
