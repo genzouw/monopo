@@ -47,13 +47,13 @@ jobs:
                 try {
                   searchData = await tavilyRes.json();
                 } catch (e) {
-                  console.log('Failed to parse Tavily response as JSON:', e);
+                  core.warning(`Tavily の応答の JSON 解析に失敗しました: ${String(e)}`);
                 }
               } else {
-                console.log(`Tavily request failed: ${tavilyRes.status} ${tavilyRes.statusText}`);
+                core.warning(`Tavily へのリクエストに失敗しました: ${tavilyRes.status} ${tavilyRes.statusText}`);
               }
             } catch (e) {
-              console.warn('Tavily search failed:', String(e));
+              core.warning(`Tavily 検索に失敗しました: ${String(e)}`);
             }
             const searchAnswer = (searchData.answer || '要約なし').slice(0, MAX_SEARCH_ANSWER_CHARS);
 
@@ -70,9 +70,14 @@ jobs:
 
             // GitHub Models (公開リポジトリで無料・OpenAI互換API)
             // GH_MODELS_TOKEN で認証
-            let plan = '実装計画の生成に失敗しました。';
+            // 生成に失敗した場合は null のままとし、Issue へのコメント投稿自体を見送る
+            let plan = null;
             try {
-              const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+              // GH_MODELS_TOKEN 未設定時は API を叩かずに中断し、Actions の注釈で検知できるようにする
+              if (!process.env.GH_MODELS_TOKEN) {
+                throw new Error('GH_MODELS_TOKEN が未設定です。リポジトリの Secrets に GH_MODELS_TOKEN を登録してください。');
+              }
+              const aiRes = await fetch('https://models.github.ai/inference/chat/completions', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -80,7 +85,7 @@ jobs:
                 },
                 signal: AbortSignal.timeout(120000),
                 body: JSON.stringify({
-                  model: 'o3-mini',
+                  model: 'openai/o3-mini',
                   messages: [{ role: 'user', content: prompt }],
                   reasoning_effort: 'high',
                   max_completion_tokens: 15000
@@ -92,15 +97,19 @@ jobs:
                   const aiData = await aiRes.json();
                   plan = aiData.choices?.[0]?.message?.content || plan;
                 } catch (e) {
-                  console.log('Failed to parse GitHub Models response as JSON:', e);
+                  core.warning(`GitHub Models の応答が不正な JSON でした: ${String(e)}`);
                 }
               } else {
                 const errorBody = await aiRes.text().catch(() => '<failed to read body>');
-                console.log(`GitHub Models request failed: ${aiRes.status} ${aiRes.statusText}`);
-                console.log('Response body:', errorBody);
+                core.warning(`GitHub Models へのリクエストに失敗しました: ${aiRes.status} ${aiRes.statusText} ${String(errorBody).slice(0, 500)}`);
               }
             } catch (e) {
-              console.warn('GitHub Models request failed:', String(e));
+              core.warning(`GitHub Models へのリクエストに失敗しました: ${String(e)}`);
+            }
+
+            if (!plan) {
+              core.warning('AI リサーチ結果 & 実装計画を生成できなかったため Issue へのコメントを見送ります。');
+              return;
             }
 
             let body = `### 🤖 AI リサーチ結果 & 実装計画\n\n${plan}\n\n#### 参考ソース\n`;

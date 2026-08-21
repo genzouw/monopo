@@ -80,11 +80,11 @@ jobs:
                   const searchData = await tavilyRes.json();
                   searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
                 } catch (e) {
-                  console.log('Failed to parse Tavily response');
+                  core.warning(`Tavily の応答の解析に失敗しました: ${String(e)}`);
                 }
               }
             } catch (e) {
-              console.warn('Tavily search failed:', String(e));
+              core.warning(`Tavily 検索に失敗しました: ${String(e)}`);
             }
 
             // 固定方針は developer ロールに置き、外部入力（Tavily応答・スキャンログ）は
@@ -109,7 +109,11 @@ jobs:
 
             let response;
             try {
-              response = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+              // GH_MODELS_TOKEN 未設定時は API を叩かずに中断し、Actions の注釈で検知できるようにする
+              if (!process.env.GH_MODELS_TOKEN) {
+                throw new Error('GH_MODELS_TOKEN が未設定です。リポジトリの Secrets に GH_MODELS_TOKEN を登録してください。');
+              }
+              response = await fetch('https://models.github.ai/inference/chat/completions', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -117,7 +121,7 @@ jobs:
                 },
                 signal: AbortSignal.timeout(120000),
                 body: JSON.stringify({
-                  model: 'o3-mini',
+                  model: 'openai/o3-mini',
                   messages: [
                     { role: 'developer', content: systemPolicy },
                     { role: 'user', content: externalInput }
@@ -130,14 +134,14 @@ jobs:
                 })
               });
             } catch (e) {
-              console.warn(`Failed to get AI analysis: ${String(e)}`);
+              core.warning(`AI 分析の取得に失敗しました: ${String(e)}`);
               return;
             }
 
             if (!response.ok) {
               // status を残し、無言失敗（ティア別出力上限超過など）の原因追跡を可能にする。
               const errBody = await response.text().catch(() => '');
-              console.warn(`Failed to get AI analysis: HTTP ${response.status} ${response.statusText} ${errBody.slice(0, 500)}`);
+              core.warning(`AI 分析の取得に失敗しました: HTTP ${response.status} ${response.statusText} ${errBody.slice(0, 500)}`);
               return;
             }
 
@@ -146,7 +150,7 @@ jobs:
               data = await response.json();
             } catch (error) {
               // 2xx でも本文が不正 JSON の場合は例外で step を落とさず警告して離脱する。
-              console.warn(`AI analysis returned invalid JSON: ${String(error)}`);
+              core.warning(`AI 分析の応答が不正な JSON でした: ${String(error)}`);
               return;
             }
             const choice = data?.choices?.[0];
@@ -155,7 +159,7 @@ jobs:
             if (!analysis) {
               // content 空は推論トークンが max_completion_tokens を使い切ったサイン。
               // 無言スキップを避けて finish_reason をログに残す。
-              console.warn(`AI analysis returned empty content (finish_reason: ${choice?.finish_reason ?? 'unknown'}). 推論トークンが max_completion_tokens を使い切った可能性があります。`);
+              core.warning(`AI 分析の応答が空でした (finish_reason: ${choice?.finish_reason ?? 'unknown'})。推論トークンが max_completion_tokens を使い切った可能性があります。`);
               return;
             }
 

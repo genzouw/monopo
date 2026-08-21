@@ -44,11 +44,11 @@ jobs:
                   const searchData = await tavilyRes.json();
                   searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
                 } catch (e) {
-                  console.log('Failed to parse Tavily response');
+                  core.warning(`Tavily の応答の解析に失敗しました: ${String(e)}`);
                 }
               }
             } catch (e) {
-              console.warn('Tavily search failed:', String(e));
+              core.warning(`Tavily 検索に失敗しました: ${String(e)}`);
             }
 
             const prompt = `あなたは熟練のプロジェクトマネージャーです。以下のIssueの内容とWeb検索によるコンテキストをもとに、このIssueに付与すべき適切なラベル（bug, enhancement, question, request ai review, request ai tests など）を分析してください。
@@ -63,10 +63,15 @@ jobs:
             Issue本文: ${issueBody}
             検索結果の要約: ${searchAnswer}`;
 
-            let analysis = 'ラベルの提案に失敗しました。';
+            // 生成に失敗した場合は null のままとし、Issue へのコメント投稿自体を見送る
+            let analysis = null;
             let parsedResult = null;
             try {
-              const aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+              // GH_MODELS_TOKEN 未設定時は API を叩かずに中断し、Actions の注釈で検知できるようにする
+              if (!process.env.GH_MODELS_TOKEN) {
+                throw new Error('GH_MODELS_TOKEN が未設定です。リポジトリの Secrets に GH_MODELS_TOKEN を登録してください。');
+              }
+              const aiRes = await fetch('https://models.github.ai/inference/chat/completions', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -74,7 +79,7 @@ jobs:
                 },
                 signal: AbortSignal.timeout(120000),
                 body: JSON.stringify({
-                  model: 'o3-mini',
+                  model: 'openai/o3-mini',
                   messages: [{ role: 'user', content: prompt }],
                   reasoning_effort: 'high',
                   max_completion_tokens: 15000
@@ -93,20 +98,30 @@ jobs:
                   } else {
                      analysis = content;
                   }
-                } catch (e) {}
+                } catch (e) {
+                  core.warning(`AI Issue トリアージの応答を解析できませんでした: ${String(e)}`);
+                }
+              } else {
+                const errBody = await aiRes.text().catch(() => '');
+                core.warning(`AI Issue トリアージに失敗しました: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
               }
             } catch (e) {
-              console.warn('GitHub Models request failed:', String(e));
+              core.warning(`GitHub Models へのリクエストに失敗しました: ${String(e)}`);
             }
 
-            const body = `### 🤖 AI Issue トリアージ提案\n\n${analysis}`;
+            // ラベル付与は成否に関わらず後続で判定するため、ここでは return せずコメント投稿だけを見送る
+            if (analysis) {
+              const body = `### 🤖 AI Issue トリアージ提案\n\n${analysis}`;
 
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: body
-            });
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body
+              });
+            } else {
+              core.warning('AI Issue トリアージ提案を生成できなかったため Issue へのコメントを見送ります。');
+            }
 
             if (parsedResult && parsedResult.label) {
                try {
@@ -118,6 +133,6 @@ jobs:
                  });
                  console.log(`Successfully added label: ${parsedResult.label}`);
                } catch (e) {
-                 console.log('Failed to add label', e);
+                 core.warning(`ラベルの付与に失敗しました: ${String(e)}`);
                }
             }
