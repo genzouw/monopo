@@ -118,9 +118,11 @@ CI の監査ワークフロー (`.github/workflows/permissions-audit.yml`) に�
 - **必須**: 開発環境には [TruffleHog](https://github.com/trufflesecurity/trufflehog) をインストールしてください（例: `brew install trufflehog`）。未インストールの場合、コミット時にエラーが発生してブロックされます。
 - **オフライン時の回避策**: TruffleHog はデフォルトでシークレットの有効性を外部プロバイダに問い合わせて検証するため、オフライン環境ではコミットが失敗する場合があります。その場合は `SKIP=trufflehog git commit ...` のようにフックを一時的にスキップしてください。
 
-### Dependabot による pre-commit ツールの自動更新
+### Dependabot による pre-commit ツールおよび GitHub Actions の自動更新とグループ化
 
-シークレット検知ツール（gitleaks, trufflehog, detect-secrets）を含む `pre-commit` フックのバージョンを常に最新かつ安全に保つため、`.github/dependabot.yml` にて `pre-commit` エコシステムの自動更新を有効化しています。これにより、新しいシークレットパターンへの対応や脆弱性修正が継続的かつ自動で取り込まれ、漏洩防止の防御力が維持されます。
+シークレット検知ツール（gitleaks, trufflehog, detect-secrets）を含む `pre-commit` フックや、CI ワークフローで利用する `github-actions` のバージョンを常に最新かつ安全に保つため、`.github/dependabot.yml` にてこれらのエコシステムの自動更新を有効化しています。これにより、新しいシークレットパターンへの対応や脆弱性修正が継続的かつ自動で取り込まれ、漏洩防止の防御力が維持されます。
+
+また、更新 PR の乱立によるアラート疲労を防ぐため、`github-actions` と `pre-commit` の**バージョン更新**はそれぞれ `groups` 設定（`applies-to: version-updates`）を用いて単一の PR にまとめて通知されるよう構成しています。一方、**セキュリティ更新**（脆弱性修正）はグループ化の対象外で、Dependabot が従来どおり個別の PR として即時に作成します。これにより、脆弱性修正が他のバージョン更新の検証待ちでブロックされることなく、遅滞なく取り込めるようにしています。
 
 ### 追加のカスタム漏洩検知・抑止対策 (Gitleaks 強化)
 
