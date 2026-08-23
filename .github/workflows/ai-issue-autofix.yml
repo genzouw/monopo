@@ -64,10 +64,10 @@ jobs:
                 const searchData = await tavilyRes.json();
                 searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
               } else {
-                console.error(`Tavily search failed with status: ${tavilyRes.status}`);
+                core.warning(`Tavily 検索に失敗しました: ステータス ${tavilyRes.status}`);
               }
             } catch (e) {
-              console.error('Tavily search failed:', e);
+              core.warning(`Tavily 検索に失敗しました: ${String(e)}`);
             }
 
             const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のIssueの内容、プロジェクトのコードベース概要、およびWeb検索結果をもとに、このIssueを解決するための具体的なファイルの書き換えを行うNode.jsスクリプト (CommonJS形式、fsモジュール使用) を出力してください。
@@ -93,7 +93,11 @@ jobs:
 
             let aiRes;
             try {
-              aiRes = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+              // GH_MODELS_TOKEN 未設定時は API を叩かずに中断し、Actions の注釈で検知できるようにする
+              if (!process.env.GH_MODELS_TOKEN) {
+                throw new Error('GH_MODELS_TOKEN が未設定です。リポジトリの Secrets に GH_MODELS_TOKEN を登録してください。');
+              }
+              aiRes = await fetch('https://models.github.ai/inference/chat/completions', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -101,14 +105,14 @@ jobs:
                 },
                 signal: AbortSignal.timeout(120000),
                 body: JSON.stringify({
-                  model: 'o3-mini',
+                  model: 'openai/o3-mini',
                   messages: [{ role: 'user', content: prompt }],
                   reasoning_effort: 'high',
                   max_completion_tokens: 15000
                 })
               });
             } catch (e) {
-              console.warn('GitHub Models request failed:', String(e));
+              core.warning(`GitHub Models へのリクエストに失敗しました: ${String(e)}`);
               return;
             }
 
@@ -125,17 +129,18 @@ jobs:
                   fs.writeFileSync('auto-fix.cjs', parsed.script);
                   console.log('修正スクリプトが生成されました。');
                 } else {
-                  console.log('JSONレスポンスにスクリプトが含まれていません。');
+                  core.warning('JSONレスポンスにスクリプトが含まれていません。');
                 }
 
                 if (parsed.explanation) {
                    fs.writeFileSync('auto-fix-explanation.txt', parsed.explanation);
                 }
               } catch (err) {
-                 console.log('AIの出力が期待されるJSON形式ではありませんでした:', analysis);
+                 core.warning(`AIの出力が期待されるJSON形式ではありませんでした: ${String(analysis).slice(0, 500)}`);
               }
             } else {
-              console.log('AIリクエストが失敗しました:', await aiRes.text());
+              const errBody = await aiRes.text().catch(() => '');
+              core.warning(`AI による Issue 自動修正に失敗しました: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
             }
 
       - name: Run Generated Fix Script

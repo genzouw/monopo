@@ -52,11 +52,11 @@ jobs:
                   const searchData = await tavilyRes.json();
                   searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
                 } catch (e) {
-                  console.log('Failed to parse Tavily response');
+                  core.warning(`Tavily の応答の解析に失敗しました: ${String(e)}`);
                 }
               }
             } catch (e) {
-              console.warn('Tavily search failed:', String(e));
+              core.warning(`Tavily 検索に失敗しました: ${String(e)}`);
             }
 
             const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のDependabotによる依存関係更新のプルリクエストとWeb検索結果を分析し、更新内容の要約と、潜在的な破壊的変更やリスク、確認すべきポイントを日本語で提示してください。
@@ -71,7 +71,11 @@ jobs:
             // GitHub Models (公開リポジトリで無料・OpenAI互換API)
             let response;
             try {
-              response = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+              // GH_MODELS_TOKEN 未設定時は API を叩かずに中断し、Actions の注釈で検知できるようにする
+              if (!process.env.GH_MODELS_TOKEN) {
+                throw new Error('GH_MODELS_TOKEN が未設定です。リポジトリの Secrets に GH_MODELS_TOKEN を登録してください。');
+              }
+              response = await fetch('https://models.github.ai/inference/chat/completions', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -79,29 +83,34 @@ jobs:
                 },
                 signal: AbortSignal.timeout(120000),
                 body: JSON.stringify({
-                  model: 'o3-mini',
+                  model: 'openai/o3-mini',
                   messages: [{ role: 'user', content: prompt }],
                   reasoning_effort: 'high',
                   max_completion_tokens: 15000
                 })
               });
             } catch (e) {
-              console.warn('GitHub Models request failed:', String(e));
+              core.warning(`GitHub Models へのリクエストに失敗しました: ${String(e)}`);
               return;
             }
 
             if (!response.ok) {
               const errorBody = await response.text().catch(() => '<failed to read body>');
-              console.log(`GitHub Models API error: ${response.status} ${response.statusText}`);
-              console.log('Response body:', errorBody);
+              core.warning(`GitHub Models API エラー: ${response.status} ${response.statusText} ${String(errorBody).slice(0, 500)}`);
               return;
             }
 
-            const data = await response.json();
+            let data;
+            try {
+              data = await response.json();
+            } catch (e) {
+              core.warning(`GitHub Models の応答が不正な JSON でした: ${String(e)}`);
+              return;
+            }
             const analysis = data.choices?.[0]?.message?.content;
 
             if (!analysis) {
-              console.log('No analysis returned from GitHub Models.', JSON.stringify(data));
+              core.warning(`GitHub Models から分析結果が返されませんでした。${JSON.stringify(data).slice(0, 500)}`);
               return;
             }
 
