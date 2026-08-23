@@ -24,6 +24,14 @@ updates:
     pull-request-branch-name:
       separator: '/'
     groups:
+      # groups の applies-to は既定で version-updates のみが対象となる。
+      # secretlint 本体とルールプリセットはバージョンを揃える必要があるため
+      # 1 つの PR にまとめ、セキュリティ更新は個別 PR のまま受け取る。
+      secretlint:
+        applies-to: version-updates
+        patterns:
+          - 'secretlint*'
+          - '@secretlint/*'
       eslint:
         patterns:
           - 'eslint*'
