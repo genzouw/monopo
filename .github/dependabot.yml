@@ -30,7 +30,7 @@ updates:
       secretlint:
         applies-to: version-updates
         patterns:
-          - 'secretlint'
+          - 'secretlint*'
           - '@secretlint/*'
       eslint:
         patterns:
