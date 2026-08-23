@@ -92,8 +92,12 @@ updates:
       include: 'scope'
     pull-request-branch-name:
       separator: '/'
+    # groups の applies-to は既定で version-updates のみが対象となる。
+    # セキュリティ更新は意図的にグループ化せず個別 PR のまま受け取ることで、
+    # 脆弱性修正が他の更新の検証待ちでブロックされないようにしている。
     groups:
       actions:
+        applies-to: version-updates
         patterns:
           - '*'
     ignore:
@@ -133,8 +137,12 @@ updates:
     # 脆弱性修正の取り込みが遅延することはない。
     cooldown:
       default-days: 7
+    # groups の applies-to は既定で version-updates のみが対象となる。
+    # セキュリティ更新は意図的にグループ化せず個別 PR のまま受け取ることで、
+    # 脆弱性修正が他の更新の検証待ちでブロックされないようにしている。
     groups:
-      pre-commit-hooks:
+      hooks:
+        applies-to: version-updates
         patterns:
           - '*'
     commit-message:
