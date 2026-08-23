@@ -22,3 +22,18 @@ extra_instructions = """
 extra_instructions = """
 - 生成されるドキュメントやコメントはすべて日本語で記述してください。
 """
+
+[pr_update_changelog]
+extra_instructions = """
+- Changelogの更新はすべて日本語で記述してください。
+"""
+
+[pr_analyze]
+extra_instructions = """
+- アーキテクチャの分析とセキュリティリスクの検証を含め、すべて日本語で報告してください。
+"""
+
+[pr_custom_prompt]
+prompt = """
+最新の2025年 AI CI/CDのベストプラクティスに基づき、このPRのコードをレビューしてください。特にパフォーマンスの最適化やBunの機能活用、React 19のパターンに注目し、日本語で出力してください。
+"""
