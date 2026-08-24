@@ -23,7 +23,7 @@
   - これは VS Code/Cursor のワークスペース設定を利用した補助的な防御であり、他のエディタや設定を無効化・上書きされた環境には適用されません。設定反映後はエディタを再起動し、`test.patch` 等が Explorer と検索結果から除外されること、GitHub の Push Protection が有効であることを確認してください。
 - **`pre-commit` framework**: `.pre-commit-config.yaml` による標準的なフック（秘密鍵の検知、YAML構文チェックなど）を利用してコミット前の安全性をさらに高めています。
   - **`detect-secrets`**: `gitleaks` を補完し、エントロピーベースで未知の高乱数なシークレットや独自フォーマットのトークンを検知します。
-    - **セットアップ**: `pre-commit install` 実行時に自動的にインストールされます。追加の手動インストールは不要です。
+    - **セットアップ**: `detect-secrets` は `pre-commit` のフック依存として自動的に解決・実行されるため、追加の手動インストールは不要です。ただし、Git フックは Husky（`.husky/pre-commit`）が一元管理しているため、`.git/hooks/pre-commit` を上書きしてしまう `pre-commit install` コマンドは実行しないでください（実行すると Husky 経由の `lint-staged`・`gitleaks`・型チェック・テストがすべて回避されます）。`pre-commit` 本体はローカルへのインストールのみで十分です（例: `brew install pre-commit` または `pip install pre-commit`）。
     - **ベースラインファイル (`.secrets.baseline`)**: リポジトリ直下に配置し、バージョン管理下に含めます。初回生成は `detect-secrets scan > .secrets.baseline`、更新は `detect-secrets scan --baseline .secrets.baseline` で行います。
     - **未検証検出 (`is_verified: false`) の扱い**: ベースラインへのコミット前に対象箇所を目視確認してください。誤検知（GitHub Actions secrets 参照など）の場合は該当行に `# pragma: allowlist secret` コメントを追加してから再スキャンし、エントリを削除します。実際のシークレットの場合は即座にローテーション（無効化・再発行）を行ってください。
     - **検出の限界**: 低エントロピーの短いパスワードや独自フォーマットの秘密情報は検知困難な場合があります。`gitleaks` との多層防御で補完しています。
