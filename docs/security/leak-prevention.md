@@ -9,6 +9,7 @@
 - **`gitleaks` フック**: コミット時に `.husky/pre-commit` および `.husky/commit-msg` フックを通してローカルで `gitleaks` が実行され、ソースコードやコミットメッセージ自体から秘密情報を検知した場合はコミットをブロックします。
   - **⚠️ 注意**: `gitleaks` が未インストールの場合、コミットは自動的にブロックされます。意図せぬ秘密情報の混入を防ぐため、gitleaks のインストールが**必須**となっています。
   - **自動セットアップ**: 本リポジトリでは `package.json` の `prepare` スクリプトにより、初回 `bun install` 時に自動で Husky と pre-commit フックがセットアップされます。
+- **`pre-commit` フック**: コミット時に `.husky/pre-commit` を通して `pre-commit` が実行され、`trufflehog`、`detect-secrets` など多層的なシークレット検知が行われます。こちらも `gitleaks` と同様にインストールが**必須**となっており、未インストールの場合はコミットがブロックされます（例: `brew install pre-commit` または `pip install pre-commit`）。
   - **必須**: 開発環境には [gitleaks](https://github.com/gitleaks/gitleaks) をインストールしてください。（例: `brew install gitleaks` または GitHub のリリースページからダウンロード）
 - **`secretlint` 連携 (`lint-staged`)**:
   - Node.js エコシステムに特化した `secretlint` を `lint-staged` に統合し、`.secretlintignore` で除外したロックファイル等を除くコミット対象のファイルに対して高速なシークレットスキャンを実行します。`gitleaks` と二重化することで検知精度を向上させています。
