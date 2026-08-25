@@ -125,7 +125,7 @@ jobs:
                 },
                 signal: AbortSignal.timeout(120000),
                 body: JSON.stringify({
-                  model: 'openai/o3-mini',
+                  model: 'gpt-4o-mini',
                   messages: [
                     { role: 'developer', content: systemPolicy },
                     { role: 'user', content: externalInput }
@@ -133,7 +133,6 @@ jobs:
                   // o系列モデルの max_completion_tokens は推論トークンと可視出力トークンの合算上限。
                   // 'high' だと推論だけで予算を使い切り、可視出力が空 (finish_reason: 'length') になる恐れがあるため
                   // まずは 'medium' を既定とし、品質とトークン消費を見ながら調整する。
-                  reasoning_effort: 'medium',
                   max_completion_tokens: 15000
                 })
               });

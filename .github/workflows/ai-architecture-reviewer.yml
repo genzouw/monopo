@@ -117,9 +117,8 @@ jobs:
                   'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
                 },
                 body: JSON.stringify({
-                  model: 'openai/o3-mini',
+                  model: 'gpt-4o-mini',
                   messages: [{ role: 'user', content: prompt }],
-                  reasoning_effort: 'high',
                   max_completion_tokens: 15000
                 })
               });
