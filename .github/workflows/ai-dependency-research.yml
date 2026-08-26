@@ -56,10 +56,10 @@ jobs:
                 // package.json が本当に存在しない（404）場合のみ「依存関係なし」として扱う。
                 // それ以外の取得・解析失敗は呼び出し元へ失敗状態を伝播し、誤検知を防ぐ。
                 if (e.status === 404) {
-                  console.warn(`package.json (${ref}) が見つかりませんでした。`);
+                  core.warning(`package.json (${ref}) が見つかりませんでした。`);
                   return { ok: true, names: new Set() };
                 }
-                console.warn(`package.json (${ref}) の取得または解析に失敗しました:`, String(e));
+                core.warning(`package.json (${ref}) の取得または解析に失敗しました: ${String(e)}`);
                 return { ok: false, names: new Set() };
               }
             }
@@ -70,7 +70,7 @@ jobs:
             ]);
 
             if (!baseDeps.ok || !headDeps.ok) {
-              console.warn('依存関係の取得に失敗したため、依存関係比較とコメント投稿を中止します。');
+              core.warning('依存関係の取得に失敗したため、依存関係比較とコメント投稿を中止します。');
               return;
             }
 
@@ -87,7 +87,7 @@ jobs:
             const safeDeps = addedDeps.filter((dep) => NPM_NAME.test(dep)).slice(0, 20);
 
             if (safeDeps.length === 0) {
-              console.warn('検査対象として妥当なパッケージ名がありませんでした。');
+              core.warning('検査対象として妥当なパッケージ名がありませんでした。');
               return;
             }
 
@@ -113,7 +113,7 @@ jobs:
                 searchContext = searchData.results?.map(r => r.content).join('\n') || '';
               }
             } catch (e) {
-              console.warn('Tavily search failed:', String(e));
+              core.warning(`Tavily 検索に失敗しました: ${String(e)}`);
             }
 
             // パッケージ名も検索結果も信頼できない入力のため、デリミタで囲んで
@@ -156,24 +156,41 @@ jobs:
                 })
               });
             } catch (e) {
-              console.warn('GitHub Models request failed:', String(e));
+              core.warning(`GitHub Models へのリクエストに失敗しました: ${String(e)}`);
               return;
             }
 
-            if (aiRes.ok) {
-              const aiData = await aiRes.json();
-              const evaluation = aiData.choices?.[0]?.message?.content;
-              if (evaluation) {
-                // モデル出力をそのまま投稿すると、第三者へのメンション通知や
-                // 他レビュー Bot 向けの HTML コメント注入が成立してしまうため無害化する。
-                const sanitized = evaluation
-                  .replace(/(^|[^\w`])@([a-zA-Z0-9-])/g, '$1@\u200b$2')
-                  .replace(/<!--/g, '&lt;!--');
-                await github.rest.issues.createComment({
-                  issue_number: context.issue.number,
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  body: `### 🛡️ AI 依存関係セキュリティリサーチ\n\n${sanitized}`
-                });
-              }
+            // 失敗理由を切り分けて core.warning で注釈化する。
+            // 標準の warn 出力では Actions のログに紛れるだけで、失敗を検知できない。
+            if (!aiRes.ok) {
+              const errorBody = await aiRes.text().catch(() => '<failed to read body>');
+              core.warning(`GitHub Models API エラー: ${aiRes.status} ${aiRes.statusText} ${String(errorBody).slice(0, 500)}`);
+              return;
             }
+
+            let aiData;
+            try {
+              aiData = await aiRes.json();
+            } catch (e) {
+              core.warning(`GitHub Models の応答が不正な JSON でした: ${String(e)}`);
+              return;
+            }
+
+            const evaluation = aiData.choices?.[0]?.message?.content;
+            if (!evaluation) {
+              core.warning(`GitHub Models から分析結果が返されませんでした。${JSON.stringify(aiData).slice(0, 500)}`);
+              return;
+            }
+
+            // モデル出力をそのまま投稿すると、第三者へのメンション通知や
+            // 他レビュー Bot 向けの HTML コメント注入が成立してしまうため無害化する。
+            const sanitized = evaluation
+              .replace(/(^|[^\w`])@([a-zA-Z0-9-])/g, '$1@\u200b$2')
+              .replace(/<!--/g, '&lt;!--');
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `### 🛡️ AI 依存関係セキュリティリサーチ\n\n${sanitized}`
+            });
