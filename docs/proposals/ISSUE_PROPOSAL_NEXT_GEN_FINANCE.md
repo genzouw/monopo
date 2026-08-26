@@ -10,6 +10,8 @@ labels: ['enhancement', 'proposal', 'game-design', 'game-mechanics']
 「monopo（モノポ）」を現実の経済の動きやマネーゲームの概念を学習できる「教育的教材」として進化させるための提案です。
 「伝統的な不動産取引ゲーム」や「資産運用ボードゲーム」で馴染み深い基礎的なメカニクスをベースとしつつ、さらに現代から近未来の複雑な金融資本主義システムをシミュレートする、従来では考えられない革新的な機能を提案します。
 
+> 📎 **関連提案との整合性:** 本書の「伝統的な資産運用ゲームの基本機能の統合」（エリア独占と設備投資、エリア株の相乗り投資）は `ISSUE_PROPOSAL_TRADITIONAL_AND_MODERN_MECHANICS.md` をはじめ既存提案と重複するため、実装時に参照する正規仕様は `ISSUE_PROPOSAL_TRADITIONAL_AND_MODERN_MECHANICS.md` とします。また「不動産のトークン化（小口分割所有とDAO）」は `ISSUE_PROPOSAL_EDUCATIONAL_ASSET_MANAGEMENT.md` の「DAOによるメガエリアの共同所有」に重複するため、正規仕様は同書とします。本書は新規性のある「DeFi（分散型金融）」「HFT（高頻度取引）とダークプール」「AI自動化とUBI税」に範囲を絞って位置づけます。
+
 ## 🎯 提案する機能の概要 (What)
 
 1. **伝統的な資産運用ゲームの基本機能の統合:**
