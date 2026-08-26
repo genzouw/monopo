@@ -2,8 +2,13 @@ name: AI Dependency Research
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened]
     paths:
       - 'package.json'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
