@@ -108,12 +108,22 @@ jobs:
                 })
               });
 
-              if (tavilyRes.ok) {
+              if (!tavilyRes.ok) {
+                const errorBody = await tavilyRes.text().catch(() => '<failed to read body>');
+                core.warning(`Tavily 検索エラー: ${tavilyRes.status} ${tavilyRes.statusText} ${String(errorBody).slice(0, 500)}`);
+              } else {
                 const searchData = await tavilyRes.json();
-                searchContext = searchData.results?.map(r => r.content).join('\n') || '';
+                searchContext = searchData.results?.map(r => r.content).join('\n') || searchContext;
               }
             } catch (e) {
               core.warning(`Tavily 検索に失敗しました: ${String(e)}`);
+            }
+
+            // 検索結果が得られていない状態で断定的な「セキュリティリサーチ」を
+            // 投稿すると根拠ゼロの内容になるため、投稿自体を中止する。
+            if (searchContext === '検索結果なし') {
+              core.warning('Tavily から検索結果が得られなかったため、コメント投稿を中止します。');
+              return;
             }
 
             // パッケージ名も検索結果も信頼できない入力のため、デリミタで囲んで
