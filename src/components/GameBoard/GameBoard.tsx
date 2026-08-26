@@ -408,7 +408,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
       });
   }, [showPlayerDetail, playersById, state.board, state.propertyStates]);
 
-  // ⚡ Bolt: useMemo to prevent recalculating total assets (which involves O(P) iteration over owned properties) on every render while the player dialog is open.
+  // ⚡ Bolt: プレイヤー詳細ダイアログ表示中の総資産再計算を防ぐため、所有物件の走査結果をメモ化する。
   const detailPlayerTotalAssets = useMemo(() => {
     const detailPlayer = showPlayerDetail
       ? playersById[showPlayerDetail]
