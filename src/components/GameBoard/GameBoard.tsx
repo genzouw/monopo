@@ -408,6 +408,19 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
       });
   }, [showPlayerDetail, playersById, state.board, state.propertyStates]);
 
+  // ⚡ Bolt: プレイヤー詳細ダイアログ表示中の総資産再計算を防ぐため、所有物件の走査結果をメモ化する。
+  const detailPlayerTotalAssets = useMemo(() => {
+    const detailPlayer = showPlayerDetail
+      ? playersById[showPlayerDetail]
+      : null;
+    if (!detailPlayer) return 0;
+    return calculateTotalAssets(
+      detailPlayer,
+      state.propertyStates,
+      state.board,
+    );
+  }, [showPlayerDetail, playersById, state.propertyStates, state.board]);
+
   return (
     <div className={styles.gameBoard}>
       <div className={styles.boardSection}>
@@ -1042,11 +1055,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
         (() => {
           const detailPlayer = playersById[showPlayerDetail];
           if (!detailPlayer) return null;
-          const totalAssets = calculateTotalAssets(
-            detailPlayer,
-            state.propertyStates,
-            state.board,
-          );
+          const totalAssets = detailPlayerTotalAssets;
           const ownedProps = detailPlayerProps;
           const currentSpaceName =
             state.board[detailPlayer.position]?.name ?? '';
