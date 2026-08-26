@@ -137,6 +137,10 @@ jobs:
 
             let aiRes;
             try {
+              // Secrets の登録漏れと API 障害をログ上で区別できるようにする。
+              if (!process.env.GH_MODELS_TOKEN) {
+                throw new Error('GH_MODELS_TOKEN が未設定です。リポジトリの Secrets に GH_MODELS_TOKEN を登録してください。');
+              }
               aiRes = await fetch('https://models.github.ai/inference/chat/completions', {
                 method: 'POST',
                 headers: {
@@ -145,7 +149,7 @@ jobs:
                 },
                 signal: AbortSignal.timeout(120000),
                 body: JSON.stringify({
-                  model: 'o3-mini',
+                  model: 'openai/o3-mini',
                   messages: [{ role: 'user', content: prompt }],
                   reasoning_effort: 'high',
                   max_completion_tokens: 15000
