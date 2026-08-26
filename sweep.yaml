@@ -6,5 +6,5 @@ rules:
   - 'All UI text, documentations, and comments must be in Japanese.'
   - 'Strictly use the name "monopo" (モノポ) across the entire codebase.'
   - 'Always run `bun install && bun run lint && bun run typecheck && bun run test` to ensure tests pass before proposing changes.'
-  - 'When proposing new tools or configurations for public repositories, require them to be freely usable (an open-source license is not required, but consider paid-tier fallback and usage limits), and ensure they comply with the latest AI/CI/CD integration trends.'
+  - 'When proposing new tools or configurations for public repositories, require that they run entirely within a free tier (an open-source license is not required). Verify the free-tier conditions, usage and rate limits, and that exceeding them cannot trigger automatic billing. If a payment method is required, state that explicitly in the pull request. Also ensure they comply with the latest AI/CI/CD integration trends.'
   - 'When proposing new AI tools or configurations, require layered validation (local checks plus automated review tools) for secret leakage, prompt injection, and other injection vulnerabilities before adoption.'
