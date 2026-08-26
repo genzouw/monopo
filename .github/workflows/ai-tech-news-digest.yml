@@ -1,11 +1,11 @@
 name: AI Weekly Tech News Digest
 
 on:
-  # GitHub Models の o3-mini エンドポイント廃止に対応し、代替の gpt-4o-mini モデルへ移行しました。
-  # スケジュール実行（cron）を再開しています。
-
-  schedule:
-    - cron: '0 8 * * 3' # 毎週水曜日の午前8時（UTC）に実行
+  # GitHub Models が廃止プロセス（retirement brownout）に入り HTTP 410 を返すため、
+  # 移行先が決まるまでスケジュール実行を停止する（詳細は Issue #539）。
+  # 手動実行は workflow_dispatch から可能。復旧時は以下のコメントを解除すること。
+  # schedule:
+  #   - cron: '0 8 * * 3' # 毎週水曜日の午前8時（UTC）に実行
   workflow_dispatch:
 
 permissions:
@@ -81,8 +81,9 @@ jobs:
                 },
                 signal: AbortSignal.timeout(120000),
                 body: JSON.stringify({
-                  model: 'gpt-4o-mini',
+                  model: 'openai/o3-mini',
                   messages: [{ role: 'user', content: prompt }],
+                  reasoning_effort: 'high',
                   max_completion_tokens: 15000
                 })
               });

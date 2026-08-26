@@ -3,13 +3,15 @@
 このドキュメントでは、本リポジトリに導入されたAI自動化ツールおよびCI/CDパイプラインの設定について記載します。
 
 > [!IMPORTANT]
-> **GitHub Models (gpt-4o-mini) による運用について**
+> **GitHub Models (o3-mini) 廃止に伴う稼働状況について（Refs #539）**
 >
-> 本ドキュメントに登場する GitHub Models (gpt-4o-mini) を利用するワークフロー群は正常に稼働しています。
+> 本ドキュメントに登場する GitHub Models (o3-mini) を利用するワークフロー群は、エンドポイントの廃止により**現在は生成処理が成功しません**。
 > これに伴い、以下の対応を行っています。
 >
-> - スケジュール実行（cron）は設定通り稼働中です。
-> - 生成に失敗した場合は Issue / PR へのコメント投稿を見送り、`core.warning` で Actions の注釈に記録します。
+> - スケジュール実行（cron）を停止中: `ai-weekly-summary.yml` / `ai-tech-trend-analyzer.yml` / `ai-tech-news-digest.yml` / `ai-code-optimizer.yml`（手動実行 `workflow_dispatch` のみ可能）
+> - 生成に失敗した場合は Issue / PR へのコメント投稿を見送り、`core.warning` で Actions の注釈に記録
+>
+> 以下の「無料で利用可能」「週次で自動生成される」といった記述は、**代替モデルを選定して復旧させた場合の前提**として読んでください。
 
 ## CodeRabbitとサーチサービスの設定
 
@@ -52,7 +54,7 @@ SAST/SCA/Secretsスキャンを自動実行する `.github/workflows/codeant-ci-
 ## 新規: AI Accessibility Reviewer の設定
 
 フロントエンドの変更に対して、WCAG 準拠やUI/UXの観点でAIが自動レビューを行う `.github/workflows/ai-a11y-reviewer.yml` を追加しました。
-GitHub Models (gpt-4o-mini) と Tavily Search API を利用して最新のトレンドで評価します。
+GitHub Models (o3-mini) と Tavily Search API を利用して最新のトレンドで評価します（GitHub Models は現在廃止済みのため、代替モデルの選定が必要です。Refs #539）。
 
 1. **GitHub Secretsの設定 (必須)**
    - このワークフローを動作させるには、リポジトリ管理者権限を持つユーザーが GitHub のリポジトリの `Settings > Secrets and variables > Actions` にて、以下のシークレットを登録してください。
@@ -62,7 +64,7 @@ GitHub Models (gpt-4o-mini) と Tavily Search API を利用して最新のトレ
 ## 新規: AI Weekly Project Summary の設定
 
 プロジェクト活動（コミット・PR）のサマリーと、最新のAI/CI-CDトレンド分析を自動生成し、Issueとして起票する `.github/workflows/ai-weekly-summary.yml` を追加しました。
-週次での自動起票が行われます。
+**GitHub Models 廃止によりスケジュール実行（cron）は停止中で、週次での自動起票は行われません（Refs #539）。** 手動実行（`workflow_dispatch`）のみ可能です。
 
 1. **GitHub Secretsの設定 (必須・リポジトリ管理者権限が必要)**
    - このワークフローを動作させるには、リポジトリ管理者権限を持つユーザーが GitHub のリポジトリの `Settings > Secrets and variables > Actions` にて、以下のシークレットを登録してください。
@@ -89,7 +91,7 @@ Pull Request におけるソースコード変更に対して、最新のPlaywri
 
 ## 更新: AI Issue Auto-Fixer の設定
 
-Issueの内容をもとに自動でコードを修正する `.github/workflows/ai-issue-autofix.yml` において、Tavily Search APIの統合を行いました。これにより、より高度なRAG (Retrieval-Augmented Generation) で最新の開発情報を取得できるようになりました。また、推論の精度向上のため、GitHub Models の gpt-4o-mini を利用しています。
+Issueの内容をもとに自動でコードを修正する `.github/workflows/ai-issue-autofix.yml` において、Tavily Search APIの統合を行いました。これにより、より高度なRAG (Retrieval-Augmented Generation) で最新の開発情報を取得できるようになりました。また、推論の精度向上のため、GitHub Models の o3-mini に対して高精度パラメータを設定しています。
 
 1. **GitHub Secretsの設定 (必須)**
    - 既存の `GH_MODELS_TOKEN` に加え、`TAVILY_API_KEY` の設定が必要です。
@@ -117,10 +119,10 @@ PR作成時にプロンプトへの変更（`prompts/**`）が含まれている
 最新のLLMセキュリティテスト、およびプロンプトの回帰テストを目的としています。
 
 1. **GitHub Secretsの設定 (必須)**
-   - GitHub Models を評価モデルとして使用しますが、Actionの環境変数に `GH_MODELS_TOKEN` の注入が必要です。
+   - GitHub Models を評価モデルとして使用しますが、Actionの環境変数に `GH_MODELS_TOKEN` の注入が必要です（GitHub Models は現在廃止済み。Refs #539）。
    - `Settings > Secrets and variables > Actions` にて、`GH_MODELS_TOKEN` をシークレットとして登録してください。
    - `GH_MODELS_TOKEN` に fine-grained PAT（Personal Access Token）を使用する場合は、`models: read` 権限を明示的に付与する必要があります。リポジトリの Workflow 権限（`permissions:`）だけでは GitHub Models へのアクセス権は付与されません。
-   - GitHub Models には無料枠（レート制限あり）と有料枠がありました。無料枠（レート制限あり）と有料枠の料金体系を確認してください。
+   - GitHub Models には無料枠（レート制限あり）と有料枠がありました。現在はエンドポイントが廃止されているため、代替モデル選定時に改めて料金体系とレート制限を確認してください（Refs #539）。
 
 2. **Secrets の信頼範囲について**
    - 本ワークフローは `pull_request`（`pull_request_target` ではない）トリガーで、変更後の `prompts/promptfooconfig.yaml` を用いて評価を実行します。
@@ -130,7 +132,7 @@ PR作成時にプロンプトへの変更（`prompts/**`）が含まれている
 ## 更新: AI Tech News Digest の設定
 
 AI・自動化トレンドダイジェストを生成する `.github/workflows/ai-tech-news-digest.yml` において、Tavily Search API の `topic: 'news'` と `days: 7` パラメータを追加し、より最新の技術ニュースに特化して情報を取得できるように最適化しました。
-週次での自動起票が行われます。
+**GitHub Models 廃止によりスケジュール実行（cron）は停止中です（Refs #539）。** 手動実行（`workflow_dispatch`）のみ可能です。
 
 1. **GitHub Secretsの設定 (必須)**
    - 本設定には**リポジトリ管理者権限**が必要です。
@@ -171,7 +173,7 @@ PR作成時にソースコードの変更が既存のドキュメント（README
 
 ## 新規: AI PR Description Generator の設定
 
-PR作成時にGitHub Models (gpt-4o-mini) を利用して、PRテンプレートに沿った概要（What, Why等）を自動生成し、コメントとして通知する `.github/workflows/ai-pr-description.yml` を追加しました。
+PR作成時にGitHub Models (o3-mini) を利用して、PRテンプレートに沿った概要（What, Why等）を自動生成し、コメントとして通知する `.github/workflows/ai-pr-description.yml` を追加しました。
 
 1. **GitHub Secretsの設定 (必須)**
    - リポジトリ管理者が `Settings > Secrets and variables > Actions` にて `GH_MODELS_TOKEN` を登録している必要があります。
