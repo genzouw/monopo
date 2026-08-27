@@ -36,8 +36,10 @@ jobs:
               success=true
               break
             fi
-            echo "Repomixの実行に失敗しました。リトライします... ($i/3)"
-            sleep 10
+            if [ "$i" -lt 3 ]; then
+              echo "Repomixの実行に失敗しました。リトライします... ($i/3)"
+              sleep 10
+            fi
           done
           if [ "$success" != true ]; then
             echo "Repomixの実行が3回失敗しました。npmレジストリの伝播遅延の可能性があります。" >&2
