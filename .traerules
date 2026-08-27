@@ -45,11 +45,11 @@
 
 - ローカルAIエージェントやAI-native IDE（Windsurf, Trae, Aider, Cline, Roo Code, Continue.devなど）を利用する際は、リポジトリ固有のルールを遵守し、作業ディレクトリ（`.aider*`、`.continue/`、`.windsurf`、`.roo/`、`.trae/` など）をコミットしないように注意してください。
 - 本リポジトリでは無料・オープンソースのベストプラクティスに基づき、GitHub Models (gpt-4o-mini) を利用した自作の AI PR Reviewer を導入し、SaaS依存を低減しつつ高度なコードレビューを自動化しています。
-- 最新のフロントエンド（React 19, Bun等）やAI CI/CDのトレンドを要約し、チームの継続的な学習を促進するための AI Weekly Tech Trend Analyzer (`.github/workflows/ai-tech-trend-analyzer.yml`) プロトタイプを導入しています。**GitHub Models (gpt-4o-mini) への移行に伴い、最適化されました。** 手動実行（`workflow_dispatch`）のみ可能です。
+- 最新のフロントエンド（React 19, Bun等）やAI CI/CDのトレンドを要約し、チームの継続的な学習を促進するための AI Weekly Tech Trend Analyzer (`.github/workflows/ai-tech-trend-analyzer.yml`) プロトタイプを導入しています。手動実行（`workflow_dispatch`）のみ可能です。**モデルIDは `gpt-4o-mini` に更新済みですが、GitHub Models 推論API自体が2026年7月30日付で退役したため、代替推論サービスへの移行が完了するまで動作しません（移行状況は Issue #573 で追跡）。**
 
 - 最新のAIエージェント（GitHub Copilot Agent, GPT-5.5, Claude 3.7, DeepSeek-R1 連携等）を利用する際は、生成されたコードのセキュリティリスク（機密情報の出力やインジェクション脆弱性）をローカルで必ず検証し、自動レビューツールとの多層的なチェックを行ってください。
 
 - 新たなAIツールやサービスを導入する際は、公開リポジトリにおいて無料で利用可能であることを前提としてください。また、それらを設定するための手動の事前作業（Secretsへのトークン追加など）は必ずプルリクエストの説明に記載してください。
-- 開発進捗の要約や課題分析には、GitHub Models (gpt-4o-mini) と Tavily Search API を連携した自動プロジェクトマネジメントツール (`.github/workflows/ai-weekly-summary.yml`) を用意しています。利用にあたっては、リポジトリの Secrets に `GH_MODELS_TOKEN` と `TAVILY_API_KEY` の事前登録が必須です。**GitHub Models (gpt-4o-mini) への移行に伴い、最適化されました。** 再開する場合は代替モデルの選定が必要です。
+- 開発進捗の要約や課題分析には、GitHub Models (gpt-4o-mini) と Tavily Search API を連携した自動プロジェクトマネジメントツール (`.github/workflows/ai-weekly-summary.yml`) を用意しています。利用にあたっては、リポジトリの Secrets に `GH_MODELS_TOKEN` と `TAVILY_API_KEY` の事前登録が必須です。**モデルIDは `gpt-4o-mini` に更新済みの一方、GitHub Models 推論API自体が2026年7月30日付で退役したため現在は動作を停止しています。再開には代替推論サービスへの移行が必要です（Issue #573 で追跡）。**
 
 - `CLAUDE.md` は Claude Code 向けの設定ファイルとして自動生成されます。
