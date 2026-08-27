@@ -124,7 +124,7 @@ jobs:
                 const aiData = await aiRes.json();
                 analysis = aiData.choices?.[0]?.message?.content;
                 if (!analysis) {
-                  // content 空はmax_tokens 上限に達したサイン。
+                  // content 空は max_tokens 上限に達したサイン。
                   core.warning(`GitHub Models から分析結果が返されませんでした。${JSON.stringify(aiData).slice(0, 500)}`);
                 }
               } else {
