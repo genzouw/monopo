@@ -2,6 +2,7 @@
 name: '💡 新機能提案（マネーゲーム・教育的機能）'
 description: 'プラネタリー・バウンダリー（地球限界）システムの追加提案'
 title: '【提案】monopo へのプラネタリー・バウンダリー（地球限界）システムの追加'
+labels: ['enhancement', 'proposal', 'game-design', 'game-mechanics']
 ---
 
 ## 💡 機能提案の背景
