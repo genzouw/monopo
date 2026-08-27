@@ -9,6 +9,9 @@ on:
     branches: ['**']
   pull_request:
     branches: ['**']
+  schedule:
+    # 毎週火曜 09:00 JST (= 火曜 00:00 UTC) に定期監査
+    - cron: '0 0 * * 2'
 
 concurrency:
   group: zizmor-${{ github.ref }}
