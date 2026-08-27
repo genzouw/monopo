@@ -92,7 +92,7 @@ Pull Request におけるソースコード変更に対して、最新のPlaywri
 
 ## 更新: AI Issue Auto-Fixer の設定
 
-Issueの内容をもとに自動でコードを修正する `.github/workflows/ai-issue-autofix.yml` において、Tavily Search APIの統合を行いました。これにより、より高度なRAG (Retrieval-Augmented Generation) で最新の開発情報を取得できるようになりました。また、推論の精度向上のため、GitHub Models の gpt-4o-mini に対して高精度パラメータを設定しています(モデルIDは更新済みですが、GitHub Models 推論API自体が2026年7月30日付で退役したため、代替推論サービスへの移行が完了するまで動作しません。移行状況は Issue #573 で追跡)。
+Issueの内容をもとに自動でコードを修正する `.github/workflows/ai-issue-autofix.yml` において、Tavily Search APIの統合を行いました。これにより、より高度なRAG (Retrieval-Augmented Generation) で最新の開発情報を取得できるようになりました。モデルIDは `gpt-4o-mini` に更新済みですが、GitHub Models 推論API自体が2026年7月30日付で退役したため、代替推論サービスへの移行が完了するまで動作しません（移行状況は Issue #573 で追跡）。
 
 1. **GitHub Secretsの設定 (必須)**
    - 既存の `GH_MODELS_TOKEN` に加え、`TAVILY_API_KEY` の設定が必要です。
