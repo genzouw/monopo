@@ -3,9 +3,9 @@
 このドキュメントでは、本リポジトリに導入されたAI自動化ツールおよびCI/CDパイプラインの設定について記載します。
 
 > [!IMPORTANT]
-> **GitHub Models (o3-mini) 廃止に伴う稼働状況について（Refs #539）**
+> **GitHub Models 推論API退役に伴う稼働状況について（Issue #573）**
 >
-> 本ドキュメントに登場する GitHub Models (o3-mini) を利用するワークフロー群は、エンドポイントの廃止により**現在は生成処理が成功しません**。
+> 本ドキュメントに登場する GitHub Models を利用するワークフロー群は、モデルIDは `gpt-4o-mini` に更新済みですが、GitHub Models 推論API自体が2026年7月30日付で退役したため、**現在は生成処理が成功しません**（移行状況は Issue #573 で追跡）。
 > これに伴い、以下の対応を行っています。
 >
 > - スケジュール実行（cron）を停止中: `ai-weekly-summary.yml` / `ai-tech-trend-analyzer.yml` / `ai-tech-news-digest.yml` / `ai-code-optimizer.yml`（手動実行 `workflow_dispatch` のみ可能）
@@ -54,7 +54,7 @@ SAST/SCA/Secretsスキャンを自動実行する `.github/workflows/codeant-ci-
 ## 新規: AI Accessibility Reviewer の設定
 
 フロントエンドの変更に対して、WCAG 準拠やUI/UXの観点でAIが自動レビューを行う `.github/workflows/ai-a11y-reviewer.yml` を追加しました。
-GitHub Models (o3-mini) と Tavily Search API を利用して最新のトレンドで評価します（GitHub Models は現在廃止済みのため、代替モデルの選定が必要です。Refs #539）。
+GitHub Models (gpt-4o-mini) と Tavily Search API を利用して最新のトレンドで評価します（モデルIDは `gpt-4o-mini` に更新済みですが、GitHub Models 推論API自体が2026年7月30日付で退役したため、代替推論サービスへの移行が完了するまで動作しません。移行状況は Issue #573 で追跡）。
 
 1. **GitHub Secretsの設定 (必須)**
    - このワークフローを動作させるには、リポジトリ管理者権限を持つユーザーが GitHub のリポジトリの `Settings > Secrets and variables > Actions` にて、以下のシークレットを登録してください。
@@ -91,7 +91,7 @@ Pull Request におけるソースコード変更に対して、最新のPlaywri
 
 ## 更新: AI Issue Auto-Fixer の設定
 
-Issueの内容をもとに自動でコードを修正する `.github/workflows/ai-issue-autofix.yml` において、Tavily Search APIの統合を行いました。これにより、より高度なRAG (Retrieval-Augmented Generation) で最新の開発情報を取得できるようになりました。また、推論の精度向上のため、GitHub Models の o3-mini に対して高精度パラメータを設定しています。
+Issueの内容をもとに自動でコードを修正する `.github/workflows/ai-issue-autofix.yml` において、Tavily Search APIの統合を行いました。これにより、より高度なRAG (Retrieval-Augmented Generation) で最新の開発情報を取得できるようになりました。また、推論の精度向上のため、GitHub Models の gpt-4o-mini に対して高精度パラメータを設定しています(モデルIDは更新済みですが、GitHub Models 推論API自体が2026年7月30日付で退役したため、代替推論サービスへの移行が完了するまで動作しません。移行状況は Issue #573 で追跡)。
 
 1. **GitHub Secretsの設定 (必須)**
    - 既存の `GH_MODELS_TOKEN` に加え、`TAVILY_API_KEY` の設定が必要です。
@@ -173,7 +173,7 @@ PR作成時にソースコードの変更が既存のドキュメント（README
 
 ## 新規: AI PR Description Generator の設定
 
-PR作成時にGitHub Models (o3-mini) を利用して、PRテンプレートに沿った概要（What, Why等）を自動生成し、コメントとして通知する `.github/workflows/ai-pr-description.yml` を追加しました。
+PR作成時にGitHub Models (gpt-4o-mini) を利用して、PRテンプレートに沿った概要（What, Why等）を自動生成し、コメントとして通知する `.github/workflows/ai-pr-description.yml` を追加しました。モデルIDは更新済みですが、GitHub Models 推論API自体が2026年7月30日付で退役したため、代替推論サービスへの移行が完了するまで動作しません（移行状況は Issue #573 で追跡）。
 
 1. **GitHub Secretsの設定 (必須)**
    - リポジトリ管理者が `Settings > Secrets and variables > Actions` にて `GH_MODELS_TOKEN` を登録している必要があります。
