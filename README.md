@@ -24,6 +24,8 @@ React + TypeScript + Vite で構築された Web ベースのボードゲーム�
 - **Node.js**: v22 (LTS) 以上を推奨
 - **パッケージマネージャー**: bun v1.2 以上 (`npm` / `yarn` / `pnpm` の使用は避けてください)
 - **セキュリティスキャン**: `bun audit` は現在 `bun.lock` テキスト形式に十分対応していないため、CVE スキャンは Dependabot に委ねています
+- **[gitleaks](https://github.com/gitleaks/gitleaks)**: コミット時のローカルシークレット検知に**必須**です。未インストールの場合、コミットがブロックされます（詳細は `CONTRIBUTING.md` / `docs/security/leak-prevention.md` を参照）
+- **[pre-commit](https://pre-commit.com/)**: コミット時の追加シークレット検知（`trufflehog`, `detect-secrets` 等）に**必須**です。未インストールの場合、コミットがブロックされます。また `.github/workflows/` 配下を変更するコミットでは `actionlint-docker` フックのため Docker の起動が必要です（詳細は `CONTRIBUTING.md` / `docs/security/leak-prevention.md` を参照）
 
 ## セットアップ (Setup Instructions)
 
