@@ -80,7 +80,7 @@ bun run test
 - **gitleaks の必須化**: コミット時に pre-commit および commit-msg フックでローカルスキャンを行います（ソースコードおよびコミットメッセージを検査します）。事前に `gitleaks` をインストールしてください。
 - **エディタの安全設定**: `.vscode/settings.json` により、`.env` や鍵ファイル、AI エージェントの作業ディレクトリ（`.cursor/`, `.claude/` など）およびログファイル等を検索・ファイルツリーから除外し、画面共有時や AI による自動読み込みによる漏洩を防いでいます。
 - **.gitattributes 保護**: 秘密情報ファイルの差分表示をブロック (`-diff`) しています。
-- **pre-commit framework の利用**: さらなる検証のため、`pre-commit` framework を利用しています。ローカル環境に `pre-commit` をインストールしてください (`pip install pre-commit` または `brew install pre-commit`)。**`pre-commit install` は実行しないでください**。本プロジェクトでは Husky が `.git/hooks/pre-commit` を管理しており、Husky から `pre-commit run` を呼び出す構成になっています。`pre-commit install` を実行すると Husky フックが上書きされ、競合が発生します。
+- **`pre-commit` の必須化**: さらなる検証のため、`pre-commit` framework を利用しています。`gitleaks` と同様にインストールが**必須**であり、未インストールの場合はコミットがブロックされます。ローカル環境に `pre-commit` をインストールしてください (`pip install pre-commit` または `brew install pre-commit`)。**`pre-commit install` は実行しないでください**。本プロジェクトでは Husky が `.git/hooks/pre-commit` を管理しており、Husky から `pre-commit run` を呼び出す構成になっています。`pre-commit install` を実行すると Husky フックが上書きされ、競合が発生します。
   - **Docker が必須（`actionlint-docker`）**: `.github/workflows/` 配下のファイルを変更してコミットする場合、`actionlint-docker` フック（内部に同梱された `shellcheck` / `pyflakes` と連携）が Docker イメージとして実行されます。事前に Docker（Docker Desktop 等）を起動しておいてください。Docker が起動していないとコミット時にこのフックが失敗します。詳細は `SECURITY.md` を参照してください。
 
 ---
