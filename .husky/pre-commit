@@ -9,6 +9,13 @@ bunx lint-staged
 if command -v pre-commit > /dev/null 2>&1; then
   echo "🔍 Running pre-commit hooks..."
   pre-commit run --hook-stage commit
+else
+  {
+    echo "❌ Error: pre-commit is not installed locally."
+    echo "To prevent accidental secret leaks and run security checks (trufflehog, detect-secrets, etc.), pre-commit is REQUIRED for commits."
+    echo "Please install it: (e.g., 'brew install pre-commit' or 'pip install pre-commit')"
+  } >&2
+  exit 1
 fi
 
 # Run gitleaks local check to prevent committing secrets
