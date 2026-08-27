@@ -137,9 +137,10 @@ jobs:
             const review = choice?.message?.content;
 
             if (!review) {
-              // content 空は推論トークンが max_completion_tokens を使い切ったサイン。
-              // 無言スキップを避けて finish_reason をログに残す。
-              core.warning(`AI テスト生成の応答が空でした (finish_reason: ${choice?.finish_reason ?? 'unknown'})。推論トークンが max_completion_tokens を使い切った可能性があります。`);
+              // gpt-4o-mini は非推論モデルのため、content 空の原因は finish_reason で判別する。
+              // 'length' は出力トークン上限、それ以外は空レスポンスとして扱う。
+              const emptyReason = choice?.finish_reason === 'length' ? '出力トークン上限に達した可能性があります' : '空レスポンスが返されました';
+              core.warning(`AI テスト生成の応答が空でした (finish_reason: ${choice?.finish_reason ?? 'unknown'})。${emptyReason}。`);
               return;
             }
 
