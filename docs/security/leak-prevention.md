@@ -192,3 +192,4 @@ Vite では `VITE_` から始まる環境変数が、Next.js では `NEXT_PUBLIC
 - [ ] GitHub Actions の Secrets / Variables に上記すべての公開プレフィックスの機密値が登録されていないことを確認する。
 - [ ] Vercel などホスティングサービスを利用する場合、その環境変数設定にも上記すべての公開プレフィックスの機密値が無いことを確認する。
 - [ ] `bash scripts/test-gitleaks-rules.sh` を実行し、キーワードごとの回帰テストが green になることを確認する。
+  - **Zizmor の定期監査**: `push` や `pull_request` 時の検査に加え、週次（毎週火曜 09:00 JST）の `schedule` トリガーにより定期監査を実行しています。これにより、既存のワークフローファイルに変更がない場合でも、Zizmor のルール更新に伴う新たな脆弱性を継続的に検知します。
