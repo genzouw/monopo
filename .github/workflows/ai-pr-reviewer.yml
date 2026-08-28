@@ -87,7 +87,7 @@ jobs:
               core.warning(`Tavily 検索リクエストに失敗しました: ${String(e)}`);
             }
 
-            // 固定方針は developer ロールに置き、外部入力（差分・コードベース・Tavily応答）は
+            // 固定方針は system ロールに置き、外部入力（差分・コードベース・Tavily応答）は
             // user ロールへ区切り付きで分離する。両者を同一メッセージに連結すると、外部入力内の
             // 指示が固定方針を上書きするプロンプトインジェクションを許してしまうため。
             const systemPolicy = `あなたは熟練のソフトウェアエンジニアです。以下のプルリクエストの差分、プロジェクトのコードベース概要、および最新のWeb検索ベストプラクティスをもとに、コードの品質、潜在的なバグ、セキュリティの問題、パフォーマンスの改善点（React 19の最新機能やBunの最適化を含む）、およびAIコンテキストの境界違反がないかについて日本語で簡潔にフィードバックを提供してください。
@@ -127,7 +127,7 @@ jobs:
                 body: JSON.stringify({
                   model: 'openai/gpt-4o-mini',
                   messages: [
-                    { role: 'developer', content: systemPolicy },
+                    { role: 'system', content: systemPolicy },
                     { role: 'user', content: externalInput }
                   ],
                   // gpt-4o-mini は非推論モデルのため、max_completion_tokens は出力トークン数の上限として機能する。

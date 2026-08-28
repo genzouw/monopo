@@ -53,7 +53,7 @@ jobs:
 
             const prDiff = process.env.PR_DIFF;
 
-            // 固定方針は developer ロールに置き、外部入力（PR差分）は
+            // 固定方針は system ロールに置き、外部入力（PR差分）は
             // user ロールへ区切りタグ付きで分離する。両者を同一メッセージに連結すると、
             // 差分内の指示が固定方針を上書きするプロンプトインジェクションを許してしまうため。
             const systemPolicy = `あなたは熟練のソフトウェアエンジニアです。以下のPull Requestの差分情報をもとに、PRテンプレートの以下のセクションのみを生成してください:
@@ -86,7 +86,7 @@ jobs:
                 body: JSON.stringify({
                   model: 'openai/gpt-4o-mini',
                   messages: [
-                    { role: 'developer', content: systemPolicy },
+                    { role: 'system', content: systemPolicy },
                     { role: 'user', content: externalInput }
                   ],
                   max_completion_tokens: 5000
