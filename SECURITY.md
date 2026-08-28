@@ -62,6 +62,8 @@ CI の監査ワークフロー (`.github/workflows/permissions-audit.yml`) に�
 
 ### 追加の漏洩防止対策 (Pre-commit 強化)
 
+- pre-commit-hooks (check-symlinks, destroyed-symlinks, mixed-line-ending) を導入し、シンボリックリンクを用いた意図せぬファイルシステムの露出や環境依存の改行コードの混入をブロックしています。
+
 ファイル名・パスベースによる特定ファイル (環境変数ファイル、キーファイル、AI エージェント作業ディレクトリなど) のコミット防止ルールを、ローカルのシェルスクリプト依存から `.pre-commit-config.yaml` のカスタムフック (`forbid-sensitive-files`) へと移行・統合しました。
 これにより、CI 上で稼働する `pre-commit` ワークフローとローカル環境での防止ルールが一元化され、防御の確実性が向上しています。
 
