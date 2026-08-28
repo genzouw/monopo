@@ -160,6 +160,10 @@
 .featureRow:hover {
   background: #f8f8f8;
 }
+/* キーボードでチェックボックスにフォーカスした際も、hoverと同じ背景をクリック領域全体（行）に表示し体験を揃える */
+.featureRow:has(input[type='checkbox']:focus-visible) {
+  background: #f8f8f8;
+}
 .featureRow input[type='checkbox'] {
   grid-row: 1 / 3;
   width: 20px;
