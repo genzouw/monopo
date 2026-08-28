@@ -40,26 +40,10 @@ publish_labels = true
 add_original_user_description = true
 generate_ai_title = true
 use_description_markers = true
-extra_instructions = """
-- PRの説明はすべて日本語で記述してください。
-"""
 
 [pr_code_suggestions]
 num_code_suggestions = 4
 focus_only_on_problems = true
-extra_instructions = """
-- コードの改善提案はすべて日本語で記述してください。
-"""
-
-[pr_add_docs]
-extra_instructions = """
-- 生成されるドキュメントやコメントはすべて日本語で記述してください。
-"""
-
-[pr_update_changelog]
-extra_instructions = """
-- Changelogの更新はすべて日本語で記述してください。
-"""
 
 [pr_analyze]
 extra_instructions = """
