@@ -26,23 +26,8 @@ jobs:
         with:
           bun-version: 1.2.14
 
-      - name: Bundle Codebase Context
-        run: |
-          success=false
-          for i in 1 2 3; do
-            if bunx repomix@1.16.0 --style xml --output codebase.xml; then
-              success=true
-              break
-            fi
-            if [ "$i" -lt 3 ]; then
-              echo "Repomixの実行に失敗しました。リトライします... ($i/3)"
-              sleep 10
-            fi
-          done
-          if [ "$success" != true ]; then
-            echo "Repomixの実行が3回失敗しました。npmレジストリの伝播遅延の可能性があります。" >&2
-            exit 1
-          fi
+      - name: Bundle Codebase Context with Repomix
+        uses: ./.github/actions/bundle-codebase
 
       - name: Generate and Apply Fix
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0

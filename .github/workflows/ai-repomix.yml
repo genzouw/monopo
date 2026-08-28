@@ -19,8 +19,8 @@ jobs:
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version: 1.2.14
-      - name: Run Repomix
-        run: bunx repomix@1.16.0 --style xml --output codebase.xml
+      - name: Bundle Codebase Context with Repomix
+        uses: ./.github/actions/bundle-codebase
       - name: Upload Repomix output
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
