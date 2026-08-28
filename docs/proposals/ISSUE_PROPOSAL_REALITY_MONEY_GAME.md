@@ -2,6 +2,7 @@
 name: '💡 新機能提案（マネーゲーム・教育的機能）'
 description: '伝統的な資産運用ボードゲーム機能の統合と次世代マネーゲーム機能の追加提案'
 title: '【提案】monopo への現実を模倣した革新的なマネーゲーム機能の追加と教育的効果の強化'
+labels: ['enhancement', 'proposal', 'game-design']
 ---
 
 ## 💡 機能提案の背景
