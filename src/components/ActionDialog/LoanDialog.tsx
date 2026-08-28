@@ -26,9 +26,12 @@ type LoanDialogProps = {
 /**
  * ローン（借入・返済）を行うためのダイアログコンポーネント。
  *
- * 借入金額・返済金額の入力欄はいずれも負値を拒否する契約を持つ。
- * `-` を含む入力や桁数超過（`MAX_MONEY_INPUT_LENGTH` 超）の入力は無視され、
- * `min={1}` により実質的に1以上の正数のみが有効な値として扱われる。
+ * 借入金額・返済金額の入力欄はいずれも1以上の正数のみを有効値とする契約を持つ。
+ * 負値を含む入力もそのまま状態へ保存され、`canBorrow` / `canRepay` によって
+ * 無効値として扱われる。無効時はボタンが `aria-disabled` になり、
+ * `role="alert"` のヒント（`borrowDisabledReason` / `repayDisabledReason`）で理由が伝わる
+ * （黙って無視すると入力が無反応になり、エラー表示が到達不能になるため）。
+ * 桁数超過（`MAX_MONEY_INPUT_LENGTH` 超）の入力のみ `onChange` で無視する。
  *
  * @param props - コンポーネントのプロパティ。
  * @param props.state - 現在のゲーム状態。
@@ -164,11 +167,9 @@ export default function LoanDialog({
                   value={borrowAmount}
                   onChange={(e) => {
                     const val = e.target.value;
-                    if (
-                      val.length > MAX_MONEY_INPUT_LENGTH ||
-                      val.includes('-')
-                    )
-                      return;
+                    if (val.length > MAX_MONEY_INPUT_LENGTH) return;
+                    // 負値もそのまま state へ渡し、canBorrow によるエラー表示に委ねる
+                    // （黙って無視すると入力が無反応になり、既存のエラー表示が到達不能になるため）
                     setBorrowAmount(val);
                   }}
                   placeholder={`最大 ${maxBorrow}`}
@@ -224,11 +225,9 @@ export default function LoanDialog({
                   value={repayAmount}
                   onChange={(e) => {
                     const val = e.target.value;
-                    if (
-                      val.length > MAX_MONEY_INPUT_LENGTH ||
-                      val.includes('-')
-                    )
-                      return;
+                    if (val.length > MAX_MONEY_INPUT_LENGTH) return;
+                    // 負値もそのまま state へ渡し、canRepay によるエラー表示に委ねる
+                    // （黙って無視すると入力が無反応になり、既存のエラー表示が到達不能になるため）
                     setRepayAmount(val);
                   }}
                   placeholder={`残高 ${loanBalance}`}
