@@ -23,6 +23,21 @@ type LoanDialogProps = {
   onClose: () => void;
 };
 
+/**
+ * ローン（借入・返済）を行うためのダイアログコンポーネント。
+ *
+ * 借入金額・返済金額の入力欄はいずれも負値を拒否する契約を持つ。
+ * `-` を含む入力や桁数超過（`MAX_MONEY_INPUT_LENGTH` 超）の入力は無視され、
+ * `min={1}` により実質的に1以上の正数のみが有効な値として扱われる。
+ *
+ * @param props - コンポーネントのプロパティ。
+ * @param props.state - 現在のゲーム状態。
+ * @param props.currentPlayer - 操作対象のプレイヤー。
+ * @param props.onTakeLoan - 借入確定時に呼び出されるコールバック（金額とローン種別を受け取る）。
+ * @param props.onRepayLoan - 返済確定時に呼び出されるコールバック（金額を受け取る）。
+ * @param props.onClose - ダイアログを閉じる際に呼び出されるコールバック。
+ * @returns 描画されたLoanDialogコンポーネント。
+ */
 export default function LoanDialog({
   state,
   currentPlayer,
