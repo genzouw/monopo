@@ -166,6 +166,10 @@
   height: 20px;
   cursor: pointer;
 }
+.featureRow input[type='checkbox']:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
 .featureLabel {
   font-size: 15px;
   font-weight: 600;
