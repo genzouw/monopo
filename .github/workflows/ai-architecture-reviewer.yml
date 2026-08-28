@@ -127,7 +127,7 @@ jobs:
                 const aiData = await aiRes.json();
                 analysis = aiData.choices?.[0]?.message?.content;
                 if (!analysis) {
-                  // content 空は推論トークンが max_completion_tokens を使い切ったサイン。
+                  // gpt-4o-mini は非推論モデルのため、content 空は出力トークン上限か空レスポンスを示す。
                   core.warning(`GitHub Models から分析結果が返されませんでした。${JSON.stringify(aiData).slice(0, 500)}`);
                 }
               } else {
