@@ -300,7 +300,7 @@ export default function TradeDialog({
                 return;
               }
               const val = Number(raw);
-              if (isNaN(val)) return;
+              if (isNaN(val) || val < 0) return;
               // クランプを削除し、上限超過時にエラーとして表示できるようにする
               setOfferMoney(val);
             }}
@@ -428,7 +428,7 @@ export default function TradeDialog({
                 return;
               }
               const val = Number(raw);
-              if (isNaN(val)) return;
+              if (isNaN(val) || val < 0) return;
               // クランプを削除し、上限超過時にエラーとして表示できるようにする
               setRequestMoney(val);
             }}
