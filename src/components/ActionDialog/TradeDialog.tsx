@@ -80,15 +80,14 @@ type TradeDialogProps = {
 };
 
 /**
- * A dialog component that allows the current player to propose a trade
- * of properties and money with a target player.
+ * 対象プレイヤーとの間で、プロパティと金銭のトレードを提案するためのダイアログコンポーネント。
  *
- * The offer/request money inputs (`offerMoney` / `requestMoney`) both reject
- * negative values: any input parsing to a value below 0 is ignored in the
- * `onChange` handler, so only non-negative amounts are ever committed.
+ * 提示金額・要求金額の入力欄（`offerMoney` / `requestMoney`）はいずれも負値を拒否する。
+ * 0未満に変換される入力は `onChange` ハンドラーで無視し、
+ * 0以上の金額だけを状態へ保存する。
  *
- * @param props - The properties passed to the component.
- * @returns The rendered TradeDialog component.
+ * @param props - コンポーネントに渡されるプロパティ。
+ * @returns 描画されたTradeDialogコンポーネント。
  */
 export default function TradeDialog({
   currentPlayer,
