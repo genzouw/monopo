@@ -44,5 +44,6 @@
 
 - 新たなAIツールやサービスを導入する際は、公開リポジトリにおいて無料で利用可能であることを前提としてください。また、それらを設定するための手動の事前作業（Secretsへのトークン追加など）は必ずプルリクエストの説明に記載してください。
 - 開発進捗の要約や課題分析には、GitHub Models (gpt-4o-mini) と Tavily Search API を連携した自動プロジェクトマネジメントツール (`.github/workflows/ai-weekly-summary.yml`) を用意しています。利用にあたっては、リポジトリの Secrets に `GH_MODELS_TOKEN` と `TAVILY_API_KEY` の事前登録が必須です。**モデルIDは `gpt-4o-mini` に更新済みの一方、GitHub Models 推論API自体が2026年7月30日付で退役したため現在は動作を停止しています。再開には代替推論サービスへの移行が必要です（Issue #573 で追跡）。**
+- `prompts/**` の変更時には promptfoo を用いたプロンプト評価 (`.github/workflows/ai-prompt-evaluator.yml`) が実行されます。**内部で GitHub Models (gpt-4o-mini) を呼び出していますが、GitHub Models 推論API自体が2026年7月30日付で退役したため、代替推論サービスへの移行が完了するまで評価ステップは `continue-on-error: true` によりソフト失敗として扱い、PRをブロックしません（移行状況は Issue #573 で追跡）。**
 
 - `CLAUDE.md` は Claude Code 向けの設定ファイルとして自動生成されます。
