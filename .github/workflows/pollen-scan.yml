@@ -30,4 +30,4 @@ jobs:
 
       - name: Run Pollen Supply Chain Scan
         run: |
-          $(go env GOPATH)/bin/pollen project ./ || echo "::warning::Pollen scan detected suspicious packages or encountered an error. Please check logs."
+          "$(go env GOPATH)/bin/pollen" project ./ || echo "::warning::Pollen scan detected suspicious packages or encountered an error. Please check logs."
