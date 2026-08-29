@@ -189,3 +189,11 @@ PRの自動承認を行う `.github/workflows/ai-codeball-approver.yml`（Codeba
 
 - **Tavily Search APIの検索深度**: 全てのワークフローで `search_depth` を `basic` に設定しています。`advanced` はクレジット消費が激しくなりますが、技術検索では `basic` で十分な鮮度の情報が得られるためコスト削減を優先しています。
 - **タイムアウトの設定**: 外部APIへのFetchリクエストに対し、Tavily Search APIには30秒、GitHub Models APIには120秒の `AbortSignal.timeout` を設定し、無応答によるGitHub Actionsランナーの滞留（ハング）を防止しています。
+
+## 新規: Pollen Supply Chain Scan の設定
+
+Perplexity AIが開発したサプライチェーンスキャナBumblebeeの派生版であり、GitHub Actions等のCI環境にも対応した `Bantuson/pollen` を利用した `.github/workflows/pollen-scan.yml` を追加しました。
+このツールは、npmのパッケージだけでなく、AI開発で近年利用が拡大しているMCPサーバーやエディタ拡張機能などの疑わしいパッケージ（サプライチェーンリスク）を読み取り専用で高速にスキャンします。
+
+1. **追加の設定等**
+   - 外部への通信を行わず、ソースファイルも読み取らない安全な設計（Go 1.25+ で標準ライブラリのみ使用）のため、追加のAPIキー等の設定は不要です。

@@ -94,13 +94,13 @@ jobs:
                 },
                 signal: AbortSignal.timeout(120000),
                 body: JSON.stringify({
-                  model: 'openai/o3-mini',
+                  model: 'gpt-4o-mini',
                   messages: [
                     { role: 'system', content: systemPolicy },
                     { role: 'user', content: externalInput }
                   ],
-                  reasoning_effort: 'high',
-                  max_completion_tokens: 15000
+
+                  max_tokens: 15000
                 })
               });
 

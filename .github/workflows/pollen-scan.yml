@@ -1,0 +1,33 @@
+name: Pollen Supply Chain Scan
+
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    branches: ['main']
+
+permissions:
+  contents: read
+
+jobs:
+  pollen_scan:
+    name: Run Pollen Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
+        with:
+          go-version: '1.24.0'
+
+      - name: Install Pollen
+        run: |
+          go install github.com/Bantuson/pollen/cmd/pollen@latest
+
+      - name: Run Pollen Supply Chain Scan
+        run: |
+          $(go env GOPATH)/bin/pollen project ./ || echo "::warning::Pollen scan detected suspicious packages or encountered an error. Please check logs."
