@@ -62,6 +62,12 @@ CI の監査ワークフロー (`.github/workflows/permissions-audit.yml`) に�
 
 ### 追加の漏洩防止対策 (Pre-commit 強化)
 
+- pre-commit-hooks (check-symlinks, destroyed-symlinks) を導入しています。`check-symlinks` はリンク先が存在しない壊れたシンボリックリンクを、`destroyed-symlinks` はシンボリックリンクがリンク先パスを内容とする通常ファイルへ置き換わった状態を検出します。ただし、リンク先が存在する**有効な**シンボリックリンク（例: `ln -s ~/.ssh/id_rsa key`）の混入は、いずれのフックも検知対象外です。
+
+### 環境差の吸収 (改行コードの正規化)
+
+- pre-commit-hooks の `mixed-line-ending` を `args: ['--fix=lf']` で導入し、改行コードを LF へ自動統一しています（検知して止めるのではなく、対象ファイルを書き換えたうえで非 0 終了する自動修正フックです）。これは漏洩防止ではなく、`.editorconfig` の `end_of_line = lf` や Prettier の既定 `endOfLine: "lf"` との整合を取り、環境依存の改行コード混在による意図しない差分・CI 失敗を防ぐことが目的です。
+
 ファイル名・パスベースによる特定ファイル (環境変数ファイル、キーファイル、AI エージェント作業ディレクトリなど) のコミット防止ルールを、ローカルのシェルスクリプト依存から `.pre-commit-config.yaml` のカスタムフック (`forbid-sensitive-files`) へと移行・統合しました。
 これにより、CI 上で稼働する `pre-commit` ワークフローとローカル環境での防止ルールが一元化され、防御の確実性が向上しています。
 
