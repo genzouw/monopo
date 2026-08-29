@@ -129,9 +129,7 @@ jobs:
                     { role: 'developer', content: systemPolicy },
                     { role: 'user', content: externalInput }
                   ],
-                  // 'high' だと推論だけで予算を使い切り、可視出力が空 (finish_reason: 'length') になる恐れがあるため
-                  // まずは 'medium' を既定とし、品質とトークン消費を見ながら調整する。
-
+                  // max_tokens は可視出力トークンの上限。品質とトークン消費を見ながら調整する。
                   max_tokens: 15000
                 })
               });
@@ -158,9 +156,9 @@ jobs:
             const analysis = choice?.message?.content;
 
             if (!analysis || analysis.trim().length === 0) {
-              // content 空は推論トークンが max_tokens を使い切ったサイン。
+              // content 空は max_tokens を使い切ったサイン。
               // 無言スキップを避けて finish_reason をログに残す。
-              core.warning(`AI 分析の応答が空でした (finish_reason: ${choice?.finish_reason ?? 'unknown'})。推論トークンが max_tokens を使い切った可能性があります。`);
+              core.warning(`AI 分析の応答が空でした (finish_reason: ${choice?.finish_reason ?? 'unknown'})。max_tokens を使い切った可能性があります。`);
               return;
             }
 

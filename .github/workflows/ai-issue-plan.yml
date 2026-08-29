@@ -99,7 +99,6 @@ jobs:
                     { role: 'system', content: systemPolicy },
                     { role: 'user', content: externalInput }
                   ],
-
                   max_tokens: 15000
                 })
               });

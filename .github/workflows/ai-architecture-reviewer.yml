@@ -119,7 +119,6 @@ jobs:
                 body: JSON.stringify({
                   model: 'gpt-4o-mini',
                   messages: [{ role: 'user', content: prompt }],
-
                   max_tokens: 15000
                 })
               });
@@ -128,7 +127,7 @@ jobs:
                 const aiData = await aiRes.json();
                 analysis = aiData.choices?.[0]?.message?.content;
                 if (!analysis) {
-                  // content 空は推論トークンが max_tokens を使い切ったサイン。
+                  // content 空は max_tokens を使い切った（finish_reason: 'length'）可能性のあるサイン。
                   core.warning(`GitHub Models から分析結果が返されませんでした。${JSON.stringify(aiData).slice(0, 500)}`);
                 }
               } else {

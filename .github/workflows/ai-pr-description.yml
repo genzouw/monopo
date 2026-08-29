@@ -89,7 +89,6 @@ jobs:
                     { role: 'developer', content: systemPolicy },
                     { role: 'user', content: externalInput }
                   ],
-
                   max_tokens: 5000
                 })
               });
