@@ -80,11 +80,15 @@ type TradeDialogProps = {
 };
 
 /**
- * A dialog component that allows the current player to propose a trade
- * of properties and money with a target player.
+ * 対象プレイヤーとの間で、プロパティと金銭のトレードを提案するためのダイアログコンポーネント。
  *
- * @param props - The properties passed to the component.
- * @returns The rendered TradeDialog component.
+ * 提示金額・要求金額の入力欄（`offerMoney` / `requestMoney`）は負値もそのまま状態へ保存する。
+ * 負値は `isOfferMoneyInvalid` / `isRequestMoneyInvalid` によって無効値として扱われ、
+ * `role="alert"` のエラー表示と提案ボタンの `aria-disabled` で拒否理由が伝わる
+ * （黙って無視すると入力が無反応になり、エラー表示が到達不能になるため）。
+ *
+ * @param props - コンポーネントに渡されるプロパティ。
+ * @returns 描画されたTradeDialogコンポーネント。
  */
 export default function TradeDialog({
   currentPlayer,
@@ -301,7 +305,8 @@ export default function TradeDialog({
               }
               const val = Number(raw);
               if (isNaN(val)) return;
-              // クランプを削除し、上限超過時にエラーとして表示できるようにする
+              // 負値もそのまま state へ渡し、isOfferMoneyInvalid によるエラー表示に委ねる
+              // （黙って無視すると入力が無反応になり、既存のエラー表示が到達不能になるため）
               setOfferMoney(val);
             }}
             aria-invalid={isOfferMoneyInvalid}
@@ -429,7 +434,8 @@ export default function TradeDialog({
               }
               const val = Number(raw);
               if (isNaN(val)) return;
-              // クランプを削除し、上限超過時にエラーとして表示できるようにする
+              // 負値もそのまま state へ渡し、isRequestMoneyInvalid によるエラー表示に委ねる
+              // （黙って無視すると入力が無反応になり、既存のエラー表示が到達不能になるため）
               setRequestMoney(val);
             }}
             aria-invalid={isRequestMoneyInvalid}

@@ -9,6 +9,9 @@
   --color-white: #ffffff;
   --color-danger: #e74c3c;
   --color-success: #2ecc71;
+  /* フォーカスインジケーター専用色。#ffffff上で約3.82:1、#f8f8f8上で約3.60:1のコントラスト比を確保し、
+     WCAG 2.2 SC 1.4.11 (Non-text Contrast) の3:1基準を満たす */
+  --color-focus: #e05252;
   --color-money-up: #27ae60;
   --color-money-down: #e74c3c;
   --color-grid-border: #bdbdbd;
