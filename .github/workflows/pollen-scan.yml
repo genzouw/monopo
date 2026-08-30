@@ -34,4 +34,10 @@ jobs:
 
       - name: Run Pollen Supply Chain Scan
         run: |
-          "$(go env GOPATH)/bin/pollen" project ./ || echo "::warning::Pollen scan detected suspicious packages or encountered an error. Please check logs."
+          "$(go env GOPATH)/bin/pollen" scan --profile project --root ./ > pollen-inventory.ndjson || echo "::warning::Pollen scan failed to complete. Please check logs."
+
+      - name: Upload Pollen inventory artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: pollen-inventory
+          path: pollen-inventory.ndjson
