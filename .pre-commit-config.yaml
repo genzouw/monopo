@@ -10,6 +10,14 @@ repos:
       - id: check-merge-conflict
       - id: detect-aws-credentials
         args: ['--allow-missing-credentials']
+      - id: check-symlinks
+      - id: destroyed-symlinks
+      - id: mixed-line-ending
+        # 既定の --fix=auto は「1ファイル内でLF/CRLFが混在し、かつCRLFが多数派」の場合に
+        # CRLF側へ書き換えてしまい、.editorconfig の end_of_line=lf や Prettier の
+        # 既定 endOfLine=lf と矛盾する。また全行CRLFのファイルは「混在」ではないため
+        # 無検知で通過してしまう。--fix=lf を明示し、常にLFへ統一する。
+        args: ['--fix=lf']
   - repo: https://github.com/Yelp/detect-secrets
     rev: v1.5.0
     hooks:
