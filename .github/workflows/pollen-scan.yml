@@ -22,11 +22,15 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
         with:
-          go-version: '1.24.0'
+          go-version: '1.25.0'
 
       - name: Install Pollen
         run: |
-          go install github.com/bantuson/pollen/cmd/pollen@latest
+          go install github.com/bantuson/pollen/cmd/pollen@v0.2.0
+
+      - name: Verify Pollen installation (selftest)
+        run: |
+          "$(go env GOPATH)/bin/pollen" selftest
 
       - name: Run Pollen Supply Chain Scan
         run: |
