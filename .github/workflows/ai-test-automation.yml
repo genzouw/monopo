@@ -137,9 +137,11 @@ jobs:
             const review = choice?.message?.content;
 
             if (!review) {
-              // content 空は推論トークンが max_tokens を使い切ったサイン。
-              // 無言スキップを避けて finish_reason をログに残す。
-              core.warning(`AI テスト生成の応答が空でした (finish_reason: ${choice?.finish_reason ?? 'unknown'})。推論トークンが max_tokens を使い切った可能性があります。`);
+              // content 空の原因は様々なため、finish_reason === 'length' の場合のみ
+              // 出力トークンが max_tokens を使い切った可能性をログに残す（無言スキップを避ける）。
+              const finishReason = choice?.finish_reason ?? 'unknown';
+              const limitHint = finishReason === 'length' ? ' 出力トークンが max_tokens を使い切った可能性があります。' : '';
+              core.warning(`AI テスト生成の応答が空でした (finish_reason: ${finishReason})。${limitHint}`);
               return;
             }
 
