@@ -53,7 +53,7 @@ jobs:
 
             const prDiff = process.env.PR_DIFF;
 
-            // 固定方針は developer ロールに置き、外部入力（PR差分）は
+            // 固定方針は system ロールに置き、外部入力（PR差分）は
             // user ロールへ区切りタグ付きで分離する。両者を同一メッセージに連結すると、
             // 差分内の指示が固定方針を上書きするプロンプトインジェクションを許してしまうため。
             const systemPolicy = `あなたは熟練のソフトウェアエンジニアです。以下のPull Requestの差分情報をもとに、PRテンプレートの以下のセクションのみを生成してください:
@@ -84,12 +84,12 @@ jobs:
                   'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
                 },
                 body: JSON.stringify({
-                  model: 'gpt-4o-mini',
+                  model: 'openai/gpt-4o-mini',
                   messages: [
-                    { role: 'developer', content: systemPolicy },
+                    { role: 'system', content: systemPolicy },
                     { role: 'user', content: externalInput }
                   ],
-                  max_tokens: 5000
+                  max_completion_tokens: 5000
                 })
               });
             } catch (error) {
@@ -118,11 +118,10 @@ jobs:
             const description = choice?.message?.content;
 
             if (!description) {
-              // content 空の原因は様々なため、finish_reason === 'length' の場合のみ
-              // 出力トークンが max_tokens を使い切った可能性をログに残す（無言スキップを避ける）。
-              const finishReason = choice?.finish_reason ?? 'unknown';
-              const limitHint = finishReason === 'length' ? ' 出力トークンが max_tokens を使い切った可能性があります。' : '';
-              core.warning(`AI PR Description の応答が空でした (finish_reason: ${finishReason})。${limitHint}`);
+              // gpt-4o-mini は非推論モデルのため、content 空の原因は finish_reason で判別する。
+              // 'length' は出力トークン上限、それ以外は空レスポンスとして扱う。
+              const emptyReason = choice?.finish_reason === 'length' ? '出力トークン上限に達した可能性があります' : '空レスポンスが返されました';
+              core.warning(`AI PR Description の応答が空でした (finish_reason: ${choice?.finish_reason ?? 'unknown'})。${emptyReason}。`);
               return;
             }
 

@@ -87,7 +87,7 @@ jobs:
               core.warning(`Tavily 検索に失敗しました: ${String(e)}`);
             }
 
-            // 固定方針は developer ロールに置き、外部入力（Tavily応答・スキャンログ）は
+            // 固定方針は system ロールに置き、外部入力（Tavily応答・スキャンログ）は
             // user ロールへ区切り付きで分離する。両者を同一メッセージに連結すると、外部入力内の
             // 指示が固定方針を上書きするプロンプトインジェクションを許してしまうため。
             const systemPolicy = `あなたは熟練のセキュリティエンジニアです。以下のセキュリティスキャン失敗ログとWeb検索結果を分析し、脆弱性の影響と具体的な修正案を日本語で提示してください。
@@ -121,14 +121,14 @@ jobs:
                 },
                 signal: AbortSignal.timeout(120000),
                 body: JSON.stringify({
-                  model: 'gpt-4o-mini',
+                  model: 'openai/gpt-4o-mini',
                   messages: [
-                    { role: 'developer', content: systemPolicy },
+                    { role: 'system', content: systemPolicy },
                     { role: 'user', content: externalInput }
                   ],
-                  // 'high' だと推論だけで予算を使い切り、可視出力が空 (finish_reason: 'length') になる恐れがあるため
-                  // まずは 'medium' を既定とし、品質とトークン消費を見ながら調整する。
-                  max_tokens: 15000
+                  // gpt-4o-mini は非推論モデルのため、max_completion_tokens は出力トークン数の上限として機能する。
+                  // 出力が finish_reason: 'length' で途切れる場合は、この値を引き上げて調整する。
+                  max_completion_tokens: 15000
                 })
               });
             } catch (e) {
@@ -155,11 +155,10 @@ jobs:
             const analysis = choice?.message?.content;
 
             if (!analysis) {
-              // content 空の原因は様々なため、finish_reason === 'length' の場合のみ
-              // 出力トークンが max_tokens を使い切った可能性をログに残す（無言スキップを避ける）。
-              const finishReason = choice?.finish_reason ?? 'unknown';
-              const limitHint = finishReason === 'length' ? ' 出力トークンが max_tokens を使い切った可能性があります。' : '';
-              core.warning(`AI 分析の応答が空でした (finish_reason: ${finishReason})。${limitHint}`);
+              // gpt-4o-mini は非推論モデルのため、content 空の原因は finish_reason で判別する。
+              // 'length' は出力トークン上限、それ以外は空レスポンスとして扱う。
+              const emptyReason = choice?.finish_reason === 'length' ? '出力トークン上限に達した可能性があります' : '空レスポンスが返されました';
+              core.warning(`AI 分析の応答が空でした (finish_reason: ${choice?.finish_reason ?? 'unknown'})。${emptyReason}。`);
               return;
             }
 
