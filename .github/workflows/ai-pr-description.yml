@@ -89,7 +89,7 @@ jobs:
                     { role: 'system', content: systemPolicy },
                     { role: 'user', content: externalInput }
                   ],
-                  max_tokens: 5000
+                  max_completion_tokens: 5000
                 })
               });
             } catch (error) {
