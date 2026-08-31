@@ -9,7 +9,7 @@ runs:
   steps:
     - name: Install Dependencies
       shell: bash
-      run: bun install --frozen-lockfile
+      run: bun install --frozen-lockfile --ignore-scripts
 
     - name: Run Repomix
       shell: bash
