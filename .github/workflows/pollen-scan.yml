@@ -14,7 +14,7 @@ permissions:
   contents: read
 
 jobs:
-  pollen_scan:
+  pollen-scan:
     name: Run Pollen Scan
     runs-on: ubuntu-latest
     steps:
