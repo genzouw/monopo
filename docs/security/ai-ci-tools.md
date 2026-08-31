@@ -194,7 +194,7 @@ PRの自動承認を行う `.github/workflows/ai-codeball-approver.yml`（Codeba
 ## 新規: Pollen Supply Chain Scan の設定
 
 Perplexity AIが開発したサプライチェーンスキャナBumblebeeの派生版であり、GitHub Actions等のCI環境にも対応した `Bantuson/pollen` を利用した `.github/workflows/pollen-scan.yml` を追加しました。
-このツールは、npmのパッケージだけでなく、AI開発で近年利用が拡大しているMCPサーバーやエディタ拡張機能などの疑わしいパッケージ（サプライチェーンリスク）を読み取り専用で高速にスキャンします。
+このツールは、npmのパッケージだけでなく、AI開発で近年利用が拡大しているMCPサーバーやエディタ拡張機能などの依存関係インベントリを読み取り専用で高速に収集し、artifactとして保存します（`--exposure-catalog` 未設定のため、疑わしいパッケージ（サプライチェーンリスク）の判定自体は行いません）。
 
 1. **追加の設定等**
    - 外部への通信を行わず、ソースファイルも読み取らない安全な設計（Go 1.25+ で標準ライブラリのみ使用）のため、追加のAPIキー等の設定は不要です。
