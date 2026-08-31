@@ -61,3 +61,4 @@ ai-report-*.md -diff export-ignore
 **/.sst/** -diff export-ignore
 **/.cascade/** -diff export-ignore
 .envrc -diff export-ignore
+.github/workflows/secretlint.yml diff
