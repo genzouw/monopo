@@ -117,9 +117,9 @@ jobs:
                   'Authorization': `Bearer ${process.env.GH_MODELS_TOKEN}`
                 },
                 body: JSON.stringify({
-                  model: 'gpt-4o-mini',
+                  model: 'openai/gpt-4o-mini',
                   messages: [{ role: 'user', content: prompt }],
-                  max_tokens: 15000
+                  max_completion_tokens: 15000
                 })
               });
 
@@ -127,7 +127,7 @@ jobs:
                 const aiData = await aiRes.json();
                 analysis = aiData.choices?.[0]?.message?.content;
                 if (!analysis) {
-                  // content 空は max_tokens を使い切った（finish_reason: 'length'）可能性のあるサイン。
+                  // gpt-4o-mini は非推論モデルのため、content 空は出力トークン上限か空レスポンスを示す。
                   core.warning(`GitHub Models から分析結果が返されませんでした。${JSON.stringify(aiData).slice(0, 500)}`);
                 }
               } else {

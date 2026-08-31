@@ -1,6 +1,6 @@
 description: 'Sample prompt evaluation'
 providers:
-  - id: 'github:openai/o3-mini'
+  - id: 'github:openai/gpt-4o-mini'
     config:
       apiKey: 'envar:GH_MODELS_TOKEN' # pragma: allowlist secret
 tests:
