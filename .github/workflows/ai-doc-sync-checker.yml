@@ -129,9 +129,9 @@ jobs:
                     { role: 'system', content: systemPolicy },
                     { role: 'user', content: externalInput }
                   ],
-                  // gpt-4o-mini は非推論モデルのため、max_completion_tokens は出力トークン数の上限として機能する。
+                  // gpt-4o-mini は非推論モデルのため、max_tokens は出力トークン数の上限として機能する。
                   // 出力が finish_reason: 'length' で途切れる場合は、この値を引き上げて調整する。
-                  max_completion_tokens: 15000
+                  max_tokens: 15000
                 })
               });
             } catch (error) {

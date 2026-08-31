@@ -1,37 +1,24 @@
-name: AI Tool & Configuration Evaluator
+name: AI Tech Stack Advisor
 
 on:
-  pull_request:
-    paths:
-      - 'package.json'
-      - '.github/workflows/**'
-      - '**.config.*'
-      - '.coderabbit.yaml'
-      - '.pr-agent.toml'
-      - 'docs/ai-guidelines.md'
-      - '.cursorrules'
-      - '.windsurfrules'
-      - '.clinerules'
-      - '.github/copilot-instructions.md'
-      - 'sweep.yaml'
+  schedule:
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
-  evaluate-tools:
+  analyze-tech-stack:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      issues: write
-      pull-requests: write
     steps:
       - name: Checkout Code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - name: Analyze Tool Changes and Comment
+      - name: Analyze Tech Stack and Trends
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -39,12 +26,13 @@ jobs:
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
         with:
           script: |
-            const diff = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.issue.number,
-              mediaType: { format: 'diff' }
-            });
+            const fs = require('fs');
+            let packageJson = '';
+            try {
+              packageJson = fs.readFileSync('package.json', 'utf8');
+            } catch (e) {
+              core.warning('package.json could not be read.');
+            }
 
             let searchContext = '検索に失敗しました';
             try {
@@ -56,7 +44,7 @@ jobs:
                 },
                 signal: AbortSignal.timeout(30000),
                 body: JSON.stringify({
-                  query: "2025 latest AI coding tools automated PR review free open source best practices security",
+                  query: "2025 latest AI coding tools automated CI CD pipelines GitHub Actions free open source best practices",
                   search_depth: 'basic'
                 })
               });
@@ -70,20 +58,21 @@ jobs:
             }
 
             const prompt = `あなたは熟練のDevOpsエンジニアおよびAIツールスペシャリストです。
-            以下のPRの差分（ツールの追加や設定変更）と、最新のAIツールのベストプラクティス（Web検索結果）をもとに、導入品質やセキュリティリスク、OSSでの無料枠の有無についての評価を日本語で提供してください。
+            以下のリポジトリの package.json と、最新のAIツール・CI/CDトレンドの検索結果をもとに、
+            更なるAI活用や自動化・CI/CDパイプラインの最適化のための導入提案を日本語で行ってください。
+            ※必ず公開リポジトリで無料で使えるツールやサービス、設定を前提として提案してください。
 
             【検索結果】
             ${searchContext.slice(0, 3000)}
 
-            【PR差分】
-            ${diff.data.slice(0, 3000)}
+            【package.json】
+            ${packageJson.slice(0, 3000)}
             `;
 
             let aiRes;
             try {
-              // GH_MODELS_TOKEN 未設定時は API を叩かずに中断し、Actions の注釈で検知できるようにする
               if (!process.env.GH_MODELS_TOKEN) {
-                throw new Error('GH_MODELS_TOKEN が未設定です。リポジトリの Secrets に GH_MODELS_TOKEN を登録してください。');
+                throw new Error('GH_MODELS_TOKEN が未設定です。');
               }
               aiRes = await fetch('https://models.github.ai/inference/chat/completions', {
                 method: 'POST',
@@ -104,8 +93,7 @@ jobs:
             }
 
             if (!aiRes.ok) {
-              const errBody = await aiRes.text().catch(() => '');
-              core.warning(`AI ツール評価に失敗しました: HTTP ${aiRes.status} ${aiRes.statusText} ${errBody.slice(0, 500)}`);
+              core.warning(`AI 分析に失敗しました: HTTP ${aiRes.status}`);
               return;
             }
 
@@ -113,24 +101,15 @@ jobs:
             try {
               aiData = await aiRes.json();
             } catch (e) {
-              core.warning(`GitHub Models の応答が不正な JSON でした: ${String(e)}`);
+              core.warning(`JSON パースエラー: ${String(e)}`);
               return;
             }
-            const choice = aiData.choices?.[0];
-            const evaluation = choice?.message?.content;
-            if (!evaluation) {
-              // gpt-4o-mini は非推論モデルのため、content 空は出力トークン上限か空レスポンスを示す。
-              // finish_reason で原因を判別し、警告メッセージを出し分ける。
-              const emptyReason = choice?.finish_reason === 'length'
-                ? '出力トークン上限に達した可能性があります'
-                : '空レスポンスが返されました';
-              core.warning(`GitHub Models から分析結果が返されませんでした (finish_reason: ${choice?.finish_reason ?? 'unknown'})。${emptyReason}。`);
-              return;
-            }
+            const evaluation = aiData.choices?.[0]?.message?.content;
+            if (!evaluation) return;
 
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
+            await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `### 🤖 AI 自動ツール＆設定評価\n\n${evaluation}`
+              title: '🤖 週間 AI テックスタック・CI/CD 最適化提案',
+              body: `## 今週の技術トレンドに基づく改善提案\n\n${evaluation}`
             });
