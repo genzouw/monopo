@@ -10,7 +10,7 @@ labels: ['enhancement', 'proposal', 'game-design', 'game-mechanics']
 「monopo（モノポ）」を、単なる娯楽を超えた「現実の経済活動やマネーゲームの概念を学習できる教育的教材」として進化させるための提案です。
 「伝統的な不動産取引ゲーム」や「資産運用ボードゲーム」で培われた優れたメカニクス（エリア投資や株式の相乗りなど）を当サービスに取り込みつつ、さらに現代の複雑な資本主義システムをシミュレートする、従来では考えられないような革新的な機能を追加します。
 
-> 📎 **関連提案との整合性:** 本書の「1. 伝統的な資産運用ボードゲーム機能の導入」（エリアの段階的開発と価格連動、エリア株式の相乗りシステム）は `ISSUE_PROPOSAL_EDUCATIONAL_ASSET_MANAGEMENT.md` の同名セクションと重複します。実装時に参照する正規仕様は `ISSUE_PROPOSAL_EDUCATIONAL_ASSET_MANAGEMENT.md` とし、本書は「2. 現実を模倣した革新的なマネーゲーム機能」以降の新規提案に範囲を絞って位置づけます。
+> 📎 **関連提案との整合性:** 本書の「1. 伝統的な資産運用ボードゲーム機能の導入」（エリアの段階的開発と価格連動、エリア株式の相乗りシステム）は `ISSUE_PROPOSAL_EDUCATIONAL_ASSET_MANAGEMENT.md` の同名セクションおよび `ISSUE_PROPOSAL_TRADITIONAL_AND_MODERN_MECHANICS.md` の実装済み機能（`src/game/rules.ts` の家・ホテル建設、`features.stocks` の株価・配当計算）と重複します。実装時に参照する正規仕様は、同一機能に対して `ISSUE_PROPOSAL_NEXT_GEN_FINANCE.md` が既に指定している `ISSUE_PROPOSAL_TRADITIONAL_AND_MODERN_MECHANICS.md` に統一し、本書は「2. 現実を模倣した革新的なマネーゲーム機能」以降の新規提案に範囲を絞って位置づけます。
 
 ## 🎯 提案する機能の概要
 
