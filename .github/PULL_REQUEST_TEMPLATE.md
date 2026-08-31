@@ -57,8 +57,6 @@
 - [ ] CodeRabbit GitHub App のインストール
 - [ ] Sweep AI GitHub App のインストール
 - [ ] Qodo Merge GitHub App のインストール
-- [ ] GitHub Models アクセスのための `GH_MODELS_TOKEN` の Secret 登録
-- [ ] Tavily API アクセスのための `TAVILY_API_KEY` の Secret 登録
 -->
 
 ## コスト方針のセルフチェック (公開 OSS)
