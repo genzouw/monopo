@@ -37,7 +37,7 @@
 本リポジトリでは、インフラ情報・認証情報・シークレットが意図せず公開リポジトリへコミット・push されることを防ぐため、以下の多層防御を実施しています。
 
 - **ローカル検知**: `.husky/pre-commit` および `.husky/commit-msg` フックにより、`gitleaks` を用いたコミット前のソースコードやコミットメッセージ自体のシークレット混入検知を必須化しています。さらに、Node.js エコシステムに特化した `secretlint` を `lint-staged` に統合し、`.secretlintignore` で除外したロックファイル等を除くコミット対象のファイルに対する漏洩検知を二重化しています。
-- **CI 検知**: GitHub Actions にて `gitleaks`、`trivy`、`trufflehog` を用い、PR差分およびリポジトリ全体の履歴・依存関係に含まれるシークレットを自動スキャンしています。また、`pre-commit` のフック（`detect-private-key` や `detect-secrets` 等）も CI 経由で実行し、ローカルのコミット前検知ルールをサーバー側でも一元的に適用しています。さらに、`actionlint` と `shellcheck` の連携や、`pyflakes`（静的解析ツール）の実行により、CI スクリプト経由のリスク（シェルインジェクションや Python スクリプトの不適切な記述等）を検知・抑止しています。ファイル名ベースの多層防御として、`.env` や各種キーファイル、AI エージェントの作業ディレクトリ（`.cursor/` 等）といった特定ファイルの混入を CI および `pre-commit` フックで明示的に検知・ブロックしています。
+- **CI 検知**: GitHub Actions にて `gitleaks`、`trivy`、`trufflehog` を用い、PR差分およびリポジトリ全体の履歴・依存関係に含まれるシークレットを自動スキャンしています。また、`pre-commit` のフック（`detect-private-key` や `detect-secrets` 等）も CI 経由で実行し、ローカルのコミット前検知ルールをサーバー側でも一元的に適用しています。さらに、`actionlint` と `shellcheck` の連携や、`pyflakes`（静的解析ツール）の実行により、CI スクリプト経由のリスク（シェルインジェクションや Python スクリプトの不適切な記述等）を検知・抑止しています。ファイル名ベースの多層防御として、`.env` や各種キーファイル、AI エージェントの作業ディレクトリ（`.cursor/` 等）といった特定ファイルの混入を CI および `pre-commit` フックで明示的に検知・ブロックしています。 また、CI 上で実行される `secretlint` には `--format github` を指定し、PR の差分に対してインラインアノテーションを行うことで、開発者が漏洩箇所を GitHub UI 上で即座に特定・修正できるようにしています。
 - **定期監査**: 週次ベースでリポジトリ全体のフルスキャンを自動実行し、設定ミスによる新たな漏洩リスクを継続的に監視しています。また、`osv-scanner` を用いた依存パッケージのOSS脆弱性走査や、`license-checker-rseidelsohn` を用いたライセンスコンプライアンスの定期走査も行い、サプライチェーン・コンプライアンスリスクの低減を図っています。さらに、`ossf/scorecard-action` を用いてリポジトリのセキュリティ設定・プラクティスの健全性を継続的に評価・スコアリングしています。
 
 ### GitHub Secret Scanning と Push Protection の推奨 (リポジトリ管理者向け)
@@ -61,6 +61,12 @@ CI の監査ワークフロー (`.github/workflows/permissions-audit.yml`) に�
 リポジトリに対する予期せぬ変更やインジェクション攻撃時の二次被害を防ぐため、`.github/workflows/` 配下の CI ワークフローでは**トップレベルの権限を読み取り専用 (`contents: read` など最小限) に制限**しています。書き込み権限（例: `pull-requests: write`, `security-events: write`）が必要な場合は、トップレベルではなく、その権限を実際に必要とする**ジョブ単位 (`jobs.<job_name>.permissions`) に絞って付与**することを徹底しています。
 
 ### 追加の漏洩防止対策 (Pre-commit 強化)
+
+- pre-commit-hooks (check-symlinks, destroyed-symlinks) を導入しています。`check-symlinks` はリンク先が存在しない壊れたシンボリックリンクを、`destroyed-symlinks` はシンボリックリンクがリンク先パスを内容とする通常ファイルへ置き換わった状態を検出します。ただし、リンク先が存在する**有効な**シンボリックリンク（例: `ln -s ~/.ssh/id_rsa key`）の混入は、いずれのフックも検知対象外です。
+
+### 環境差の吸収 (改行コードの正規化)
+
+- pre-commit-hooks の `mixed-line-ending` を `args: ['--fix=lf']` で導入し、改行コードを LF へ自動統一しています（検知して止めるのではなく、対象ファイルを書き換えたうえで非 0 終了する自動修正フックです）。これは漏洩防止ではなく、`.editorconfig` の `end_of_line = lf` や Prettier の既定 `endOfLine: "lf"` との整合を取り、環境依存の改行コード混在による意図しない差分・CI 失敗を防ぐことが目的です。
 
 ファイル名・パスベースによる特定ファイル (環境変数ファイル、キーファイル、AI エージェント作業ディレクトリなど) のコミット防止ルールを、ローカルのシェルスクリプト依存から `.pre-commit-config.yaml` のカスタムフック (`forbid-sensitive-files`) へと移行・統合しました。
 これにより、CI 上で稼働する `pre-commit` ワークフローとローカル環境での防止ルールが一元化され、防御の確実性が向上しています。

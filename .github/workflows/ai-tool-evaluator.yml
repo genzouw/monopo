@@ -93,10 +93,9 @@ jobs:
                 },
                 signal: AbortSignal.timeout(120000),
                 body: JSON.stringify({
-                  model: 'openai/o3-mini',
+                  model: 'gpt-4o-mini',
                   messages: [{ role: 'user', content: prompt }],
-                  reasoning_effort: 'high',
-                  max_completion_tokens: 15000
+                  max_tokens: 15000
                 })
               });
             } catch (e) {
@@ -119,7 +118,7 @@ jobs:
             }
             const evaluation = aiData.choices?.[0]?.message?.content;
             if (!evaluation) {
-              // content 空は推論トークンが max_completion_tokens を使い切ったサイン。
+              // content 空は max_tokens を使い切った（finish_reason: 'length'）可能性のあるサイン。
               core.warning(`GitHub Models から分析結果が返されませんでした。${JSON.stringify(aiData).slice(0, 500)}`);
               return;
             }
