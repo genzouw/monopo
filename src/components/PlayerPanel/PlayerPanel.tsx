@@ -117,7 +117,11 @@ const MemoizedPlayerChip = memo(function MemoizedPlayerChip({
           </span>
         )}
         {player.inJail && (
-          <span className={styles.jailBadge} aria-hidden="true">
+          <span
+            className={styles.jailBadge}
+            aria-hidden="true"
+            title={isDisabled ? undefined : '刑務所に入っています'}
+          >
             🔒
           </span>
         )}
