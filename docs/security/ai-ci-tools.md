@@ -190,3 +190,11 @@ PRの自動承認を行う `.github/workflows/ai-codeball-approver.yml`（Codeba
 
 - **Tavily Search APIの検索深度**: 全てのワークフローで `search_depth` を `basic` に設定しています。`advanced` はクレジット消費が激しくなりますが、技術検索では `basic` で十分な鮮度の情報が得られるためコスト削減を優先しています。
 - **タイムアウトの設定**: 外部APIへのFetchリクエストに対し、Tavily Search APIには30秒、GitHub Models APIには120秒の `AbortSignal.timeout` を設定し、無応答によるGitHub Actionsランナーの滞留（ハング）を防止しています。
+
+## 新規: Reviewdog (ESLint) の設定
+
+PRにおけるコード品質向上とAIレビューツールへのノイズ削減のため、GitHub Actions 経由で ESLint の結果を PR 上にインラインコメントする `reviewdog/action-eslint` を導入しました。
+AI ツールによるレビューの前に基本的な静的解析エラーを自動指摘することで、AI がより高度なロジックやアーキテクチャのレビューに集中できる環境を整えます。
+
+1. **GitHub Secrets・権限設定 (必須)**
+   - 追加のシークレット登録は不要ですが、デフォルトの `GITHUB_TOKEN` を使用して PR にコメントを書き込むため、リポジトリの設定（`Settings > Actions > General > Workflow permissions`）で `Read and write permissions` が選択されているか、またはワークフロー内で `pull-requests: write` 権限が正しく付与されていることを確認してください。
