@@ -198,3 +198,11 @@ AI ツールによるレビューの前に基本的な静的解析エラーを�
 
 1. **GitHub Secrets・権限設定 (必須)**
    - 追加のシークレット登録は不要ですが、デフォルトの `GITHUB_TOKEN` を使用して PR にコメントを書き込むため、リポジトリの設定（`Settings > Actions > General > Workflow permissions`）で `Read and write permissions` が選択されているか、またはワークフロー内で `pull-requests: write` 権限が正しく付与されていることを確認してください。
+
+## 新規: Pollen Supply Chain Scan の設定
+
+Perplexity AIが開発したサプライチェーンスキャナBumblebeeの派生版であり、GitHub Actions等のCI環境にも対応した `Bantuson/pollen` を利用した `.github/workflows/pollen-scan.yml` を追加しました。
+このツールは、npmのパッケージだけでなく、AI開発で近年利用が拡大しているMCPサーバーやエディタ拡張機能などの依存関係インベントリを読み取り専用で高速に収集し、artifactとして保存します（`--exposure-catalog` 未設定のため、疑わしいパッケージ（サプライチェーンリスク）の判定自体は行いません）。
+
+1. **追加の設定等**
+   - 外部への通信を行わず、ソースファイルも読み取らない安全な設計（Go 1.25+ で標準ライブラリのみ使用）のため、追加のAPIキー等の設定は不要です。
