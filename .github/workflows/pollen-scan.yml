@@ -50,3 +50,4 @@ jobs:
         with:
           name: pollen-inventory
           path: pollen-inventory.ndjson
+          retention-days: 14
