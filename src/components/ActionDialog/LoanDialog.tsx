@@ -50,6 +50,8 @@ export default function LoanDialog({
 }: LoanDialogProps) {
   const borrowHintId = useId();
   const repayHintId = useId();
+  const borrowInputId = useId();
+  const repayInputId = useId();
   const [loanType, setLoanType] = useState<LoanType>('variable');
   const [borrowAmount, setBorrowAmount] = useState('');
   const [repayAmount, setRepayAmount] = useState('');
@@ -136,7 +138,7 @@ export default function LoanDialog({
         {maxBorrow > 0 && (
           <div className={styles.buildItem} style={{ marginTop: 12 }}>
             <div className={styles.buildItemContent}>
-              <label htmlFor="borrowInput" className={styles.buildItemName}>
+              <label htmlFor={borrowInputId} className={styles.buildItemName}>
                 💰 借りる
               </label>
               <div className={styles.buildItemInfo}>
@@ -163,7 +165,7 @@ export default function LoanDialog({
               </div>
               <div className={styles.buildItemActions}>
                 <input
-                  id="borrowInput"
+                  id={borrowInputId}
                   type="number"
                   min={1}
                   max={maxBorrow}
@@ -219,12 +221,12 @@ export default function LoanDialog({
         {loanBalance > 0 && (
           <div className={styles.buildItem} style={{ marginTop: 12 }}>
             <div className={styles.buildItemContent}>
-              <label htmlFor="repayInput" className={styles.buildItemName}>
+              <label htmlFor={repayInputId} className={styles.buildItemName}>
                 💳 返済する
               </label>
               <div className={styles.buildItemActions}>
                 <input
-                  id="repayInput"
+                  id={repayInputId}
                   type="number"
                   min={1}
                   max={Math.min(loanBalance, currentPlayer.money)}
