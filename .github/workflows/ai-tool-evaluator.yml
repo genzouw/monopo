@@ -7,7 +7,7 @@ on:
       - '.github/workflows/**'
       - '**.config.*'
       - '.coderabbit.yaml'
-      - '.pr-agent.toml'
+      - '.pr_agent.toml'
       - 'docs/ai-guidelines.md'
       - '.cursorrules'
       - '.windsurfrules'

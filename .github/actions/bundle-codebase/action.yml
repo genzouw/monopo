@@ -1,0 +1,16 @@
+name: Bundle Codebase Context
+description: >-
+  リポジトリ全体を Repomix で単一ファイル (codebase.xml) にまとめ、AI ワークフローのコンテキストとして提供する。
+  repomix は devDependencies として bun.lock に固定されているため、推移的依存も含めて解決結果が再現される。
+  呼び出し側で事前に actions/checkout と oven-sh/setup-bun を実行しておくこと。
+
+runs:
+  using: composite
+  steps:
+    - name: Install Dependencies
+      shell: bash
+      run: bun install --frozen-lockfile --ignore-scripts
+
+    - name: Run Repomix
+      shell: bash
+      run: bunx repomix --style xml --output codebase.xml

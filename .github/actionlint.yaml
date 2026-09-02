@@ -1,0 +1,24 @@
+# actionlint の設定ファイル
+#
+# self-repository syntax (`uses: $/...`) の誤検知を抑止する。
+#
+# 背景:
+#   GitHub は 2026-07-30 に self-repository syntax `uses: $/{path}` を GA にした。
+#   これは「実行中のコミットのアクション定義」を checkout 無しで直接解決する構文で、
+#   ワークスペースのチェックアウト結果に依存する `./{path}` と違い ref confusion が
+#   構造的に起きない。zizmor の self-repository ルールもこちらの使用を求めている。
+#   https://github.blog/changelog/2026-07-30-reference-same-repository-actions-with-self-repository-syntax/
+#
+#   一方 actionlint は 1.7.12 時点でこの構文を知らず、`$/...` を「ref が欠落した
+#   リポジトリ参照」と誤認して invalid format エラーを出す。対応 PR は未マージ。
+#   https://github.com/rhysd/actionlint/issues/732 (Closes #711)
+#
+# 抑止範囲:
+#   `$/` で始まる参照に対する ref-missing エラーだけを対象にする。
+#   `uses: actions/checkout`（ref を書き忘れた通常の外部アクション参照）は
+#   引き続き検知される。actionlint#732 がマージされ、CI・pre-commit の双方が
+#   その版に上がったら、このファイルごと削除すること。
+paths:
+  .github/workflows/**:
+    ignore:
+      - 'specifying action "\$/.+" in invalid format because ref is missing'
