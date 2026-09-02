@@ -28,7 +28,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
-          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
         with:
           script: |
             const run_id = context.payload.workflow_run.id;
@@ -61,31 +60,8 @@ jobs:
               return;
             }
 
-            const query = `security vulnerability fix: ${logSnippet.slice(-200).replace(/\n/g, ' ')}`;
-            let searchAnswer = '検索結果の要約なし';
-            try {
-              const tavilyRes = await fetch('https://api.tavily.com/search', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', ...(process.env.TAVILY_API_KEY ? { 'Authorization': `Bearer ${process.env.TAVILY_API_KEY}` } : {}) },
-                signal: AbortSignal.timeout(30000),
-                body: JSON.stringify({
-                  query: query.slice(0, 400),
-                  search_depth: 'basic',
-                  include_answer: true,
-                }),
-              });
-
-              if (tavilyRes.ok) {
-                try {
-                  const searchData = await tavilyRes.json();
-                  searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
-                } catch (e) {
-                  core.warning(`Tavily の応答の解析に失敗しました: ${String(e)}`);
-                }
-              }
-            } catch (e) {
-              core.warning(`Tavily 検索に失敗しました: ${String(e)}`);
-            }
+            // CLAUDE.md 最重要原則: 従量課金の検索API（Tavily）をCI/CDに組み込むことは禁止されているため、Web検索は無効化しています。
+            const searchAnswer = '検索結果の要約なし（Web検索はコスト方針により無効化されています）';
 
             // 固定方針は system ロールに置き、外部入力（Tavily応答・スキャンログ）は
             // user ロールへ区切り付きで分離する。両者を同一メッセージに連結すると、外部入力内の
@@ -126,9 +102,9 @@ jobs:
                     { role: 'system', content: systemPolicy },
                     { role: 'user', content: externalInput }
                   ],
-                  // gpt-4o-mini は非推論モデルのため、max_completion_tokens は出力トークン数の上限として機能する。
+                  // gpt-4o-mini は非推論モデルのため、max_tokens は出力トークン数の上限として機能する。
                   // 出力が finish_reason: 'length' で途切れる場合は、この値を引き上げて調整する。
-                  max_completion_tokens: 15000
+                  max_tokens: 15000
                 })
               });
             } catch (e) {

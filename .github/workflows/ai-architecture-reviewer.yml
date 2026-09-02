@@ -50,7 +50,6 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
-          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
           PR_DIFF: ${{ steps.fetch-diff.outputs.result }}
         with:
           script: |
@@ -66,26 +65,8 @@ jobs:
               console.log('Repomix output not found.');
             }
 
-            let searchAnswer = '検索結果なし';
-            try {
-              const tavilyRes = await fetch('https://api.tavily.com/search', {
-                method: 'POST',
-                signal: AbortSignal.timeout(30000),
-                headers: { 'Content-Type': 'application/json', ...(process.env.TAVILY_API_KEY ? { 'Authorization': `Bearer ${process.env.TAVILY_API_KEY}` } : {}) },
-                body: JSON.stringify({
-                  query: `2025 latest software architecture design patterns best practices scalability for: ${title}`,
-                  search_depth: 'basic',
-                  include_answer: true,
-                }),
-              });
-
-              if (tavilyRes.ok) {
-                const searchData = await tavilyRes.json();
-                searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
-              }
-            } catch (e) {
-              core.warning(`Tavily 検索に失敗しました: ${String(e)}`);
-            }
+            // CLAUDE.md 最重要原則: 従量課金の検索API（Tavily）をCI/CDに組み込むことは禁止されているため、Web検索は無効化しています。
+            const searchAnswer = '検索結果なし（Web検索はコスト方針により無効化されています）';
 
             const prompt = `あなたはソフトウェアアーキテクチャの専門家です。
             以下のPRの差分、プロジェクトのコードベース全体（Repomixによる）、および最新のWeb検索のベストプラクティスをもとに、
@@ -119,7 +100,7 @@ jobs:
                 body: JSON.stringify({
                   model: 'openai/gpt-4o-mini',
                   messages: [{ role: 'user', content: prompt }],
-                  max_completion_tokens: 15000
+                  max_tokens: 15000
                 })
               });
 
