@@ -136,7 +136,9 @@ export default function LoanDialog({
         {maxBorrow > 0 && (
           <div className={styles.buildItem} style={{ marginTop: 12 }}>
             <div className={styles.buildItemContent}>
-              <div className={styles.buildItemName}>💰 借りる</div>
+              <label htmlFor="borrowInput" className={styles.buildItemName}>
+                💰 借りる
+              </label>
               <div className={styles.buildItemInfo}>
                 <label>
                   金利タイプ:&nbsp;
@@ -161,6 +163,7 @@ export default function LoanDialog({
               </div>
               <div className={styles.buildItemActions}>
                 <input
+                  id="borrowInput"
                   type="number"
                   min={1}
                   max={maxBorrow}
@@ -216,9 +219,12 @@ export default function LoanDialog({
         {loanBalance > 0 && (
           <div className={styles.buildItem} style={{ marginTop: 12 }}>
             <div className={styles.buildItemContent}>
-              <div className={styles.buildItemName}>💳 返済する</div>
+              <label htmlFor="repayInput" className={styles.buildItemName}>
+                💳 返済する
+              </label>
               <div className={styles.buildItemActions}>
                 <input
+                  id="repayInput"
                   type="number"
                   min={1}
                   max={Math.min(loanBalance, currentPlayer.money)}
