@@ -36,7 +36,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }} # pragma: allowlist secret
-          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
         with:
           script: |
             const diff = await github.rest.pulls.get({
@@ -46,28 +45,8 @@ jobs:
               mediaType: { format: 'diff' }
             });
 
-            let searchContext = '検索に失敗しました';
-            try {
-              const tavilyRes = await fetch('https://api.tavily.com/search', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  ...(process.env.TAVILY_API_KEY ? { 'Authorization': `Bearer ${process.env.TAVILY_API_KEY}` } : {})
-                },
-                signal: AbortSignal.timeout(30000),
-                body: JSON.stringify({
-                  query: "2025 latest AI coding tools automated PR review free open source best practices security",
-                  search_depth: 'basic'
-                })
-              });
-
-              if (tavilyRes.ok) {
-                const searchData = await tavilyRes.json();
-                searchContext = searchData.results?.map(r => r.content).join('\n') || '';
-              }
-            } catch (e) {
-              core.warning(`Tavily 検索に失敗しました: ${String(e)}`);
-            }
+            // CLAUDE.md 最重要原則: 従量課金の検索API（Tavily）をCI/CDに組み込むことは禁止されているため、Web検索は無効化しています。
+            const searchContext = '検索結果なし（Web検索はコスト方針により無効化されています）';
 
             const prompt = `あなたは熟練のDevOpsエンジニアおよびAIツールスペシャリストです。
             以下のPRの差分（ツールの追加や設定変更）と、最新のAIツールのベストプラクティス（Web検索結果）をもとに、導入品質やセキュリティリスク、OSSでの無料枠の有無についての評価を日本語で提供してください。

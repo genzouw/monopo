@@ -14,6 +14,12 @@
 >
 > 以下の「無料で利用可能」「週次で自動生成される」といった記述は、**代替モデルを選定して復旧させた場合の前提**として読んでください。
 
+> [!IMPORTANT]
+> **Tavily Search API 連携の無効化について**
+>
+> CLAUDE.md の最重要原則「従量課金の検索API（`TAVILY_API_KEY` 等）のCI組み込みは禁止」に反していたため、`TAVILY_API_KEY` を参照していた全ワークフロー（AI A11y Reviewer / AI Architecture Reviewer / AI CI Failure Analyzer / AI Code Optimizer / AI Dependency Research / AI Dependency Review / AI Documentation Generator / AI Documentation Sync Checker / AI Issue Auto-Fixer / AI Issue Plan / AI Issue Research / AI Issue Triage / AI PR Reviewer / AI Security Analyzer / AI Weekly Tech News Digest / AI Test Automation / AI Test Generator / AI Tool & Configuration Evaluator）から Tavily 呼び出しを削除しました。
+> 以下の各節にある「`TAVILY_API_KEY` の登録が必要」「Tavily Search APIの統合を行いました」といった記述は**過去の導入経緯を示す historical な記録であり、現在は無効です**。`TAVILY_API_KEY` を新たに Secrets へ登録する必要はありません（既存の登録がある場合も、上記ワークフローからは参照されません）。
+
 ## CodeRabbitとサーチサービスの設定
 
 `.coderabbit.yaml` にて、AIレビュー品質向上のためのWeb検索（サーチサービス連携）を有効化しました。

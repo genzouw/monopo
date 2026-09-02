@@ -13,12 +13,11 @@ jobs:
       contents: read
       issues: write
     steps:
-      - name: Tavily Search and AI Plan Generation
+      - name: AI Plan Generation
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }} # pragma: allowlist secret
-          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
         with:
           script: |
             // トークン上限超過とコスト増を防ぐため、プロンプトに埋め込む値は文字数で truncate する
@@ -27,35 +26,10 @@ jobs:
 
             const title = context.payload.issue.title;
             const issueBody = (context.payload.issue.body || '').slice(0, MAX_ISSUE_BODY_CHARS);
-            const query = title;
 
-            // 1. Tavily Search
-            let searchData = { answer: '要約なし', results: [] };
-            try {
-              const tavilyRes = await fetch('https://api.tavily.com/search', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', ...(process.env.TAVILY_API_KEY ? { 'Authorization': `Bearer ${process.env.TAVILY_API_KEY}` } : {}) },
-                signal: AbortSignal.timeout(30000),
-                body: JSON.stringify({
-                  query: `2025 latest ${query}`,
-                  search_depth: 'basic',
-                  include_answer: true,
-                }),
-              });
-
-              if (tavilyRes.ok) {
-                try {
-                  searchData = await tavilyRes.json();
-                } catch (e) {
-                  core.warning(`Tavily の応答の JSON 解析に失敗しました: ${String(e)}`);
-                }
-              } else {
-                core.warning(`Tavily へのリクエストに失敗しました: ${tavilyRes.status} ${tavilyRes.statusText}`);
-              }
-            } catch (e) {
-              core.warning(`Tavily 検索に失敗しました: ${String(e)}`);
-            }
-            const searchAnswer = (searchData.answer || '要約なし').slice(0, MAX_SEARCH_ANSWER_CHARS);
+            // CLAUDE.md 最重要原則: 従量課金の検索API（Tavily）をCI/CDに組み込むことは禁止されているため、Web検索は無効化しています。
+            const searchData = { answer: '要約なし（Web検索はコスト方針により無効化されています）', results: [] };
+            const searchAnswer = searchData.answer.slice(0, MAX_SEARCH_ANSWER_CHARS);
 
             // 2. GitHub Models による実装計画の生成 (公開リポジトリで無料)
             const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のIssueの要件とWeb検索結果をもとに、プロジェクトの具体的な実装計画を日本語で作成してください。

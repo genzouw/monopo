@@ -36,7 +36,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
-          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
         with:
           script: |
             const fs = require('fs');
@@ -48,28 +47,8 @@ jobs:
               console.log('Repomix output not found.');
             }
 
-            let searchContext = '検索結果なし';
-            try {
-              const tavilyRes = await fetch('https://api.tavily.com/search', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  ...(process.env.TAVILY_API_KEY ? { 'Authorization': `Bearer ${process.env.TAVILY_API_KEY}` } : {})
-                },
-                signal: AbortSignal.timeout(30000),
-                body: JSON.stringify({
-                  query: "2025 latest React 19 Bun TypeScript performance security best practices",
-                  search_depth: 'basic'
-                })
-              });
-
-              if (tavilyRes.ok) {
-                const searchData = await tavilyRes.json();
-                searchContext = searchData.results?.map(r => r.content).join('\n') || '';
-              }
-            } catch (e) {
-              core.warning(`Tavily 検索に失敗しました: ${String(e)}`);
-            }
+            // CLAUDE.md 最重要原則: 従量課金の検索API（Tavily）をCI/CDに組み込むことは禁止されているため、Web検索は無効化しています。
+            const searchContext = '検索結果なし（Web検索はコスト方針により無効化されています）';
 
             const prompt = `あなたは熟練のDevOpsエンジニアおよびソフトウェアアーキテクトです。
             以下の最新ベストプラクティス（Web検索結果）とプロジェクトのコードベース概要をもとに、コードの品質向上、パフォーマンス最適化、およびセキュリティ強化のための具体的な改善提案を日本語で出力してください。
