@@ -43,7 +43,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
-          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
           PR_DIFF: ${{ steps.fetch-diff.outputs.result }}
         with:
           script: |
@@ -52,28 +51,8 @@ jobs:
             const prBody = (context.payload.pull_request.body || '').slice(0, 1000);
             const prDiff = process.env.PR_DIFF;
 
-            let searchAnswer = '検索結果なし';
-            try {
-              const tavilyRes = await fetch('https://api.tavily.com/search', {
-                method: 'POST',
-                signal: AbortSignal.timeout(30000),
-                headers: { 'Content-Type': 'application/json', ...(process.env.TAVILY_API_KEY ? { 'Authorization': `Bearer ${process.env.TAVILY_API_KEY}` } : {}) },
-                body: JSON.stringify({
-                  query: `2025 latest best practices for AI auto-generating documentation from pull requests`,
-                  search_depth: 'basic',
-                  include_answer: true,
-                }),
-              });
-
-              if (tavilyRes.ok) {
-                const searchData = await tavilyRes.json();
-                searchAnswer = (searchData.answer || '要約なし').slice(0, 1000);
-              } else {
-                core.warning(`Tavily 検索に失敗しました: ${tavilyRes.status}`);
-              }
-            } catch (e) {
-              core.warning(`Tavily 検索リクエストに失敗しました: ${String(e)}`);
-            }
+            // CLAUDE.md 最重要原則: 従量課金の検索API（Tavily）をCI/CDに組み込むことは禁止されているため、Web検索は無効化しています。
+            const searchAnswer = '検索結果なし（Web検索はコスト方針により無効化されています）';
 
             const prompt = `あなたは優れたテクニカルライターであり、ソフトウェアエンジニアです。
             以下のマージされたPull Requestの情報、差分、および最新のWeb検索ベストプラクティスをもとに、
@@ -111,7 +90,7 @@ jobs:
                 body: JSON.stringify({
                   model: 'openai/gpt-4o-mini',
                   messages: [{ role: 'user', content: prompt }],
-                  max_completion_tokens: 15000
+                  max_tokens: 15000
                 })
               });
 
