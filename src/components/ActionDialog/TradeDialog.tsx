@@ -111,21 +111,25 @@ export default function TradeDialog({
   // ⚡ Bolt: useMemo to prevent repeated mapping and filtering of property arrays on every render.
   // TradeDialog involves frequent state updates (typing money amount), and computing properties on every render hurts input latency.
   const myProperties = useMemo(() => {
-    return currentPlayer.properties
-      .map((id: string) => getSpaceById(id, board))
-      .filter(
-        (s): s is BoardSpace =>
-          !!s && (propertyStates[s.id]?.houses ?? 0) === 0,
-      );
+    const props: BoardSpace[] = [];
+    for (const id of currentPlayer.properties) {
+      const space = getSpaceById(id, board);
+      if (space && (propertyStates[space.id]?.houses ?? 0) === 0) {
+        props.push(space);
+      }
+    }
+    return props;
   }, [currentPlayer.properties, board, propertyStates]);
 
   const theirProperties = useMemo(() => {
-    return targetPlayer.properties
-      .map((id: string) => getSpaceById(id, board))
-      .filter(
-        (s): s is BoardSpace =>
-          !!s && (propertyStates[s.id]?.houses ?? 0) === 0,
-      );
+    const props: BoardSpace[] = [];
+    for (const id of targetPlayer.properties) {
+      const space = getSpaceById(id, board);
+      if (space && (propertyStates[space.id]?.houses ?? 0) === 0) {
+        props.push(space);
+      }
+    }
+    return props;
   }, [targetPlayer.properties, board, propertyStates]);
 
   const toggleOffer = (id: string) => {

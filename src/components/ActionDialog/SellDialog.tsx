@@ -57,10 +57,16 @@ export default function SellDialog({
   // ⚡ Bolt: useMemo to prevent mapping, filtering, and sorting the properties array on every render.
   // This reduces rendering overhead especially when the dialog is open and parent state changes.
   const ownedProperties = useMemo(() => {
-    return currentPlayer.properties
-      .map((id: string) => getSpaceById(id, board))
-      .filter((s): s is BoardSpace => !!s)
-      .sort((a, b) => compareByColorOrder(a.color, b.color, COLOR_ORDER));
+    const props: BoardSpace[] = [];
+    for (const id of currentPlayer.properties) {
+      const space = getSpaceById(id, board);
+      if (space) {
+        props.push(space);
+      }
+    }
+    return props.sort((a, b) =>
+      compareByColorOrder(a.color, b.color, COLOR_ORDER),
+    );
   }, [currentPlayer.properties, board]);
 
   const title = forced
