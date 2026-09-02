@@ -28,7 +28,7 @@ jobs:
           bun-version: 1.2.14
 
       - name: Bundle Codebase Context with Repomix
-        uses: ./.github/actions/bundle-codebase
+        uses: $/.github/actions/bundle-codebase
 
       - name: Fetch PR Diff
         id: fetch-diff
