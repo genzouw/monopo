@@ -7,6 +7,10 @@ on:
       - '**.md'
       - '.github/workflows/**'
 
+concurrency:
+  group: local-ai-pr-reviewer-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
