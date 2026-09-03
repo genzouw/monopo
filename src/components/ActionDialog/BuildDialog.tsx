@@ -60,12 +60,16 @@ export default function BuildDialog({
   // ⚡ Bolt: useMemo to prevent mapping, filtering, and sorting the properties array on every render.
   // This avoids O(N log N) recalculation of ownedProperties on every keystroke or update within the dialog.
   const ownedProperties = useMemo(() => {
-    return currentPlayer.properties
-      .map((id: string) => getSpaceById(id, board))
-      .filter(
-        (s): s is BoardSpace => !!s && s.type === 'property' && !!s.houseCost,
-      )
-      .sort((a, b) => compareByColorOrder(a.color, b.color, COLOR_ORDER));
+    const props: BoardSpace[] = [];
+    for (const id of currentPlayer.properties) {
+      const space = getSpaceById(id, board);
+      if (space && space.type === 'property' && space.houseCost) {
+        props.push(space);
+      }
+    }
+    return props.sort((a, b) =>
+      compareByColorOrder(a.color, b.color, COLOR_ORDER),
+    );
   }, [currentPlayer.properties, board]);
 
   return (
