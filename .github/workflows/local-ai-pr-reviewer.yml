@@ -22,11 +22,23 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Skip Fork PR
+        id: fork-check
+        run: |
+          if [ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.repository }}" ]; then
+            echo "is_fork=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::フォークPRのため GITHUB_TOKEN が読み取り専用となり、レビューコメントの投稿ができません。このジョブをスキップします。"
+          else
+            echo "is_fork=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Setup Ollama
+        if: steps.fork-check.outputs.is_fork != 'true'
         uses: ai-action/setup-ollama@c1ba4f357591ee01976147eb7d89442d75954c4d
 
       - name: Fetch PR Diff
         id: fetch-diff
+        if: steps.fork-check.outputs.is_fork != 'true'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -41,6 +53,7 @@ jobs:
             return diff.data.slice(0, 5000);
 
       - name: Generate AI Code Review with Local Ollama
+        if: steps.fork-check.outputs.is_fork != 'true'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -74,12 +87,16 @@ jobs:
               const review = data.response;
 
               if (review) {
-                await github.rest.issues.createComment({
-                  issue_number: context.issue.number,
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  body: `### 🤖 Local AI Code Review (Ollama - qwen2.5:0.5b)\n\n${review}`
-                });
+                try {
+                  await github.rest.issues.createComment({
+                    issue_number: context.issue.number,
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    body: `### 🤖 Local AI Code Review (Ollama - qwen2.5:0.5b)\n\n${review}`
+                  });
+                } catch (error) {
+                  core.warning(`Failed to post review comment: ${error.message}`);
+                }
               }
             } else {
               core.warning(`Failed to generate review with local Ollama. Status: ${response.status}`);
