@@ -27,12 +27,14 @@ export default function MortgageDialog({
   // ⚡ Bolt: 毎回のレンダリングで物件配列のマッピングとフィルタリングが行われるのを防ぐため、useMemo を使用します。
   // これにより、抵当ダイアログが開いている状態での親コンポーネントの状態変更に伴うレンダリングのオーバーヘッドを削減します。
   const ownedProperties = useMemo(() => {
-    return currentPlayer.properties
-      .map((id: string) => getSpaceById(id, board))
-      .filter(
-        (s): s is BoardSpace =>
-          s !== undefined && s.mortgageValue !== undefined,
-      );
+    const props: BoardSpace[] = [];
+    for (const id of currentPlayer.properties) {
+      const space = getSpaceById(id, board);
+      if (space && space.mortgageValue !== undefined) {
+        props.push(space);
+      }
+    }
+    return props;
   }, [currentPlayer.properties, board]);
 
   return (
