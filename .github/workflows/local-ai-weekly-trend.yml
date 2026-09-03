@@ -31,6 +31,7 @@ jobs:
           from ddgs import DDGS
           import json
           import os
+          import secrets
 
           results = []
           try:
@@ -40,10 +41,14 @@ jobs:
           except Exception as e:
               results.append(f'Search failed: {str(e)}')
 
+          # 検索結果（信頼できない外部コンテンツ）に固定デリミタと同じ文字列が
+          # 含まれていても GITHUB_OUTPUT のパースが壊れないよう、実行のたびに
+          # ランダムなデリミタを生成する。
+          delimiter = f'EOF_{secrets.token_hex(8)}'
           with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
-              f.write('search_results<<EOF\n')
+              f.write(f'search_results<<{delimiter}\n')
               f.write('\n'.join(results) + '\n')
-              f.write('EOF\n')
+              f.write(f'{delimiter}\n')
           "
 
       - name: Setup Ollama
@@ -88,7 +93,7 @@ jobs:
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   title: `🤖 Local AI Weekly Trend Report (${titleDate})`,
-                  body: `### 🤖 今週の技術トレンド\n\n${report}`,
+                  body: `### 🤖 今週の技術トレンド\n\n> ⚠️ 以下はローカルLLM（Ollama）がWeb検索結果（外部の第三者コンテンツ）を要約した自動生成内容です。内容の正確性は保証されません。\n\n${report}`,
                   labels: ['enhancement']
                 });
               }
