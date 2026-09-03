@@ -72,10 +72,16 @@ export default function InsuranceDialog({
   // 火災リスクのある「土地（property）」のみ保険対象。鉄道・公共施設は除外する。
   // 60FPS アニメーション中の再レンダリングでの再計算を避けるためメモ化する。
   const ownedProperties = useMemo(() => {
-    return currentPlayer.properties
-      .map((id: string) => getSpaceById(id, board))
-      .filter((s): s is BoardSpace => !!s && s.type === 'property')
-      .sort((a, b) => compareByColorOrder(a.color, b.color, COLOR_ORDER));
+    const props: BoardSpace[] = [];
+    for (const id of currentPlayer.properties) {
+      const space = getSpaceById(id, board);
+      if (space && space.type === 'property') {
+        props.push(space);
+      }
+    }
+    return props.sort((a, b) =>
+      compareByColorOrder(a.color, b.color, COLOR_ORDER),
+    );
   }, [currentPlayer.properties, board]);
 
   // 未加入時に火災で失う割合（%）。スクラップ率の裏返しを子供向けに表示する。

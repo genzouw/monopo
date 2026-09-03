@@ -12,6 +12,7 @@ import type {
   ColorGroup,
   GameState,
   Player,
+  PropertyState,
 } from '../../game/types';
 import type { GameAction } from '../../game/actions';
 import { MAX_JAIL_TURNS } from '../../game/reducer';
@@ -353,17 +354,23 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
   const tradeOfferSpaces = useMemo(() => {
     const trade = state.trade;
     if (state.turnPhase !== 'tradeConfirm' || !trade) return [];
-    return trade.offerProperties
-      .map((id) => getSpaceById(id, state.board))
-      .filter((space): space is BoardSpace => !!space);
+    const spaces: BoardSpace[] = [];
+    for (const id of trade.offerProperties) {
+      const space = getSpaceById(id, state.board);
+      if (space) spaces.push(space);
+    }
+    return spaces;
   }, [state.turnPhase, state.trade, state.board]);
 
   const tradeRequestSpaces = useMemo(() => {
     const trade = state.trade;
     if (state.turnPhase !== 'tradeConfirm' || !trade) return [];
-    return trade.requestProperties
-      .map((id) => getSpaceById(id, state.board))
-      .filter((space): space is BoardSpace => !!space);
+    const spaces: BoardSpace[] = [];
+    for (const id of trade.requestProperties) {
+      const space = getSpaceById(id, state.board);
+      if (space) spaces.push(space);
+    }
+    return spaces;
   }, [state.turnPhase, state.trade, state.board]);
 
   // ⚡ Bolt: useMemo to prevent O(S log S) filtering and sorting of player stocks on every render (e.g. 60 FPS animation) while the player dialog is open.
@@ -389,23 +396,24 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
     const board = state.board;
     const propertyStates = state.propertyStates;
     if (!board || !propertyStates) return [];
-    return detailPlayer.properties
-      .map((id) => {
-        const space = getSpaceById(id, board);
-        const propertyState = propertyStates[id];
-        return space && propertyState ? { space, state: propertyState } : null;
-      })
-      .filter((item): item is NonNullable<typeof item> => item !== null)
-      .sort((a, b) => {
-        const colorCompare = compareByColorOrder(
-          a.space.color,
-          b.space.color,
-          COLOR_ORDER,
-        );
-        return colorCompare !== 0
-          ? colorCompare
-          : a.space.position - b.space.position;
-      });
+    const props: { space: BoardSpace; state: PropertyState }[] = [];
+    for (const id of detailPlayer.properties) {
+      const space = getSpaceById(id, board);
+      const propertyState = propertyStates[id];
+      if (space && propertyState) {
+        props.push({ space, state: propertyState });
+      }
+    }
+    return props.sort((a, b) => {
+      const colorCompare = compareByColorOrder(
+        a.space.color,
+        b.space.color,
+        COLOR_ORDER,
+      );
+      return colorCompare !== 0
+        ? colorCompare
+        : a.space.position - b.space.position;
+    });
   }, [showPlayerDetail, playersById, state.board, state.propertyStates]);
 
   // ⚡ Bolt: プレイヤー詳細ダイアログ表示中の総資産再計算を防ぐため、所有物件の走査結果をメモ化する。
