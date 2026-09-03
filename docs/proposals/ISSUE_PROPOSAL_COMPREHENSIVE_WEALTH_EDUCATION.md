@@ -19,7 +19,7 @@ labels: ['enhancement', 'proposal', 'game-design', 'game-mechanics']
 1. **動的マクロ経済サイクル (Dynamic Macro-Economy):**
    好景気・不景気、インフレーション・デフレーション、中央銀行の金利政策といったマクロ経済の波がゲーム全体に影響を与えます。
 2. **高度な株式・デリバティブ取引 (Advanced Stock & Derivatives):**
-   単純な相乗り投資だけでなく、信用取引（レバレッジ・空売り）、先物取引によるヘッジ機能を追加します。
+   単純な相乗り投資だけでなく、信用取引（レバレッジ・空売り）、オプション取引によるヘッジ機能を追加します。
 3. **企業買収と防衛策 (M&A and Corporate Defense):**
    エリア（企業）の敵対的買収（TOB）と、それに対抗するためのポイズンピル（毒薬条項）などの防衛策を実装します。
 4. **オルタナティブ投資とESG (Alternative Investments & ESG):**
