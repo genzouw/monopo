@@ -71,43 +71,48 @@ jobs:
             const prDiff = process.env.PR_DIFF;
             const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のプルリクエストの差分をもとに、コードの品質、潜在的なバグ、セキュリティの問題について日本語で簡潔にフィードバックを提供してください。\n\n差分:\n${prDiff}`;
 
-            await fetch('http://localhost:11434/api/pull', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                model: 'qwen2.5:0.5b',
-                stream: false
-              }),
-              signal: AbortSignal.timeout(120_000)
-            });
+            let review;
+            try {
+              await fetch('http://localhost:11434/api/pull', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  model: 'qwen2.5:0.5b',
+                  stream: false
+                }),
+                signal: AbortSignal.timeout(120_000)
+              });
 
-            const response = await fetch('http://localhost:11434/api/generate', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                model: 'qwen2.5:0.5b',
-                prompt: prompt,
-                stream: false
-              }),
-              signal: AbortSignal.timeout(60_000)
-            });
+              const response = await fetch('http://localhost:11434/api/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  model: 'qwen2.5:0.5b',
+                  prompt: prompt,
+                  stream: false
+                }),
+                signal: AbortSignal.timeout(60_000)
+              });
 
-            if (response.ok) {
-              const data = await response.json();
-              const review = data.response;
-
-              if (review) {
-                try {
-                  await github.rest.issues.createComment({
-                    issue_number: context.issue.number,
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    body: `### 🤖 Local AI Code Review (Ollama - qwen2.5:0.5b)\n\n${review}`
-                  });
-                } catch (error) {
-                  core.warning(`Failed to post review comment: ${error.message}`);
-                }
+              if (response.ok) {
+                const data = await response.json();
+                review = data.response;
+              } else {
+                core.warning(`Failed to generate review with local Ollama. Status: ${response.status}`);
               }
-            } else {
-              core.warning(`Failed to generate review with local Ollama. Status: ${response.status}`);
+            } catch (error) {
+              core.warning(`Failed to communicate with local Ollama (timeout, connection, or JSON parse error): ${error.message}`);
+            }
+
+            if (review) {
+              try {
+                await github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: `### 🤖 Local AI Code Review (Ollama - qwen2.5:0.5b)\n\n${review}`
+                });
+              } catch (error) {
+                core.warning(`Failed to post review comment: ${error.message}`);
+              }
             }
