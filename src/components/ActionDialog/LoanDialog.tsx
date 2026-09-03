@@ -50,6 +50,8 @@ export default function LoanDialog({
 }: LoanDialogProps) {
   const borrowHintId = useId();
   const repayHintId = useId();
+  const borrowInputId = useId();
+  const repayInputId = useId();
   const [loanType, setLoanType] = useState<LoanType>('variable');
   const [borrowAmount, setBorrowAmount] = useState('');
   const [repayAmount, setRepayAmount] = useState('');
@@ -136,7 +138,9 @@ export default function LoanDialog({
         {maxBorrow > 0 && (
           <div className={styles.buildItem} style={{ marginTop: 12 }}>
             <div className={styles.buildItemContent}>
-              <div className={styles.buildItemName}>💰 借りる</div>
+              <label htmlFor={borrowInputId} className={styles.buildItemName}>
+                💰 借りる
+              </label>
               <div className={styles.buildItemInfo}>
                 <label>
                   金利タイプ:&nbsp;
@@ -161,6 +165,7 @@ export default function LoanDialog({
               </div>
               <div className={styles.buildItemActions}>
                 <input
+                  id={borrowInputId}
                   type="number"
                   min={1}
                   max={maxBorrow}
@@ -174,7 +179,6 @@ export default function LoanDialog({
                   }}
                   placeholder={`最大 ${maxBorrow}`}
                   style={{ width: 120 }}
-                  aria-label="借入金額"
                   aria-invalid={!canBorrow && borrowAmount !== ''}
                   aria-errormessage={
                     !canBorrow && borrowAmount !== '' ? borrowHintId : undefined
@@ -216,9 +220,12 @@ export default function LoanDialog({
         {loanBalance > 0 && (
           <div className={styles.buildItem} style={{ marginTop: 12 }}>
             <div className={styles.buildItemContent}>
-              <div className={styles.buildItemName}>💳 返済する</div>
+              <label htmlFor={repayInputId} className={styles.buildItemName}>
+                💳 返済する
+              </label>
               <div className={styles.buildItemActions}>
                 <input
+                  id={repayInputId}
                   type="number"
                   min={1}
                   max={Math.min(loanBalance, currentPlayer.money)}
@@ -232,7 +239,6 @@ export default function LoanDialog({
                   }}
                   placeholder={`残高 ${loanBalance}`}
                   style={{ width: 120 }}
-                  aria-label="返済金額"
                   aria-invalid={!canRepay && repayAmount !== ''}
                   aria-errormessage={
                     !canRepay && repayAmount !== '' ? repayHintId : undefined

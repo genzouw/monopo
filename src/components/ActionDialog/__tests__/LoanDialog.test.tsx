@@ -57,7 +57,7 @@ describe('LoanDialog', () => {
         onClose={vi.fn()}
       />,
     );
-    const input = screen.getByLabelText('借入金額');
+    const input = screen.getByLabelText('💰 借りる');
     fireEvent.change(input, { target: { value: '-1' } });
     // 入力は無視されず state に反映される（無反応にしない）
     expect(input).toHaveValue(-1);
@@ -80,7 +80,7 @@ describe('LoanDialog', () => {
         onClose={vi.fn()}
       />,
     );
-    const input = screen.getByLabelText('返済金額');
+    const input = screen.getByLabelText('💳 返済する');
     fireEvent.change(input, { target: { value: '-1' } });
     expect(input).toHaveValue(-1);
     expect(
