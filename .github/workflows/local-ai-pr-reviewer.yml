@@ -1,0 +1,86 @@
+name: Local AI PR Reviewer
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths-ignore:
+      - '**.md'
+      - '.github/workflows/**'
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Ollama
+        uses: ai-action/setup-ollama@c1ba4f357591ee01976147eb7d89442d75954c4d
+
+      - name: Fetch PR Diff
+        id: fetch-diff
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          script: |
+            const diff = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              mediaType: { format: 'diff' }
+            });
+            return diff.data.slice(0, 5000);
+
+      - name: Generate AI Code Review with Local Ollama
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_DIFF: ${{ steps.fetch-diff.outputs.result }}
+        with:
+          script: |
+            const prDiff = process.env.PR_DIFF;
+            const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のプルリクエストの差分をもとに、コードの品質、潜在的なバグ、セキュリティの問題について日本語で簡潔にフィードバックを提供してください。\n\n差分:\n${prDiff}`;
+
+            await fetch('http://localhost:11434/api/pull', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                model: 'qwen2.5:0.5b',
+                stream: false
+              })
+            });
+
+            const response = await fetch('http://localhost:11434/api/generate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                model: 'qwen2.5:0.5b',
+                prompt: prompt,
+                stream: false
+              })
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              const review = data.response;
+
+              if (review) {
+                await github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: `### 🤖 Local AI Code Review (Ollama - qwen2.5:0.5b)\n\n${review}`
+                });
+              }
+            } else {
+              core.warning(`Failed to generate review with local Ollama. Status: ${response.status}`);
+            }

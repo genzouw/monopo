@@ -1,0 +1,96 @@
+name: Local AI Weekly Trend Analyzer
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze-trends:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Dependencies
+        run: python3 -m pip install ddgs
+
+      - name: Fetch Search Results
+        id: fetch-search
+        run: |
+          python3 -c "
+          from ddgs import DDGS
+          import json
+          import os
+
+          results = []
+          try:
+              with DDGS() as ddgs:
+                  for r in ddgs.text('Web development trends React Vite Bun 2025', max_results=5):
+                      results.append(f\"{r['title']}: {r['body']}\")
+          except Exception as e:
+              results.append(f'Search failed: {str(e)}')
+
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write('search_results<<EOF\n')
+              f.write('\n'.join(results) + '\n')
+              f.write('EOF\n')
+          "
+
+      - name: Setup Ollama
+        uses: ai-action/setup-ollama@c1ba4f357591ee01976147eb7d89442d75954c4d
+
+      - name: Generate Trend Report with Local Ollama
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SEARCH_RESULTS: ${{ steps.fetch-search.outputs.search_results }}
+        with:
+          script: |
+            const searchResults = process.env.SEARCH_RESULTS;
+            const prompt = `あなたは最新のテクノロジーに精通したシニアテックリードです。以下の検索結果をもとに、プロジェクトに役立つWeb開発トレンドの要約を日本語で作成してください。\n\n検索結果:\n${searchResults}`;
+
+            await fetch('http://localhost:11434/api/pull', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                model: 'qwen2.5:0.5b',
+                stream: false
+              })
+            });
+
+            const response = await fetch('http://localhost:11434/api/generate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                model: 'qwen2.5:0.5b',
+                prompt: prompt,
+                stream: false
+              })
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              const report = data.response;
+
+              if (report) {
+                const titleDate = new Date().toISOString().split('T')[0];
+                await github.rest.issues.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title: `🤖 Local AI Weekly Trend Report (${titleDate})`,
+                  body: `### 🤖 今週の技術トレンド\n\n${report}`,
+                  labels: ['enhancement']
+                });
+              }
+            } else {
+              core.warning(`Failed to generate report with local Ollama. Status: ${response.status}`);
+            }
