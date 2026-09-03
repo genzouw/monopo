@@ -37,7 +37,7 @@ jobs:
 
       - name: Setup Ollama
         if: steps.fork-check.outputs.is_fork != 'true'
-        uses: ai-action/setup-ollama@c1ba4f357591ee01976147eb7d89442d75954c4d
+        uses: ai-action/setup-ollama@0fdcbba8ac63bc9c0e7629cf85f46b77a4ad4072 # v2.0.73
 
       - name: Fetch PR Diff
         id: fetch-diff

@@ -52,7 +52,7 @@ jobs:
           "
 
       - name: Setup Ollama
-        uses: ai-action/setup-ollama@c1ba4f357591ee01976147eb7d89442d75954c4d
+        uses: ai-action/setup-ollama@0fdcbba8ac63bc9c0e7629cf85f46b77a4ad4072 # v2.0.73
 
       - name: Generate Trend Report with Local Ollama
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
