@@ -1,0 +1,118 @@
+name: Local AI PR Reviewer
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths-ignore:
+      - '**.md'
+      - '.github/workflows/**'
+
+concurrency:
+  group: local-ai-pr-reviewer-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Skip Fork PR
+        id: fork-check
+        env:
+          HEAD_REPO_FULL_NAME: ${{ github.event.pull_request.head.repo.full_name }}
+          BASE_REPO_FULL_NAME: ${{ github.repository }}
+        run: |
+          if [ "$HEAD_REPO_FULL_NAME" != "$BASE_REPO_FULL_NAME" ]; then
+            echo "is_fork=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::フォークPRのため GITHUB_TOKEN が読み取り専用となり、レビューコメントの投稿ができません。このジョブをスキップします。"
+          else
+            echo "is_fork=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Ollama
+        if: steps.fork-check.outputs.is_fork != 'true'
+        uses: ai-action/setup-ollama@0fdcbba8ac63bc9c0e7629cf85f46b77a4ad4072 # v2.0.73
+
+      - name: Fetch PR Diff
+        id: fetch-diff
+        if: steps.fork-check.outputs.is_fork != 'true'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          script: |
+            const diff = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              mediaType: { format: 'diff' }
+            });
+            return diff.data.slice(0, 5000);
+
+      - name: Generate AI Code Review with Local Ollama
+        if: steps.fork-check.outputs.is_fork != 'true'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_DIFF: ${{ steps.fetch-diff.outputs.result }}
+        with:
+          script: |
+            const prDiff = process.env.PR_DIFF;
+            const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のプルリクエストの差分をもとに、コードの品質、潜在的なバグ、セキュリティの問題について日本語で簡潔にフィードバックを提供してください。\n\n差分:\n${prDiff}`;
+
+            let review;
+            try {
+              await fetch('http://localhost:11434/api/pull', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  model: 'qwen2.5:0.5b',
+                  stream: false
+                }),
+                signal: AbortSignal.timeout(120_000)
+              });
+
+              const response = await fetch('http://localhost:11434/api/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  model: 'qwen2.5:0.5b',
+                  prompt: prompt,
+                  stream: false
+                }),
+                signal: AbortSignal.timeout(60_000)
+              });
+
+              if (response.ok) {
+                const data = await response.json();
+                review = data.response;
+              } else {
+                core.warning(`Failed to generate review with local Ollama. Status: ${response.status}`);
+              }
+            } catch (error) {
+              core.warning(`Failed to communicate with local Ollama (timeout, connection, or JSON parse error): ${error.message}`);
+            }
+
+            if (review) {
+              try {
+                await github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: `### 🤖 Local AI Code Review (Ollama - qwen2.5:0.5b)\n\n${review}`
+                });
+              } catch (error) {
+                core.warning(`Failed to post review comment: ${error.message}`);
+              }
+            }
