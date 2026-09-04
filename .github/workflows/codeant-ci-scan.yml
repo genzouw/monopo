@@ -11,6 +11,10 @@ on:
     # 毎週水曜 10:00 JST (= 水曜 01:00 UTC) に定期監査
     - cron: '0 1 * * 3'
 
+concurrency:
+  group: codeant-ci-scan-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
