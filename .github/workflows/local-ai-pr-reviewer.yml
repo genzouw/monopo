@@ -77,7 +77,7 @@ jobs:
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  model: 'qwen2.5:0.5b',
+                  model: 'qwen2.5-coder:0.5b',
                   stream: false
                 }),
                 signal: AbortSignal.timeout(120_000)
@@ -87,7 +87,7 @@ jobs:
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  model: 'qwen2.5:0.5b',
+                  model: 'qwen2.5-coder:0.5b',
                   prompt: prompt,
                   stream: false
                 }),
@@ -110,7 +110,7 @@ jobs:
                   issue_number: context.issue.number,
                   owner: context.repo.owner,
                   repo: context.repo.repo,
-                  body: `### 🤖 Local AI Code Review (Ollama - qwen2.5:0.5b)\n\n${review}`
+                  body: `### 🤖 Local AI Code Review (Ollama - qwen2.5-coder:0.5b)\n\n${review}`
                 });
               } catch (error) {
                 core.warning(`Failed to post review comment: ${error.message}`);
