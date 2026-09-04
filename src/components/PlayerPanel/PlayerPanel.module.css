@@ -58,11 +58,13 @@
   min-height: 52px;
 }
 .helperText {
-  font-size: 11px;
-  color: var(--color-text-secondary, #888);
-  text-align: center;
-  margin-top: 4px;
-  white-space: normal;
-  max-width: 120px;
-  line-height: 1.3;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
