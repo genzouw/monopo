@@ -208,3 +208,11 @@ Perplexity AIが開発したサプライチェーンスキャナBumblebeeの派�
 
 1. **追加の設定等**
    - 外部への通信を行わず、ソースファイルも読み取らない安全な設計（Go 1.25+ で標準ライブラリのみ使用）のため、追加のAPIキー等の設定は不要です。
+
+## 新規: Gemini AI Code Reviewer の設定
+
+GitHub上の [truongnh1992/gemini-ai-code-reviewer](https://github.com/truongnh1992/gemini-ai-code-reviewer) を利用した、GoogleのGemini AIによるプルリクエストの自動レビュー・品質向上ツールを導入しました。
+
+1. **GitHub Secretsの設定 (必須)**
+   - このワークフローを動作させるには、リポジトリ管理者権限を持つユーザーが GitHub のリポジトリの `Settings > Secrets and variables > Actions` にて、以下のシークレットを登録してください。
+     - `GEMINI_API_KEY`: Gemini API へのアクセス用キー
