@@ -10,7 +10,7 @@ labels: ['enhancement', 'proposal', 'game-design', 'game-mechanics']
 「monopo（モノポ）」を現実の経済の動きやマネーゲームの概念を学習できる「教育的教材」として進化させるための提案フォーマットです。
 従来の「伝統的な不動産取引ゲーム」や「伝統的な資産運用ボードゲーム」の枠を超え、現代資本主義の複雑なシステムをシミュレートする機能を提案してください。
 
-> 📎 **関連提案との整合性:** 「空売り（ショート）」と「タックスヘイブン」は、初期証拠金率40%・維持証拠金率25%・追証・強制決済・残債処理や、税務調査発覚時の重加算税＋資産凍結を数値付きで定義済みの `ISSUE_PROPOSAL_ADVANCED_STOCK_SYSTEM.md`（リポジトリ直下）に重複するため、実装時に参照する正規仕様は同書とし、本書はその教育的な言い換えとして位置づけます。「敵対的買収（TOB）とM&A」は `src/game/economy.ts` の `calculateForceBuyMultiplier`（`FORCE_BUY_MULTIPLIER_MIN`〜`MAX`＝3〜5倍、`FORCE_BUY_POISON_PILL_BONUS`＝+1倍）として、「マクロ経済サイクルと金利変動」は `src/game/systems/macroEconomy.ts`（`ECONOMY_FACTORS`・景気遷移）および `src/game/systems/loan.ts`（`LOAN_INTEREST_RATES`: 好況5%〜金融危機25%、固定12%）としてすでに実装済みです。したがって本書の新規性は、TOBの状態遷移の明文化と、金利上昇時の返済不能に伴う即時破産ルールの追加提案に限られます。
+> 📎 **関連提案との整合性:** 「空売り（ショート）」は、初期証拠金率40%・維持証拠金率25%・追証・強制決済・残債処理を数値付きで定義済みの `ISSUE_PROPOSAL_ADVANCED_STOCK_SYSTEM.md`（リポジトリ直下）に重複するため、実装時に参照する正規仕様は同書とし、本書はその教育的な言い換えとして位置づけます。「タックスヘイブン」も同書に税務調査発覚時の重加算税＋資産凍結という重複する提案がありますが、本書はこの既存仕様を置き換えず、「未申告」「申告済み」の2状態管理と申告手数料による切替操作、および発覚時に未申告資産のみを没収する仕組みを拡張として追加提案するものです。「敵対的買収（TOB）とM&A」は `src/game/economy.ts` の `calculateForceBuyMultiplier`（`FORCE_BUY_MULTIPLIER_MIN`〜`MAX`＝3〜5倍、`FORCE_BUY_POISON_PILL_BONUS`＝+1倍）として、「マクロ経済サイクルと金利変動」は `src/game/systems/macroEconomy.ts`（`ECONOMY_FACTORS`・景気遷移）および `src/game/systems/loan.ts`（`LOAN_INTEREST_RATES`: 好況5%〜金融危機25%、固定12%）としてすでに実装済みです。したがって本書の新規性は、TOBの状態遷移の明文化、金利上昇時の返済不能に伴う即時破産ルールの追加提案、およびタックスヘイブンの申告状態管理の追加提案に限られます。
 
 ### 🎯 提案する機能の概要 (What)
 
