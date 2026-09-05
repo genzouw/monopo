@@ -1,14 +1,32 @@
 #!/bin/sh
 set -e
 
+ZERO_SHA="0000000000000000000000000000000000000000"
+
 # Read push info from stdin (format: <local-ref> <local-sha> <remote-ref> <remote-sha>)
-# If all local SHAs are zero (branch deletion), skip scanning.
+# stdin is a single stream, so it is captured once into a temp file and reused
+# below both for the deletion check and for the per-ref trufflehog scan.
+REF_UPDATES_FILE=$(mktemp)
+trap 'rm -f "$REF_UPDATES_FILE"' EXIT
+cat > "$REF_UPDATES_FILE"
+
+if [ ! -s "$REF_UPDATES_FILE" ]; then
+  exit 0
+fi
+
+# 送信されたref updateがすべて削除の場合のみスキャンをスキップする
+# （一部のrefのみ削除の混在pushでは、削除以外のrefを引き続きスキャンする必要がある）
+HAS_NON_DELETION=false
 while read -r local_ref local_sha remote_ref remote_sha; do
-  if [ "$local_sha" = "0000000000000000000000000000000000000000" ]; then
-    echo "ℹ️ Branch deletion detected (${remote_ref}), skipping gitleaks scan."
-    exit 0
+  if [ "$local_sha" != "$ZERO_SHA" ]; then
+    HAS_NON_DELETION=true
   fi
-done
+done < "$REF_UPDATES_FILE"
+
+if [ "$HAS_NON_DELETION" = false ]; then
+  echo "ℹ️ Branch deletion only, skipping secret scan."
+  exit 0
+fi
 
 if command -v gitleaks > /dev/null 2>&1; then
   echo "🔒 Running local gitleaks check before push..."
@@ -18,6 +36,54 @@ else
     echo "❌ Error: gitleaks is not installed locally."
     echo "To prevent accidental secret leaks, gitleaks is REQUIRED for pushing."
     echo "Please install it."
+  } >&2
+  exit 1
+fi
+
+if command -v trufflehog > /dev/null 2>&1; then
+  echo "🐷 Running local trufflehog check before push (Active Verified secrets only)..."
+
+  # リモートに存在しない新規ref（remote_shaが全ゼロ）の場合のフォールバック用の
+  # デフォルトブランチ。実際にフォールバックが必要になるまで計算しない
+  # （多くのpushでは既存ブランチのremote_shaがそのまま使えるため、
+  # 毎回 `git remote show origin` でネットワークに問い合わせるコストを避ける）
+  DEFAULT_BRANCH=""
+
+  # HEAD/tracking branchではなく、実際にpushされる各refのlocal_sha/remote_shaを
+  # 使ってスキャン範囲を決定する（チェックアウト中のブランチと異なるrefをpushする
+  # ケースや、複数refを同時にpushするケースでの未走査を防ぐ）
+  # remote_refはこのループでは未使用だが、stdinの4フィールド形式に合わせて読み捨てる
+  # shellcheck disable=SC2034
+  while read -r local_ref local_sha remote_ref remote_sha; do
+    if [ "$local_sha" = "$ZERO_SHA" ]; then
+      # 削除のみのref updateはスキャン対象外
+      continue
+    fi
+
+    if [ -n "$remote_sha" ] && [ "$remote_sha" != "$ZERO_SHA" ]; then
+      SINCE_COMMIT="$remote_sha"
+    else
+      # リモートに対応するref（新規ブランチ等）が存在しない場合は、
+      # 確実に全未プッシュコミットを網羅するため origin/<デフォルトブランチ> からの差分をスキャンする
+      if [ -z "$DEFAULT_BRANCH" ]; then
+        # まずネットワーク不要なローカルのHEAD参照を試し、無ければ
+        # `git remote show origin` にフォールバックする
+        DEFAULT_BRANCH=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's@^origin/@@')
+        DEFAULT_BRANCH=${DEFAULT_BRANCH:-$(git remote show origin 2>/dev/null | awk '/HEAD branch/ {print $NF}')}
+        DEFAULT_BRANCH=${DEFAULT_BRANCH:-main}
+      fi
+      echo "ℹ️ No remote commit found for ${local_ref}. Scanning commits since origin/${DEFAULT_BRANCH}."
+      SINCE_COMMIT="origin/${DEFAULT_BRANCH}"
+    fi
+
+    echo "🔎 Scanning ${local_ref} (${SINCE_COMMIT}..${local_sha})..."
+    trufflehog git file://. --since-commit="$SINCE_COMMIT" --branch="$local_sha" --only-verified --fail
+  done < "$REF_UPDATES_FILE"
+else
+  {
+    echo "❌ Error: trufflehog is not installed locally."
+    echo "To prevent accidental valid secret leaks, trufflehog is REQUIRED for pushing."
+    echo "Please install it: (e.g., 'brew install trufflehog')"
   } >&2
   exit 1
 fi

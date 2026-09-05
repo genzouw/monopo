@@ -98,6 +98,7 @@ CI の監査ワークフロー (`.github/workflows/permissions-audit.yml`) に�
 ### pre-push フックの追加 (防御層の強化)
 
 ローカルで `git commit --no-verify` などを用いて pre-commit をバイパスされた場合への最後の防壁として、新たに `.husky/pre-push` フックによる gitleaks 検知を導入しました。これにより、リモートリポジトリへ秘密情報がプッシュされることを水際で防ぎます。
+さらに、プッシュ操作は必ずネットワーク接続を伴うため、有効なクレデンシャルの検証に最適なタイミングです。そのため、本フックには `trufflehog` (`--only-verified`) によるスキャンも追加しています。push 対象の各 ref について、stdin から受け取った `remote_sha`（リモート未反映のコミットの起点）から `local_sha`（push しようとしているコミット）までの範囲を直接スキャンすることで、実際に外部プロバイダで有効性が確認できるシークレットの検知を図ります。`trufflehog` が未インストールの場合は `gitleaks` や `pre-commit` と同様に push 自体を失敗させる fail-closed 設計とし、検知を経ずにシークレットがプッシュされることを防ぎます（ただし `git push --no-verify` によるバイパスや `trufflehog` 自体の検知限界は残るため、最終防衛層として CI の `trufflehog.yml` ワークフローと組み合わせています）。
 
 ## 4. クライアントサイドの防御 (Client-Side Defense)
 
