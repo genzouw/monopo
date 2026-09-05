@@ -43,10 +43,11 @@ fi
 if command -v trufflehog > /dev/null 2>&1; then
   echo "🐷 Running local trufflehog check before push (Active Verified secrets only)..."
 
-  # リモートに存在しない新規ref（remote_shaが全ゼロ）の場合のフォールバック用に
-  # デフォルトブランチを取得しておく
-  DEFAULT_BRANCH=$(git remote show origin 2>/dev/null | awk '/HEAD branch/ {print $NF}')
-  DEFAULT_BRANCH=${DEFAULT_BRANCH:-main}
+  # リモートに存在しない新規ref（remote_shaが全ゼロ）の場合のフォールバック用の
+  # デフォルトブランチ。実際にフォールバックが必要になるまで計算しない
+  # （多くのpushでは既存ブランチのremote_shaがそのまま使えるため、
+  # 毎回 `git remote show origin` でネットワークに問い合わせるコストを避ける）
+  DEFAULT_BRANCH=""
 
   # HEAD/tracking branchではなく、実際にpushされる各refのlocal_sha/remote_shaを
   # 使ってスキャン範囲を決定する（チェックアウト中のブランチと異なるrefをpushする
@@ -64,6 +65,13 @@ if command -v trufflehog > /dev/null 2>&1; then
     else
       # リモートに対応するref（新規ブランチ等）が存在しない場合は、
       # 確実に全未プッシュコミットを網羅するため origin/<デフォルトブランチ> からの差分をスキャンする
+      if [ -z "$DEFAULT_BRANCH" ]; then
+        # まずネットワーク不要なローカルのHEAD参照を試し、無ければ
+        # `git remote show origin` にフォールバックする
+        DEFAULT_BRANCH=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's@^origin/@@')
+        DEFAULT_BRANCH=${DEFAULT_BRANCH:-$(git remote show origin 2>/dev/null | awk '/HEAD branch/ {print $NF}')}
+        DEFAULT_BRANCH=${DEFAULT_BRANCH:-main}
+      fi
       echo "ℹ️ No remote commit found for ${local_ref}. Scanning commits since origin/${DEFAULT_BRANCH}."
       SINCE_COMMIT="origin/${DEFAULT_BRANCH}"
     fi
