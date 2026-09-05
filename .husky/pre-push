@@ -73,8 +73,9 @@ if command -v trufflehog > /dev/null 2>&1; then
   done < "$REF_UPDATES_FILE"
 else
   {
-    echo "⚠️ Warning: trufflehog is not installed locally."
-    echo "To prevent accidental valid secret leaks, we highly recommend installing it."
+    echo "❌ Error: trufflehog is not installed locally."
+    echo "To prevent accidental valid secret leaks, trufflehog is REQUIRED for pushing."
     echo "Please install it: (e.g., 'brew install trufflehog')"
   } >&2
+  exit 1
 fi
