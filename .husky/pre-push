@@ -21,3 +21,27 @@ else
   } >&2
   exit 1
 fi
+
+if command -v trufflehog > /dev/null 2>&1; then
+  echo "🐷 Running local trufflehog check before push (Active Verified secrets only)..."
+
+  TRACKING_BRANCH=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null || echo "")
+
+  if [ -n "$TRACKING_BRANCH" ]; then
+    trufflehog git file://. --since-commit="$TRACKING_BRANCH" --only-verified --fail
+  else
+    # リモート追跡ブランチが存在しない（初回push等の）場合は、
+    # 確実に全未プッシュコミットを網羅するため origin/main からの差分をスキャンする
+    DEFAULT_BRANCH=$(git remote show origin 2>/dev/null | awk '/HEAD branch/ {print $NF}')
+    DEFAULT_BRANCH=${DEFAULT_BRANCH:-main}
+
+    echo "ℹ️ No tracking branch found. Scanning commits since origin/${DEFAULT_BRANCH}."
+    trufflehog git file://. --since-commit="origin/${DEFAULT_BRANCH}" --only-verified --fail
+  fi
+else
+  {
+    echo "⚠️ Warning: trufflehog is not installed locally."
+    echo "To prevent accidental valid secret leaks, we highly recommend installing it."
+    echo "Please install it: (e.g., 'brew install trufflehog')"
+  } >&2
+fi
