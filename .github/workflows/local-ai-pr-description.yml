@@ -56,7 +56,12 @@ jobs:
               pull_number: context.issue.number,
               mediaType: { format: 'diff' }
             });
-            return diff.data.slice(0, 5000);
+            const MAX_DIFF_LENGTH = 5000;
+            const fullDiff = diff.data;
+            // 差分が上限を超えて切り詰められる場合、後続ステップで
+            // 生成結果に「一部のみを基にした説明である」旨の注記を付けられるようフラグを出力する。
+            core.setOutput('truncated', String(fullDiff.length > MAX_DIFF_LENGTH));
+            return fullDiff.slice(0, MAX_DIFF_LENGTH);
 
       - name: Generate PR Description with Local Ollama
         if: steps.fork-check.outputs.is_fork != 'true'
@@ -64,9 +69,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_DIFF: ${{ steps.fetch-diff.outputs.result }}
+          PR_DIFF_TRUNCATED: ${{ steps.fetch-diff.outputs.truncated }}
         with:
           script: |
             const prDiff = process.env.PR_DIFF;
+            const isDiffTruncated = process.env.PR_DIFF_TRUNCATED === 'true';
             const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のプルリクエストの差分をもとに、以下のMarkdownテンプレートに従ってPRの説明を日本語で生成してください。
 
             テンプレート:
@@ -129,7 +136,12 @@ jobs:
                 // PR本文に生成ブロックが重複しない。
                 const startMarker = '<!-- local-ai-pr-description:start -->';
                 const endMarker = '<!-- local-ai-pr-description:end -->';
-                const generatedBlock = `${startMarker}\n### 🤖 Local AI Generated Description (Ollama - qwen2.5-coder:0.5b)\n\n${sanitizedDescription}\n${endMarker}`;
+                // 差分が切り詰められている場合、生成結果が差分全体ではなく
+                // 一部のみに基づくものであることを読者に明示する。
+                const truncationNote = isDiffTruncated
+                  ? '\n\n> ⚠️ 差分が大きいため、先頭部分のみを基に生成しています。差分全体の内容を反映できていない可能性があります。'
+                  : '';
+                const generatedBlock = `${startMarker}\n### 🤖 Local AI Generated Description (Ollama - qwen2.5-coder:0.5b)\n\n${sanitizedDescription}${truncationNote}\n${endMarker}`;
                 const currentBody = pr.data.body || '';
                 const blockPattern = new RegExp(`${startMarker}[\\s\\S]*?${endMarker}`);
 
