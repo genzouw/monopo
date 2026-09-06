@@ -113,6 +113,10 @@ jobs:
             }
 
             if (description) {
+              // 外部由来のdescriptionに@メンションが含まれていても通知が発火しないよう、
+              // "@" の直後にゼロ幅スペースを挿入してメンション解決を無害化する。
+              const sanitizedDescription = description.replace(/@/g, '@​');
+
               try {
                 const pr = await github.rest.pulls.get({
                   owner: context.repo.owner,
@@ -120,7 +124,18 @@ jobs:
                   pull_number: context.issue.number,
                 });
 
-                const newBody = (pr.data.body || '') + '\n\n' + `### 🤖 Local AI Generated Description (Ollama - qwen2.5-coder:0.5b)\n\n${description}`;
+                // 生成ブロックをマーカーで囲み、既存ブロックがあれば置換、無ければ追記する。
+                // これにより手動での「Re-run jobs」等で本ジョブが再実行されても
+                // PR本文に生成ブロックが重複しない。
+                const startMarker = '<!-- local-ai-pr-description:start -->';
+                const endMarker = '<!-- local-ai-pr-description:end -->';
+                const generatedBlock = `${startMarker}\n### 🤖 Local AI Generated Description (Ollama - qwen2.5-coder:0.5b)\n\n${sanitizedDescription}\n${endMarker}`;
+                const currentBody = pr.data.body || '';
+                const blockPattern = new RegExp(`${startMarker}[\\s\\S]*?${endMarker}`);
+
+                const newBody = blockPattern.test(currentBody)
+                  ? currentBody.replace(blockPattern, generatedBlock)
+                  : `${currentBody}\n\n${generatedBlock}`;
 
                 await github.rest.pulls.update({
                   pull_number: context.issue.number,
