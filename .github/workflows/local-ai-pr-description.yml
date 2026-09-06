@@ -1,0 +1,134 @@
+name: Local AI PR Description Generator
+
+on:
+  pull_request:
+    types: [opened]
+
+concurrency:
+  group: local-ai-pr-description-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  generate-description:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Skip Fork PR
+        id: fork-check
+        env:
+          HEAD_REPO_FULL_NAME: ${{ github.event.pull_request.head.repo.full_name }}
+          BASE_REPO_FULL_NAME: ${{ github.repository }}
+        run: |
+          if [ "$HEAD_REPO_FULL_NAME" != "$BASE_REPO_FULL_NAME" ]; then
+            echo "is_fork=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::フォークPRのため GITHUB_TOKEN が読み取り専用となり、PR本文の更新ができません。このジョブをスキップします。"
+          else
+            echo "is_fork=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Ollama
+        if: steps.fork-check.outputs.is_fork != 'true'
+        uses: ai-action/setup-ollama@0fdcbba8ac63bc9c0e7629cf85f46b77a4ad4072 # v2.0.73
+
+      - name: Fetch PR Diff
+        id: fetch-diff
+        if: steps.fork-check.outputs.is_fork != 'true'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          result-encoding: string
+          script: |
+            const diff = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              mediaType: { format: 'diff' }
+            });
+            return diff.data.slice(0, 5000);
+
+      - name: Generate PR Description with Local Ollama
+        if: steps.fork-check.outputs.is_fork != 'true'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_DIFF: ${{ steps.fetch-diff.outputs.result }}
+        with:
+          script: |
+            const prDiff = process.env.PR_DIFF;
+            const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のプルリクエストの差分をもとに、以下のMarkdownテンプレートに従ってPRの説明を日本語で生成してください。
+
+            テンプレート:
+            ### 💡 What
+            (追加・修正した内容を簡潔に)
+
+            ### 🎯 Why
+            (なぜこの変更が必要かを簡潔に)
+
+            差分:
+            ${prDiff}`;
+
+            let description;
+            try {
+              await fetch('http://localhost:11434/api/pull', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  model: 'qwen2.5-coder:0.5b',
+                  stream: false
+                }),
+                signal: AbortSignal.timeout(120_000)
+              });
+
+              const response = await fetch('http://localhost:11434/api/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  model: 'qwen2.5-coder:0.5b',
+                  prompt: prompt,
+                  stream: false
+                }),
+                signal: AbortSignal.timeout(60_000)
+              });
+
+              if (response.ok) {
+                const data = await response.json();
+                description = data.response;
+              } else {
+                core.warning(`Failed to generate description with local Ollama. Status: ${response.status}`);
+              }
+            } catch (error) {
+              core.warning(`Failed to communicate with local Ollama (timeout, connection, or JSON parse error): ${error.message}`);
+            }
+
+            if (description) {
+              try {
+                const pr = await github.rest.pulls.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: context.issue.number,
+                });
+
+                const newBody = (pr.data.body || '') + '\n\n' + `### 🤖 Local AI Generated Description (Ollama - qwen2.5-coder:0.5b)\n\n${description}`;
+
+                await github.rest.pulls.update({
+                  pull_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: newBody
+                });
+              } catch (error) {
+                core.warning(`Failed to update PR body: ${error.message}`);
+              }
+            }
