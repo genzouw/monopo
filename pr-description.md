@@ -1,19 +1,51 @@
-### 💡 概要
+## 概要
 
-- `ai-issue-plan.yml` に Tavily Search API を連携し、Issueの内容に加えて最新の開発ベストプラクティスを検索してプロンプトのコンテキストに追加するように修正しました。
-- `ai-prompt-evaluator.yml` に `GH_MODELS_TOKEN` の環境変数を注入し、Promptfooが GitHub Models を利用できるように設定を追加しました。
-- `prompts/promptfooconfig.yaml` および `prompts/sample-prompt.json` の初期設定ファイルを追加し、GitHub Models へのAPIキー連携を構成しました。
-- `docs/security/ai-ci-tools.md` に、Tavily API キーおよび GH_MODELS_TOKEN などの手動設定手順に関するドキュメントを追加・更新しました。
+### 💡 What
 
-### 🎯 目的
+AIによる自動化とレビュー機能をより強化しつつ、無料かつ公開リポジトリで安全に動作する形に最適化するために、GitHub ActionsのワークフローとAI関連の設定を見直しました。
+特にレガシーで不要になった `ai-open-code-review.yml` を削除し、採用したコーディング特化モデル `qwen2.5-coder:0.5b` へのアップデートを行いました。また、週間トレンドの検索処理では、#607 で導入済みの無料枠 DuckDuckGo 検索（ddgs）が本PRのモデル変更後も引き続き機能し、完全な無料運用を維持できていることを確認しています。
 
-- AIを活用した開発自動化パイプラインのプロトタイピングおよび最適化を目的とし、無料のOSSやGitHub公式の環境で利用できる形に構成を改善するため。
-- Issueから実装計画を生成する際、最新トレンド（RAG）を反映させることでAIの回答精度を高めるため。
-- プロンプトの評価ワークフロー（Promptfoo）において、有料のAPIに依存せずGitHub Modelsを利用可能にするため。
+### 🎯 Why
 
-### 📝 事前作業（手動セットアップ手順）
+- リポジトリのガイドラインにおいて、無料かつ公開リポジトリ向けの機能のみをCIに組み込むことが求められているため。
+- 従量課金のサーチAPI（Tavily等）に頼らず、無料・認証なしで使える `ddgs` (DuckDuckGo Search) を活用し、トレンド検索機能を安全に復旧・稼働させるため。
+- 最新のAIコミュニティトレンド（2025年時点）に合わせ、Ollama で使用するローカルLLMをよりコーディング支援に適した `qwen2.5-coder` モデルにアップグレードするため。
+- 不要になったサードパーティのアクション (`raye-deng/open-code-review`) を削除し、すでに設定済みの CodeRabbit や Local Ollama などのレビュー体制に一本化することで保守性と安全性を向上するため。
 
-このPRをマージする前に、必ずリポジトリ管理者が以下の GitHub Secrets の設定を行ってください。
+### 📸 Before/After
 
-- `GH_MODELS_TOKEN`: GitHub Models へのアクセス用トークン (Settings > Secrets and variables > Actions に登録)
-- `TAVILY_API_KEY`: Tavily Search API へのアクセス用キー (Settings > Secrets and variables > Actions に登録)
+- `local-ai-pr-reviewer.yml` / `local-ai-weekly-trend.yml` で使用するモデルを汎用モデル `qwen2.5:0.5b` からプログラミング特化の `qwen2.5-coder:0.5b` に変更。
+- 役割が重複・非推奨化されていた `ai-open-code-review.yml` を削除。
+- `local-ai-weekly-trend.yml` にて、`ddgs` パッケージによる最新トレンド情報の無料・安全な自動取得処理を確認。
+
+### ♿️ Accessibility
+
+該当なし
+
+## 関連 Issue / 設計ドキュメント
+
+なし
+
+## 動作確認
+
+ローカル環境にてワークフローの構文チェックを行い、正常であることを確認しました。Pythonでの検索(ddgs)もテストスクリプトで正常に取得できることを確認済みです。
+
+## セルフチェック
+
+- [x] `bun run lint` がパスする
+- [x] `bun run typecheck` がパスする
+- [x] 破壊的変更がある場合、README または docs を更新した
+- [x] DB マイグレーションがある場合、ロールバック手順を確認した
+- [x] secret / 個人情報を含むコードや設定が含まれていない
+- [x] GitHub リポジトリ設定で Secret Scanning と Push Protection が有効になっていることを確認した（設定は管理者のみ）
+
+## AIツール・CI/CD連携に関する手動セットアップ（必要な場合のみ）
+
+特に追加のシークレット登録などの手動作業はありません。CodeRabbit 等は既存の設定で引き続き動作します。Weekly Trendの検索（DuckDuckGo）にもAPIキーは不要です。
+
+## コスト方針のセルフチェック (公開 OSS)
+
+- [x] LLM プロバイダや従量課金 API のキー (`GEMINI_API_KEY` / `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` / `TAVILY_API_KEY` 等) を GitHub Secrets へ追加していない
+- [x] 追加した SaaS / GitHub App / Action は公開 OSS リポジトリで完全無料であり、その根拠 URL を本文に記載した（外部サービスを追加していない場合はチェック可）
+- [x] リポジトリオーナーへ新規 Secret の登録を依頼していない
+- [x] `AGENTS.md` のポリシーに違反していないことを確認した
