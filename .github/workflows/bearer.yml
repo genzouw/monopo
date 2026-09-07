@@ -33,7 +33,7 @@ jobs:
         with:
           format: sarif
           output: results.sarif
-          exit-code: '0' # 誤検知（ゲームドメインのフィールド名をPII/金融データと誤判定）の棚卸しが終わるまでレポートのみに留める
+          exit-code: '0' # 誤検知（ゲームドメインのフィールド名をPII/金融データと誤判定）の棚卸しが終わるまでレポートのみに留める。棚卸し状況は #623 で追跡
       - name: Upload SARIF file
         if: always()
         uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
