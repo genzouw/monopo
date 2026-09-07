@@ -17,7 +17,7 @@ permissions:
 jobs:
   review:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     permissions:
       contents: read
       pull-requests: write
@@ -27,7 +27,16 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Setup Ollama
+        uses: ai-action/setup-ollama@0fdcbba8ac63bc9c0e7629cf85f46b77a4ad4072 # v2.0.73
+
+      - name: Pull Ollama Model
+        run: |
+          curl -sS http://localhost:11434/api/pull -d '{"model": "codellama", "stream": false}' --max-time 300
+
       - name: Run Open Code Review
         uses: raye-deng/open-code-review@eb099a26da8e47c423e098109fe0905fde675478 # v2.1.5
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          sla: L3
+          ollama-url: http://localhost:11434
