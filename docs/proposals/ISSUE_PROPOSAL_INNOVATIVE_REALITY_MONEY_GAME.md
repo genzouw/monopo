@@ -9,6 +9,8 @@ labels: ['enhancement', 'proposal', 'game-design', 'game-mechanics']
 
 伝統的なマネーゲーム（モノポリーやいただきストリート等）で採用されている「エリア独占による価値上昇」や「エリアに対する株式の相乗り」といった基本概念を取り入れつつ、単なるゲームの模倣に留まらず現実社会の高度な金融システムをシミュレートする以下の機能を提案します。
 
+> 📎 **関連提案との整合性:** 本書のうち「エリア株の相乗り投資」は既存実装 `ColorGroupStock`（`src/game/types.ts:95-99`）、「マクロ経済サイクルと金利変動」は既存実装 `src/game/systems/macroEconomy.ts` の `ECONOMY_FACTORS`（景気遷移）および `src/game/systems/loan.ts` の `LOAN_INTEREST_RATES`（固定12%／変動は好況5%〜金融危機25%）、「敵対的買収（TOB）」は既存実装 `calculateForceBuyMultiplier`（`src/game/economy.ts:236`、時価3〜5倍＋ポイズンピル+1倍）としてすでに実装済みです。「インサイダー取引・SEC監査」は `ISSUE_PROPOSAL_TRADITIONAL_AND_MODERN_FINANCE.md` および `ISSUE_PROPOSAL_REALWORLD_ECONOMIC_SIMULATION.md` で既に提案済み（正規仕様は `ISSUE_PROPOSAL_ADVANCED_STOCK_SYSTEM.md`）であり、いずれも本書の新規性ではありません。したがって本書の新規性は、エリアのREIT化（証券化）そのもの、負債パッケージ化商品（CDO）の組成・売買、および中央銀行による量的緩和・引き締めという政策手段の追加提案に限られます。
+
 1. **エリア独占と株式相乗りの進化（REITとM&Aの導入）**
    - 特定のエリアを独占し設備投資することで収益（通行料）を上げる基本機能に加え、エリア全体を証券化（REIT化）する機能。
    - 他プレイヤーの所有エリアであっても、既存実装の時価プレミアム方式（`calculateForceBuyMultiplier`）に基づき、敵対的買収（TOB）を行い経営権（所有権）を奪うシステム。
