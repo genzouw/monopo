@@ -27,14 +27,30 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Skip Fork PR
+        id: fork-check
+        env:
+          HEAD_REPO_FULL_NAME: ${{ github.event.pull_request.head.repo.full_name }}
+          BASE_REPO_FULL_NAME: ${{ github.repository }}
+        run: |
+          if [ "$HEAD_REPO_FULL_NAME" != "$BASE_REPO_FULL_NAME" ]; then
+            echo "is_fork=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::フォークPRのため GITHUB_TOKEN が読み取り専用となり、レビューコメントの投稿ができません。このジョブをスキップします。"
+          else
+            echo "is_fork=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Setup Ollama
+        if: steps.fork-check.outputs.is_fork != 'true'
         uses: ai-action/setup-ollama@0fdcbba8ac63bc9c0e7629cf85f46b77a4ad4072 # v2.0.73
 
       - name: Pull Ollama Model
+        if: steps.fork-check.outputs.is_fork != 'true'
         run: |
           curl -sS http://localhost:11434/api/pull -d '{"model": "codellama", "stream": false}' --max-time 300
 
       - name: Run Open Code Review
+        if: steps.fork-check.outputs.is_fork != 'true'
         uses: raye-deng/open-code-review@eb099a26da8e47c423e098109fe0905fde675478 # v2.1.5
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
