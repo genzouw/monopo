@@ -25,7 +25,7 @@ labels: ['enhancement', 'proposal', 'game-design', 'game-mechanics']
 
 4. **情報の非対称性とインサイダー取引リスク**
    - 次のターンに起こる経済イベント（特定のエリアの暴落や暴騰）を「調査費」を払って事前に入手できる機能。
-   - ただし、この情報を元に不自然な大口取引を行うと、一定確率で「証券取引等監視委員会（SEC）」の監査が入り、莫大な罰金と信用失墜（数ターン取引停止）のペナルティを受ける。
+   - ただし、この情報を元に不自然な大口取引を行うと、一定確率で「SEC（証券取引委員会）」（`ISSUE_PROPOSAL_TRADITIONAL_AND_MODERN_FINANCE.md`・`ISSUE_PROPOSAL_REALWORLD_ECONOMIC_SIMULATION.md` と同一の米国型モデルで表記統一）の監査が入り、莫大な罰金と信用失墜（数ターン取引停止）のペナルティを受ける。
 
 ## ⚙️ ゲーム内での具体的なメカニクス (How)
 
