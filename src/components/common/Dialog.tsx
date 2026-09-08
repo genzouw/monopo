@@ -50,7 +50,11 @@ export default function Dialog({
       >
         <div
           id={titleId}
-          className={styles.dialogTitle}
+          className={
+            onClose
+              ? `${styles.dialogTitle} ${styles.dialogTitleWithClose}`
+              : styles.dialogTitle
+          }
           role="heading"
           aria-level={2}
         >

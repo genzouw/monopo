@@ -115,6 +115,9 @@
   margin-bottom: 16px;
   text-align: center;
   flex-shrink: 0;
+}
+/* 閉じるボタンを持つ Dialog のみ、ボタンとの重なりを避けるための左右余白を確保する */
+.dialogTitleWithClose {
   padding: 0 32px;
 }
 .dialogCloseButton {
