@@ -26,19 +26,11 @@
 
 - 追加の手動のAPIキー設定等は不要です（CodeRabbit側でデフォルトで提供される機能を明示的にONにしています）。
 
-## 新規: CodeAnt AI CI Scan の設定
+## 削除: CodeAnt AI CI Scan について
 
-SAST/SCA/Secretsスキャンを自動実行する `.github/workflows/codeant-ci-scan.yml`（`CodeAnt-AI/codeant-ci-scan-action`）を追加しました。
-
-1. **GitHub Secretsの設定 (必須)**
-   - リポジトリ管理者権限を持つユーザーが `Settings > Secrets and variables > Actions` にて `ACCESS_TOKEN_GITHUB` を登録してください。
-   - このトークンはCodeAnt AI側の認証に使用されるため、**本リポジトリ専用に発行した最小権限（Fine-grained PAT等）のトークン**を使用し、組織全体・複数リポジトリにまたがる広いスコープのトークンを使い回さないでください。
-2. **未設定時の挙動**
-   - `ACCESS_TOKEN_GITHUB` が未登録の場合、ワークフローは `::warning::` ログを出力したうえでスキャン実行ステップをスキップします（CI自体は失敗しません）。
-3. **`schedule` トリガー（週次定期監査）追加時の運用前提**
-   - `push` / `pull_request` に加え、毎週水曜 10:00 JST に `schedule` トリガーでも自動実行されます。
-   - CodeAnt AI は公開リポジトリ向けに無料枠がありますが、無料化はチーム側との個別調整が必要な形式であり、この無料枠が `schedule`（人の操作を介さない定期実行）による利用回数の積み増しにも適用され続けるかは、本リポジトリ側では未確認です。
-   - 利用停止や課金に関する通知が届いた場合は、`.github/workflows/codeant-ci-scan.yml` の `schedule` ブロックを削除して定期実行のみ停止してください（`push` / `pull_request` 時のスキャンは継続可能です）。
+SAST/SCA/Secretsスキャンを自動実行する `.github/workflows/codeant-ci-scan.yml`（`CodeAnt-AI/codeant-ci-scan-action`）を導入していましたが、本リポジトリのAction許可リスト（`genzouw` 所有 / GitHub作成 / Marketplace検証済み / 個別許可パターンのいずれかに限定）に `CodeAnt-AI/codeant-ci-scan-action` が含まれておらず、`push` / `pull_request` / `schedule` の全トリガーで恒常的に `startup_failure`（ジョブ起動前の失敗）となる状態だったため削除しました（PR #620）。
+`ACCESS_TOKEN_GITHUB` 未設定時にスキャンをスキップする分岐を用意していても、GitHub Actions は許可リスト判定をワークフロー起動前に静的に行うため、この分岐は効果がありませんでした。
+再導入する場合は、リポジトリ管理者が `Settings > Actions > General > Allow select actions and reusable workflows` にて `CodeAnt-AI/codeant-ci-scan-action` を許可リストに追加した上で対応してください（同種の事例として「削除: AI Codeball PR Approver について」を参照）。
 
 ## PR-Agentの設定（既存）
 

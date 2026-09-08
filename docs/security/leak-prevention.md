@@ -50,6 +50,8 @@
 - **Trivy ワークフロー (`.github/workflows/trivy.yml`)**:
   - パッケージの脆弱性や IaC の設定ミスに加え、シークレットのスキャン (`secret` スキャナ) も実施し、多角的に検知します。設定ミスやシークレットが検知された場合は CI をブロック（`--exit-code 1`）しますが、パッケージの脆弱性検知時は開発の利便性を考慮しブロックしません（`--exit-code 0`）。
   - **対象範囲の拡張**: すべての重要度（`UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL`）のシークレットおよび設定ミスをスキャン対象とし、軽微な情報漏洩リスクも見逃さないように厳格に運用しています。
+- **Bearer ワークフロー (`.github/workflows/bearer.yml`)**:
+  - 静的解析を用いてコード内の PII (メールアドレス等の個人情報) やデータセキュリティリスクを継続的に検査し、検知結果を SARIF として Code scanning に報告します。
 - **CodeQL ワークフロー (`.github/workflows/codeql.yml`)**:
   - `security-extended` および `security-and-quality` クエリを使用して、データフロー解析によるシークレットのハードコード検知や品質チェックなど、高度な静的解析を行います。
 - **Zizmor ワークフロー (`.github/workflows/zizmor.yml`)**:
