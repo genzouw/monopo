@@ -46,7 +46,19 @@ export default function Dialog({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
+        style={{ position: 'relative' }}
       >
+        {onClose && (
+          <button
+            type="button"
+            className={styles.dialogCloseButton}
+            onClick={onClose}
+            aria-label="閉じる"
+            title="閉じる"
+          >
+            ✕
+          </button>
+        )}
         <div
           id={titleId}
           className={styles.dialogTitle}

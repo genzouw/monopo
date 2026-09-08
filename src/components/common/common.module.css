@@ -115,6 +115,34 @@
   margin-bottom: 16px;
   text-align: center;
   flex-shrink: 0;
+  padding: 0 32px;
+}
+.dialogCloseButton {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  line-height: 1;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-light);
+  opacity: 0.8;
+}
+.dialogCloseButton:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.05);
+}
+.dialogCloseButton:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+  opacity: 1;
 }
 .dialogActions {
   display: flex;
