@@ -94,6 +94,30 @@ describe('Dialog', () => {
     );
   });
 
+  it('onClose 指定時もマウント時のフォーカスは閉じるボタンではなく本文側の最初の focusable 要素に当たる', () => {
+    const onClose = vi.fn();
+    render(
+      <Dialog
+        title="テスト"
+        onClose={onClose}
+        actions={
+          <>
+            <button>キャンセル</button>
+            <button>OK</button>
+          </>
+        }
+      >
+        <button>本文ボタン</button>
+      </Dialog>,
+    );
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: '本文ボタン' }),
+    );
+    expect(document.activeElement).not.toBe(
+      screen.getByRole('button', { name: '閉じる' }),
+    );
+  });
+
   it('最後の要素で Tab を押すと最初の focusable 要素に循環する', () => {
     render(
       <Dialog

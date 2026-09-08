@@ -48,17 +48,6 @@ export default function Dialog({
         tabIndex={-1}
         style={{ position: 'relative' }}
       >
-        {onClose && (
-          <button
-            type="button"
-            className={styles.dialogCloseButton}
-            onClick={onClose}
-            aria-label="閉じる"
-            title="閉じる"
-          >
-            ✕
-          </button>
-        )}
         <div
           id={titleId}
           className={styles.dialogTitle}
@@ -69,6 +58,20 @@ export default function Dialog({
         </div>
         <div className={styles.dialogBody}>{children}</div>
         {actions && <div className={styles.dialogActions}>{actions}</div>}
+        {onClose && (
+          // 閉じるボタンは絶対配置のため見た目の位置は変わらないが、
+          // DOM順をここに置くことで useFocusTrap のマウント時初期フォーカスが
+          // 本文/アクション側の要素に当たるようにしている（focusables[0] が閉じるボタンにならないように末尾に配置）
+          <button
+            type="button"
+            className={styles.dialogCloseButton}
+            onClick={onClose}
+            aria-label="閉じる"
+            title="閉じる"
+          >
+            ✕
+          </button>
+        )}
       </div>
     </div>
   );
