@@ -53,6 +53,28 @@ describe('Dialog', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 
+  it('onClose が未指定のとき閉じるボタンは表示されない', () => {
+    render(
+      <Dialog title="テスト">
+        <button>OK</button>
+      </Dialog>,
+    );
+    expect(
+      screen.queryByRole('button', { name: '閉じる' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('onClose が指定されているとき閉じるボタンをクリックすると onClose が1回だけ呼ばれる', () => {
+    const onClose = vi.fn();
+    render(
+      <Dialog title="テスト" onClose={onClose}>
+        <button>OK</button>
+      </Dialog>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: '閉じる' }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
   it('マウント時に Dialog 内の最初の focusable 要素にフォーカスが当たる', () => {
     render(
       <Dialog
