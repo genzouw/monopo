@@ -39,7 +39,16 @@ jobs:
 
       - name: Setup Ollama
         if: steps.fork-check.outputs.is_fork != 'true'
-        uses: ai-action/setup-ollama@0fdcbba8ac63bc9c0e7629cf85f46b77a4ad4072 # v2.0.73
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          ollama serve &
+          for _ in $(seq 1 60); do
+            if curl -sf http://localhost:11434 >/dev/null; then
+              echo "Ollama is ready"
+              break
+            fi
+            sleep 1
+          done
 
       - name: Fetch PR Diff
         id: fetch-diff
