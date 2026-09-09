@@ -4,6 +4,10 @@ on:
   issues:
     types: [opened]
 
+concurrency:
+  group: ai-issue-search-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
