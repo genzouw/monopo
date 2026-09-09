@@ -114,10 +114,14 @@ jobs:
 
             if (commentBody) {
               const sanitizedBody = commentBody.replace(/@/g, '@​');
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: \`### 🤖 Local AI 解決策アシスタント (Ollama - qwen2.5-coder:0.5b)\\n\\n> ⚠️ 以下はローカルLLMがWeb検索結果を基に生成した自動応答です。内容の正確性は保証されません。\\n\\n\${sanitizedBody}\`
-              });
+              try {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body: \`### 🤖 Local AI 解決策アシスタント (Ollama - qwen2.5-coder:0.5b)\\n\\n> ⚠️ 以下はローカルLLMがWeb検索結果を基に生成した自動応答です。内容の正確性は保証されません。\\n\\n\${sanitizedBody}\`
+                });
+              } catch (error) {
+                core.warning(\`Failed to post comment: ${error.message}\`);
+              }
             }
