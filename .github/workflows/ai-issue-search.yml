@@ -8,9 +8,6 @@ concurrency:
   group: ai-issue-search-${{ github.event.issue.number }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-
 jobs:
   search-similar-issues:
     runs-on: ubuntu-latest
