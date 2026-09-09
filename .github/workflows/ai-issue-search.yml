@@ -23,7 +23,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          python3 -m pip install duckduckgo-search click primp lxml
+          python3 -m pip install --require-hashes --only-binary :all: -r requirements-weekly-trend.txt
 
       - name: Fetch Search Results
         id: fetch-search
@@ -31,7 +31,7 @@ jobs:
           ISSUE_TITLE: ${{ github.event.issue.title }}
         run: |
           python3 -c "
-          from duckduckgo_search import DDGS
+          from ddgs import DDGS
           import json
           import os
           import secrets
