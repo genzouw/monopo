@@ -27,6 +27,7 @@ jobs:
 
       - name: Fetch Search Results
         id: fetch-search
+        if: github.event.repository.private == false
         env:
           ISSUE_TITLE: ${{ github.event.issue.title }}
         run: |
