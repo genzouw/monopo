@@ -1,8 +1,9 @@
 description: 'Sample prompt evaluation'
 providers:
-  - id: 'github:openai/gpt-4o-mini'
-    config:
-      apiKey: 'envar:GH_MODELS_TOKEN' # pragma: allowlist secret
+  # GitHub Models は2026-07-30に退役したため、他のワークフロー（local-ai-pr-description.yml等）と
+  # 同様に、リポジトリ内で完結する無料のローカルLLM (Ollama) へ移行（Refs #573）。
+  # APIキー不要。ワークフロー側で `ai-action/setup-ollama` によりホストしたサーバーに接続する。
+  - id: 'ollama:chat:qwen2.5-coder:0.5b'
 tests:
   - description: 'パッケージマネージャーの規約に沿って Bun を回答すること'
     assert:

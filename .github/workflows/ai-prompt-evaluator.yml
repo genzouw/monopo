@@ -14,7 +14,6 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-      models: read
     steps:
       - name: Checkout Code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -29,21 +28,21 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-promptfoo-
 
+      - name: Setup Ollama
+        uses: ai-action/setup-ollama@0fdcbba8ac63bc9c0e7629cf85f46b77a4ad4072 # v2.0.73
+
+      - name: Pull Ollama Model
+        # promptfoo自体はモデルの自動pullを行わないため、評価前に明示的に取得しておく。
+        # 他のローカルAIワークフロー（local-ai-pr-description.yml等）と同一モデルを使用し、
+        # 完全無料・リポジトリ内で完結する構成に統一する（Refs #573）。
+        run: ollama pull qwen2.5-coder:0.5b
+
       - name: Run promptfoo evaluation
-        # pull_request（pull_request_target ではない）トリガーのため、フォーク由来のPRには
-        # GitHub Actions の仕組みにより GH_MODELS_TOKEN 等のSecretsは渡されない。
-        # 同一リポジトリのブランチから作成されたPR（書き込み権限を持つ協力者のみ作成可能）でのみ
-        # Secretsが利用可能であり、これは既存のリポジトリ書き込み権限と同等の信頼範囲である。
-        # GH_MODELS_TOKEN は models: read のみを持つ fine-grained PAT に限定し、
-        # 漏えい時の影響範囲を GitHub Models の利用に限定すること（権限要件は docs/security/ai-ci-tools.md 参照）。
-        # GitHub Models 推論API自体が2026年7月30日付で退役し 410 Gone を返すため、
-        # 代替推論サービスへの移行（Issue #573）が完了するまで本ステップの失敗でPRをブロックしない。
-        # 他のGitHub Models依存ワークフローと同様のソフト失敗として扱う。復旧時はこのcontinue-on-errorを解除すること。
-        continue-on-error: true
+        # GitHub Models は2026年7月30日付で退役し 410 Gone を返すため、Ollama（ローカルLLM）へ移行済み（Refs #573）。
+        # APIキー等のSecretsに依存しないため、フォークPRでも同一の評価結果が得られる。
         uses: promptfoo/promptfoo-action@04839e664f52212b877170219dab0d7ad2bf6440 # promptfoo-action-v1.3.4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           prompts: 'prompts/**/*.json'
