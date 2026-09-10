@@ -1,8 +1,15 @@
 description: 'Sample prompt evaluation'
+# promptfoo-action の `prompts` 入力はPR内で変更されたファイルのみを検出するため、
+# sample-prompt.json 自体が変更されないPR（本ファイルのみの変更等）では検出されず、
+# デフォルトの {{prompt}} テンプレート（空文字列）にフォールバックしてしまう。
+# config側で明示的に prompts を指定し、変更差分に依存せず常に評価対象を固定する。
+prompts:
+  - file://sample-prompt.json
 providers:
-  - id: 'github:openai/gpt-4o-mini'
-    config:
-      apiKey: 'envar:GH_MODELS_TOKEN' # pragma: allowlist secret
+  # GitHub Models は2026-07-30に退役したため、他のワークフロー（local-ai-pr-description.yml等）と
+  # 同様に、リポジトリ内で完結する無料のローカルLLM (Ollama) へ移行（Refs #573）。
+  # APIキー不要。ワークフロー側で `ai-action/setup-ollama` によりホストしたサーバーに接続する。
+  - id: 'ollama:chat:qwen2.5-coder:0.5b'
 tests:
   - description: 'パッケージマネージャーの規約に沿って Bun を回答すること'
     assert:
