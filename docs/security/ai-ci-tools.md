@@ -182,6 +182,7 @@ PR作成時にGitHub Models (gpt-4o-mini) を利用して、PRテンプレート
 
 PRの自動承認を行う `.github/workflows/ai-codeball-approver.yml`（Codeball, `sturdy-dev/codeball-action`）を導入していましたが、本リポジトリのAction許可リスト（`genzouw` 所有 / GitHub作成 / Marketplace検証済み / 個別許可パターンのいずれかに限定）に `sturdy-dev/codeball-action` が含まれておらず、CIが恒常的に失敗する状態となっていたため削除しました。
 再導入する場合は、リポジトリ管理者が `Settings > Actions > General > Allow select actions and reusable workflows` にて `sturdy-dev/codeball-action` を許可リストに追加した上で対応してください。
+また、この削除により Issue #489 で指摘されていた「外側を40桁コミットSHAで固定しても、composite action内部の `baller`/`status`/`labeler`/`approver`/`suggester` が可変タグ `@v2`（かつNode16）で参照される」というSHA固定漏れの問題も、対象ワークフロー自体が存在しなくなったことで解消しています。再導入時は、この内部参照のSHA固定漏れとNode16依存を解消した上で（フォークして内部参照を固定するか、代替Actionへの乗り換えを検討した上で）対応してください。
 
 ## AI連携ワークフロー全体の最適化について
 
