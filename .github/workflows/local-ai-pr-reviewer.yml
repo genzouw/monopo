@@ -77,15 +77,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REVIEW: ${{ steps.generate-review.outputs.content }}
+          MODEL: ${{ steps.generate-review.outputs.model }}
         with:
           script: |
             const review = process.env.REVIEW;
+            const model = process.env.MODEL;
             try {
               await github.rest.issues.createComment({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: `### 🤖 Local AI Code Review (Ollama - qwen2.5-coder:0.5b)\n\n${review}`
+                body: `### 🤖 Local AI Code Review (Ollama - ${model})\n\n${review}`
               });
             } catch (error) {
               core.warning(`Failed to post review comment: ${error.message}`);

@@ -18,6 +18,9 @@ outputs:
   content:
     description: 生成結果。取得に失敗した場合は空文字列。
     value: ${{ steps.generate.outputs.result }}
+  model:
+    description: 実際に使用したOllamaモデル名。呼び出し側の表示文字列をこのactionのデフォルト値と同期させるために使用する。
+    value: ${{ inputs.model }}
 
 runs:
   using: composite

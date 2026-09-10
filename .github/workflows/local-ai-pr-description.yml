@@ -92,10 +92,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DESCRIPTION: ${{ steps.generate-description.outputs.content }}
+          MODEL: ${{ steps.generate-description.outputs.model }}
           PR_DIFF_TRUNCATED: ${{ steps.fetch-diff.outputs.truncated }}
         with:
           script: |
             const description = process.env.DESCRIPTION;
+            const model = process.env.MODEL;
             const isDiffTruncated = process.env.PR_DIFF_TRUNCATED === 'true';
             // 外部由来のdescriptionに@メンションが含まれていても通知が発火しないよう、
             // "@" の直後にゼロ幅スペースを挿入してメンション解決を無害化する。
@@ -118,7 +120,7 @@ jobs:
               const truncationNote = isDiffTruncated
                 ? '\n\n> ⚠️ 差分が大きいため、先頭部分のみを基に生成しています。差分全体の内容を反映できていない可能性があります。'
                 : '';
-              const generatedBlock = `${startMarker}\n### 🤖 Local AI Generated Description (Ollama - qwen2.5-coder:0.5b)\n\n${sanitizedDescription}${truncationNote}\n${endMarker}`;
+              const generatedBlock = `${startMarker}\n### 🤖 Local AI Generated Description (Ollama - ${model})\n\n${sanitizedDescription}${truncationNote}\n${endMarker}`;
               const currentBody = pr.data.body || '';
               const blockPattern = new RegExp(`${startMarker}[\\s\\S]*?${endMarker}`);
 
