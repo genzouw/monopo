@@ -1,0 +1,80 @@
+{
+  "014e1e2d328e5b286da6707d1af36c3e_0": {
+    "author": "Toshiaki Wakabayashi",
+    "comment": "プレイヤー表示名(name)・駒トークン(token)のReact.memo差分比較であり、実在人物の個人情報や認証情報ではないゲームドメインのフィールド。#623",
+    "false_positive": true,
+    "ignored_at": "2026-09-09T22:42:58Z"
+  },
+  "27d4e1495405d6320c5eb78267d3dd1e_0": {
+    "author": "Toshiaki Wakabayashi",
+    "comment": "開発用同期スクリプトのファイルパスをログ出力しているだけで機微情報は含まれない。#623",
+    "false_positive": true,
+    "ignored_at": "2026-09-09T22:42:55Z"
+  },
+  "27d4e1495405d6320c5eb78267d3dd1e_1": {
+    "author": "Toshiaki Wakabayashi",
+    "comment": "開発用同期スクリプトのファイルパスをログ出力しているだけで機微情報は含まれない。#623",
+    "false_positive": true,
+    "ignored_at": "2026-09-09T22:42:56Z"
+  },
+  "27d4e1495405d6320c5eb78267d3dd1e_2": {
+    "author": "Toshiaki Wakabayashi",
+    "comment": "開発用同期スクリプトのファイルパスをログ出力しているだけで機微情報は含まれない。#623",
+    "false_positive": true,
+    "ignored_at": "2026-09-09T22:42:56Z"
+  },
+  "27d4e1495405d6320c5eb78267d3dd1e_3": {
+    "author": "Toshiaki Wakabayashi",
+    "comment": "開発用同期スクリプトの固定文字列ログ出力であり機微情報は含まれない。#623",
+    "false_positive": true,
+    "ignored_at": "2026-09-09T22:42:56Z"
+  },
+  "27d4e1495405d6320c5eb78267d3dd1e_4": {
+    "author": "Toshiaki Wakabayashi",
+    "comment": "開発用同期スクリプトのファイルパスをログ出力しているだけで機微情報は含まれない。#623",
+    "false_positive": true,
+    "ignored_at": "2026-09-09T22:42:56Z"
+  },
+  "27d4e1495405d6320c5eb78267d3dd1e_5": {
+    "author": "Toshiaki Wakabayashi",
+    "comment": "開発用同期スクリプトの固定文字列ログ出力であり機微情報は含まれない。#623",
+    "false_positive": true,
+    "ignored_at": "2026-09-09T22:42:57Z"
+  },
+  "932c2de0deb4920414c9792d6d8fd663_0": {
+    "author": "Toshiaki Wakabayashi",
+    "comment": "ゲーム駒トークン(token)のReact.memo差分比較であり、認証トークン等の機微情報比較ではない。#623",
+    "false_positive": true,
+    "ignored_at": "2026-09-09T22:42:57Z"
+  },
+  "932c2de0deb4920414c9792d6d8fd663_1": {
+    "author": "Toshiaki Wakabayashi",
+    "comment": "プレイヤー表示名(name)のReact.memo差分比較であり、実在人物の個人情報ではないゲームドメインの表示名。#623",
+    "false_positive": true,
+    "ignored_at": "2026-09-09T22:42:58Z"
+  },
+  "ad1a4fd2e58ae2d998902a246b69a359_0": {
+    "author": "Toshiaki Wakabayashi",
+    "comment": "駒選択UIでの駒トークン(token)文字列比較であり、認証トークン等の機微情報比較ではない。#623",
+    "false_positive": true,
+    "ignored_at": "2026-09-09T22:42:58Z"
+  },
+  "c4049b0f5edc24cc55b1174b334cbe89_0": {
+    "author": "Toshiaki Wakabayashi",
+    "comment": "ゲーム駒トークン(token)のReact.memo差分比較であり、認証トークン等の機微情報比較ではない。#623",
+    "false_positive": true,
+    "ignored_at": "2026-09-09T22:42:57Z"
+  },
+  "c4049b0f5edc24cc55b1174b334cbe89_1": {
+    "author": "Toshiaki Wakabayashi",
+    "comment": "プレイヤー表示名(name)のReact.memo差分比較であり、実在人物の個人情報ではないゲームドメインの表示名。#623",
+    "false_positive": true,
+    "ignored_at": "2026-09-09T22:42:57Z"
+  },
+  "ee51a3f53d61ae8efb43b1a32d6bdad5_0": {
+    "author": "Toshiaki Wakabayashi",
+    "comment": "audio buffer生成用のMath.random()であり、暗号学的乱数性は不要（PII/セキュリティ文脈ではない）。#623",
+    "false_positive": true,
+    "ignored_at": "2026-09-09T22:42:55Z"
+  }
+}
