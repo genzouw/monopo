@@ -61,58 +61,32 @@ jobs:
             return diff.data.slice(0, 5000);
 
       - name: Generate AI Code Review with Local Ollama
+        id: generate-review
         if: steps.fork-check.outputs.is_fork != 'true'
+        uses: $/.github/actions/ollama-generate
+        with:
+          prompt: |
+            あなたは熟練のソフトウェアエンジニアです。以下のプルリクエストの差分をもとに、コードの品質、潜在的なバグ、セキュリティの問題について日本語で簡潔にフィードバックを提供してください。
+
+            差分:
+            ${{ steps.fetch-diff.outputs.result }}
+
+      - name: Post AI Code Review
+        if: steps.fork-check.outputs.is_fork != 'true' && steps.generate-review.outputs.content != ''
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_DIFF: ${{ steps.fetch-diff.outputs.result }}
+          REVIEW: ${{ steps.generate-review.outputs.content }}
         with:
           script: |
-            const prDiff = process.env.PR_DIFF;
-            const prompt = `あなたは熟練のソフトウェアエンジニアです。以下のプルリクエストの差分をもとに、コードの品質、潜在的なバグ、セキュリティの問題について日本語で簡潔にフィードバックを提供してください。\n\n差分:\n${prDiff}`;
-
-            let review;
+            const review = process.env.REVIEW;
             try {
-              await fetch('http://localhost:11434/api/pull', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  model: 'qwen2.5-coder:0.5b',
-                  stream: false
-                }),
-                signal: AbortSignal.timeout(120_000)
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `### 🤖 Local AI Code Review (Ollama - qwen2.5-coder:0.5b)\n\n${review}`
               });
-
-              const response = await fetch('http://localhost:11434/api/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  model: 'qwen2.5-coder:0.5b',
-                  prompt: prompt,
-                  stream: false
-                }),
-                signal: AbortSignal.timeout(60_000)
-              });
-
-              if (response.ok) {
-                const data = await response.json();
-                review = data.response;
-              } else {
-                core.warning(`Failed to generate review with local Ollama. Status: ${response.status}`);
-              }
             } catch (error) {
-              core.warning(`Failed to communicate with local Ollama (timeout, connection, or JSON parse error): ${error.message}`);
-            }
-
-            if (review) {
-              try {
-                await github.rest.issues.createComment({
-                  issue_number: context.issue.number,
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  body: `### 🤖 Local AI Code Review (Ollama - qwen2.5-coder:0.5b)\n\n${review}`
-                });
-              } catch (error) {
-                core.warning(`Failed to post review comment: ${error.message}`);
-              }
+              core.warning(`Failed to post review comment: ${error.message}`);
             }

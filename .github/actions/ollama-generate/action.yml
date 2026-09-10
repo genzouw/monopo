@@ -1,0 +1,70 @@
+name: Ollama Generate
+description: >-
+  ローカル Ollama (デフォルト: qwen2.5-coder:0.5b) にプロンプトを送信し、生成結果を返す。
+  モデルの pull・生成リクエスト・タイムアウト・エラーハンドリングを一箇所に集約し、
+  呼び出し側ワークフロー間での実装差分（ログ書式のばらつき等）を防ぐ。
+  呼び出し側で事前に actions/checkout と ai-action/setup-ollama を実行しておくこと。
+
+inputs:
+  prompt:
+    description: Ollama に渡すプロンプト
+    required: true
+  model:
+    description: 使用する Ollama モデル
+    required: false
+    default: 'qwen2.5-coder:0.5b'
+
+outputs:
+  content:
+    description: 生成結果。取得に失敗した場合は空文字列。
+    value: ${{ steps.generate.outputs.result }}
+
+runs:
+  using: composite
+  steps:
+    - name: Call Ollama
+      id: generate
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      env:
+        OLLAMA_PROMPT: ${{ inputs.prompt }}
+        OLLAMA_MODEL: ${{ inputs.model }}
+      with:
+        result-encoding: string
+        script: |
+          const prompt = process.env.OLLAMA_PROMPT;
+          const model = process.env.OLLAMA_MODEL;
+
+          let content = '';
+          try {
+            await fetch('http://localhost:11434/api/pull', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                model,
+                stream: false
+              }),
+              signal: AbortSignal.timeout(120_000)
+            });
+
+            const response = await fetch('http://localhost:11434/api/generate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                model,
+                prompt,
+                stream: false
+              }),
+              signal: AbortSignal.timeout(60_000)
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              content = data.response;
+            } else {
+              core.warning(`Failed to generate content with local Ollama. Status: ${response.status}`);
+            }
+          } catch (error) {
+            core.warning(`Failed to communicate with local Ollama (timeout, connection, or JSON parse error): ${error.message}`);
+          }
+
+          return content;
