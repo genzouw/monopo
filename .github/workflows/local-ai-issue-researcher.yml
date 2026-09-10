@@ -13,6 +13,9 @@ permissions:
 
 jobs:
   research-issue:
+    # 信頼できる投稿者（OWNER/MEMBER/COLLABORATOR）のIssueのみで起動する。
+    # 制限が無いと第三者が任意のIssue作成でActions実行枠・課金枠を消費できてしまうため。
+    if: contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
