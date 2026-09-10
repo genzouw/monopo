@@ -6,8 +6,7 @@
 > **GitHub Models 推論API退役に伴う稼働状況について（Issue #573）**
 >
 > 本ドキュメントに登場する GitHub Models を利用するワークフロー群は、モデルIDは `gpt-4o-mini` に更新済みですが、GitHub Models 推論API自体が2026年7月30日付で退役したため、**現在は生成処理が成功しません**（移行状況は Issue #573 で追跡）。
-> `.github/workflows/ai-prompt-evaluator.yml`（Promptfoo）も `promptfooconfig.yaml` の `github:` プロバイダ経由で同APIと `GH_MODELS_TOKEN` に依存しているため、本対象範囲に含まれます。
-> これに伴い、以下の対応を行っています。
+> `.github/workflows/ai-prompt-evaluator.yml`（Promptfoo）は、他のローカルAIワークフロー（`local-ai-pr-description.yml` 等）と同様にローカルLLM（Ollama / `qwen2.5-coder:0.5b`）へ移行済みで、`GH_MODELS_TOKEN` に依存しなくなりました。**本ドキュメントで GitHub Models 依存として残るのは以下の対応内容のみです。**
 >
 > - スケジュール実行（cron）を停止中: `ai-weekly-summary.yml` / `ai-tech-trend-analyzer.yml` / `ai-tech-news-digest.yml` / `ai-code-optimizer.yml`（手動実行 `workflow_dispatch` のみ可能）
 > - 生成に失敗した場合は Issue / PR へのコメント投稿を見送り、`core.warning` で Actions の注釈に記録
@@ -121,16 +120,14 @@ Issueの内容をもとに実装に必要なファイルのリストと大まか
 PR作成時にプロンプトへの変更（`prompts/**`）が含まれている場合、変更前と変更後のプロンプトを自動的に評価・比較し、PRにコメントとしてレポートを通知する `.github/workflows/ai-prompt-evaluator.yml` を追加しました。
 最新のLLMセキュリティテスト、およびプロンプトの回帰テストを目的としています。
 
-1. **GitHub Secretsの設定 (必須)**
-   - GitHub Models を評価モデルとして使用しますが、Actionの環境変数に `GH_MODELS_TOKEN` の注入が必要です（GitHub Models は現在廃止済み。Refs #539）。
-   - `Settings > Secrets and variables > Actions` にて、`GH_MODELS_TOKEN` をシークレットとして登録してください。
-   - `GH_MODELS_TOKEN` に fine-grained PAT（Personal Access Token）を使用する場合は、`models: read` 権限を明示的に付与する必要があります。リポジトリの Workflow 権限（`permissions:`）だけでは GitHub Models へのアクセス権は付与されません。
-   - GitHub Models には無料枠（レート制限あり）と有料枠がありました。現在はエンドポイントが廃止されているため、代替モデル選定時に改めて料金体系とレート制限を確認してください（Refs #539）。
+> **【更新 / Refs #573】** GitHub Models は2026年7月30日付で退役したため、評価モデルを他のローカルAIワークフロー（`local-ai-pr-description.yml` 等）と同一のOllama（`qwen2.5-coder:0.5b`）へ移行しました。以下はGitHub Models利用時点の設定内容であり、**現在は無効です**。
+
+1. ~~**GitHub Secretsの設定 (必須)**~~ （不要）
+   - ~~GitHub Models を評価モデルとして使用しますが、Actionの環境変数に `GH_MODELS_TOKEN` の注入が必要です。~~
+   - Ollama はAPIキー不要のため、`GH_MODELS_TOKEN` の登録は不要です（既存の登録がある場合も、本ワークフローからは参照されません）。
 
 2. **Secrets の信頼範囲について**
-   - 本ワークフローは `pull_request`（`pull_request_target` ではない）トリガーで、変更後の `prompts/promptfooconfig.yaml` を用いて評価を実行します。
-   - GitHub Actions の仕様上、フォーク由来のPRには `GH_MODELS_TOKEN` 等のSecretsは渡されないため、フォークPRによる秘密情報の持ち出しはできません。
-   - 一方、同一リポジトリのブランチから作成されたPR（書き込み権限を持つ協力者のみ作成可能）ではSecretsが利用されるため、`prompts/**` の変更を含むPRは他の変更と同様にレビューを行ってください。
+   - 評価にAPIキー等のSecretsを使用しないため、フォーク由来のPRであっても同一リポジトリ由来のPRと同じ評価結果が得られます。
 
 ## 更新: AI Tech News Digest の設定
 
