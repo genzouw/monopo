@@ -27,7 +27,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          python3 -m pip install --require-hashes --only-binary :all: -r requirements-weekly-trend.txt
+          python3 -m pip install --require-hashes --only-binary :all: -r requirements-ddgs.txt
 
       - name: Fetch Search Results
         id: fetch-search
