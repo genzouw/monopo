@@ -43,7 +43,7 @@ jobs:
           import secrets
 
           issue_title = os.environ['ISSUE_TITLE']
-          query = f'{issue_title} Web development React Vite Bun'
+          query = issue_title
           results = []
           try:
               with DDGS() as ddgs:
