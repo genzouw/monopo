@@ -18,6 +18,8 @@ labels: ['enhancement', 'proposal', 'game-design', 'game-mechanics']
 4. **暗号資産（仮想通貨）市場とハイボラティリティ投資**
    ゲーム内の別市場として、極端な価格変動を伴う投資商品を追加。
 
+> 📎 **関連提案との整合性:** 「エリア株と相乗り投資システム」は `src/game/economy.ts` の `features.stocks`（`STOCK_INITIAL_PRICE` / `DIVIDEND_RATE_PCT` / `getStockHoldingRatio`）としてすでに実装済みです。「TOB（敵対的買収）と買収防衛策」は `ISSUE_PROPOSAL_ADVANCED_STOCK_SYSTEM.md`（リポジトリ直下）のM&A・TOB定義に重複する提案があり、実装時に参照する正規仕様は同書とします。「暗号資産（仮想通貨）市場」は既存の `features.altAssets`（`src/game/systems/altAssets.ts` の対数正規分布モデル）としてすでに実装済みです。したがって本書が新規に提案する範囲は「株主優待制度」に限られます。
+
 ## ⚙️ ゲーム内での具体的なメカニクス (How)
 
 - **エリア株と相乗り投資システム:**
