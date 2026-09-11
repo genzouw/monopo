@@ -91,13 +91,11 @@ Pull Request におけるソースコード変更に対して、最新のPlaywri
      - `GH_MODELS_TOKEN`: GitHub Models へのアクセス用トークン
      - `TAVILY_API_KEY`: Tavily Search API へのアクセス用キー
 
-## 更新: AI Issue Auto-Fixer の設定
+## 削除: AI Issue Auto-Fixer について
 
-Issueの内容をもとに自動でコードを修正する `.github/workflows/ai-issue-autofix.yml` において、Tavily Search APIの統合を行いました。これにより、より高度なRAG (Retrieval-Augmented Generation) で最新の開発情報を取得できるようになりました。モデルIDは `gpt-4o-mini` に更新済みですが、GitHub Models 推論API自体が2026年7月30日付で退役したため、代替推論サービスへの移行が完了するまで動作しません（移行状況は Issue #573 で追跡）。
-
-1. **GitHub Secretsの設定 (必須)**
-   - 既存の `GH_MODELS_TOKEN` に加え、`TAVILY_API_KEY` の設定が必要です。
-   - `Settings > Secrets and variables > Actions` で設定されているか確認してください。
+Issueの内容をもとにAIが生成したNode.jsスクリプトをそのまま `node auto-fix.cjs` として実行する `.github/workflows/ai-issue-autofix.yml` を導入していましたが、信頼できないIssue本文（プロンプトインジェクション）によって安全性チェックを回避したスクリプトが生成された場合、GitHub Actionsランナー上でリモートコード実行（RCE）につながるリスクが指摘されました（Issue #411）。
+GitHub Models 推論APIの退役（Refs #573）に伴うAIワークフロー全体の見直し（PR #607）で、GitHub Models / Tavily Search API に依存する他の多数のワークフローとともに本ワークフロー自体を削除したため、このRCEリスクは解消済みです。
+再導入する場合は、Issue #411 で指摘された根本対策（AIにスクリプトを直接生成・実行させず、Unified Diff / Patch形式で出力させて `git apply` 等で適用する設計、または Deno 等のサンドボックスでネットワーク・ファイルシステムアクセスを制限した実行環境を用いる設計）を反映した上で対応してください。
 
 ## 更新: AI Issue Plan の設定
 
