@@ -53,7 +53,7 @@ rev_version="$(
 # entry: docker.io/rhysd/actionlint:1.7.12@sha256:... → 1.7.12
 entry_version="$(
   printf '%s\n' "$block" |
-    sed -n 's|^[[:space:]]*entry:.*rhysd/actionlint:\([0-9][0-9A-Za-z.\-]*\)@sha256:[0-9a-f]\{64\}.*|\1|p' |
+    sed -n 's|^[[:space:]]*entry:.*rhysd/actionlint:\([0-9][0-9A-Za-z.\-]*\)@sha256:[0-9a-f]\{64\}\([[:space:]]\{1,\}#.*\)\{0,1\}$|\1|p' |
     head -n 1
 )"
 
