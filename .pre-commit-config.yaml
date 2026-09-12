@@ -47,6 +47,10 @@ repos:
       # 将来 rev（フック定義）を更新する際は、対応する digest も併せて更新してください。
       # Dependabot の pre-commit 更新は rev 行しか書き換えないため、下の
       # actionlint-pin-consistency フックで rev と entry のバージョン一致を機械的に検証しています。
+      # ただし同フックが見るのはバージョン文字列の一致までで、digest がそのタグの実体と
+      # 一致しているかは（ネットワークを使わないため）検証できません。タグだけ上げて digest を
+      # 据え置くと、docker は digest を優先するためチェックを通過したまま旧イメージが走ります。
+      # digest は必ず docker buildx imagetools inspect で取得した値へ差し替えてください。
       - id: actionlint-docker
         entry: docker.io/rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667
 
