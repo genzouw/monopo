@@ -16,8 +16,22 @@
 # 抑止範囲:
 #   `$/` で始まる参照に対する ref-missing エラーだけを対象にする。
 #   `uses: actions/checkout`（ref を書き忘れた通常の外部アクション参照）は
-#   引き続き検知される。actionlint#732 がマージされ、CI・pre-commit の双方が
-#   その版に上がったら、このファイルごと削除すること。
+#   引き続き検知される。
+#
+# このファイルを削除するタイミング（Refs #601）:
+#   上流リリースの検知は Dependabot（`.github/dependabot.yml` の
+#   `package-ecosystem: 'pre-commit'`）に委譲している。actionlint が新版を
+#   リリースすると `.pre-commit-config.yaml` の `rev` を上げる PR が届き、
+#   `actionlint-pin-consistency` フック（`scripts/check-actionlint-pin.sh`）が
+#   entry の digest 未更新を検知して落ちる。これが着手の合図。
+#   その PR 上で以下を行い、すべて満たせたらこのファイルを削除する。
+#     1. 本ファイルを一時退避して actionlint を実行し、
+#        `specifying action "$/..." in invalid format` が出ないことを確認する
+#     2. `.pre-commit-config.yaml` の `actionlint-docker` の entry を
+#        新バージョンのタグと digest へ手で更新する
+#     3. `genzouw/ci-workflows` の `.github/workflows/actionlint.yml` の
+#        `VERSION` を更新する（CI 側は monopo の Dependabot では上がらない）
+#     4. 本ファイルを削除し、CI・pre-commit の双方が通ることを確認する
 paths:
   .github/workflows/**:
     ignore:
