@@ -30,7 +30,8 @@ trap 'rm -rf "$WORKDIR"' EXIT
 # 実際の .pre-commit-config.yaml で使われている digest（rhysd/actionlint:1.7.12 に対応）。
 # 秘密情報ではなく公開 Docker イメージの manifest digest であり、ダミー値ではなく実際の
 # 64桁16進文字列としての妥当性を検証するためにそのまま使用する。
-DIGEST="b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667"
+# detect-secrets は高エントロピー16進文字列として誤検知するため pragma で抑止する。
+DIGEST="b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667" # pragma: allowlist secret
 
 # 他フックのブロックも1つ挟み、「次の - repo: 行が現れたらブロック外」という
 # awk 側のブロック終端判定が正しく効くことも併せて確認する。
