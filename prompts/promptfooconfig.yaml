@@ -10,6 +10,10 @@ providers:
   # 同様に、リポジトリ内で完結する無料のローカルLLM (Ollama) へ移行（Refs #573）。
   # APIキー不要。ワークフロー側で `ai-action/setup-ollama` によりホストしたサーバーに接続する。
   - id: 'ollama:chat:qwen2.5-coder:0.5b'
+    # temperature未指定だと極小モデル（0.5b）の出力がサンプリングにより揺れ、
+    # 「Bun」以外（yarn等）を回答してCIがflakyに失敗することがあるため0に固定する。
+    config:
+      temperature: 0
 tests:
   - description: 'パッケージマネージャーの規約に沿って Bun を回答すること'
     assert:
