@@ -11,7 +11,7 @@
 #
 #   一方 actionlint は 1.7.12 時点でこの構文を知らず、`$/...` を「ref が欠落した
 #   リポジトリ参照」と誤認して invalid format エラーを出す。対応 PR は未マージ。
-#   https://github.com/rhysd/actionlint/issues/732 (Closes #711)
+#   https://github.com/rhysd/actionlint/pull/732 (Closes #711)
 #
 # 抑止範囲:
 #   `$/` で始まる参照に対する ref-missing エラーだけを対象にする。
@@ -23,15 +23,38 @@
 #   `package-ecosystem: 'pre-commit'`）に委譲している。actionlint が新版を
 #   リリースすると `.pre-commit-config.yaml` の `rev` を上げる PR が届き、
 #   `actionlint-pin-consistency` フック（`scripts/check-actionlint-pin.sh`）が
-#   entry の digest 未更新を検知して落ちる。これが着手の合図。
-#   その PR 上で以下を行い、すべて満たせたらこのファイルを削除する。
-#     1. 本ファイルを一時退避して actionlint を実行し、
-#        `specifying action "$/..." in invalid format` が出ないことを確認する
-#     2. `.pre-commit-config.yaml` の `actionlint-docker` の entry を
+#   entry のバージョン未更新を検知して落ちる。これが着手の合図。
+#
+#   ただし「新版が出た」ことと「`$/` に対応した」ことは同義ではない。
+#   rev 更新 PR が届いたら、そのブランチ上で次の順に進める。
+#
+#     1. `.pre-commit-config.yaml` の `actionlint-docker` の entry を
 #        新バージョンのタグと digest へ手で更新する
-#     3. `genzouw/ci-workflows` の `.github/workflows/actionlint.yml` の
-#        `VERSION` を更新する（CI 側は monopo の Dependabot では上がらない）
-#     4. 本ファイルを削除し、CI・pre-commit の双方が通ることを確認する
+#        （digest 取得: `docker buildx imagetools inspect docker.io/rhysd/actionlint:<version>`）
+#        ※ 必ず entry の更新を先に行う。docker はタグより digest を優先するため、
+#          digest が旧版のままでは rev をいくら上げてもローカル検証は旧イメージで走り、
+#          対応済みか未対応かを判別できない。
+#     2. 本ファイルを一時退避し、`pre-commit run actionlint-docker --all-files` を実行して
+#        `specifying action "$/..." in invalid format` が出るかどうかを確認する。
+#        出なければ分岐 A（上流対応済み）、出れば分岐 B（未対応）。
+#
+#   分岐 A: `$/` エラーが出ない = 上流が対応した
+#     A-1. 本ファイルを削除する
+#     A-2. `genzouw/ci-workflows` の `.github/workflows/actionlint.yml` の `VERSION` を
+#          新版へ更新してマージし、タグを切る（CI 側は monopo の Dependabot では上がらない）
+#     A-3. monopo の `.github/workflows/actionlint.yml` の
+#          `uses: genzouw/ci-workflows/...@<SHA>` を A-2 の SHA へ更新する。
+#          ci-workflows 側の `VERSION` を上げただけでは、monopo の CI は
+#          ピン留めした旧 SHA のワークフロー（旧 actionlint）を実行し続ける。
+#     A-4. CI（pre-commit / actionlint）と pre-commit の双方が通ることを確認して
+#          マージし、Issue #601 をクローズする
+#
+#   分岐 B: `$/` エラーが残る = 新版に上流対応が入っていない
+#     B-1. 退避した本ファイルを元に戻す
+#     B-2. 手順 1 の entry 更新だけを載せて Dependabot PR をマージする。
+#          `groups.hooks.patterns: ['*']` で pre-commit の更新は 1 PR にまとまるため、
+#          放置すると `$/` と無関係なフック更新まで止まる。
+#     B-3. Issue #601 はクローズせず、次のリリースを待つ
 paths:
   .github/workflows/**:
     ignore:
