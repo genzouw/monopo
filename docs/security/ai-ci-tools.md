@@ -119,6 +119,10 @@ PR作成時にプロンプトへの変更（`prompts/**`）が含まれている
 2. **Secrets の信頼範囲について**
    - 評価にAPIキー等のSecretsを使用しないため、フォーク由来のPRであっても同一リポジトリ由来のPRと同じ評価結果が得られます。
 
+3. **`redteam`（LLM脆弱性診断）を設けない判断（Refs #460, #642）**
+   - monopo 本体（ボードゲームWebアプリ）はランタイムで LLM を一切呼ばず、評価対象の `sample-prompt.json` も CI 疎通確認用でユーザー入力を受け取らないため、診断すべき攻撃面がアプリ側に存在しません。
+   - CI 上で LLM を利用する `.github/workflows/local-ai-*.yml` 側のプロンプトインジェクション対策は別途対応済みです（Refs #642）。
+
 ## 更新: AI Tech News Digest の設定
 
 AI・自動化トレンドダイジェストを生成する `.github/workflows/ai-tech-news-digest.yml` において、Tavily Search API の `topic: 'news'` と `days: 7` パラメータを追加し、より最新の技術ニュースに特化して情報を取得できるように最適化しました。
