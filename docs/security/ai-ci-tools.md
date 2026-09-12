@@ -38,7 +38,7 @@ Issue から自動でコード変更・PRを生成する Sweep AI GitHub App 向
 - 公式サイト [sweep.dev](https://sweep.dev) および GitHub リポジトリ [`sweepai/sweep`](https://github.com/sweepai/sweep) の説明は「AI coding assistant for JetBrains」に変更されており、GitHub App への言及がありません。
 - ドキュメントサイト `https://docs.sweep.dev/` は HTTP 402 (Payment Required) を返し、閲覧できません。
 - `sweepai/sweep` リポジトリへの最終 push は 2025-09-18 で、1年近く更新が止まっています。
-- [GitHub Marketplace のリスト](https://github.com/marketplace/sweep-ai) 自体は残っていますが、本リポジトリで Sweep が PR を作成した記録はなく（過去の全PRの作成者は `genzouw` と `dependabot` のみ）、`sweep.yaml` に記載していた `rules` が実際に評価された形跡はありません。`sweep.yaml` は GitHub App が直接読み込む設定ファイルで、リポジトリ内のワークフローやスクリプトからは参照されていません。
+- [GitHub Marketplace のリスト](https://github.com/marketplace/sweep-ai) 自体は残っていますが、本リポジトリで Sweep が PR を作成した記録、および `sweep.yaml` に記載していた `rules` が実際に評価された記録は見つかりませんでした（確認日: 2026-09-12、検索範囲: 過去の全PR作成者一覧〔`genzouw` と `dependabot` のみ〕、およびリポジトリ内のワークフロー・スクリプトからの `sweep.yaml` 参照有無。GitHub App 内部での実行ログは対象外）。`sweep.yaml` は GitHub App が直接読み込む設定ファイルで、リポジトリ内のワークフローやスクリプトからは参照されていません。
 
 本ツールは再導入しないでください。「Issue から PR を自動生成する」同種の自動化が必要になった場合は、以下をすべて満たすツールを改めて選定してください。
 
