@@ -40,7 +40,14 @@ Issue から自動でコード変更・PRを生成する Sweep AI GitHub App 向
 - `sweepai/sweep` リポジトリへの最終 push は 2025-09-18 で、1年近く更新が止まっています。
 - [GitHub Marketplace のリスト](https://github.com/marketplace/sweep-ai) 自体は残っていますが、本リポジトリで Sweep が PR を作成した記録はなく（過去の全PRの作成者は `genzouw` と `dependabot` のみ）、`sweep.yaml` に記載していた `rules` が実際に評価された形跡はありません。`sweep.yaml` は GitHub App が直接読み込む設定ファイルで、リポジトリ内のワークフローやスクリプトからは参照されていません。
 
-本ツールは再導入しないでください。「Issue から PR を自動生成する」同種の自動化が必要になった場合は、稼働が確認できる完全無料のツールを改めて選定してください。
+本ツールは再導入しないでください。「Issue から PR を自動生成する」同種の自動化が必要になった場合は、以下をすべて満たすツールを改めて選定してください。
+
+- 完全無料で稼働が確認できること
+- セキュリティレビュー・管理者承認を経ていること
+- 付与する権限が最小権限に限定されていること
+- 本リポジトリのAction許可リスト（`Settings > Actions > General > Allow select actions and reusable workflows`）に事前登録されていること
+- 参照先（GitHub Action・GitHub App等）が可変ブランチ参照ではなく固定（40桁コミットSHA等）されていること
+- 送信するデータの取扱いと保持期間が記録・確認されていること
 
 ## RepomixによるAI向けコンテキストパックの設定
 
