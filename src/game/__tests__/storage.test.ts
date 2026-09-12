@@ -457,6 +457,28 @@ describe('saveSetupConfig / loadSetupConfig', () => {
     expect(loaded?.features).toEqual({ loan: true });
   });
 
+  // Phase 3-a 拡張: creditScore フラグの保存・復元
+  it('features.creditScore を保存して復元できる', () => {
+    saveSetupConfig({
+      ...validConfig,
+      features: { creditScore: true },
+    });
+    const loaded = loadSetupConfig();
+    expect(loaded?.features).toEqual({ creditScore: true });
+  });
+
+  it('features.creditScore の非 boolean な値は読み込み時に破棄される', () => {
+    localStorage.setItem(
+      SETUP_KEY,
+      JSON.stringify({
+        ...validConfig,
+        features: { creditScore: 'yes' },
+      }),
+    );
+    const loaded = loadSetupConfig();
+    expect(loaded?.features).toEqual({});
+  });
+
   it('features の複数フラグを同時に保存・復元できる', () => {
     saveSetupConfig({
       ...validConfig,
@@ -466,6 +488,7 @@ describe('saveSetupConfig / loadSetupConfig', () => {
         macroEconomy: false,
         progressiveTax: true,
         loan: true,
+        creditScore: true,
       },
     });
     const loaded = loadSetupConfig();
@@ -475,6 +498,7 @@ describe('saveSetupConfig / loadSetupConfig', () => {
       macroEconomy: false,
       progressiveTax: true,
       loan: true,
+      creditScore: true,
     });
   });
 });
