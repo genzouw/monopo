@@ -91,3 +91,7 @@ Vite / React 系のモダンな技術スタックにおいて利用頻度が高�
 ### CodeQL による GitHub Actions のコードスキャン
 
 CI 検知・定期監査の強化として、`.github/workflows/codeql.yml` にて `actions` 言語をスキャン対象に追加しています。これにより、GitHub Actions ワークフロー内の潜在的なセキュリティリスク（式インジェクション、信頼できない入力の不適切な処理など）を、データフロー解析を用いて自動検出します。既存の `actionlint` や `zizmor` と組み合わせることで、CI スクリプト経由の漏洩・インジェクションに対する多層防御を実現しています。検知結果は GitHub の Security タブの Code scanning alerts に集約される形式であり、現時点では `main` ブランチの必須ステータスチェックには含まれていないため、マージをブロックするゲートではありません。
+
+### Dependency Review による CI 検知
+
+GitHub 公式の `dependency-review-action` を利用し、PR の段階で新たに追加される依存関係に既知の脆弱性が含まれていないかを自動でレビュー・ブロックする仕組みを導入しています。これにより、既存の定期スキャン (OSV-Scanner, Trivy, Scorecard) による事後検知を補完し、脆弱な依存関係が main ブランチへマージされることを水際で防ぐ多層防御を実現しています。
