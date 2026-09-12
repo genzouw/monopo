@@ -31,14 +31,6 @@ SAST/SCA/Secretsスキャンを自動実行する `.github/workflows/codeant-ci-
 `ACCESS_TOKEN_GITHUB` 未設定時にスキャンをスキップする分岐を用意していても、GitHub Actions は許可リスト判定をワークフロー起動前に静的に行うため、この分岐は効果がありませんでした。
 再導入する場合は、リポジトリ管理者が `Settings > Actions > General > Allow select actions and reusable workflows` にて `CodeAnt-AI/codeant-ci-scan-action` を許可リストに追加した上で対応してください（同種の事例として「削除: AI Codeball PR Approver について」を参照）。
 
-## PR-Agentの設定（既存）
-
-`.pr_agent.toml` での類似Issue/PR検索機能を利用するためには、以下の手動設定が必要です。
-
-1. **GitHub Secretsの設定**
-   - ベクターデータベース（Pinecone等）を利用する場合、GitHubのリポジトリの Settings > Secrets and variables > Actions にて、`PINECONE_API_KEY` をシークレットとして登録してください。
-   - `OPENAI_KEY` 等の必要なLLMのAPIキーも同様に登録されていることを確認してください。
-
 ## RepomixによるAI向けコンテキストパックの設定
 
 `repomix.config.json` にて、コードベース全体をAI（LLM等）が読み込みやすい単一ファイルにパックするための設定を行いました。

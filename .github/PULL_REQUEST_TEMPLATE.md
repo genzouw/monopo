@@ -56,7 +56,6 @@
 例:
 - [ ] CodeRabbit GitHub App のインストール
 - [ ] Sweep AI GitHub App のインストール
-- [ ] Qodo Merge GitHub App のインストール
 -->
 
 ## コスト方針のセルフチェック (公開 OSS)
