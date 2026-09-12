@@ -31,6 +31,17 @@ SAST/SCA/Secretsスキャンを自動実行する `.github/workflows/codeant-ci-
 `ACCESS_TOKEN_GITHUB` 未設定時にスキャンをスキップする分岐を用意していても、GitHub Actions は許可リスト判定をワークフロー起動前に静的に行うため、この分岐は効果がありませんでした。
 再導入する場合は、リポジトリ管理者が `Settings > Actions > General > Allow select actions and reusable workflows` にて `CodeAnt-AI/codeant-ci-scan-action` を許可リストに追加した上で対応してください（同種の事例として「削除: AI Codeball PR Approver について」を参照）。
 
+## 削除: Sweep AI について
+
+Issue から自動でコード変更・PRを生成する Sweep AI GitHub App 向けの設定ファイル `sweep.yaml`（プロジェクト規約を `rules` として列挙）を配置していましたが、Sweep が GitHub App から JetBrains IDE 向けプラグインへ事業転換しており、GitHub App としてのサービスは実質的に提供終了しているため削除しました（Refs #576）。
+
+- 公式サイト [sweep.dev](https://sweep.dev) および GitHub リポジトリ [`sweepai/sweep`](https://github.com/sweepai/sweep) の説明は「AI coding assistant for JetBrains」に変更されており、GitHub App への言及がありません。
+- ドキュメントサイト `https://docs.sweep.dev/` は HTTP 402 (Payment Required) を返し、閲覧できません。
+- `sweepai/sweep` リポジトリへの最終 push は 2025-09-18 で、1年近く更新が止まっています。
+- [GitHub Marketplace のリスト](https://github.com/marketplace/sweep-ai) 自体は残っていますが、本リポジトリで Sweep が PR を作成した記録はなく（過去の全PRの作成者は `genzouw` と `dependabot` のみ）、`sweep.yaml` に記載していた `rules` が実際に評価された形跡はありません。`sweep.yaml` は GitHub App が直接読み込む設定ファイルで、リポジトリ内のワークフローやスクリプトからは参照されていません。
+
+本ツールは再導入しないでください。「Issue から PR を自動生成する」同種の自動化が必要になった場合は、稼働が確認できる完全無料のツールを改めて選定してください。
+
 ## RepomixによるAI向けコンテキストパックの設定
 
 `repomix.config.json` にて、コードベース全体をAI（LLM等）が読み込みやすい単一ファイルにパックするための設定を行いました。

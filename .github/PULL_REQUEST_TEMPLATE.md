@@ -55,7 +55,6 @@
 新しく追加した AI ツールや CI/CD サービスに手動のセットアップ（API キーや GitHub Secrets の登録など）が必要な場合、マージする前に以下に記載してください。
 例:
 - [ ] CodeRabbit GitHub App のインストール
-- [ ] Sweep AI GitHub App のインストール
 -->
 
 ## コスト方針のセルフチェック (公開 OSS)
