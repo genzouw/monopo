@@ -152,6 +152,8 @@ export function loadSetupConfig(): SetupConfig | null {
         f.progressiveTax = config.features.progressiveTax;
       if (typeof config.features.loan === 'boolean')
         f.loan = config.features.loan;
+      if (typeof config.features.creditScore === 'boolean')
+        f.creditScore = config.features.creditScore;
       features = f;
     }
     return {
