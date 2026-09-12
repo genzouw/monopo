@@ -154,6 +154,17 @@ jobs:
       - name: Run .gitleaks.toml custom rules regression test
         run: ./scripts/test-gitleaks-rules.sh
 
+  actionlint-pin-test:
+    name: actionlint Pin Consistency Regression Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Run check-actionlint-pin.sh regression test
+        run: ./scripts/test-check-actionlint-pin.sh
+
   audit:
     name: bun pm untrusted
     runs-on: ubuntu-latest
