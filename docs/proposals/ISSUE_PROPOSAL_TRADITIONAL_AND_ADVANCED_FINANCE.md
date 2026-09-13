@@ -9,7 +9,7 @@ labels: ['enhancement', 'proposal', 'game-design', 'game-mechanics']
 
 本提案は、従来の「モノポリー」や「いただきストリート」といった伝統的な資産運用ゲームの優れたシステムを当サービスに取り入れつつ、それを現代の複雑な金融資本主義のレベルへと昇華させる「超現実的マネーゲーム・教育機能」の追加提案です。
 
-> 📎 **関連提案との整合性:** 本書の「空売り・信用取引」「敵対的買収とポイズンピル」「タックスヘイブン」は、`ISSUE_PROPOSAL_ADVANCED_STOCK_SYSTEM.md` に数値付きで定義済みのため、実装時に参照する正規仕様は同書とします。「マクロ経済と政策金利」のうち景気サイクル部分は `src/game/systems/macroEconomy.ts` の `ECONOMY_FACTORS`/`ECONOMY_TRANSITION_MATRIX` として実装済みのため、本書はこれを置き換えません。「ESG投資とカーボンクレジット」は `docs/proposals/ISSUE_PROPOSAL_ADVANCED_MONEY_GAME.md` など既存の複数提案書にも既出のため、本書固有の新規性は「CBDC」および上記要素の組み合わせ方に限定します。
+> 📎 **関連提案との整合性:** 本書の「空売り・信用取引」「敵対的買収とポイズンピル」「タックスヘイブン」は、`ISSUE_PROPOSAL_ADVANCED_STOCK_SYSTEM.md`（リポジトリ直下）に数値付きで定義済みのため、実装時に参照する正規仕様は同書とします。「マクロ経済と政策金利」のうち景気サイクル部分は `src/game/systems/macroEconomy.ts` の `ECONOMY_FACTORS`/`ECONOMY_TRANSITION_MATRIX` として実装済みのため、本書はこれを置き換えません。「ESG投資とカーボンクレジット」は `docs/proposals/ISSUE_PROPOSAL_ADVANCED_MONEY_GAME.md` など既存の複数提案書にも既出のため、本書固有の新規性は「CBDC」および上記要素の組み合わせ方に限定します。
 
 具体的には以下の要素を導入します。
 
