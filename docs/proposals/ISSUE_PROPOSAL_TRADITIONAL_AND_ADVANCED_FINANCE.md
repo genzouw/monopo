@@ -9,7 +9,7 @@ labels: ['enhancement', 'proposal', 'game-design', 'game-mechanics']
 
 本提案は、従来の「モノポリー」や「いただきストリート」といった伝統的な資産運用ゲームの優れたシステムを当サービスに取り入れつつ、それを現代の複雑な金融資本主義のレベルへと昇華させる「超現実的マネーゲーム・教育機能」の追加提案です。
 
-> 📎 **関連提案との整合性:** 本書の「空売り・信用取引」「敵対的買収とポイズンピル」「タックスヘイブン」は、`ISSUE_PROPOSAL_ADVANCED_STOCK_SYSTEM.md`（リポジトリ直下）に数値付きで定義済みのため、実装時に参照する正規仕様は同書とします。「マクロ経済と政策金利」のうち景気サイクル部分は `src/game/systems/macroEconomy.ts` の `ECONOMY_FACTORS`/`ECONOMY_TRANSITION_MATRIX` として実装済みのため、本書はこれを置き換えません。「CBDC（中央銀行デジタル通貨）」は `ISSUE_PROPOSAL_TRADITIONAL_AND_MODERN_MECHANICS.md` の「プログラマブル・マネー（有効期限付き通貨）とマイナス金利」に定義済みのため、実装時に参照する正規仕様は同書とします。なお `ISSUE_PROPOSAL_TRADITIONAL_AND_MODERN_MECHANICS.md` 自身の「🔗 関連提案との整合性」注記は同項目の正規仕様を `ISSUE_PROPOSAL_ADVANCED_MONEY_GAME.md` に委ねていますが、同書にはCBDC・プログラマブル・マネー・マイナス金利に関する記述が実在しないため、この点で両書の委譲注記は食い違っています。定義が実在するのは `ISSUE_PROPOSAL_TRADITIONAL_AND_MODERN_MECHANICS.md` 自身であるため、本書はこの矛盾を踏まえてもなお同書を正規仕様として参照します（`ISSUE_PROPOSAL_TRADITIONAL_AND_MODERN_MECHANICS.md` 側の委譲注記の訂正は別途対応とします）。「デリバティブ（オプション取引）」は `docs/proposals/ISSUE_PROPOSAL_COMPREHENSIVE_ECONOMIC_SIMULATION.md` の「金融派生商品（デリバティブ）とヘッジ」に定義済みのため、実装時に参照する正規仕様は同書とします。「ESG投資とカーボンクレジット」は `docs/proposals/ISSUE_PROPOSAL_ADVANCED_MONEY_GAME.md` など既存の複数提案書にも既出のため、本書固有の新規性は、個別要素ではなく、既存の伝統的機能と次世代金融機能をひとつのモードとして組み合わせる構成そのものに限定します。
+> 📎 **関連提案との整合性:** 本書の「空売り・信用取引」「敵対的買収とポイズンピル」「タックスヘイブン」は、`ISSUE_PROPOSAL_ADVANCED_STOCK_SYSTEM.md`（リポジトリ直下）に数値付きで定義済みのため、実装時に参照する正規仕様は同書とします。「マクロ経済と政策金利」のうち景気サイクル部分は `src/game/systems/macroEconomy.ts` の `ECONOMY_FACTORS`/`ECONOMY_TRANSITION_MATRIX` として実装済みのため、本書はこれを置き換えません。「CBDC（中央銀行デジタル通貨）」は `ISSUE_PROPOSAL_TRADITIONAL_AND_MODERN_MECHANICS.md` の「プログラマブル・マネー（有効期限付き通貨）とマイナス金利」に定義済みのため、実装時に参照する正規仕様は同書とします。なお `ISSUE_PROPOSAL_TRADITIONAL_AND_MODERN_MECHANICS.md` 自身の「🔗 関連提案との整合性」注記は同項目の正規仕様を `ISSUE_PROPOSAL_ADVANCED_MONEY_GAME.md` に委ねていますが、同書にはCBDC・プログラマブル・マネー・マイナス金利に関する記述が実在しないため、この点で両書の委譲注記は食い違っています。定義が実在するのは `ISSUE_PROPOSAL_TRADITIONAL_AND_MODERN_MECHANICS.md` 自身であるため、本書はこの矛盾を踏まえてもなお同書を正規仕様として参照します（`ISSUE_PROPOSAL_TRADITIONAL_AND_MODERN_MECHANICS.md` 側の委譲注記の訂正は別途対応とします）。「デリバティブ（オプション取引）」は `docs/proposals/ISSUE_PROPOSAL_COMPREHENSIVE_ECONOMIC_SIMULATION.md` の「金融派生商品（デリバティブ）とヘッジ」に定義済みのため、実装時に参照する正規仕様は同書とします。「ESG投資とカーボンクレジット」は `docs/proposals/ISSUE_PROPOSAL_ADVANCED_MONEY_GAME.md` の「ESG投資と排出権取引」（排出枠の保有・償却と排出削減クレジットの発行・販売を別資産として扱うモデル）に定義済みのため、実装時に参照する正規仕様は同書とし、`ISSUE_PROPOSAL_EDUCATIONAL_ASSET_MANAGEMENT.md` のESGスコア・環境税・補助金モデルは採用しません。本書固有の新規性は、個別要素ではなく、既存の伝統的機能と次世代金融機能をひとつのモードとして組み合わせる構成そのものに限定します。
 
 具体的には以下の要素を導入します。
 
@@ -19,7 +19,7 @@ labels: ['enhancement', 'proposal', 'game-design', 'game-mechanics']
    - **マクロ経済と中央銀行システム**: 政策金利の変動（金融緩和・引き締め）、CBDC（中央銀行デジタル通貨）による資金管理。
    - **タックスヘイブンと監査リスク**: 利益をタックスヘイブン（ペーパーカンパニー）へ移転し節税する機能と、国税庁（ゲーム内監査イベント）による摘発リスク。
    - **敵対的買収と防衛策（ポイズンピル）**: 市場を通じた大規模な株の買い占めと、それに対する防衛策。
-   - **ESG投資とカーボンクレジット**: 環境配慮エリアへの投資による優遇措置や、炭素排出枠の取引。
+   - **ESG投資とカーボンクレジット**: 環境負荷の高いエリアの所有者に課される排出枠の購入義務と、環境配慮エリアの所有者による排出削減クレジットの発行・販売（`ISSUE_PROPOSAL_ADVANCED_MONEY_GAME.md` 準拠）。
 
 ### ⚙️ ゲーム内での具体的なメカニクス (How)
 
