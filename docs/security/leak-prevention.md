@@ -200,5 +200,7 @@ Vite では `VITE_` から始まる環境変数が、Next.js では `NEXT_PUBLIC
 
 ### CI 実行時のネットワークエグレス監視 (Harden Runner)
 
-CI (GitHub Actions) 実行中に、悪意のあるサードパーティ Action や npm 依存パッケージによる不正な外部ネットワーク通信（シークレットの外部送信などのサプライチェーン攻撃）を防ぐため、`step-security/harden-runner` を導入しています。
-現在は `audit` モードで動作しており、予期せぬエンドポイントへの通信を監視・記録しています。通信ログが安定した後に `block` モードへの移行を検討します。
+悪意のあるサードパーティ Action や npm 依存パッケージによる不正な外部ネットワーク通信（シークレットの外部送信などのサプライチェーン攻撃）を防ぐため、`step-security/harden-runner` を導入しています。
+現在は `deploy.yml` の `build` / `deploy` ジョブにのみ導入しており、`audit` モードで動作させて予期せぬエンドポイントへの通信を監視・記録しています。通信ログが安定した後に `block` モードへの移行を検討します。
+
+`ci.yml`（`pull_request` トリガーで動作し、外部からの PR も含めて `bun install` を実行する `lint` / `format` / `typecheck` / `build` / `test` 等の各ジョブ）には未導入です。`ci.yml` は依存関係インストール時の攻撃対象範囲が広く、優先度の高い展開候補として今後の課題です。
