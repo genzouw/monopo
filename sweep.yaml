@@ -1,0 +1,9 @@
+gha_enabled: True
+branch: main
+blocked_dirs: ['node_modules', 'dist', 'build']
+draft: False
+description: "monopo is a React + TypeScript + Vite web-based board game. We use bun for package management and vitest for testing. UI text, documentation, and comments must be in Japanese. The project name 'monopo' must be used."
+rules:
+  - 'All new business logic should have corresponding unit tests.'
+  - 'Use bun run format to format code.'
+  - 'UI text and documentation must be in Japanese.'
