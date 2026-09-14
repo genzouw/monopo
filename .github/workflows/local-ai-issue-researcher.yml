@@ -37,7 +37,7 @@ jobs:
           ISSUE_TITLE: ${{ github.event.issue.title }}
         run: |
           python3 -c "
-          from duckduckgo_search import DDGS
+          from ddgs import DDGS
           import json
           import os
           import secrets
