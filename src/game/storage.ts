@@ -7,6 +7,16 @@ import {
   RAW_LENGTH_LIMIT_MULTIPLIER,
 } from './types';
 
+/**
+ * `JSON.parse` の reviver として使用し、`__proto__` / `constructor` キーを
+ * 除去することでプロトタイプ汚染（Prototype Pollution）を防ぐ。
+ * localStorage の内容は信頼できない入力として扱い、これらのキーを持つ
+ * ペイロードが読み込まれても `Object.prototype` 等が汚染されないようにする。
+ *
+ * @param key - パース中のプロパティキー
+ * @param value - パース中のプロパティ値
+ * @returns 危険なキー（`__proto__` / `constructor`）の場合は `undefined`、それ以外はそのまま`value`
+ */
 function safeJsonReviver(key: string, value: unknown) {
   if (key === '__proto__' || key === 'constructor') {
     return undefined;
