@@ -7,6 +7,13 @@ import {
   RAW_LENGTH_LIMIT_MULTIPLIER,
 } from './types';
 
+function safeJsonReviver(key: string, value: unknown) {
+  if (key === '__proto__' || key === 'constructor') {
+    return undefined;
+  }
+  return value;
+}
+
 const STORAGE_KEY = 'monopo-save';
 const SETUP_KEY = 'monopo-setup';
 const LEGACY_STORAGE_KEY = 'monopoly-save';
@@ -57,7 +64,7 @@ export function loadGame(): GameState | null {
   try {
     const saved = readWithLegacyFallback(STORAGE_KEY, LEGACY_STORAGE_KEY);
     if (!saved) return null;
-    const state = JSON.parse(saved) as GameState;
+    const state = JSON.parse(saved, safeJsonReviver) as GameState;
     // Security Enhancement: Validate structure to prevent prototype pollution or crashes from malformed data
     if (
       !state ||
@@ -111,7 +118,7 @@ export function loadSetupConfig(): SetupConfig | null {
   try {
     const saved = readWithLegacyFallback(SETUP_KEY, LEGACY_SETUP_KEY);
     if (!saved) return null;
-    const config = JSON.parse(saved) as Partial<SetupConfig>;
+    const config = JSON.parse(saved, safeJsonReviver) as Partial<SetupConfig>;
     if (
       typeof config.playerCount !== 'number' ||
       config.playerCount < MIN_PLAYERS ||
