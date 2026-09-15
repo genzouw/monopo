@@ -212,13 +212,16 @@ describe('saveGame / loadGame', () => {
       expect(Object.prototype.hasOwnProperty.call(loaded, '__proto__')).toBe(
         false,
       );
+      expect(Object.prototype.hasOwnProperty.call(loaded, 'constructor')).toBe(
+        false,
+      );
     });
 
-    it('ネストしたプレイヤーオブジェクト内の__proto__ペイロードもObject.prototypeを汚染しない', () => {
+    it('ネストしたプレイヤーオブジェクト内の__proto__/constructorペイロードも除去される', () => {
       const base = createPlayingState();
       const player = base.players[0];
       const rawPlayer = JSON.stringify(player);
-      const pollutedPlayer = `${rawPlayer.slice(0, -1)},"__proto__":{"polluted":true}}`;
+      const pollutedPlayer = `${rawPlayer.slice(0, -1)},"__proto__":{"polluted":true},"constructor":{"prototype":{"polluted2":true}}}`;
       const polluted = JSON.stringify(base).replace(rawPlayer, pollutedPlayer);
       localStorage.setItem(STORAGE_KEY, polluted);
 
@@ -228,7 +231,16 @@ describe('saveGame / loadGame', () => {
       expect(
         (Object.prototype as Record<string, unknown>).polluted,
       ).toBeUndefined();
+      expect(
+        (Object.prototype as Record<string, unknown>).polluted2,
+      ).toBeUndefined();
       expect(Object.getPrototypeOf(loaded?.players[0])).toBe(Object.prototype);
+      expect(
+        Object.prototype.hasOwnProperty.call(loaded?.players[0], '__proto__'),
+      ).toBe(false);
+      expect(
+        Object.prototype.hasOwnProperty.call(loaded?.players[0], 'constructor'),
+      ).toBe(false);
     });
   });
 });
