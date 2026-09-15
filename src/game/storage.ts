@@ -7,6 +7,23 @@ import {
   RAW_LENGTH_LIMIT_MULTIPLIER,
 } from './types';
 
+/**
+ * `JSON.parse` の reviver として使用し、`__proto__` / `constructor` キーを
+ * 除去することでプロトタイプ汚染（Prototype Pollution）を防ぐ。
+ * localStorage の内容は信頼できない入力として扱い、これらのキーを持つ
+ * ペイロードが読み込まれても `Object.prototype` 等が汚染されないようにする。
+ *
+ * @param key - パース中のプロパティキー
+ * @param value - パース中のプロパティ値
+ * @returns 危険なキー（`__proto__` / `constructor`）の場合は `undefined`、それ以外はそのまま`value`
+ */
+function safeJsonReviver(key: string, value: unknown) {
+  if (key === '__proto__' || key === 'constructor') {
+    return undefined;
+  }
+  return value;
+}
+
 const STORAGE_KEY = 'monopo-save';
 const SETUP_KEY = 'monopo-setup';
 const LEGACY_STORAGE_KEY = 'monopoly-save';
@@ -57,7 +74,7 @@ export function loadGame(): GameState | null {
   try {
     const saved = readWithLegacyFallback(STORAGE_KEY, LEGACY_STORAGE_KEY);
     if (!saved) return null;
-    const state = JSON.parse(saved) as GameState;
+    const state = JSON.parse(saved, safeJsonReviver) as GameState;
     // Security Enhancement: Validate structure to prevent prototype pollution or crashes from malformed data
     if (
       !state ||
@@ -111,7 +128,7 @@ export function loadSetupConfig(): SetupConfig | null {
   try {
     const saved = readWithLegacyFallback(SETUP_KEY, LEGACY_SETUP_KEY);
     if (!saved) return null;
-    const config = JSON.parse(saved) as Partial<SetupConfig>;
+    const config = JSON.parse(saved, safeJsonReviver) as Partial<SetupConfig>;
     if (
       typeof config.playerCount !== 'number' ||
       config.playerCount < MIN_PLAYERS ||
