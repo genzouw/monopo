@@ -183,6 +183,54 @@ describe('saveGame / loadGame', () => {
     expect(() => saveGame(createPlayingState())).not.toThrow();
     spy.mockRestore();
   });
+
+  // セキュリティ回帰テスト: safeJsonReviverによる__proto__/constructorキーの除去
+  describe('プロトタイプ汚染対策（safeJsonReviver）', () => {
+    afterEach(() => {
+      // 万一テストが汚染を検出できず失敗した場合でも、他テストへの汚染波及を防ぐ
+      delete (Object.prototype as Record<string, unknown>).polluted;
+      delete (Object.prototype as Record<string, unknown>).polluted2;
+    });
+
+    it('トップレベルの__proto__/constructorペイロードはObject.prototypeを汚染しない', () => {
+      const base = createPlayingState();
+      const raw = JSON.stringify(base);
+      // 末尾の `}` の直前に、悪意ある __proto__ / constructor キーを注入する
+      const polluted = `${raw.slice(0, -1)},"__proto__":{"polluted":true},"constructor":{"prototype":{"polluted2":true}}}`;
+      localStorage.setItem(STORAGE_KEY, polluted);
+
+      const loaded = loadGame();
+
+      expect(loaded).not.toBeNull();
+      expect(
+        (Object.prototype as Record<string, unknown>).polluted,
+      ).toBeUndefined();
+      expect(
+        (Object.prototype as Record<string, unknown>).polluted2,
+      ).toBeUndefined();
+      expect(Object.getPrototypeOf(loaded)).toBe(Object.prototype);
+      expect(Object.prototype.hasOwnProperty.call(loaded, '__proto__')).toBe(
+        false,
+      );
+    });
+
+    it('ネストしたプレイヤーオブジェクト内の__proto__ペイロードもObject.prototypeを汚染しない', () => {
+      const base = createPlayingState();
+      const player = base.players[0];
+      const rawPlayer = JSON.stringify(player);
+      const pollutedPlayer = `${rawPlayer.slice(0, -1)},"__proto__":{"polluted":true}}`;
+      const polluted = JSON.stringify(base).replace(rawPlayer, pollutedPlayer);
+      localStorage.setItem(STORAGE_KEY, polluted);
+
+      const loaded = loadGame();
+
+      expect(loaded).not.toBeNull();
+      expect(
+        (Object.prototype as Record<string, unknown>).polluted,
+      ).toBeUndefined();
+      expect(Object.getPrototypeOf(loaded?.players[0])).toBe(Object.prototype);
+    });
+  });
 });
 
 describe('legacy key migration', () => {
