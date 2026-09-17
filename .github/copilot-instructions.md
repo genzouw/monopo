@@ -63,8 +63,6 @@
 
 - Claude Code や OpenCode といった最新のAIコーディングツールを活用する際は、意図しない破壊的変更を避けるため、プレビュー機能を活用して差分を確認しながら適用してください。
 
-- Issue駆動型のAIコーディングアシスタントとして **Sweep AI** (`sweep.yaml`) を導入しています。無料で公開リポジトリにて利用可能です。
-
 - ローカルAIエージェントやAI-native IDE（Windsurf, Trae, Aider, Cline, Roo Code, Continue.devなど）を利用する際は、リポジトリ固有のルールを遵守し、作業ディレクトリ（`.aider*`、`.continue/`、`.windsurf`、`.roo/`、`.trae/` など）をコミットしないように注意してください。
 - 本リポジトリには過去に GitHub Models (gpt-4o-mini) を利用した自作の AI PR Reviewer を試験導入していましたが、**現在は稼働していません。**
   - ⚠️ **本節の GitHub Models 依存ワークフローは上記「最重要原則」に適合していません。** GitHub Models は 2026-07-30 に[提供終了](https://github.blog/changelog/2026-07-30-github-models-is-now-retired/)しており推論 API 自体が存在しません。また `TAVILY_API_KEY` は従量課金の検索 API キーであり CI 組み込みは禁止です。**このワークフローは実行禁止・廃止済みであり、再開・移行・再導入してはいけません**（撤去は別 PR で対応予定）。
