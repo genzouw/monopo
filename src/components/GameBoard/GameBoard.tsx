@@ -436,6 +436,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           board={state.board}
           propertyStates={state.propertyStates}
           players={displayPlayers}
+          playersById={playersById}
           onSpaceClick={handleSpaceClick}
           overlay={economyElement}
         >
