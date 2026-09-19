@@ -15,6 +15,7 @@ type MiniMapProps = {
   overlay?: React.ReactNode;
 };
 
+// ⚡ Bolt: getGridPosition の呼び出しごとに { row, col } を新規生成しないよう、モジュール読み込み時に一度だけ計算しておく。
 const GRID_POSITIONS = Array.from({ length: 40 }, (_, i) => {
   if (i <= 10) return { row: 11, col: 11 - i };
   if (i <= 20) return { row: 11 - (i - 10), col: 1 };
