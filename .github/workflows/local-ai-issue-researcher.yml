@@ -91,7 +91,7 @@ jobs:
 
       - name: Generate Research Report with Local Ollama
         id: generate-report
-        uses: $/.github/actions/ollama-generate
+        uses: ./.github/actions/ollama-generate
         with:
           prompt: ${{ steps.build-prompt.outputs.result }}
 

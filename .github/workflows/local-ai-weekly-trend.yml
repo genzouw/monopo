@@ -61,7 +61,7 @@ jobs:
 
       - name: Generate Trend Report with Local Ollama
         id: generate-report
-        uses: $/.github/actions/ollama-generate
+        uses: ./.github/actions/ollama-generate
         with:
           # 検索結果は外部サイトが自由に制御できる信頼できないデータ。
           # 明確な区切り（データセクション）に隔離し、命令として解釈しないようプロンプトで明示する。
