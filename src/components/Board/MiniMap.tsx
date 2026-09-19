@@ -22,6 +22,11 @@ const GRID_POSITIONS = Array.from({ length: 40 }, (_, i) => {
   return { row: i - 30 + 1, col: 11 };
 });
 
+/**
+ * 盤面上の位置インデックスから、ミニマップ表示用の行・列を返す。
+ * @param position - 盤面上の位置（0〜39）
+ * @returns ミニマップのグリッド座標
+ */
 function getGridPosition(position: number): { row: number; col: number } {
   return GRID_POSITIONS[position] ?? { row: 11, col: 11 };
 }
@@ -29,6 +34,10 @@ function getGridPosition(position: number): { row: number; col: number } {
 // Single shared reference for empty spaces — keeps MemoizedMiniSpace props referentially equal, allowing React.memo to skip re-renders.
 const EMPTY_PLAYERS: readonly Player[] = [];
 
+/**
+ * 盤面全体を縮小表示するミニマップ。
+ * `playersById` が渡された場合は、そのまま外部辞書を参照して各マスの所有者プレイヤーを解決する（内部で辞書を再構築しない）。
+ */
 const MiniMap = memo(function MiniMap({
   board,
   propertyStates,
