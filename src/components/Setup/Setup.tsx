@@ -115,8 +115,10 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
     // サロゲートペアを考慮し、余裕を持たせた文字数（MAX_NAME_LENGTH * RAW_LENGTH_LIMIT_MULTIPLIER）を上限とする
     if (name.length > MAX_NAME_LENGTH * RAW_LENGTH_LIMIT_MULTIPLIER) return;
     if ([...name].length > MAX_NAME_LENGTH) return;
+    // eslint-disable-next-line no-control-regex
+    const sanitized = name.replace(/[\x00-\x1F\x7F]/g, '');
     const newNames = [...names];
-    newNames[index] = name;
+    newNames[index] = sanitized;
     setNames(newNames);
   };
 
