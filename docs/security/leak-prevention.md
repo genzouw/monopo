@@ -200,5 +200,7 @@ Vite では `VITE_` から始まる環境変数が、Next.js では `NEXT_PUBLIC
 
 ### CI 実行時のネットワークエグレス監視 (Harden Runner)
 
+追記: `codeql.yml`, `dependency-review.yml`, `sbom.yml`, `license-compliance.yml`, `scorecard.yml` にもHarden Runnerを追加しました。
+
 悪意のあるサードパーティ Action や npm 依存パッケージによる不正な外部ネットワーク通信（シークレットの外部送信などのサプライチェーン攻撃）を検知・記録するため、`step-security/harden-runner` を導入しています。
 現在は `deploy.yml` および `ci.yml` に加え、`secretlint.yml`, `trufflehog.yml`, `osv-scanner.yml`, `pre-commit.yml` などのセキュリティスキャン用ワークフローにも導入しており、`audit` モードで動作させて予期せぬエンドポイントへの通信を監視・記録しています。通信ログが安定した後に `block` モードへの移行を検討します。
