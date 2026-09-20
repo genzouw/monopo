@@ -83,7 +83,17 @@ export function loadGame(): GameState | null {
       !Array.isArray(state.players) ||
       state.players.length < MIN_PLAYERS ||
       state.players.length > MAX_PLAYERS ||
-      !state.players.every((p) => p !== null && typeof p === 'object')
+      !state.players.every(
+        (p) =>
+          p !== null &&
+          typeof p === 'object' &&
+          'name' in p &&
+          typeof (p as Record<string, unknown>).name === 'string' &&
+          // eslint-disable-next-line no-control-regex
+          !/[\x00-\x1F\x7F]/.test(
+            (p as Record<string, unknown>).name as string,
+          ),
+      )
     ) {
       return null;
     }
@@ -142,7 +152,9 @@ export function loadSetupConfig(): SetupConfig | null {
           typeof n === 'string' &&
           // サロゲートペア分解によるDoSを防ぐための事前チェック（[...n]展開前に上限を絞る）
           n.length <= MAX_NAME_UNIT_LENGTH &&
-          [...n].length <= MAX_NAME_LENGTH,
+          [...n].length <= MAX_NAME_LENGTH &&
+          // eslint-disable-next-line no-control-regex
+          !/[\x00-\x1F\x7F]/.test(n),
       ) ||
       !config.tokens.every(
         (t) =>
