@@ -25,6 +25,16 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          # PRのマージref（PR作成者が自由に書き換え可能）ではなく、信頼できる
+          # base ref をチェックアウトする。ローカルAction参照は`./`（ワークスペース
+          # 相対）にしており、ここで取得したファイルシステムから
+          # ローカルAction（./.github/actions/ollama-generate）が解決されるため、
+          # base ref に固定しないとフォーク以外のPR作成者がAction本体を書き換えて
+          # pull-requests: write 権限下で任意コードを実行できてしまう（CWE-829）。
+          # `$/`自己リポジトリ構文はチェックアウト内容に関わらず実行中コミットから
+          # 直接解決されるため、この保護には使えない（`./`を使う必要がある）。
+          # PR差分自体は後続の Fetch PR Diff ステップでGitHub API経由から別途取得する。
+          ref: ${{ github.event.pull_request.base.sha }}
           persist-credentials: false
 
       - name: Skip Fork PR
@@ -63,7 +73,7 @@ jobs:
       - name: Generate AI Code Review with Local Ollama
         id: generate-review
         if: steps.fork-check.outputs.is_fork != 'true'
-        uses: $/.github/actions/ollama-generate
+        uses: ./.github/actions/ollama-generate # zizmor: ignore[self-repository] `$/`は実行中コミット（同一リポジトリPRではPRヘッド）から直接解決されbase.sha固定のcheckoutを迂回するため意図的に`./`を使用（CWE-829対策、詳細は上のCheckoutステップのコメント参照）
         with:
           # 差分は外部（PR作成者）が自由に制御できる信頼できないデータ。
           # 明確な区切りタグで隔離し、タグ内の指示に従わないようプロンプトで明示する。
