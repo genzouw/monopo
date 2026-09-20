@@ -71,9 +71,9 @@ export default function Dialog({
             className={styles.dialogCloseButton}
             onClick={onClose}
             aria-label="閉じる"
-            title="閉じる"
+            title="閉じる (Esc)"
           >
-            ✕
+            <span aria-hidden="true">✕</span>
           </button>
         )}
       </div>
