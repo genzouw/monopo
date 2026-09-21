@@ -193,7 +193,7 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
               : undefined
           }
         >
-          −
+          <span aria-hidden="true">−</span>
         </button>
         <span role="status">{playerCount}人であそぶ</span>
         <button
@@ -220,7 +220,7 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
               : undefined
           }
         >
-          ＋
+          <span aria-hidden="true">＋</span>
         </button>
       </div>
       {playerCount <= MIN_PLAYERS && (
@@ -262,7 +262,7 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
               aria-label={`${names[i] || DEFAULT_NAMES[i]}のコマを変更する（現在のコマ: ${selectedTokens[i]}）`}
               title={`${names[i] || DEFAULT_NAMES[i]}のコマを変更する（現在のコマ: ${selectedTokens[i]}）`}
             >
-              {selectedTokens[i]}
+              <span aria-hidden="true">{selectedTokens[i]}</span>
             </button>
             <input
               className={styles.nameInput}
