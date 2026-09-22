@@ -410,3 +410,11 @@ regexTarget = "match"
 regexes = [
     '''(?i)^(?:(?:VITE|NEXT_PUBLIC|EXPO_PUBLIC|NUXT_PUBLIC|GATSBY|REACT_APP|VUE_APP|NG_APP)_|PUBLIC_)(?:FIREBASE_AUTH_DOMAIN|FIREBASE_API_KEY)\b["']?[[:space:]]*[:=]'''
 ]
+
+[[rules]]
+id = "monopo-cloud-imds"
+description = "クラウドメタデータサービス (IMDS) エンドポイントのハードコード検知 (169.254.169.254, metadata.google.internal 等)"
+regex = '''(?i)\b(?:169\.254\.169\.254|metadata\.google\.internal|100\.100\.100\.200)\b'''
+tags = ["infrastructure", "imds", "cloud"]
+secretGroup = 0
+entropy = 0.0
