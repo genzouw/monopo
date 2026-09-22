@@ -151,3 +151,28 @@ updates:
           - '*'
     commit-message:
       prefix: 'chore'
+  # Python dependencies (pip)
+  - package-ecosystem: 'pip'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'Asia/Tokyo'
+    open-pull-requests-limit: 5
+    target-branch: 'main'
+    reviewers:
+      - 'genzouw'
+    labels:
+      - 'dependencies'
+      - 'python'
+    commit-message:
+      prefix: 'chore'
+    # zizmor の dependabot-cooldown 監査が 7 日以上を要求するため 7 を指定している
+    # （zizmor 未指定時は insufficient implicit default-days (less than 7) を検知）。
+    # 新規リリースを即座に取り込まず一定期間の検証期間を設けることで、
+    # サプライチェーン攻撃（悪意あるリリースの即時混入）のリスクを低減する。
+    # なお cooldown は version updates にのみ効き security updates には適用されないため、
+    # 脆弱性修正の取り込みが遅延することはない。
+    cooldown:
+      default-days: 7
