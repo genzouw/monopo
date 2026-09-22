@@ -418,3 +418,11 @@ regex = '''(?i)\b(?:169\.254\.169\.254|metadata\.google\.internal|100\.100\.100\
 tags = ["infrastructure", "imds", "cloud"]
 secretGroup = 0
 entropy = 0.0
+# 本リポジトリのセキュリティドキュメント (docs/security/) は、どのエンドポイントを
+# 検知対象にしているかを説明するために IMDS のアドレスそのものを本文へ記載する。
+# 同じ理由で monopo-internal-domain も docs/security/ を除外している。
+# これが無いと、ルールを追加した当のドキュメントを自ルールが検知して CI が常に失敗する。
+[rules.allowlist]
+paths = [
+    '''docs/security/'''
+]
