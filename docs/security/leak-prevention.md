@@ -128,6 +128,8 @@ CI の監査ワークフロー (`.github/workflows/permissions-audit.yml`) に�
 
 また、更新 PR の乱立によるアラート疲労を防ぐため、`github-actions` と `pre-commit` の**バージョン更新**はそれぞれ `groups` 設定（`applies-to: version-updates`）を用いて単一の PR にまとめて通知されるよう構成しています。一方、**セキュリティ更新**（脆弱性修正）はグループ化の対象外で、Dependabot が従来どおり個別の PR として即時に作成します。これにより、脆弱性修正が他のバージョン更新の検証待ちでブロックされることなく、遅滞なく取り込めるようにしています。
 
+**pip 対象ファイルに関する既知の制約**: `requirements-ddgs.txt` はファイル先頭のコメントの通り `pip-compile --allow-unsafe --generate-hashes --no-index --output-file=requirements-ddgs.txt requirements.in` で生成されたハッシュ固定ファイルですが、対応する `requirements.in` はリポジトリに含まれていません。dependabot-core の pip アップデータは pip-compile 形式のファイルを検知すると対になる `.in` を参照して再コンパイルする設計のため、`.in` が存在しないこの構成では定期実行（毎週月曜日）で更新 PR が生成されない可能性があります。次回実行後に更新 PR が確認できない場合は、`requirements.in` をリポジトリに追加するか、`--no-index` を外して通常の PyPI インデックス参照で再コンパイルする対応を検討してください。
+
 ### 追加のカスタム漏洩検知・抑止対策 (Gitleaks 強化)
 
 クラウドリソースの識別子（Azure Subscription ID など）や、最新の AI サービストークン（OpenAI Service Account Token など）がコードベースにハードコードされるリスクを防ぐため、リポジトリ直下の `.gitleaks.toml` カスタムルールを拡張しました。
