@@ -83,6 +83,17 @@
       "groupName": "eslint"
     },
     {
+      "description": [
+        "typescript と型定義をまとめる。",
+        "packageRules は後方一致優先のため、@types/jsdom・@types/react・@types/react-dom を",
+        "個別にグルーピングする testing/react ルールより前に置く必要がある",
+        "（後ろに置くと、より広い @types/** マッチがそれらを typescript グループへ上書きしてしまう）。"
+      ],
+      "matchManagers": ["npm", "bun"],
+      "matchPackageNames": ["typescript", "@types/**"],
+      "groupName": "typescript"
+    },
+    {
       "description": "テスト関連をまとめる",
       "matchManagers": ["npm", "bun"],
       "matchPackageNames": [
@@ -110,12 +121,6 @@
       "matchManagers": ["npm", "bun"],
       "matchPackageNames": ["vite", "@vitejs/**", "vite-plugin-*"],
       "groupName": "vite"
-    },
-    {
-      "description": "typescript と型定義をまとめる",
-      "matchManagers": ["npm", "bun"],
-      "matchPackageNames": ["typescript", "@types/**"],
-      "groupName": "typescript"
     },
     {
       "description": [
