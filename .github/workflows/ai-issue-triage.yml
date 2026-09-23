@@ -27,7 +27,7 @@ jobs:
           persist-credentials: false
 
       - name: Setup Ollama
-        uses: ai-action/setup-ollama@c08f1ef64da0eb30a55d1664798967ba7152d3d3 # v2.0.75
+        uses: ai-action/setup-ollama@899c263b28dce4eb066443cb82b2090145f9b558 # v2.0.76
 
       - name: Build Triage Prompt
         id: build-prompt
