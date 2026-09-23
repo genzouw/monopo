@@ -30,7 +30,7 @@ jobs:
             ${{ runner.os }}-promptfoo-
 
       - name: Setup Ollama
-        uses: ai-action/setup-ollama@c08f1ef64da0eb30a55d1664798967ba7152d3d3 # v2.0.75
+        uses: ai-action/setup-ollama@899c263b28dce4eb066443cb82b2090145f9b558 # v2.0.76
 
       - name: Pull Ollama Model
         # promptfoo自体はモデルの自動pullを行わないため、評価前に明示的に取得しておく。
