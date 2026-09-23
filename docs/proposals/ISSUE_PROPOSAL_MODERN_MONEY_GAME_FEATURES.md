@@ -28,7 +28,11 @@ labels: ['enhancement', 'proposal', 'game-design', 'game-mechanics']
 
 ### ⚙️ ゲーム内での具体的なメカニクス (How)
 
-- **景気サイクルと政策金利の上乗せ（差分部分のみ）**：好況・通常・不況・金融危機の遷移、景気乗数による不動産収入の増減、および `LOAN_INTEREST_RATES` の各局面の金利水準（好況5%・通常10%・不況15%・金融危機25%）は既存実装（`macroEconomy.ts` / `loan.ts`）のまま変更しない。本書の差分は、**好況局面でローンを新規に組む場合のみ**、中央銀行の利上げに相当する政策金利（例: +3〜5ポイント）を `LOAN_INTEREST_RATES` の好況時の値に上乗せする点。不況・金融危機・通常局面の金利や、固定金利（`FIXED_LOAN_RATE`）は変更しない。これにより、既存テーブルの「不況・金融危機ほど金利が高い」という信用リスクの方向性と、他の提案書が前提とする「`LOAN_INTEREST_RATES` を置き換えない」という制約の両方を保ったまま、好況時は不動産収入が増える一方で新規借入のコストも上がるというトレードオフが生まれる。
+- **景気サイクルと政策金利の上乗せ（差分部分のみ）**：好況・通常・不況・金融危機の遷移、景気乗数による不動産収入の増減、および `LOAN_INTEREST_RATES` の各局面の金利水準（好況5%・通常10%・不況15%・金融危機25%）は既存実装（`macroEconomy.ts` / `loan.ts`）のまま変更しない。本書の差分は、**好況局面でローンを新規に組む場合のみ**、中央銀行の利上げに相当する政策金利（例: +3〜5ポイント）を上乗せする点。不況・金融危機・通常局面の金利や、固定金利（`FIXED_LOAN_RATE`）は変更しない。
+  - **上乗せは組成時点で固定し、既存ローンには波及させない（仕様の要点）**：現行の `getLoanInterestRate(state, player, loanType)` は呼び出し時点の `state.economyStatus` だけから金利を算出し、GOマス通過時の利息計算（`reducer.ts` の `calculateInterest(player.loanBalance, getLoanInterestRate(...))`）もこの関数を毎回現在のゲーム状態で呼び出す。また `Player` は `loanBalance`（全借入の合算値）と `loanType` しか保持しない。そのため上乗せを `getLoanInterestRate` の内部に加えると、**好況になった時点で既存の変動金利ローン残高にまで上乗せが波及してしまい、「新規ローンのみ」という条件が成立しない**。
+  - **したがって、上乗せ分は残高とともに保存する**：`Player` に組成時に確定した上乗せ率 `loanPolicySurcharge?: number` を追加し、借入アクション（`TAKE_LOAN`）の時点で「そのとき `economyStatus === 'boom'` なら `POLICY_RATE_SURCHARGE`、それ以外は 0」を確定させる。`loanBalance` は個別ローンを持たない合算値のため、既存残高と新規借入額による**加重平均**で更新する（例: `newSurcharge = (oldBalance * oldSurcharge + newAmount * originationSurcharge) / (oldBalance + newAmount)`）。これにより既存残高ぶんの上乗せは 0 のまま保たれる。
+  - **利息計算での適用と後始末**：GOマス通過時の実効金利は `getLoanInterestRate(...) + (player.loanPolicySurcharge ?? 0)` とし、`getLoanInterestRate` 自体は現行仕様（現在の景気状態から再計算）を変更しない。`REPAY_LOAN` で `loanBalance` が 0 になった場合は `loanType` と同様に `loanPolicySurcharge` も `undefined` に戻す。固定金利ローン（`loanType === 'fixed'`）は上乗せ対象外とし、常に 0 とする。永続化データから復元する際は、`loanPolicySurcharge` が 0 以上の有限数であることを検証してから state に適用する。
+  - これにより、既存テーブルの「不況・金融危機ほど金利が高い」という信用リスクの方向性と、他の提案書が前提とする「`LOAN_INTEREST_RATES` を置き換えない」という制約の両方を保ったまま、好況時は不動産収入が増える一方で**新規借入のコストだけ**が上がるというトレードオフが生まれる。
 
 ### 🎓 教材としての教育的効果 (Why it is educational)
 
