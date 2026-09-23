@@ -9,8 +9,8 @@
   "pre-commit": {
     "description": [
       "pre-commit manager を明示的に有効にする (Dependabot の package-ecosystem: pre-commit に相当)。",
-      ".pre-commit-config.yaml の rev は SHA + '# frozen: <tag>' 形式で固定している。",
-      "Renovate はこの形式を認識し、SHA とタグの両方を同時に書き換えるため固定の意図は保たれる。"
+      ".pre-commit-config.yaml の rev は v6.0.0 のようなタグ表記のみで固定している。",
+      "Renovate はこの形式を認識し、rev のタグを新しいバージョンへ書き換える。"
     ],
     "enabled": true
   },
