@@ -130,6 +130,11 @@ CI の監査ワークフロー (`.github/workflows/permissions-audit.yml`) に�
 
 **pip 対象ファイルに関する備考**: `requirements-ddgs.txt` はファイル先頭のコメントの通り `pip-compile --allow-unsafe --generate-hashes --no-index --output-file=requirements-ddgs.txt requirements.in` で生成されたハッシュ固定ファイルですが、対応する `requirements.in` はリポジトリに含まれていません。dependabot-core の pip アップデータは、`.in` ファイルが1つもリポジトリに存在しない場合、`.txt` ファイル先頭のコメント内容に関わらずそれを pip-compile 形式のロックファイルとして扱わず、通常の `requirements.txt` として取得・解析します（`.in` が1件でも存在すれば、内容一致やファイル名の対応関係に基づき pip-compile 形式として扱われます）。したがって `.in` が存在しないこと自体は、定期実行（毎週月曜日）での更新 PR 未生成の原因にはなりません。`requirements.in` の追加を検討する場合は、更新 PR が生成されないことへの対処としてではなく、`pip-compile` による依存関係管理（上限バージョンの明示や再コンパイルの自動化など）へ移行する設計変更として位置づけてください。なお、その場合でも dependabot-core の pip アップデータは再コンパイル時に常に自前の `--index-url` を注入する実装のため、`--no-index` の除去は必須の対応ではありません。
 
+### 追加のカスタム漏洩検知・抑止対策 (Gitleaks 強化 - IMDS・インフラ情報露出防止)
+
+AWS/Azure/GCP などのクラウドインスタンスメタデータサービス (IMDS) のエンドポイント（`169.254.169.254`、`metadata.google.internal`、`100.100.100.200` 等）がコードベースにハードコードされるリスクを防ぐため、リポジトリ直下の `.gitleaks.toml` にカスタムルールを追加しました。
+これにより、未公開バックエンド URL やインフラ構成の過剰露出による SSRF の二次被害などのリスクがローカルおよび CI の双方で早期に検知・ブロックされます。
+
 ### 追加のカスタム漏洩検知・抑止対策 (Gitleaks 強化)
 
 クラウドリソースの識別子（Azure Subscription ID など）や、最新の AI サービストークン（OpenAI Service Account Token など）がコードベースにハードコードされるリスクを防ぐため、リポジトリ直下の `.gitleaks.toml` カスタムルールを拡張しました。
