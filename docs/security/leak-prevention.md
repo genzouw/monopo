@@ -128,7 +128,7 @@ CI の監査ワークフロー (`.github/workflows/permissions-audit.yml`) に�
 
 また、更新 PR の乱立によるアラート疲労を防ぐため、`github-actions` と `pre-commit` の**バージョン更新**はそれぞれ `groups` 設定（`applies-to: version-updates`）を用いて単一の PR にまとめて通知されるよう構成しています。一方、**セキュリティ更新**（脆弱性修正）はグループ化の対象外で、Dependabot が従来どおり個別の PR として即時に作成します。これにより、脆弱性修正が他のバージョン更新の検証待ちでブロックされることなく、遅滞なく取り込めるようにしています。
 
-**pip 対象ファイルに関する備考**: `requirements-ddgs.txt` はファイル先頭のコメントの通り `pip-compile --allow-unsafe --generate-hashes --no-index --output-file=requirements-ddgs.txt requirements.in` で生成されたハッシュ固定ファイルですが、対応する `requirements.in` はリポジトリに含まれていません。dependabot-core の pip アップデータは、`.in` ファイルが1つもリポジトリに存在しない場合、`.txt` ファイル先頭のコメント内容に関わらずそれを pip-compile 形式のロックファイルとして扱わず、通常の `requirements.txt` として取得・解析します（`.in` が1件でも存在すれば、内容一致やファイル名の対応関係に基づき pip-compile 形式として扱われます）。したがって `.in` が存在しないこと自体は、定期実行（毎週月曜日）での更新 PR 未生成の原因にはなりません。`requirements.in` の追加を検討する場合は、更新 PR が生成されないことへの対処としてではなく、`pip-compile` による依存関係管理（上限バージョンの明示や再コンパイルの自動化など）へ移行する設計変更として位置づけてください。なお、その場合でも dependabot-core の pip アップデータは再コンパイル時に常に自前の `--index-url` を注入する実装のため、`--no-index` の除去は必須の対応ではありません。
+**pip 対象ファイルに関する備考**: `requirements-ddgs.txt` は `pip-compile --allow-unsafe --generate-hashes --output-file=requirements-ddgs.txt requirements.in` で生成されたハッシュ固定ファイルです。Dependabot が pip-compile 形式として正しく認識し、定期監査・更新を行うために、リポジトリに `requirements.in` を含めて管理しています。
 
 ### 追加のカスタム漏洩検知・抑止対策 (Gitleaks 強化 - IMDS・インフラ情報露出防止)
 
