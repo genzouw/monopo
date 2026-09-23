@@ -1,0 +1,137 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", "helpers:pinGitHubActionDigests"],
+  "semanticCommits": "enabled",
+  "semanticCommitScope": "deps",
+  "timezone": "Asia/Tokyo",
+  "schedule": ["* 9-11 * * *"],
+  "minimumReleaseAge": "7 days",
+  "pre-commit": {
+    "description": [
+      "pre-commit manager を明示的に有効にする (Dependabot の package-ecosystem: pre-commit に相当)。",
+      ".pre-commit-config.yaml の rev は v6.0.0 のようなタグ表記のみで固定している。",
+      "Renovate はこの形式を認識し、rev のタグを新しいバージョンへ書き換える。"
+    ],
+    "enabled": true
+  },
+  "prConcurrentLimit": 10,
+  "labels": ["dependencies"],
+  "reviewers": ["genzouw"],
+  "vulnerabilityAlerts": {
+    "description": [
+      "脆弱性修正は minimumReleaseAge と schedule の対象外にして即時 PR にする。",
+      "Dependabot の cooldown が security updates に効かなかったのと同じ挙動を保つため。"
+    ],
+    "minimumReleaseAge": null,
+    "schedule": [],
+    "addLabels": ["security"]
+  },
+  "packageRules": [
+    {
+      "description": [
+        "依存更新はすべて chore プレフィックスで出す。",
+        "config:recommended に含まれる :semanticPrefixFixDepsChoreOthers は本番依存を fix にするが、",
+        "fix は release 生成ツールがリリース対象として扱うため、Dependabot 時代と同じ chore に固定する。"
+      ],
+      "matchPackageNames": ["*"],
+      "semanticCommitType": "chore"
+    },
+    {
+      "description": "GitHub Actions の更新のプレフィックスとラベル (Dependabot の commit-message.prefix と同じ)",
+      "matchManagers": ["github-actions"],
+      "semanticCommitType": "ci",
+      "addLabels": ["github-actions"]
+    },
+    {
+      "description": "npm / bun の更新には npm ラベルを付ける",
+      "matchManagers": ["npm", "bun"],
+      "addLabels": ["npm"]
+    },
+    {
+      "description": "pip の更新には python ラベルを付ける",
+      "matchManagers": ["pip_requirements"],
+      "addLabels": ["python"],
+      "groupName": "pip"
+    },
+    {
+      "description": "pre-commit hooks は 1 PR にまとめる (Dependabot の groups.hooks と同じ)。ラベルも従来どおり security を付ける",
+      "matchManagers": ["pre-commit"],
+      "addLabels": ["security"],
+      "groupName": "pre-commit"
+    },
+    {
+      "description": "GitHub Actions の更新は 1 PR にまとめる (Dependabot の groups.actions と同じ)",
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions"
+    },
+    {
+      "description": "secretlint 本体とルールプリセットはバージョンを揃える必要があるため 1 PR にまとめる",
+      "matchManagers": ["npm", "bun"],
+      "matchPackageNames": ["secretlint", "secretlint-*", "@secretlint/**"],
+      "groupName": "secretlint"
+    },
+    {
+      "description": "eslint 本体と関連プラグインをまとめる",
+      "matchManagers": ["npm", "bun"],
+      "matchPackageNames": [
+        "eslint",
+        "eslint-*",
+        "@eslint/**",
+        "typescript-eslint",
+        "@typescript-eslint/**"
+      ],
+      "groupName": "eslint"
+    },
+    {
+      "description": [
+        "typescript と型定義をまとめる。",
+        "packageRules は後方一致優先のため、@types/jsdom・@types/react・@types/react-dom を",
+        "個別にグルーピングする testing/react ルールより前に置く必要がある",
+        "（後ろに置くと、より広い @types/** マッチがそれらを typescript グループへ上書きしてしまう）。"
+      ],
+      "matchManagers": ["npm", "bun"],
+      "matchPackageNames": ["typescript", "@types/**"],
+      "groupName": "typescript"
+    },
+    {
+      "description": "テスト関連をまとめる",
+      "matchManagers": ["npm", "bun"],
+      "matchPackageNames": [
+        "vitest",
+        "@vitest/**",
+        "@testing-library/**",
+        "jsdom",
+        "@types/jsdom"
+      ],
+      "groupName": "testing"
+    },
+    {
+      "description": "react と型定義をまとめる",
+      "matchManagers": ["npm", "bun"],
+      "matchPackageNames": [
+        "react",
+        "react-dom",
+        "@types/react",
+        "@types/react-dom"
+      ],
+      "groupName": "react"
+    },
+    {
+      "description": "vite とプラグインをまとめる",
+      "matchManagers": ["npm", "bun"],
+      "matchPackageNames": ["vite", "@vitejs/**", "vite-plugin-*"],
+      "groupName": "vite"
+    },
+    {
+      "description": [
+        "TypeScript 7 (Go ネイティブ実装) は typescript-eslint が未対応で",
+        "(peerDependencies: typescript >=4.8.4 <6.1.0)、上げると ESLint がクラッシュする。",
+        "typescript-eslint が TS 7 対応版を出すまで major を止める。"
+      ],
+      "matchManagers": ["npm", "bun"],
+      "matchPackageNames": ["typescript"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    }
+  ]
+}
