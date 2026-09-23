@@ -410,3 +410,19 @@ regexTarget = "match"
 regexes = [
     '''(?i)^(?:(?:VITE|NEXT_PUBLIC|EXPO_PUBLIC|NUXT_PUBLIC|GATSBY|REACT_APP|VUE_APP|NG_APP)_|PUBLIC_)(?:FIREBASE_AUTH_DOMAIN|FIREBASE_API_KEY)\b["']?[[:space:]]*[:=]'''
 ]
+
+[[rules]]
+id = "monopo-cloud-imds"
+description = "クラウドメタデータサービス (IMDS) エンドポイントのハードコード検知 (169.254.169.254, metadata.google.internal 等)"
+regex = '''(?i)\b(?:169\.254\.169\.254|metadata\.google\.internal|100\.100\.100\.200)\b'''
+tags = ["infrastructure", "imds", "cloud"]
+secretGroup = 0
+entropy = 0.0
+# 本リポジトリのセキュリティドキュメント (docs/security/) は、どのエンドポイントを
+# 検知対象にしているかを説明するために IMDS のアドレスそのものを本文へ記載する。
+# 同じ理由で monopo-internal-domain も docs/security/ を除外している。
+# これが無いと、ルールを追加した当のドキュメントを自ルールが検知して CI が常に失敗する。
+[rules.allowlist]
+paths = [
+    '''docs/security/'''
+]
