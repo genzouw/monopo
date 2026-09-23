@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # .gitleaks.toml のカスタムルール（monopo-slack-token / monopo-discord-token /
 # monopo-figma-token / monopo-ai-token-assignment-extended /
-# monopo-cloudflare-token-assignment / monopo-frontend-exposed-secret）の検知範囲を
-# 固定するための回帰テスト。
+# monopo-cloudflare-token-assignment / monopo-frontend-exposed-secret /
+# monopo-cloud-imds）の検知範囲を固定するための回帰テスト。
 #
 # 有効なトークン形式のフィクスチャが検知され（true positive）、
 # 類似するが無効な値のフィクスチャが誤検知されない（true negative）ことを検証する。
@@ -486,6 +486,74 @@ for var in "${frontend_vars[@]}"; do
     exit_code=1
   else
     echo "✅ ${var} (${line_no}行目): monopo-frontend-exposed-secret として検知"
+  fi
+done
+
+echo ""
+echo "── パス allowlist の範囲チェック (monopo-cloud-imds が docs/security/ 配下のみを除外すること) ──"
+# monopo-cloud-imds は、ルール自身の仕様を説明するために IMDS アドレスを本文へ記載する
+# docs/security/ 配下のみをパス allowlist で除外する（除外が無いと、ルールを追加した当の
+# ドキュメントを自ルールが検知して CI が常に失敗する）。
+# この除外は「広すぎても狭すぎても壊れる」性質を持つため、両方向を固定する。
+#   - 狭すぎる方向: docs/security/ 配下の解説文書が再び誤検知される
+#   - 広すぎる方向: docs/ 全体やリポジトリ全体へ広げると、実コード・他ドキュメントの
+#     ハードコードを取りこぼす（README.md / docs/proposals/ を検知対象として固定する）
+# フィクスチャはパス単位の判定を伴うため、単一ファイルではなくディレクトリ構造として生成する。
+#
+# なお GCP のメタデータホスト名は monopo-internal-domain（*.internal を検知）にも一致し、
+# 2つの RuleID で重複検知される。ここでは monopo-cloud-imds の挙動のみを対象とするため
+# RuleID で絞り込んで数える。
+imds_root="$WORKDIR/imds"
+dot="."
+# アドレスをソース上に連続した文字列として残さないため、区切り文字を分割して実行時に連結する
+# （そのまま書くと本スクリプト自身が monopo-cloud-imds の検知対象になり CI が落ちる）。
+imds_aws="169${dot}254${dot}169${dot}254"
+imds_gcp="metadata${dot}google${dot}internal"
+imds_alibaba="100${dot}100${dot}100${dot}200"
+# 単語境界（\b）の確認用: 末尾に文字が続くだけの類似値は検知対象であってはならない
+imds_lookalike_aws="${imds_aws}0"
+imds_lookalike_gcp="${imds_gcp}host"
+
+mkdir -p "$imds_root/src" "$imds_root/docs/security" "$imds_root/docs/proposals"
+printf 'const endpoint = "http://%s/latest/meta-data/";\n' "$imds_aws" >"$imds_root/src/aws-imds.ts"
+printf 'const endpoint = "http://%s/computeMetadata/v1/";\n' "$imds_gcp" >"$imds_root/src/gcp-imds.ts"
+printf 'const endpoint = "http://%s/latest/meta-data/";\n' "$imds_alibaba" >"$imds_root/src/alibaba-imds.ts"
+printf 'IMDS のアドレス %s に言及するだけの文書。\n' "$imds_aws" >"$imds_root/README.md"
+printf 'IMDS のアドレス %s に言及するだけの文書。\n' "$imds_aws" >"$imds_root/docs/proposals/imds-note.md"
+printf '検知対象のアドレス: %s / %s / %s\n' "$imds_aws" "$imds_gcp" "$imds_alibaba" >"$imds_root/docs/security/leak-prevention.md"
+printf 'const a = "%s";\nconst b = "%s";\n' "$imds_lookalike_aws" "$imds_lookalike_gcp" >"$imds_root/src/lookalike.ts"
+
+imds_report="$WORKDIR/imds-report.json"
+gitleaks detect --no-git --config "$CONFIG" --source "$imds_root" \
+  --report-format json --report-path "$imds_report" --exit-code 0 >/dev/null
+
+imds_paths=(
+  "src/aws-imds.ts"
+  "src/gcp-imds.ts"
+  "src/alibaba-imds.ts"
+  "README.md"
+  "docs/proposals/imds-note.md"
+  "src/lookalike.ts"
+  "docs/security/leak-prevention.md"
+)
+imds_expected=(1 1 1 1 1 0 0)
+imds_labels=(
+  "実コード内の AWS IMDS アドレス"
+  "実コード内の GCP メタデータホスト"
+  "実コード内の Alibaba IMDS アドレス"
+  "docs/security/ 以外のドキュメント (README.md)"
+  "docs/security/ 以外のドキュメント (docs/proposals/)"
+  "単語境界のみ異なる類似値"
+  "docs/security/ 配下の解説文書"
+)
+for imds_index in "${!imds_paths[@]}"; do
+  imds_path="${imds_paths[$imds_index]}"
+  imds_count=$(jq --arg p "/$imds_path" '[.[] | select(.RuleID == "monopo-cloud-imds" and (.File | endswith($p)))] | length' "$imds_report")
+  if [ "$imds_count" -ne "${imds_expected[$imds_index]}" ]; then
+    echo "❌ ${imds_labels[$imds_index]} (${imds_path}) の検知件数が期待と異なります（実際: ${imds_count} / 期待: ${imds_expected[$imds_index]}）"
+    exit_code=1
+  else
+    echo "✅ ${imds_labels[$imds_index]} (${imds_path}): 検知件数 ${imds_count} 件（期待どおり）"
   fi
 done
 
