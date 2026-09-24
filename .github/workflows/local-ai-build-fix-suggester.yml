@@ -46,7 +46,8 @@ jobs:
             --jq '.jobs[] | select(.conclusion == "failure") | .id' > failed_job_ids.txt
           : > failed_jobs.log
           while read -r job_id; do
-            gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/${job_id}/logs" >> failed_jobs.log
+            # gh 2.97.0 以降はログの ANSI エスケープで exit 1 になるため、出力先がファイルの本ステップでは許可する
+            gh api --allow-escape-sequences "repos/${GITHUB_REPOSITORY}/actions/jobs/${job_id}/logs" >> failed_jobs.log
           done < failed_job_ids.txt
           # GitHub が失敗ステップに付ける ##[error] 行を直接取り出す（行頭のタイムスタンプは除去）
           { grep -h -F '##[error]' failed_jobs.log || true; } | sed -E 's/^[^ ]+ //' | tail -n 50 > error_log.txt
