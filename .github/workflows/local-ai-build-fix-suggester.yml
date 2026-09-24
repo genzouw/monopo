@@ -1,7 +1,10 @@
 name: Local AI Build Fix Suggester
 
 on:
-  workflow_run:
+  # workflow_run は既定ブランチのワークフロー定義・権限で実行されるため、PR 由来の
+  # コードは checkout も実行もしない。PR 由来のデータはCIログ（信頼できない入力）のみで、
+  # プロンプト内で <untrusted_*> タグに隔離し、投稿時に @ をサニタイズしている。
+  workflow_run: # zizmor: ignore[dangerous-triggers] 既定ブランチのコードのみ実行しPR由来コードは扱わない。信頼境界は直上のコメント参照
     workflows: ['CI']
     types:
       - completed
@@ -11,7 +14,9 @@ permissions:
 
 jobs:
   suggest-fix:
-    if: github.event.workflow_run.conclusion == 'failure'
+    if: >-
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.event == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -31,7 +36,7 @@ jobs:
           curl -sSL \
             -H "Authorization: Bearer $GITHUB_TOKEN" \
             -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/${{ github.repository }}/actions/runs/$RUN_ID/logs > logs.zip
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${RUN_ID}/logs" > logs.zip
           unzip -q logs.zip -d logs
           cat logs/*/*.txt | grep -E -i "error|failed|exception|trace" | tail -n 50 > error_log.txt || echo "No explicit errors found." > error_log.txt
 
@@ -55,7 +60,7 @@ jobs:
           try:
               if error_text.strip():
                   with DDGS() as ddgs:
-                      for r in ddgs.text(error_text + ' fix github actions', max_results=3):
+                      for r in ddgs.text(error_text + ' fix github actions', max_results=3, backend='duckduckgo'):
                           results.append(f\"- {r['title']}: {r['body']}\")
               else:
                   results.append('No explicit error text to search for.')
@@ -98,7 +103,7 @@ jobs:
 
       - name: Generate Fix Suggestion with Local Ollama
         id: generate-suggestion
-        uses: ./.github/actions/ollama-generate
+        uses: $/.github/actions/ollama-generate
         with:
           prompt: ${{ steps.build-prompt.outputs.result }}
 
@@ -121,9 +126,10 @@ jobs:
               commit_sha: context.payload.workflow_run.head_sha
             });
 
-            if (prs.length > 0) {
+            const pr = prs.find((candidate) => candidate.state === 'open');
+            if (pr) {
               await github.rest.issues.createComment({
-                issue_number: prs[0].number,
+                issue_number: pr.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 body: `### 🤖 Local AI Build Fix Suggester (Ollama - ${model})\n\n> ⚠️ ログと検索結果を基にした自動生成の修正案です。\n\n${sanitizedSuggestion}`
