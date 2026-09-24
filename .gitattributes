@@ -66,3 +66,4 @@ ai-report-*.md -diff export-ignore
 .github/workflows/pre-commit.yml diff
 .github/workflows/secretlint.yml diff
 .github/workflows/ai-issue-triage.yml diff
+.github/dependabot.yml diff
