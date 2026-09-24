@@ -5,6 +5,8 @@ title: '【提案】monopo への現実的・教育的マネーゲーム機能�
 labels: ['enhancement', 'proposal', 'game-design', 'game-mechanics']
 ---
 
+> 📎 **関連提案との整合性:** 本書の「エリア独占と増資」「相乗り株式システム」は `features.stocks`（`src/game/economy.ts`）および `src/game/rules.ts` の家・ホテル建設としてすでに実装済みで、正規仕様は `ISSUE_PROPOSAL_TRADITIONAL_AND_MODERN_MECHANICS.md` とします。「VC（ベンチャーキャピタル）とスタートアップ投資」は既存の `features.altAssets`（`src/game/systems/altAssets.ts` の `resolveVCInvestment`）としてすでに実装済みで、拡張仕様は `ISSUE_PROPOSAL_TRADITIONAL_AND_MODERN_MECHANICS.md` を正規仕様とします。「DeFiと流動性マイニング」の基本仕様（流動性プール・スマートコントラクトのハッキングリスク）は `ISSUE_PROPOSAL_NEXT_GEN_FINANCE.md`（`features.defi`）、「HFTとフロントランニング」の基本仕様は同書（`features.hft`）、「CBDC（期限付き通貨）」の基本仕様は `ISSUE_PROPOSAL_TRADITIONAL_AND_MODERN_MECHANICS.md`（プログラマブル・マネーとマイナス金利）および `ISSUE_PROPOSAL_REALITY_MONEY_GAME.md` をそれぞれ正規仕様とします。したがって本書が新規に提案する範囲は、他の提案書に記載のない次の3点に限られます。(1) `features.defi` に対する「インパーマネントロス（預け入れ資産の価格変動による変動損失）」の追加、(2) `features.hft` に対する「HFTインフラ（コロケーション）の購入による先回り自動発動」の追加、(3) CBDCの「用途限定（環境配慮エリア専用の補助金など）」という使途制約の追加。これら以外の仕様（数値・判定条件・想定フラグ）は上記の正規仕様を参照してください。
+
 ## 🎯 提案する機能の概要 (What)
 
 伝統的なボードゲーム（いただきストリートなど）の基本システムを継承しつつ、現代から近未来の金融・経済システムを模倣した革新的な機能を導入します。
