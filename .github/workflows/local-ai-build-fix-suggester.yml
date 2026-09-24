@@ -44,19 +44,23 @@ jobs:
           # 成功ジョブのログを混ぜないため、失敗したジョブだけのログを取得する
           gh api --paginate "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/jobs" \
             --jq '.jobs[] | select(.conclusion == "failure") | .id' > failed_job_ids.txt
-          : > failed_jobs.log
+          : > error_log.txt
           while read -r job_id; do
             # gh 2.97.0 以降はログの ANSI エスケープで exit 1 になるため、出力先がファイルの本ステップでは許可する
-            gh api --allow-escape-sequences "repos/${GITHUB_REPOSITORY}/actions/jobs/${job_id}/logs" >> failed_jobs.log
+            gh api --allow-escape-sequences "repos/${GITHUB_REPOSITORY}/actions/jobs/${job_id}/logs" > job.log
+            # ##[error] 行は "Process completed with exit code 1." だけのことが多く、失敗の本体（ESLint や tsc の出力）は
+            # その手前の通常行に出る。最初の ##[error] とその手前 30 行を取り出す（行頭のタイムスタンプは除去）。
+            # grep -m 1 の早期終了で上流が SIGPIPE を受けないよう、ファイルに対して grep を先に実行する
+            { grep -m 1 -B 30 -F '##[error]' job.log || true; } | sed -E 's/^[^ ]+ //' >> error_log.txt
           done < failed_job_ids.txt
-          # GitHub が失敗ステップに付ける ##[error] 行を直接取り出す（行頭のタイムスタンプは除去）
-          { grep -h -F '##[error]' failed_jobs.log || true; } | sed -E 's/^[^ ]+ //' | tail -n 50 > error_log.txt
-          if [ -s error_log.txt ]; then
+          # 空行・##[group] などの制御行・"Process completed with exit code" だけの場合は失敗内容が取れていないため、生成をスキップする
+          meaningful=$(grep -v -E '^[[:space:]]*$|^##\[(group|endgroup|command|debug|warning)\]|^##\[error\]Process completed with exit code' error_log.txt || true)
+          if [ -n "$meaningful" ]; then
             echo "has_errors=true" >> "$GITHUB_OUTPUT"
           else
             echo "has_errors=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::失敗ジョブのログから ##[error] 行を抽出できなかったため、修正案の生成をスキップします。"
-            echo "⚠️ 失敗ジョブのログから \`##[error]\` 行を抽出できなかったため、修正案の生成をスキップしました。" >> "$GITHUB_STEP_SUMMARY"
+            echo "::warning::失敗ジョブのログから失敗内容を抽出できなかったため、修正案の生成をスキップします。"
+            echo "⚠️ 失敗ジョブのログから失敗内容（\`##[error]\` 行とその手前の出力）を抽出できなかったため、修正案の生成をスキップしました。" >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Install Dependencies
@@ -75,7 +79,7 @@ jobs:
           import secrets
 
           with open('error_log.txt', 'r') as f:
-              error_text = f.read()[:500]
+              error_text = f.read()[-500:]
 
           results = []
           try:
