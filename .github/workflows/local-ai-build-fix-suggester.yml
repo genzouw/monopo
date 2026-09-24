@@ -34,24 +34,38 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Download Workflow Log
+      - name: Download Failed Job Logs
+        id: download-log
+        shell: bash # pipefail を有効にし、パイプ途中の失敗を検知する
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RUN_ID: ${{ github.event.workflow_run.id }}
         run: |
-          curl -sSLf \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${RUN_ID}/logs" > logs.zip
-          unzip -q logs.zip -d logs
-          cat logs/*/*.txt | grep -E -i "error|failed|exception|trace" | tail -n 50 > error_log.txt || echo "No explicit errors found." > error_log.txt
+          # 成功ジョブのログを混ぜないため、失敗したジョブだけのログを取得する
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/jobs" \
+            --jq '.jobs[] | select(.conclusion == "failure") | .id' > failed_job_ids.txt
+          : > failed_jobs.log
+          while read -r job_id; do
+            gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/${job_id}/logs" >> failed_jobs.log
+          done < failed_job_ids.txt
+          # GitHub が失敗ステップに付ける ##[error] 行を直接取り出す（行頭のタイムスタンプは除去）
+          { grep -h -F '##[error]' failed_jobs.log || true; } | sed -E 's/^[^ ]+ //' | tail -n 50 > error_log.txt
+          if [ -s error_log.txt ]; then
+            echo "has_errors=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_errors=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::失敗ジョブのログから ##[error] 行を抽出できなかったため、修正案の生成をスキップします。"
+            echo "⚠️ 失敗ジョブのログから \`##[error]\` 行を抽出できなかったため、修正案の生成をスキップしました。" >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Install Dependencies
+        if: steps.download-log.outputs.has_errors == 'true'
         run: |
           python3 -m pip install --require-hashes --only-binary :all: -r requirements-ddgs.txt
 
       - name: Fetch Search Results
         id: fetch-search
+        if: steps.download-log.outputs.has_errors == 'true'
         run: |
           python3 -c "
           from ddgs import DDGS
@@ -81,10 +95,12 @@ jobs:
           "
 
       - name: Setup Ollama
+        if: steps.download-log.outputs.has_errors == 'true'
         uses: ai-action/setup-ollama@899c263b28dce4eb066443cb82b2090145f9b558 # v2.0.76
 
       - name: Build Suggestion Prompt
         id: build-prompt
+        if: steps.download-log.outputs.has_errors == 'true'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           SEARCH_RESULTS: ${{ steps.fetch-search.outputs.search_results }}
@@ -109,12 +125,13 @@ jobs:
 
       - name: Generate Fix Suggestion with Local Ollama
         id: generate-suggestion
+        if: steps.download-log.outputs.has_errors == 'true'
         uses: $/.github/actions/ollama-generate
         with:
           prompt: ${{ steps.build-prompt.outputs.result }}
 
       - name: Post Suggestion to PR
-        if: steps.generate-suggestion.outputs.content != ''
+        if: steps.download-log.outputs.has_errors == 'true'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -122,31 +139,44 @@ jobs:
           MODEL: ${{ steps.generate-suggestion.outputs.model }}
         with:
           script: |
-            const suggestion = process.env.SUGGESTION;
+            const suggestion = process.env.SUGGESTION || '';
             const model = process.env.MODEL;
-            const sanitizedSuggestion = suggestion.replace(/@/g, '@​');
+            const sanitizedSuggestion = suggestion.replace(/@/g, '@\u200b');
+            const headSha = context.payload.workflow_run.head_sha;
 
-            const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              commit_sha: context.payload.workflow_run.head_sha
-            });
+            // 投稿しない場合も、マージ後に原因を追えるよう警告と Job Summary に理由を残す
+            const skip = async (reason) => {
+              core.warning(reason);
+              await core.summary.addRaw(`⚠️ 修正案を投稿しませんでした: ${reason}`, true).write();
+            };
 
-            const pr = prs.find((candidate) => candidate.state === 'open');
-            if (!pr) {
+            if (!sanitizedSuggestion.trim()) {
+              await skip('Ollama が修正案を返しませんでした（生成に失敗した可能性があります）。');
               return;
             }
 
             // 小型モデルが返す無内容な出力（数十文字程度の定型文）は投稿しない
             const MIN_SUGGESTION_LENGTH = 100;
             if (sanitizedSuggestion.trim().length < MIN_SUGGESTION_LENGTH) {
-              core.info('修正案が短すぎるため投稿をスキップします。');
+              await skip('修正案が短すぎるため投稿をスキップします。');
+              return;
+            }
+
+            const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: headSha
+            });
+
+            const pr = prs.find((candidate) => candidate.state === 'open');
+            if (!pr) {
+              await skip('コメント先の open な PR が見つかりませんでした。');
               return;
             }
 
             // 1 PR 1 コメントに保つため、マーカー付きの既存コメントがあれば更新する
             const marker = '<!-- local-ai-build-fix-suggester -->';
-            const body = `${marker}\n### 🤖 Local AI Build Fix Suggester (Ollama - ${model})\n\n> ⚠️ ログと検索結果を基にした自動生成の修正案です。\n\n${sanitizedSuggestion}`;
+            const body = `${marker}\n### 🤖 Local AI Build Fix Suggester (Ollama - ${model})\n\n> ⚠️ コミット \`${headSha.slice(0, 7)}\` の CI 失敗ログと検索結果を基にした自動生成の修正案です。以降のコミットで CI が成功した場合、この提案は古い可能性があります。\n\n${sanitizedSuggestion}`;
 
             const comments = await github.paginate(github.rest.issues.listComments, {
               issue_number: pr.number,
