@@ -12,6 +12,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: build-fix-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: true
+
 jobs:
   suggest-fix:
     if: >-
@@ -129,11 +133,43 @@ jobs:
             });
 
             const pr = prs.find((candidate) => candidate.state === 'open');
-            if (pr) {
+            if (!pr) {
+              return;
+            }
+
+            // 小型モデルが返す無内容な出力（数十文字程度の定型文）は投稿しない
+            const MIN_SUGGESTION_LENGTH = 100;
+            if (sanitizedSuggestion.trim().length < MIN_SUGGESTION_LENGTH) {
+              core.info('修正案が短すぎるため投稿をスキップします。');
+              return;
+            }
+
+            // 1 PR 1 コメントに保つため、マーカー付きの既存コメントがあれば更新する
+            const marker = '<!-- local-ai-build-fix-suggester -->';
+            const body = `${marker}\n### 🤖 Local AI Build Fix Suggester (Ollama - ${model})\n\n> ⚠️ ログと検索結果を基にした自動生成の修正案です。\n\n${sanitizedSuggestion}`;
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              issue_number: pr.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+            const existing = comments.find(
+              (comment) => comment.user?.login === 'github-actions[bot]' && comment.body?.includes(marker)
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                comment_id: existing.id,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body
+              });
+            } else {
               await github.rest.issues.createComment({
                 issue_number: pr.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: `### 🤖 Local AI Build Fix Suggester (Ollama - ${model})\n\n> ⚠️ ログと検索結果を基にした自動生成の修正案です。\n\n${sanitizedSuggestion}`
+                body
               });
             }
