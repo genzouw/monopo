@@ -7,6 +7,10 @@ updates:
       day: 'monday'
       time: '09:00'
       timezone: 'Asia/Tokyo'
+    # zizmor の dependabot-cooldown 監査が 7 日以上を要求するため 7 を指定している。
+    # cooldown は version updates にのみ効き security updates には適用されない。
+    cooldown:
+      default-days: 7
     groups:
       github-actions-group:
         patterns:
@@ -18,6 +22,10 @@ updates:
       day: 'monday'
       time: '09:00'
       timezone: 'Asia/Tokyo'
+    # zizmor の dependabot-cooldown 監査が 7 日以上を要求するため 7 を指定している。
+    # cooldown は version updates にのみ効き security updates には適用されない。
+    cooldown:
+      default-days: 7
     groups:
       npm-group:
         patterns:
