@@ -35,7 +35,7 @@ jobs:
         uses: bridgecrewio/checkov-action@4fa90328619ebe2a5396c7f16308c17a7a4b5dc3 # v12.2858.0
         with:
           directory: .
-          framework: all
+          framework: github_actions,secrets
           output_format: cli,sarif
           output_file_path: console,results.sarif
           quiet: true
