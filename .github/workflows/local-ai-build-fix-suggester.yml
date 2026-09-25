@@ -13,7 +13,9 @@ permissions:
   contents: read
 
 concurrency:
-  group: build-fix-${{ github.event.workflow_run.head_branch }}
+  # ジョブの if より前に評価されるため、フォーク PR の同名ブランチが正規の実行を
+  # キャンセルしないよう head リポジトリ名も group に含める
+  group: build-fix-${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}
   cancel-in-progress: true
 
 jobs:
