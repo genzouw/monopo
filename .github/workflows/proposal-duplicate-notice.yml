@@ -67,7 +67,7 @@ jobs:
               const rootFiles = await list('').catch(() => []);
               const existing = [
                 ...rootFiles.filter((f) => f.type === 'file' && isProposal(f.path)),
-                ...proposals.filter((f) => f.type === 'file'),
+                ...proposals.filter((f) => f.type === 'file' && f.name.endsWith('.md')),
               ].map((f) => f.path);
 
               const base = `https://github.com/${owner}/${repo}`;
@@ -78,7 +78,7 @@ jobs:
                 'このPRは提案ドキュメントを新規追加しています。',
                 ...added.map((p) => `- \`${p}\``),
                 '',
-                `ベースブランチ (\`${pull.base.ref}\`) には既に **${existing.length} ファイル** の提案ドキュメントがあり、すべて同一テーマ（現実経済を模倣したマネーゲーム機能）です。`,
+                `ベースブランチ (\`${pull.base.ref}\`) には既に **${existing.length} ファイル** の提案ドキュメントがあり、同一テーマ（現実経済を模倣したマネーゲーム機能）のものが大半です。`,
                 '',
                 '- **正本は #159 です。** 新規提案は新しいファイルを作らず、#159 へのコメントまたはIssueとして出してください',
                 `- 重複防止ルール: [docs/ai-guidelines.md](${base}/blob/${pull.base.ref}/docs/ai-guidelines.md#提案ドキュメント-docsproposals-の重複防止)`,
