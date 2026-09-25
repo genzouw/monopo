@@ -52,7 +52,7 @@ jobs:
 
       - name: Generate Triage Suggestion with Local Ollama
         id: generate-suggestion
-        uses: $/.github/actions/ollama-generate
+        uses: ./.github/actions/ollama-generate
         with:
           prompt: ${{ steps.build-prompt.outputs.result }}
 
