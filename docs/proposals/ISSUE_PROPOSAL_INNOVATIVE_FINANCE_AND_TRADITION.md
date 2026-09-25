@@ -26,9 +26,10 @@ labels: ['enhancement', 'proposal', 'game-design', 'game-mechanics']
   - **OFF時**：`features.defi` がOFFの場合、流動性プール自体を提供しないため、インパーマネントロスも発生しません。
 - **CBDCの用途限定（環境配慮補助金）**：`features.programmableMoney`（`ISSUE_PROPOSAL_TRADITIONAL_AND_MODERN_MECHANICS.md`）の拡張として、期限付きCBDCの一種に「用途限定型の補助金」を加えます。新規フラグは追加しません。
   - **配布**：景気サイクル（`features.macroEconomy`）が不況または金融危機の状態に入ったとき、全プレイヤーへ均等に配布します。初期案は1人あたり初期資金の10%です。
+  - **発動前提**：配布は、`features.macroEconomy` がONで、`ISSUE_PROPOSAL_ADVANCED_MONEY_GAME.md` のESG提案が導入済みで、かつ盤面に購入または増資が可能な環境配慮型エリアが1つ以上ある場合に限ります。いずれかを満たさない場合は配布しません（使途がなく期限で消えるだけの補助金を渡さないため）。
   - **使途**：`ISSUE_PROPOSAL_ADVANCED_MONEY_GAME.md` の「環境配慮型エリア」（ESG投資と排出権取引の節で定義されるエリア）の購入・増資にのみ使えます。他プレイヤーへの通行料や、環境配慮型以外のエリアの購入には使えません。
   - **期限**：配布から5ターン（初期案）です。期限を過ぎた残高は、通常の期限付きCBDCと同じく消滅します。
-  - **OFF時**：`features.programmableMoney` がOFFの場合、CBDCの配布そのものが行われず、用途限定の制約も一切かかりません。ONの場合でも、用途限定型でない通常の期限付きCBDCには使途の制約をかけません。
+  - **OFF時**：`features.programmableMoney` がOFFの場合、またはOFFでなくても上記の発動前提を満たさない場合、用途限定型の補助金の配布そのものが行われず、用途限定の制約も一切かかりません。ONの場合でも、用途限定型でない通常の期限付きCBDCには使途の制約をかけません。
   - 額・ターン数は初期案であり、プレイテストで調整します。
 
 ## 🎓 教材としての教育的効果 (Why it is educational)
