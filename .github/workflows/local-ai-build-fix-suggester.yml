@@ -45,16 +45,26 @@ jobs:
           gh api --paginate "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/jobs" \
             --jq '.jobs[] | select(.conclusion == "failure") | .id' > failed_job_ids.txt
           : > error_log.txt
+          meaningful=""
           while read -r job_id; do
             # gh 2.97.0 以降はログの ANSI エスケープで exit 1 になるため、出力先がファイルの本ステップでは許可する
             gh api --allow-escape-sequences "repos/${GITHUB_REPOSITORY}/actions/jobs/${job_id}/logs" > job.log
             # ##[error] 行は "Process completed with exit code 1." だけのことが多く、失敗の本体（ESLint や tsc の出力）は
             # その手前の通常行に出る。最初の ##[error] とその手前 30 行を取り出す（行頭のタイムスタンプは除去）。
             # grep -m 1 の早期終了で上流が SIGPIPE を受けないよう、ファイルに対して grep を先に実行する
-            { grep -m 1 -B 30 -F '##[error]' job.log || true; } | sed -E 's/^[^ ]+ //' >> error_log.txt
+            chunk=$({ grep -m 1 -B 30 -F '##[error]' job.log || true; } | sed -E 's/^[^ ]+ //')
+            if [ -n "$chunk" ]; then
+              printf '%s\n' "$chunk" >> error_log.txt
+            fi
+            # 失敗の本体は最後の ##[endgroup]（ステップ冒頭の "Run ..." コマンドのエコー・shell:・env: の終端）より後に出力される。
+            # 手前 30 行にはそのエコー行も入るため、失敗内容の有無の判定は ##[endgroup] 以降に限定し、ジョブごとに行う。
+            # error_log.txt の中身（生成への入力）は変えない
+            job_meaningful=$(printf '%s\n' "$chunk" \
+              | awk '/^##\[endgroup\]/{buf=""; next} {buf = buf $0 "\n"} END{printf "%s", buf}' \
+              | grep -v -E '^[[:space:]]*$|^##\[(group|command|debug|warning)\]|^##\[error\]Process completed with exit code' || true)
+            meaningful="${meaningful}${job_meaningful}"
           done < failed_job_ids.txt
-          # 空行・##[group] などの制御行・"Process completed with exit code" だけの場合は失敗内容が取れていないため、生成をスキップする
-          meaningful=$(grep -v -E '^[[:space:]]*$|^##\[(group|endgroup|command|debug|warning)\]|^##\[error\]Process completed with exit code' error_log.txt || true)
+          # 全失敗ジョブで「##[endgroup] 以降が空行・制御行・"Process completed with exit code" だけ」の場合は失敗内容が取れていないため、生成をスキップする
           if [ -n "$meaningful" ]; then
             echo "has_errors=true" >> "$GITHUB_OUTPUT"
           else
