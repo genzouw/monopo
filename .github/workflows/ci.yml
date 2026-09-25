@@ -282,3 +282,30 @@ jobs:
             exit 1
           fi
           echo "✅ No banned files found."
+
+  empty-diff-check:
+    name: Empty Diff Check
+    # push では base_ref が空なので PR のみ対象にする
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # ベースブランチとの三点比較に履歴が必要
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Fail if the PR has no diff against the base branch
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          set -euo pipefail
+          if git diff --quiet "origin/${BASE_REF}...HEAD"; then
+            echo "::error::ベースブランチ (${BASE_REF}) との差分が空です。コミットが空のPRはマージできません。"
+            exit 1
+          fi
+          echo "✅ ベースブランチとの差分があります。"
