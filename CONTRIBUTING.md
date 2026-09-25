@@ -59,7 +59,7 @@ bun run test
    git checkout -b feature/your-feature-name
    ```
 
-3. 変更を加え、コミットします。コミットメッセージはわかりやすく簡潔に記述してください。
+3. 変更を加え、コミットします。コミットメッセージは [Conventional Commits](https://www.conventionalcommits.org/ja/v1.0.0/) 形式（`type(scope): subject`、例: `fix(setup): セットアップ画面を修正`）でわかりやすく簡潔に記述してください。commit-msg フックの commitlint（設定: `commitlint.config.js`）が形式を検査し、違反するとコミットが失敗します。
 4. フォークしたリポジトリにプッシュします。
 
    ```bash
@@ -77,7 +77,7 @@ bun run test
 
 本プロジェクトでは、API キーや環境変数などの秘密情報が誤って公開リポジトリへコミットされるのを防ぐため、以下の対策を設けています。詳細は `SECURITY.md` をご確認ください。
 
-- **gitleaks の必須化**: コミット時に pre-commit および commit-msg フックでローカルスキャンを行います（ソースコードおよびコミットメッセージを検査します）。事前に `gitleaks` をインストールしてください。
+- **gitleaks の必須化**: コミット時に pre-commit および commit-msg フックでローカルスキャンを行います（ソースコードおよびコミットメッセージを検査します）。事前に `gitleaks` をインストールしてください。なお commit-msg フックでは、gitleaks の前に commitlint によるコミットメッセージ形式の検査も行います。
 - **エディタの安全設定**: `.vscode/settings.json` により、`.env` や鍵ファイル、AI エージェントの作業ディレクトリ（`.cursor/`, `.claude/` など）およびログファイル等を検索・ファイルツリーから除外し、画面共有時や AI による自動読み込みによる漏洩を防いでいます。
 - **.gitattributes 保護**: 秘密情報ファイルの差分表示をブロック (`-diff`) しています。
 - **`pre-commit` の必須化**: さらなる検証のため、`pre-commit` framework を利用しています。`gitleaks` と同様にインストールが**必須**であり、未インストールの場合はコミットがブロックされます。ローカル環境に `pre-commit` をインストールしてください (`pip install pre-commit` または `brew install pre-commit`)。**`pre-commit install` は実行しないでください**。本プロジェクトでは Husky が `.git/hooks/pre-commit` を管理しており、Husky から `pre-commit run` を呼び出す構成になっています。`pre-commit install` を実行すると Husky フックが上書きされ、競合が発生します。
