@@ -1,0 +1,5 @@
+[default]
+# .gitleaks.toml の localtunnel ドメイン `loca.lt`（正規表現内では `loca\.lt`）だけを
+# 誤検知として無視する。`loca` という語そのものは許可しないため、他ファイルの
+# `loca` タイポは引き続き検出される。
+extend-ignore-re = ['loca\\?\.lt']
