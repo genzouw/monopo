@@ -1,0 +1,13 @@
+# lychee 設定 (.github/workflows/lychee.yml から自動的に読み込まれる)
+#
+# ローカル確認: lychee --no-progress --root-dir "$PWD/public" './**/*.md' './index.html'
+
+# index.html の `/favicon.svg` は Vite が public/ 配下から配信するルート相対リンク。
+# ファイルの実体は public/favicon.svg のため、ルート相対リンクの基準を public/ にする。
+root_dir = "public"
+
+exclude = [
+  # docs/security/ai-ci-tools.md で「提供終了したサービス」として言及している URL。
+  # 死んでいること自体が記述内容のため、検査対象から除外する。
+  '^https://sweep\.dev/?$',
+]
