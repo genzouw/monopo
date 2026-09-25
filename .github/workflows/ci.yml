@@ -305,7 +305,7 @@ jobs:
         run: |
           set -euo pipefail
           if git diff --quiet "origin/${BASE_REF}...HEAD"; then
-            echo "::error::ベースブランチ (${BASE_REF}) との差分が空です。コミットが空のPRはマージできません。"
+            echo "::error::ベースブランチ (${BASE_REF}) との差分が空です。空のPRになっています。"
             exit 1
           fi
           echo "✅ ベースブランチとの差分があります。"
