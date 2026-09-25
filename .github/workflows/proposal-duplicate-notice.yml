@@ -1,0 +1,114 @@
+name: Proposal Duplicate Notice
+
+# 提案ドキュメントが新規追加された PR に、既存提案の一覧と正本 Issue (#159) への案内を自動コメントする。
+# 警告のみでマージはブロックしない（コメント投稿に失敗してもジョブは成功させる）。
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  notice:
+    name: Notice duplicate proposals
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write # required to create/update the notice comment
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+      - name: Comment existing proposals on new proposal files
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const pull = context.payload.pull_request;
+            const marker = '<!-- proposal-duplicate-notice -->';
+            const isProposal = (path) =>
+              path.startsWith('docs/proposals/') || /^ISSUE_PROPOSAL_[^/]*\.md$/.test(path);
+
+            try {
+              const files = await github.paginate(github.rest.pulls.listFiles, {
+                owner,
+                repo,
+                pull_number: pull.number,
+                per_page: 100,
+              });
+              const added = files
+                .filter((f) => f.status === 'added' && isProposal(f.filename))
+                .map((f) => f.filename);
+              if (added.length === 0) {
+                console.log('提案ドキュメントの新規追加なし。コメントしません。');
+                return;
+              }
+
+              // 既存の提案一覧はベースブランチから取得する（件数を固定値にしない）
+              const list = async (path) => {
+                const { data } = await github.rest.repos.getContent({
+                  owner,
+                  repo,
+                  path,
+                  ref: pull.base.ref,
+                });
+                return Array.isArray(data) ? data : [];
+              };
+              const proposals = await list('docs/proposals').catch(() => []);
+              const rootFiles = await list('').catch(() => []);
+              const existing = [
+                ...rootFiles.filter((f) => f.type === 'file' && isProposal(f.path)),
+                ...proposals.filter((f) => f.type === 'file' && f.name.endsWith('.md')),
+              ].map((f) => f.path);
+
+              const base = `https://github.com/${owner}/${repo}`;
+              const body = [
+                marker,
+                '## 提案ドキュメントの重複確認をお願いします',
+                '',
+                'このPRは提案ドキュメントを新規追加しています。',
+                ...added.map((p) => `- \`${p}\``),
+                '',
+                `ベースブランチ (\`${pull.base.ref}\`) には既に **${existing.length} ファイル** の提案ドキュメントがあり、同一テーマ（現実経済を模倣したマネーゲーム機能）のものが大半です。`,
+                '',
+                '- **正本は #159 です。** 新規提案は新しいファイルを作らず、#159 へのコメントまたはIssueとして出してください',
+                `- 重複防止ルール: [docs/ai-guidelines.md](${base}/blob/${pull.base.ref}/docs/ai-guidelines.md#提案ドキュメント-docsproposals-の重複防止)`,
+                '- 既存ドキュメントの集約: #678',
+                '',
+                '<details>',
+                `<summary>既存の提案ドキュメント一覧（${existing.length} 件）</summary>`,
+                '',
+                ...existing.map((p) => `- \`${p}\``),
+                '',
+                '</details>',
+                '',
+                '<sub>このコメントは警告のみで、マージはブロックされません。</sub>',
+              ].join('\n');
+
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner,
+                repo,
+                issue_number: pull.number,
+                per_page: 100,
+              });
+              const previous = comments.find((c) => c.body && c.body.includes(marker));
+              if (previous) {
+                await github.rest.issues.updateComment({ owner, repo, comment_id: previous.id, body });
+                console.log(`既存コメント ${previous.id} を更新しました。`);
+              } else {
+                await github.rest.issues.createComment({ owner, repo, issue_number: pull.number, body });
+                console.log('コメントを投稿しました。');
+              }
+            } catch (error) {
+              // fork PR で token が read-only の場合などでも CI を失敗させない
+              core.warning(`重複確認コメントの投稿に失敗しました: ${error.message}`);
+            }
