@@ -46,6 +46,8 @@
 - **Gitleaks ワークフロー (`.github/workflows/gitleaks.yml`)**:
   - 全ての PR とすべてのブランチへのプッシュ時に、対象となるソースコードをスキャンし、シークレットの漏洩があれば CI がエラー（赤検知）となります。正規表現とエントロピーによるパターンベースの検知を行います。
   - **カスタムルールの適用**: リポジトリ直下の `.gitleaks.toml` を使用し、デフォルトの Gitleaks ルールに加えて、個別の汎用ルール（例: メールアドレスや国内電話番号・マイナンバー等の個人情報 [PII] のハードコード、クラウド識別子 [AWS Account ID / GCP Project ID / GCP サービスアカウント]、内部IPアドレス、各種 SaaS・AI トークン (Groq, OpenRouter, DeepSeek 含む)、Observability トークン (Sentry, Datadog)、Payment トークン (Stripe)）も追加で検知するように強化されています。
+- **Checkov による IaC / 汎用マニフェスト セキュリティスキャン (`.github/workflows/checkov.yml`)**:
+  - 現状リポジトリに IaC は無いため、主に `.github/workflows/` とシークレットが対象です（Dockerfile / Terraform / Kubernetes マニフェストを追加した場合は、`checkov.yml` の `framework` に `dockerfile` / `terraform` / `kubernetes` などを追加してください）。`soft_fail: true` のため Checkov ジョブは失敗せず、検知結果は Security タブの Code scanning alerts に集約されます。
 - **TruffleHog ワークフロー (`.github/workflows/trufflehog.yml`)**:
   - `gitleaks` を補完する形で、実際に外部プロバイダ API に対して有効性を検証できたシークレット（有効性検証済み）のみを検知します（`--only-verified`）。誤検知を減らしつつ、漏洩したキーが現在も利用可能かどうかの重大なリスクを即座にブロックします。
 - **Trivy ワークフロー (`.github/workflows/trivy.yml`)**:
@@ -208,4 +210,4 @@ Vite では `VITE_` から始まる環境変数が、Next.js では `NEXT_PUBLIC
 ### CI 実行時のネットワークエグレス監視 (Harden Runner)
 
 悪意のあるサードパーティ Action や npm 依存パッケージによる不正な外部ネットワーク通信（シークレットの外部送信などのサプライチェーン攻撃）を検知・記録するため、`step-security/harden-runner` を導入しています。
-現在は `deploy.yml`, `ci.yml`, `secretlint.yml`, `trufflehog.yml`, `osv-scanner.yml`, `pre-commit.yml` に加え、`codeql.yml`, `dependency-review.yml`, `sbom.yml`, `license-compliance.yml`, `scorecard.yml` にも導入しており、`audit` モードで動作させて予期せぬエンドポイントへの通信を監視・記録しています。通信ログが安定した後に `block` モードへの移行を検討します。
+現在は `deploy.yml`, `ci.yml`, `secretlint.yml`, `trufflehog.yml`, `osv-scanner.yml`, `pre-commit.yml` に加え、`codeql.yml`, `dependency-review.yml`, `sbom.yml`, `license-compliance.yml`, `scorecard.yml`, `checkov.yml` にも導入しており、`audit` モードで動作させて予期せぬエンドポイントへの通信を監視・記録しています。通信ログが安定した後に `block` モードへの移行を検討します。
