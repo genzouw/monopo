@@ -1,0 +1,54 @@
+name: Checkov Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 12 * * 1'
+
+concurrency:
+  group: checkov-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checkov:
+    name: Checkov
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Run Checkov action
+        id: checkov
+        uses: bridgecrewio/checkov-action@4fa90328619ebe2a5396c7f16308c17a7a4b5dc3 # v12.2858.0
+        with:
+          directory: .
+          framework: github_actions,secrets
+          output_format: cli,sarif
+          output_file_path: console,results.sarif
+          quiet: true
+          # CKV_GHA_7 は SLSA のビルド再現性ルール。ai-release-notes.yml の
+          # workflow_dispatch inputs はリリースノートの範囲指定であり、env 経由で安全に扱っているため除外する
+          skip_check: CKV_GHA_7
+          # 検知しても CI を失敗させない（結果は SARIF 経由で Security タブの Code scanning alerts に集約する）
+          soft_fail: true
+      # Checkov 自体が異常終了して results.sarif が無いときは、アップロードの二次エラーで
+      # 原因が埋もれないようスキップする（Checkov ステップの失敗でジョブは赤のまま残す）
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@b96794f015dfd88f77b49b1c93e0fa7110f94c63 # v4.38.0
+        if: always() && hashFiles('results.sarif') != ''
+        with:
+          sarif_file: results.sarif
+          category: checkov
