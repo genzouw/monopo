@@ -46,7 +46,8 @@ runs:
                 model,
                 stream: false
               }),
-              signal: AbortSignal.timeout(300_000)
+              // pull 180 秒 + generate 180 秒の最悪 6 分を、呼び出し元ジョブの timeout-minutes: 10 に収める。
+              signal: AbortSignal.timeout(180_000)
             });
             if (!pullResponse.ok) {
               core.warning(`Failed to pull model ${model} with local Ollama. Status: ${pullResponse.status}`);
