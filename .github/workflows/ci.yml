@@ -216,8 +216,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-bun-
       - run: bun install --frozen-lockfile --ignore-scripts
-      # NOTE: `bun audit` は bun 1.2.21 以降で追加されたため、pin している 1.2.14 では未対応。
-      # 脆弱性チェックは当面 Dependabot に委ね、bun-version を引き上げる際に audit を再追加する。
+      # NOTE: bun 1.4.2 で `bun audit` が利用可能になったが、推移的依存の脆弱性により CI が失敗するため、
+      # 脆弱性チェックは Dependabot に委ね、依存関係の解消後に再追加を検討する。
       - run: bun pm untrusted
 
   ai-guidelines-sync:
