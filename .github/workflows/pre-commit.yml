@@ -6,8 +6,8 @@ on:
   pull_request:
     branches: ['**']
   schedule:
-    # 毎週火曜 09:00 JST (= 火曜 00:00 UTC) に定期監査
-    - cron: '0 0 * * 2'
+    # 毎週火曜 09:07 JST (= 火曜 00:07 UTC) に定期監査（毎時 00 分の高負荷を避けて 7 分にずらす）
+    - cron: '7 0 * * 2'
   workflow_dispatch:
 
 concurrency:
