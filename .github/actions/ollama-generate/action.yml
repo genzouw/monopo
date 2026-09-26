@@ -1,6 +1,6 @@
 name: Ollama Generate
 description: >-
-  ローカル Ollama (デフォルト: qwen2.5-coder:0.5b) にプロンプトを送信し、生成結果を返す。
+  ローカル Ollama (デフォルト: deepseek-r1:1.5b) にプロンプトを送信し、生成結果を返す。
   モデルの pull・生成リクエスト・タイムアウト・エラーハンドリングを一箇所に集約し、
   呼び出し側ワークフロー間での実装差分（ログ書式のばらつき等）を防ぐ。
   呼び出し側で事前に actions/checkout と ai-action/setup-ollama を実行しておくこと。
@@ -12,7 +12,7 @@ inputs:
   model:
     description: 使用する Ollama モデル
     required: false
-    default: 'qwen2.5-coder:0.5b'
+    default: 'deepseek-r1:1.5b'
 
 outputs:
   content:

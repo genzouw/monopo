@@ -36,7 +36,7 @@ jobs:
         # promptfoo自体はモデルの自動pullを行わないため、評価前に明示的に取得しておく。
         # 他のローカルAIワークフロー（local-ai-pr-description.yml等）と同一モデルを使用し、
         # 完全無料・リポジトリ内で完結する構成に統一する（Refs #573）。
-        run: ollama pull qwen2.5-coder:0.5b
+        run: ollama pull deepseek-r1:1.5b
 
       - name: Run promptfoo evaluation
         # GitHub Models は2026年7月30日付で退役し 410 Gone を返すため、Ollama（ローカルLLM）へ移行済み（Refs #573）。
