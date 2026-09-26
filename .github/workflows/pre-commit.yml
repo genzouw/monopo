@@ -5,9 +5,13 @@ on:
     branches: ['**']
   pull_request:
     branches: ['**']
+  schedule:
+    # 毎週火曜 09:07 JST (= 火曜 00:07 UTC) に定期監査（毎時 00 分の高負荷を避けて 7 分にずらす）
+    - cron: '7 0 * * 2'
+  workflow_dispatch:
 
 concurrency:
-  group: pre-commit-${{ github.ref }}
+  group: pre-commit-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
