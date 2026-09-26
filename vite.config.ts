@@ -1,5 +1,5 @@
-/// <reference types="vitest/config" />
 import { defineConfig } from 'vite';
+import { configDefaults } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ command }) => ({
@@ -24,7 +24,7 @@ export default defineConfig(({ command }) => ({
     environment: 'jsdom',
     setupFiles: './src/test-setup.ts',
     // e2e/ は Playwright で実行するため vitest の対象から外す
-    exclude: ['node_modules/**', 'dist/**', 'e2e/**'],
+    exclude: [...configDefaults.exclude, 'dist/**', 'e2e/**'],
     coverage: {
       provider: 'v8',
       include: ['src/**'],
