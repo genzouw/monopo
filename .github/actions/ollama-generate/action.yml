@@ -70,7 +70,11 @@ runs:
             if (response.ok) {
               const data = await response.json();
               // think: false が効かない Ollama バージョン向けに、<think>...</think> を除去する。
-              content = (data.response ?? '').replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+              // 生成が打ち切られて閉じタグが無い場合は、<think> 以降を落とす。
+              content = (data.response ?? '')
+                .replace(/<think>[\s\S]*?<\/think>/g, '')
+                .replace(/<think>[\s\S]*$/, '')
+                .trim();
               if (content === '') {
                 core.warning(`Ollama returned an empty response for model ${model}. Downstream steps will be skipped.`);
               }
