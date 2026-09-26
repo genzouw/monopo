@@ -19,8 +19,8 @@
 #   引き続き検知される。
 #
 # このファイルを削除するタイミング（Refs #601）:
-#   上流リリースの検知は Dependabot（`.github/dependabot.yml` の
-#   `package-ecosystem: 'pre-commit'`）に委譲している。actionlint が新版を
+#   上流リリースの検知は Renovate（`.github/renovate.json` の
+#   `pre-commit` manager）に委譲している。actionlint が新版を
 #   リリースすると `.pre-commit-config.yaml` の `rev` を上げる PR が届き、
 #   `actionlint-pin-consistency` フック（`scripts/check-actionlint-pin.sh`）が
 #   entry のバージョン未更新を検知して落ちる。これが着手の合図。
@@ -41,7 +41,7 @@
 #   分岐 A: `$/` エラーが出ない = 上流が対応した
 #     A-1. 本ファイルを削除する
 #     A-2. `genzouw/ci-workflows` の `.github/workflows/actionlint.yml` の `VERSION` を
-#          新版へ更新してマージし、タグを切る（CI 側は monopo の Dependabot では上がらない）
+#          新版へ更新してマージし、タグを切る（CI 側は monopo の Renovate では上がらない）
 #     A-3. monopo の `.github/workflows/actionlint.yml` の
 #          `uses: genzouw/ci-workflows/...@<SHA>` を A-2 の SHA へ更新する。
 #          ci-workflows 側の `VERSION` を上げただけでは、monopo の CI は
@@ -51,8 +51,8 @@
 #
 #   分岐 B: `$/` エラーが残る = 新版に上流対応が入っていない
 #     B-1. 退避した本ファイルを元に戻す
-#     B-2. 手順 1 の entry 更新だけを載せて Dependabot PR をマージする。
-#          `groups.hooks.patterns: ['*']` で pre-commit の更新は 1 PR にまとまるため、
+#     B-2. 手順 1 の entry 更新だけを載せて Renovate PR をマージする。
+#          `groupName: "pre-commit"` で pre-commit の更新は 1 PR にまとまるため、
 #          放置すると `$/` と無関係なフック更新まで止まる。
 #     B-3. Issue #601 はクローズせず、次のリリースを待つ
 paths:
