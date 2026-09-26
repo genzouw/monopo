@@ -14,14 +14,16 @@ providers:
     # .github/actions/ollama-generate/action.yml の既定値と揃えること（二重管理のため）。
     # temperature未指定だと極小モデル（1.5b）の出力がサンプリングにより揺れ、
     # 「Bun」以外（yarn等）を回答してCIがflakyに失敗することがあるため0に固定する。
-    # R1 は推論過程（<think>）込みで出力するが、icontains は部分一致のため判定には影響しない。
+    # R1 は推論過程（<think>）込みで出力するため、Bun の判定は <think> を除いた最終回答に対して行う。
     config:
       temperature: 0
 tests:
   - description: 'パッケージマネージャーの規約に沿って Bun を回答すること'
     assert:
-      - type: icontains
-        value: 'Bun'
+      # icontains は output 全体を検査するため、<think> 内の「Bun」で誤って成功しないよう、
+      # 閉じタグの有無を問わず <think> を除去した最終回答に対して大文字小文字を区別せず判定する。
+      - type: javascript
+        value: 'String(output).replace(/<think>[\s\S]*?<\/think>/gi, "").replace(/<think>[\s\S]*$/i, "").toLowerCase().includes("bun")'
   - description: '応答が空でないこと'
     assert:
       - type: javascript
