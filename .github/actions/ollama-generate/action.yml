@@ -39,15 +39,18 @@ runs:
 
           let content = '';
           try {
-            await fetch('http://localhost:11434/api/pull', {
+            const pullResponse = await fetch('http://localhost:11434/api/pull', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 model,
                 stream: false
               }),
-              signal: AbortSignal.timeout(120_000)
+              signal: AbortSignal.timeout(300_000)
             });
+            if (!pullResponse.ok) {
+              core.warning(`Failed to pull model ${model} with local Ollama. Status: ${pullResponse.status}`);
+            }
 
             const response = await fetch('http://localhost:11434/api/generate', {
               method: 'POST',
@@ -55,14 +58,21 @@ runs:
               body: JSON.stringify({
                 model,
                 prompt,
-                stream: false
+                stream: false,
+                // 推論モデル（deepseek-r1 等）の思考過程を response に混ぜない（対応バージョンのみ有効）。
+                think: false
               }),
-              signal: AbortSignal.timeout(60_000)
+              // 推論モデルは CPU のみの Runner で応答に時間がかかるため、余裕を持たせる。
+              signal: AbortSignal.timeout(180_000)
             });
 
             if (response.ok) {
               const data = await response.json();
-              content = data.response;
+              // think: false が効かない Ollama バージョン向けに、<think>...</think> を除去する。
+              content = (data.response ?? '').replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+              if (content === '') {
+                core.warning(`Ollama returned an empty response for model ${model}. Downstream steps will be skipped.`);
+              }
             } else {
               core.warning(`Failed to generate content with local Ollama. Status: ${response.status}`);
             }
