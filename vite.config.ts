@@ -23,6 +23,8 @@ export default defineConfig(({ command }) => ({
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/test-setup.ts',
+    // e2e/ は Playwright で実行するため vitest の対象から外す
+    exclude: ['node_modules/**', 'dist/**', 'e2e/**'],
     coverage: {
       provider: 'v8',
       include: ['src/**'],
