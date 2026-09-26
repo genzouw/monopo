@@ -143,7 +143,7 @@ jobs:
       - name: Generate Fix Suggestion with Local Ollama
         id: generate-suggestion
         if: steps.download-log.outputs.has_errors == 'true'
-        uses: ./.github/actions/ollama-generate
+        uses: $/.github/actions/ollama-generate
         with:
           prompt: ${{ steps.build-prompt.outputs.result }}
 
