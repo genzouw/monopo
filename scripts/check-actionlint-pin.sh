@@ -6,7 +6,7 @@
 #
 # 背景:
 #   entry は digest 固定している（CWE-494: 整合性チェックなしのコード取得対策）が、
-#   Dependabot の pre-commit version update は rev 行しか書き換えない。
+#   Renovate の pre-commit 更新は rev 行しか書き換えない。
 #   rev だけが上がって entry が古いまま残ると、フック定義と実際に実行される
 #   イメージがずれ、「新しい actionlint を入れたつもりで古いイメージが動く」
 #   状態になる。このズレを機械的に落とすのが本スクリプトの目的。
@@ -21,7 +21,7 @@
 #   副次的な効果として、本チェックが落ちること自体が Issue #601
 #   （actionlint が self-repository syntax `$/` に対応したら
 #   .github/actionlint.yaml を削除する）の着手トリガーになる。
-#   上流リリースの検知は Dependabot に委譲しており、rev 更新 PR が届いた時点で
+#   上流リリースの検知は Renovate に委譲しており、rev 更新 PR が届いた時点で
 #   このチェックが失敗して作業を促す。
 
 set -euo pipefail
@@ -83,7 +83,7 @@ if [ "$rev_version" != "$entry_version" ]; then
   rev  (フック定義): v${rev_version}
   entry (実行イメージ): docker.io/rhysd/actionlint:${entry_version}@sha256:...
 
-Dependabot の pre-commit 更新は rev 行しか書き換えないため、
+Renovate の pre-commit 更新は rev 行しか書き換えないため、
 entry のタグと digest は手で合わせる必要があります。
 
 対応手順:
