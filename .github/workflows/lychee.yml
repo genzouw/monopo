@@ -37,4 +37,4 @@ permissions:
 
 jobs:
   lychee:
-    uses: genzouw/ci-workflows/.github/workflows/lychee.yml@c7627b6a99d8b3a2c8e8cdeba120c42070f37bd0 # v1.3.1
+    uses: genzouw/ci-workflows/.github/workflows/lychee.yml@25d9ccba55e73641a6998b24fe89ddfbb020beed # v1.4.1
