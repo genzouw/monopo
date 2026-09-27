@@ -31,7 +31,7 @@ repos:
         stages: [commit]
 
   - repo: https://github.com/trufflesecurity/trufflehog
-    rev: v3.97.5
+    rev: v3.97.9
     hooks:
       - id: trufflehog
         stages: [commit]
@@ -94,7 +94,7 @@ repos:
         exclude: '\.env\.example$|^\.secretlintrc\.json$|^\.github/workflows/secretlint\.yml$'
 
   - repo: https://github.com/crate-ci/typos
-    rev: v1.50.2
+    rev: v1.50.3
     hooks:
       # フック定義の既定 args は [--write-changes, --force-exclude] で、検出した語を
       # その場で自動修正する。スペル修正は文脈によって誤った語に置き換わりうるため、
