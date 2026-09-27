@@ -52,6 +52,7 @@ bun run dev
 - `bun run preview`: ビルドされたプロダクション環境をローカルでプレビューします
 - `bun run test`: Vitest を使用してテストを実行します
 - `bun run test:coverage`: テストのカバレッジを計測します
+- `bun run test:e2e`: Playwright を使用して本番ビルドの E2E スモークテストを実行します（事前に `bun run build` でのビルドと `bunx playwright install chromium` によるブラウザのインストールが必要です。ビルド前に実行すると `vite preview` が空の `dist/` を配信し失敗します）
 - `bun run lint`: ESLint を使用してコードの静的解析を行います
 - `bun run format`: Prettier を使用してコードのフォーマットを行います
 - `bun run typecheck`: TypeScript の型チェックを実行します

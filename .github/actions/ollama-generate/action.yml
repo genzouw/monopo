@@ -1,6 +1,6 @@
 name: Ollama Generate
 description: >-
-  ローカル Ollama (デフォルト: qwen2.5-coder:0.5b) にプロンプトを送信し、生成結果を返す。
+  ローカル Ollama (デフォルト: deepseek-r1:1.5b) にプロンプトを送信し、生成結果を返す。
   モデルの pull・生成リクエスト・タイムアウト・エラーハンドリングを一箇所に集約し、
   呼び出し側ワークフロー間での実装差分（ログ書式のばらつき等）を防ぐ。
   呼び出し側で事前に actions/checkout と ai-action/setup-ollama を実行しておくこと。
@@ -12,7 +12,7 @@ inputs:
   model:
     description: 使用する Ollama モデル
     required: false
-    default: 'qwen2.5-coder:0.5b'
+    default: 'deepseek-r1:1.5b'
 
 outputs:
   content:
@@ -39,15 +39,19 @@ runs:
 
           let content = '';
           try {
-            await fetch('http://localhost:11434/api/pull', {
+            const pullResponse = await fetch('http://localhost:11434/api/pull', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 model,
                 stream: false
               }),
-              signal: AbortSignal.timeout(120_000)
+              // pull 180 秒 + generate 180 秒の最悪 6 分を、呼び出し元ジョブの timeout-minutes: 10 に収める。
+              signal: AbortSignal.timeout(180_000)
             });
+            if (!pullResponse.ok) {
+              core.warning(`Failed to pull model ${model} with local Ollama. Status: ${pullResponse.status}`);
+            }
 
             const response = await fetch('http://localhost:11434/api/generate', {
               method: 'POST',
@@ -55,14 +59,25 @@ runs:
               body: JSON.stringify({
                 model,
                 prompt,
-                stream: false
+                stream: false,
+                // 推論モデル（deepseek-r1 等）の思考過程を response に混ぜない（対応バージョンのみ有効）。
+                think: false
               }),
-              signal: AbortSignal.timeout(60_000)
+              // 推論モデルは CPU のみの Runner で応答に時間がかかるため、余裕を持たせる。
+              signal: AbortSignal.timeout(180_000)
             });
 
             if (response.ok) {
               const data = await response.json();
-              content = data.response;
+              // think: false が効かない Ollama バージョン向けに、<think>...</think> を除去する。
+              // 生成が打ち切られて閉じタグが無い場合は、<think> 以降を落とす。
+              content = (data.response ?? '')
+                .replace(/<think>[\s\S]*?<\/think>/g, '')
+                .replace(/<think>[\s\S]*$/, '')
+                .trim();
+              if (content === '') {
+                core.warning(`Ollama returned an empty response for model ${model}. Downstream steps will be skipped.`);
+              }
             } else {
               core.warning(`Failed to generate content with local Ollama. Status: ${response.status}`);
             }
