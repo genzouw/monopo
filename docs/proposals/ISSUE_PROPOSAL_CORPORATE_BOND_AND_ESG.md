@@ -7,11 +7,11 @@
 
 以下の機能は既存の提案で扱い済みのため、本書では新規に提案せず、参照先へのリンクにとどめます。
 
-| 機能 | 既存の提案 |
-| --- | --- |
+| 機能                                | 既存の提案                                                                                                                                                                                                                                                                                                                                                                                            |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | ESG・カーボンプライシング（炭素税） | [`ISSUE_PROPOSAL_ADVANCED_MONEY_GAME.md`](ISSUE_PROPOSAL_ADVANCED_MONEY_GAME.md)、[`ISSUE_PROPOSAL_ADVANCED_FINANCIAL_EDUCATION.md`](ISSUE_PROPOSAL_ADVANCED_FINANCIAL_EDUCATION.md)、[`ISSUE_PROPOSAL_EDUCATIONAL_ASSET_MANAGEMENT.md`](ISSUE_PROPOSAL_EDUCATIONAL_ASSET_MANAGEMENT.md)、[`advanced-money-game-features-proposal.md`](../superpowers/specs/advanced-money-game-features-proposal.md) |
-| スマートコントラクト | [`ISSUE_PROPOSAL_NEXT_GEN_FINANCE.md`](ISSUE_PROPOSAL_NEXT_GEN_FINANCE.md)、[`ISSUE_PROPOSAL_ADVANCED_FINANCIAL_EDUCATION.md`](ISSUE_PROPOSAL_ADVANCED_FINANCIAL_EDUCATION.md)、[`ISSUE_PROPOSAL_MODERN_EDUCATIONAL_MONEY_GAME.md`](ISSUE_PROPOSAL_MODERN_EDUCATIONAL_MONEY_GAME.md) |
-| アルゴリズム取引 | [`ISSUE_PROPOSAL_NEXT_GEN_FINANCE.md`](ISSUE_PROPOSAL_NEXT_GEN_FINANCE.md)、[`ISSUE_PROPOSAL_REALITY_MONEY_GAME.md`](ISSUE_PROPOSAL_REALITY_MONEY_GAME.md)、[`ISSUE_PROPOSAL_ADVANCED_FINANCIAL_EDUCATION.md`](ISSUE_PROPOSAL_ADVANCED_FINANCIAL_EDUCATION.md) |
+| スマートコントラクト                | [`ISSUE_PROPOSAL_NEXT_GEN_FINANCE.md`](ISSUE_PROPOSAL_NEXT_GEN_FINANCE.md)、[`ISSUE_PROPOSAL_ADVANCED_FINANCIAL_EDUCATION.md`](ISSUE_PROPOSAL_ADVANCED_FINANCIAL_EDUCATION.md)、[`ISSUE_PROPOSAL_MODERN_EDUCATIONAL_MONEY_GAME.md`](ISSUE_PROPOSAL_MODERN_EDUCATIONAL_MONEY_GAME.md)                                                                                                                  |
+| アルゴリズム取引                    | [`ISSUE_PROPOSAL_NEXT_GEN_FINANCE.md`](ISSUE_PROPOSAL_NEXT_GEN_FINANCE.md)、[`ISSUE_PROPOSAL_REALITY_MONEY_GAME.md`](ISSUE_PROPOSAL_REALITY_MONEY_GAME.md)、[`ISSUE_PROPOSAL_ADVANCED_FINANCIAL_EDUCATION.md`](ISSUE_PROPOSAL_ADVANCED_FINANCIAL_EDUCATION.md)                                                                                                                                        |
 
 ### ⚙️ ゲーム内での具体的なメカニクス (How)
 
