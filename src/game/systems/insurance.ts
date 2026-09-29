@@ -34,7 +34,8 @@ export type InsuranceBuyReason =
   | 'PROPERTY_NOT_FOUND';
 
 export type InsuranceBuyValidation =
-  { ok: true; premium: number } | { ok: false; reason: InsuranceBuyReason };
+  | { ok: true; premium: number }
+  | { ok: false; reason: InsuranceBuyReason };
 
 /**
  * 保険購入バリデーション。

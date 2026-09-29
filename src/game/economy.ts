@@ -151,7 +151,8 @@ export function distributeDividends(
 
 // 株購入の検証＆コスト計算
 export type StockBuyValidation =
-  { ok: true; cost: number } | { ok: false; reason: StockBuyReason };
+  | { ok: true; cost: number }
+  | { ok: false; reason: StockBuyReason };
 
 export type StockBuyReason =
   | 'STOCKS_DISABLED'
@@ -186,7 +187,8 @@ export function validateStockBuy(
 
 // 株売却の検証＆獲得額計算
 export type StockSellValidation =
-  { ok: true; proceeds: number } | { ok: false; reason: StockSellReason };
+  | { ok: true; proceeds: number }
+  | { ok: false; reason: StockSellReason };
 
 export type StockSellReason =
   | 'STOCKS_DISABLED'
