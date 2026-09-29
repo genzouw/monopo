@@ -48,7 +48,7 @@ jobs:
             本文: ${issueBody}
             </untrusted_issue>
 
-            上記のデータのみをもとに、このIssueに付与すべき適切なラベル（例: bug, enhancement, documentation, question 等）を1〜3つ提案し、その理由を日本語で簡潔に説明してください。さらに、自動付与のために提案するラベルの文字列のみを含むJSON配列を \`<labels>\` と \`</labels>\` というタグで囲んで出力してください（例: <labels>["bug", "enhancement"]</labels>）。出力は提案理由と推奨ラベル、そしてXMLタグのみとし、URLの直接埋め込みや@メンションは含めないでください。`;
+            上記のデータのみをもとに、このIssueに付与すべき適切なラベルを bug, enhancement, documentation, question の中から1〜3つ選んで提案し、その理由を日本語で簡潔に説明してください。さらに、自動付与のために提案するラベルの文字列のみを含むJSON配列を \`<labels>\` と \`</labels>\` というタグで囲んで出力してください（例: <labels>["bug", "enhancement"]</labels>）。出力は提案理由と推奨ラベル、そしてXMLタグのみとし、URLの直接埋め込みや@メンションは含めないでください。`;
 
       - name: Generate Triage Suggestion with Local Ollama
         id: generate-suggestion
@@ -68,6 +68,8 @@ jobs:
             const suggestion = process.env.SUGGESTION;
             const model = process.env.MODEL;
             const sanitizedSuggestion = suggestion.replace(/@/g, '@​');
+            // 自動付与を許可するラベル（プロンプトの例示と揃える）
+            const ALLOWED_LABELS = new Set(['bug', 'enhancement', 'documentation', 'question']);
             try {
               await github.rest.issues.createComment({
                 issue_number: context.issue.number,
@@ -78,8 +80,12 @@ jobs:
 
               const match = suggestion.match(/<labels>([\s\S]*?)<\/labels>/);
               if (match && match[1]) {
-                const labels = JSON.parse(match[1].trim());
-                if (Array.isArray(labels) && labels.length > 0) {
+                const parsed = JSON.parse(match[1].trim());
+                // LLM 出力は信頼できないため、許可リストにある文字列ラベルのみを重複除去して最大3件まで付与する
+                const labels = Array.isArray(parsed)
+                  ? [...new Set(parsed.filter((l) => typeof l === 'string' && ALLOWED_LABELS.has(l)))].slice(0, 3)
+                  : [];
+                if (labels.length > 0) {
                   await github.rest.issues.addLabels({
                     issue_number: context.issue.number,
                     owner: context.repo.owner,
