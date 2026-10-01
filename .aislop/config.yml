@@ -34,4 +34,4 @@ ci:
   failBelow: 70
   format: json
 telemetry:
-  enabled: true
+  enabled: false
