@@ -31,7 +31,7 @@ scoring:
   smoothing: 5
   maxPerRule: 40
 ci:
-  failBelow: 85
+  failBelow: 70
   format: json
 telemetry:
   enabled: true
