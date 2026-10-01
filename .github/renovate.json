@@ -5,7 +5,8 @@
   "semanticCommitScope": "deps",
   "timezone": "Asia/Tokyo",
   "schedule": ["* 9-11 * * *"],
-  "minimumReleaseAge": "1 day",
+  "minimumReleaseAge": "3 days",
+  "minimumReleaseAgeBehaviour": "timestamp-optional",
   "pre-commit": {
     "description": [
       "pre-commit manager を明示的に有効にする (Dependabot の package-ecosystem: pre-commit に相当)。",
@@ -37,17 +38,10 @@
       "semanticCommitType": "chore"
     },
     {
-      "description": [
-        "GitHub Actions の更新のプレフィックスとラベル (Dependabot の commit-message.prefix と同じ)。",
-        "GitHub Actions の一部 (例: bridgecrewio/checkov-action) はタグのみで release timestamp を持たず、",
-        "timestamp-required のままだと minimumReleaseAge の待機チェックを永久に通過できない。",
-        "この例外は release timestamp が無いことが実際に確認されている github-actions manager にのみ限定し、",
-        "npm/bun/pip などのアプリケーション依存は timestamp-required (デフォルト) のまま 1 日待機を維持する。"
-      ],
+      "description": "GitHub Actions の更新のプレフィックスとラベル (Dependabot の commit-message.prefix と同じ)",
       "matchManagers": ["github-actions"],
       "semanticCommitType": "ci",
-      "addLabels": ["github-actions"],
-      "minimumReleaseAgeBehaviour": "timestamp-optional"
+      "addLabels": ["github-actions"]
     },
     {
       "description": "npm / bun の更新には npm ラベルを付ける",
