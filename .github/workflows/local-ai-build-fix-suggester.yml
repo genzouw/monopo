@@ -113,7 +113,7 @@ jobs:
 
       - name: Setup Ollama
         if: steps.download-log.outputs.has_errors == 'true'
-        uses: ai-action/setup-ollama@6c9453881a29f2604c0ef56e20344141cc556dfb # v2.0.79
+        uses: ai-action/setup-ollama@bb1a15e4315698e668874dc3aad323d7c6d57ede # v2.1.0
 
       - name: Build Suggestion Prompt
         id: build-prompt
