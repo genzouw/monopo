@@ -212,3 +212,7 @@ Vite では `VITE_` から始まる環境変数が、Next.js では `NEXT_PUBLIC
 
 悪意のあるサードパーティ Action や npm 依存パッケージによる不正な外部ネットワーク通信（シークレットの外部送信などのサプライチェーン攻撃）を検知・記録するため、`step-security/harden-runner` を導入しています。
 現在は `deploy.yml`, `ci.yml`, `secretlint.yml`, `trufflehog.yml`, `osv-scanner.yml`, `pre-commit.yml` に加え、`codeql.yml`, `dependency-review.yml`, `sbom.yml`, `license-compliance.yml`, `scorecard.yml`, `checkov.yml`, `bearer.yml` にも導入しており、`audit` モードで動作させて予期せぬエンドポイントへの通信を監視・記録しています。通信ログが安定した後に `block` モードへの移行を検討します。
+
+### 追加の漏洩防止対策 (コミット前検知のファイル拡張)
+
+特定の強力なクレデンシャルファイル (`.p8`, `.ovpn`, `.kdbx`, `.publishsettings`) や開発者ローカルのクラウドCLI認証ディレクトリ (`.aws/`, `.kube/`, `.docker/`) が誤ってコミットされないように、`.gitignore`、`.gitattributes`、`.vscode/settings.json`、および `.pre-commit-config.yaml` (`forbid-sensitive-files`) の対象を拡張しました。これにより機密ファイルのコミット前検知が強化されます。
