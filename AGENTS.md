@@ -96,8 +96,8 @@
 
 誤検知や、課金を伴わない正当な参照を除外する手段は次の 2 つです。
 
-- 対象行に `free-policy: allow <理由>` を含むコメントを書く
-- スタブ (`.github/workflows/free-policy.yml`) の `allowed_secrets` に Secret 名を追加する。鍵名パターン (`*_API_KEY` / `*_API_TOKEN` / `*_SECRET_KEY`・プロバイダ名付き) に合致する名前は指定できず、指定すると `enforce` の値にかかわらず job が失敗する (プロバイダ名付きでなく、名前に `GITHUB` を単語として含むものを除く)。その場合は行内マーカーを使う
+- 対象行に `free-policy: allow <理由>` を含むコメントを書きます
+- スタブ (`.github/workflows/free-policy.yml`) の `allowed_secrets` に Secret 名を追加します。ただし、鍵名パターン (`*_API_KEY` / `*_API_TOKEN` / `*_SECRET_KEY`・プロバイダ名付き) に合致する名前は指定できません (プロバイダ名付きでなく、名前に `GITHUB` を単語として含むものは指定できます)。指定できない名前を書くと、`enforce` の値にかかわらず job が失敗します。その場合は行内マーカーを使ってください
 
 どちらも次のルールに従ってください。
 
