@@ -68,6 +68,7 @@
 
 `.github/workflows/free-policy.yml` (実体は [`genzouw/ci-workflows`](https://github.com/genzouw/ci-workflows) の reusable workflow) が、本ポリシーのうち構文的に判定できる違反を検出します。違反を検出すると job が失敗します (`enforce: true`)。
 走査対象は、`.github/` 配下の YAML / JSON、リポジトリルート直下の Renovate 設定 (`renovate.json` 等)、composite action 定義 (`action.yml` / `action.yaml`) です。Markdown やソースコードは走査しません。
+検出条件の正は [`ci-workflows` の `free-policy.yml`](https://github.com/genzouw/ci-workflows/blob/main/.github/workflows/free-policy.yml) です。本節と食い違う場合はそちらが優先されます (本節は v1.5.0 時点の内容)。
 
 **CI が自動検出するもの**
 
