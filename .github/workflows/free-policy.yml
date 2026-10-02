@@ -4,12 +4,13 @@ name: free-policy
 # ロジックの実体・変更は ci-workflows 側で一元管理する (トリガー定義のみここで持つ)。
 # 参照 SHA の更新は Renovate (github-actions manager) が自動で PR を出す。
 # 将来 必須チェック (context: "free-policy / Free-only policy check") にする想定のため
-# paths フィルタは付けない (フィルタで skip されると context が報告されずマージできなくなる)。
+# paths フィルタは付けず、branches も絞らない (フィルタで skip されると context が報告されず
+# マージできなくなる。ベースを後から main へ付け替えた PR でも同じことが起きる)。
 on:
   push:
-    branches: [main, master]
+    branches: ['**']
   pull_request:
-    branches: [main, master]
+    branches: ['**']
 
 concurrency:
   group: free-policy-${{ github.ref }}
