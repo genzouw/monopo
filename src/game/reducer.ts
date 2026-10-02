@@ -224,10 +224,19 @@ function nextActivePlayer(players: Player[], currentIndex: number): number {
   return next;
 }
 
+// ⚡ Bolt: Replace array .filter() allocation with a single-pass O(N) loop and early return
+// to reduce memory allocation and improve performance during frequent winner checks.
 function checkWinner(players: Player[]): string | null {
-  const active = players.filter((p) => !p.isBankrupt);
-  if (active.length === 1) return active[0].id;
-  return null;
+  let activeId: string | null = null;
+  let activeCount = 0;
+  for (const p of players) {
+    if (!p.isBankrupt) {
+      activeId = p.id;
+      activeCount++;
+      if (activeCount > 1) return null; // Early return if more than 1 active
+    }
+  }
+  return activeCount === 1 ? activeId : null;
 }
 
 /**
