@@ -75,3 +75,6 @@ ai-report-*.md -diff export-ignore
 .aws/** -diff export-ignore
 .kube/** -diff export-ignore
 .docker/** -diff export-ignore
+**/.aws/** -diff export-ignore
+**/.kube/** -diff export-ignore
+**/.docker/** -diff export-ignore
