@@ -17,6 +17,11 @@ lint:
 security:
   audit: true
   auditTimeout: 25000
+# 依存パッケージの脆弱性検出は warning として出力に残し、ゲートの即失敗要因にはしない。
+# 修正版が未公開のアドバイザリが出ると、差分と無関係に main と全 PR が失敗し続けるため。
+# 脆弱性の検知と対応は Renovate / OSV-Scanner / Trivy / Dependency Review に委ねる。
+rules:
+  security/vulnerable-dependency: warning
 scoring:
   weights:
     format: 0.3
