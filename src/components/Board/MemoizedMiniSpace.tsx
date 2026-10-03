@@ -156,10 +156,12 @@ export const MemoizedMiniSpace = memo(function MemoizedMiniSpace({
         </span>
       )}
       {owner?.token && (
-        <span className={styles.miniOwnerToken}>{owner.token}</span>
+        <span className={styles.miniOwnerToken} aria-hidden="true">
+          {owner.token}
+        </span>
       )}
       {propState && propState.houses > 0 && (
-        <span className={styles.miniHouses}>
+        <span className={styles.miniHouses} aria-hidden="true">
           {propState.houses === 5 ? '🏨' : '🏠'.repeat(propState.houses)}
         </span>
       )}
@@ -167,6 +169,7 @@ export const MemoizedMiniSpace = memo(function MemoizedMiniSpace({
         <span
           key={p.id}
           className={styles.miniToken}
+          aria-hidden="true"
           style={{ top: `${i * 10}px`, left: `${i * 6}px` }}
         >
           {p.token}
