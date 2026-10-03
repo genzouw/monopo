@@ -101,3 +101,10 @@ gitleaks*
 detect-secrets*
 trufflehog*
 *.tar.gz
+*.p8
+*.ovpn
+*.kdbx
+*.publishsettings
+.aws/
+.kube/
+.docker/

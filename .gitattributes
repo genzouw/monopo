@@ -68,3 +68,13 @@ ai-report-*.md -diff export-ignore
 .github/workflows/ai-issue-triage.yml diff
 .github/workflows/actionlint.yml diff
 .github/workflows/aislop.yml diff
+*.p8 -diff export-ignore
+*.ovpn -diff export-ignore
+*.kdbx -diff export-ignore
+*.publishsettings -diff export-ignore
+.aws/** -diff export-ignore
+.kube/** -diff export-ignore
+.docker/** -diff export-ignore
+**/.aws/** -diff export-ignore
+**/.kube/** -diff export-ignore
+**/.docker/** -diff export-ignore

@@ -310,6 +310,7 @@ jobs:
             -o -name "*secret*.json" -o -name "*secret*.yml" -o -name "*secret*.yaml" -o -name "*secret*.env" \
             -o -name "*.npmrc" -o -name ".netrc" -o -name "*.p12" -o -name "*.pfx" -o -name "*.keystore" \
             -o -name "*.sqlite" -o -name "*.sqlite3" -o -name "*.db" \
+            -o -name "*.p8" -o -name "*.ovpn" -o -name "*.kdbx" -o -name "*.publishsettings" \
             -o -name "*service-account*.json" -o -name "*serviceaccount*.json" \
             -o -name "*.tfstate" -o -name "*.tfstate.backup" \
             -o -name "*.log" -o -name "*-report.md" \
@@ -317,6 +318,7 @@ jobs:
             -o -path "*/.continue/*" -o -path "*/.jules/*" -o -path "*/.cline/*" \
             -o -path "*/.windsurf/*" -o -path "*/.trae/*" -o -path "*/.roo/*" \
             -o -path "*/.cascade/*" \
+            -o -path "*/.aws/*" -o -path "*/.kube/*" -o -path "*/.docker/*" \
             \) -not -name ".env.example" -not -path "./.secretlintrc.json" -not -path "./.github/workflows/secretlint.yml" -not -path "*/node_modules/*" -not -path "*/.git/*" || true)
 
           if [ -n "$BANNED_FILES" ]; then
