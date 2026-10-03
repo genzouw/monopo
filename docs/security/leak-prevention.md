@@ -46,6 +46,7 @@
 - **Gitleaks ワークフロー (`.github/workflows/gitleaks.yml`)**:
   - 全ての PR とすべてのブランチへのプッシュ時に、対象となるソースコードをスキャンし、シークレットの漏洩があれば CI がエラー（赤検知）となります。正規表現とエントロピーによるパターンベースの検知を行います。
   - **カスタムルールの適用**: リポジトリ直下の `.gitleaks.toml` を使用し、デフォルトの Gitleaks ルールに加えて、個別の汎用ルール（例: クレジットカード番号、メールアドレスや国内電話番号・マイナンバー等の個人情報 [PII] のハードコード、クラウド識別子 [AWS Account ID / GCP Project ID / GCP サービスアカウント]、内部IPアドレス、各種 SaaS・AI トークン (Groq, OpenRouter, DeepSeek 含む)、Observability トークン (Sentry, Datadog)、Payment トークン (Stripe)）も追加で検知するように強化されています。
+  - **クレジットカード番号ルールの検知範囲と誤検知方針**: スペース・ハイフン区切りと Mastercard 2-series BIN 帯 (222100-272099) を含めて検知します。gitleaks 8.x にはルール単位の Luhn チェックが無く、桁数とプレフィックスだけで判定するため、数値定数や ID が誤検知される場合があります。決済事業者が公開している既知のテスト番号のみ `.gitleaks.toml` の allowlist で除外し、それ以外は該当行への `# gitleaks:allow` などで個別に解消してください。検知範囲は `scripts/test-gitleaks-rules.sh` の回帰テストで固定しています。
 - **Checkov による IaC / 汎用マニフェスト セキュリティスキャン (`.github/workflows/checkov.yml`)**:
   - 現状リポジトリに IaC は無いため、主に `.github/workflows/` とシークレットが対象です（Dockerfile / Terraform / Kubernetes マニフェストを追加した場合は、`checkov.yml` の `framework` に `dockerfile` / `terraform` / `kubernetes` などを追加してください）。`soft_fail: true` のため Checkov ジョブは失敗せず、検知結果は Security タブの Code scanning alerts に集約されます。
 - **TruffleHog ワークフロー (`.github/workflows/trufflehog.yml`)**:
