@@ -22,6 +22,7 @@ security:
 # 検出結果は OSV-Scanner が Security タブ (code scanning alerts) に記録する。
 # OSV-Scanner / Trivy は失敗しない設定のため、新しいアドバイザリで CI が失敗する経路は無い。
 # 修正版が公開されたら Renovate が更新 PR を出す。
+# この設定は恒久とする。error に戻すと、修正版が未公開のアドバイザリで同じ失敗が再発するため。
 rules:
   security/vulnerable-dependency: warning
 scoring:
