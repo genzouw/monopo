@@ -72,3 +72,4 @@
 
 - `CLAUDE.md` は Claude Code 向けの設定ファイルとして自動生成されます。
 - CI失敗時にDuckDuckGo検索とローカルOllamaを用いて修正案を提案する `local-ai-build-fix-suggester.yml` ワークフローを導入しています。これも完全に無料で動作します。
+- PRでの不足テストケースを提案する `local-ai-test-suggester.yml` ワークフローを導入しています。これも完全に無料で動作します。
