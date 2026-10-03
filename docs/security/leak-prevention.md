@@ -45,7 +45,7 @@
   - 全てのブランチへの push および全ての PR、さらに週次のスケジュールで `secretlint` のジョブを実行し、Node.js エコシステムに特化したシークレット漏洩スキャンを行います。これにより、ローカルのフックをすり抜けた場合でも追加の検知層として機能します（ただし、未知のパターンや `.secretlintignore` で除外した対象までは検知できません）。
 - **Gitleaks ワークフロー (`.github/workflows/gitleaks.yml`)**:
   - 全ての PR とすべてのブランチへのプッシュ時に、対象となるソースコードをスキャンし、シークレットの漏洩があれば CI がエラー（赤検知）となります。正規表現とエントロピーによるパターンベースの検知を行います。
-  - **カスタムルールの適用**: リポジトリ直下の `.gitleaks.toml` を使用し、デフォルトの Gitleaks ルールに加えて、個別の汎用ルール（例: メールアドレスや国内電話番号・マイナンバー等の個人情報 [PII] のハードコード、クラウド識別子 [AWS Account ID / GCP Project ID / GCP サービスアカウント]、内部IPアドレス、各種 SaaS・AI トークン (Groq, OpenRouter, DeepSeek 含む)、Observability トークン (Sentry, Datadog)、Payment トークン (Stripe)）も追加で検知するように強化されています。
+  - **カスタムルールの適用**: リポジトリ直下の `.gitleaks.toml` を使用し、デフォルトの Gitleaks ルールに加えて、個別の汎用ルール（例: クレジットカード番号、メールアドレスや国内電話番号・マイナンバー等の個人情報 [PII] のハードコード、クラウド識別子 [AWS Account ID / GCP Project ID / GCP サービスアカウント]、内部IPアドレス、各種 SaaS・AI トークン (Groq, OpenRouter, DeepSeek 含む)、Observability トークン (Sentry, Datadog)、Payment トークン (Stripe)）も追加で検知するように強化されています。
 - **Checkov による IaC / 汎用マニフェスト セキュリティスキャン (`.github/workflows/checkov.yml`)**:
   - 現状リポジトリに IaC は無いため、主に `.github/workflows/` とシークレットが対象です（Dockerfile / Terraform / Kubernetes マニフェストを追加した場合は、`checkov.yml` の `framework` に `dockerfile` / `terraform` / `kubernetes` などを追加してください）。`soft_fail: true` のため Checkov ジョブは失敗せず、検知結果は Security タブの Code scanning alerts に集約されます。
 - **TruffleHog ワークフロー (`.github/workflows/trufflehog.yml`)**:
