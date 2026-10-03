@@ -2,7 +2,7 @@
 # .gitleaks.toml のカスタムルール（monopo-slack-token / monopo-discord-token /
 # monopo-figma-token / monopo-ai-token-assignment-extended /
 # monopo-cloudflare-token-assignment / monopo-frontend-exposed-secret /
-# monopo-cloud-imds）の検知範囲を固定するための回帰テスト。
+# monopo-cloud-imds / monopo-pii-credit-card）の検知範囲を固定するための回帰テスト。
 #
 # 有効なトークン形式のフィクスチャが検知され（true positive）、
 # 類似するが無効な値のフィクスチャが誤検知されない（true negative）ことを検証する。
@@ -554,6 +554,71 @@ for imds_index in "${!imds_paths[@]}"; do
     exit_code=1
   else
     echo "✅ ${imds_labels[$imds_index]} (${imds_path}): 検知件数 ${imds_count} 件（期待どおり）"
+  fi
+done
+
+echo ""
+echo "── クレジットカード番号ルール (monopo-pii-credit-card) の検知範囲チェック ──"
+# 区切り文字（スペース / ハイフン）、Mastercard 2-series BIN 帯 (222100-272099)、Amex 4-6-5 形式を
+# 検知し、桁数違い・プレフィックス違い・BIN 帯の外側・既知のテスト番号は検知しないことを固定する。
+# 番号に見える連続した文字列がソースに残らないよう、断片を実行時に連結して組み立てる。
+cc_sp=" "
+cc_g="1234"
+cc_g6="123456"
+cc_g5="12345"
+cc_fixture="$WORKDIR/credit-card.txt"
+cc_labels=(
+  "Visa 区切りなし 16桁"
+  "Visa ハイフン区切り"
+  "Visa スペース区切り"
+  "Mastercard 旧 BIN (51) ハイフン区切り"
+  "Mastercard 2-series 下限 (2221)"
+  "Mastercard 2-series 上限 (2720)"
+  "Mastercard 2-series スペース区切り (2500)"
+  "Amex 区切りなし 15桁"
+  "Amex 4-6-5 スペース区切り"
+  "JCB (35) ハイフン区切り"
+  "Visa 桁数違い (17桁)"
+  "プレフィックス違い (9 始まり)"
+  "Mastercard 2-series 下限の外側 (2220)"
+  "Mastercard 2-series 上限の外側 (2721)"
+  "既知のテスト番号 (Visa)"
+  "既知のテスト番号 (Mastercard 2-series)"
+  "既知のテスト番号 (Amex)"
+  "桁数が足りない区切り付き数値"
+)
+cc_expected=(1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0)
+{
+  printf '%s\n' "4${cc_g:1}${cc_g}${cc_g}${cc_g}"
+  printf '%s\n' "4${cc_g:1}-${cc_g}-${cc_g}-${cc_g}"
+  printf '%s\n' "4${cc_g:1}${cc_sp}${cc_g}${cc_sp}${cc_g}${cc_sp}${cc_g}"
+  printf '%s\n' "51${cc_g:2}-${cc_g}-${cc_g}-${cc_g}"
+  printf '%s\n' "2221${cc_g}${cc_g}${cc_g}"
+  printf '%s\n' "2720${cc_g}${cc_g}${cc_g}"
+  printf '%s\n' "2500${cc_sp}${cc_g}${cc_sp}${cc_g}${cc_sp}${cc_g}"
+  printf '%s\n' "34${cc_g:2}${cc_g6}${cc_g5}"
+  printf '%s\n' "37${cc_g:2}${cc_sp}${cc_g6}${cc_sp}${cc_g5}"
+  printf '%s\n' "3528-${cc_g}-${cc_g}-${cc_g}"
+  printf '%s\n' "4${cc_g:1}${cc_g}${cc_g}${cc_g}5"
+  printf '%s\n' "9${cc_g:1}${cc_g}${cc_g}${cc_g}"
+  printf '%s\n' "2220${cc_g}${cc_g}${cc_g}"
+  printf '%s\n' "2721${cc_g}${cc_g}${cc_g}"
+  printf '%s\n' "4111${cc_g:0:0}1111${cc_g:0:0}1111${cc_g:0:0}1111"
+  printf '%s\n' "2223${cc_g:0:0}0031${cc_g:0:0}2200${cc_g:0:0}3222"
+  printf '%s\n' "3782${cc_g:0:0}822463${cc_g:0:0}10005"
+  printf '%s\n' "4${cc_g:1}-${cc_g}-${cc_g}"
+} >"$cc_fixture"
+cc_report="$WORKDIR/credit-card-report.json"
+gitleaks detect --no-git --config "$CONFIG" --source "$cc_fixture" \
+  --report-format json --report-path "$cc_report" --exit-code 0 >/dev/null
+for cc_index in "${!cc_labels[@]}"; do
+  cc_line=$((cc_index + 1))
+  cc_count=$(jq "[.[] | select(.RuleID == \"monopo-pii-credit-card\" and .StartLine == $cc_line)] | length" "$cc_report")
+  if [ "$cc_count" -ne "${cc_expected[$cc_index]}" ]; then
+    echo "❌ ${cc_labels[$cc_index]} (${cc_line}行目) の検知件数が期待と異なります（実際: ${cc_count} / 期待: ${cc_expected[$cc_index]}）"
+    exit_code=1
+  else
+    echo "✅ ${cc_labels[$cc_index]} (${cc_line}行目): 検知件数 ${cc_count} 件（期待どおり）"
   fi
 done
 
