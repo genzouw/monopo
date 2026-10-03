@@ -122,12 +122,32 @@ jobs:
             const model = process.env.MODEL;
             const sanitizedSuggestion = suggestion.replace(/@/g, '@​');
             try {
-              await github.rest.issues.createComment({
+              const marker = '<!-- local-ai-test-suggester -->';
+              const body = `${marker}\n### 🤖 Local AI Test Case Suggester (Ollama - ${model})\n\n> ⚠️ 以下はローカルLLM（Ollama）がPR差分とWeb検索結果を基に生成したテストケースの提案です。内容の正確性は保証されず、プロンプトインジェクションにより意図しない内容が混入する可能性があります。\n\n${sanitizedSuggestion}`;
+
+              // push のたびにコメントが増えないよう、マーカー付きの既存コメントがあれば更新する。
+              const comments = await github.paginate(github.rest.issues.listComments, {
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: `### 🤖 Local AI Test Case Suggester (Ollama - ${model})\n\n> ⚠️ 以下はローカルLLM（Ollama）がPR差分とWeb検索結果を基に生成したテストケースの提案です。内容の正確性は保証されず、プロンプトインジェクションにより意図しない内容が混入する可能性があります。\n\n${sanitizedSuggestion}`
+                per_page: 100
               });
+              const existing = comments.find((c) => c.user?.type === 'Bot' && c.body?.startsWith(marker));
+              if (existing) {
+                await github.rest.issues.updateComment({
+                  comment_id: existing.id,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body
+                });
+              }
             } catch (error) {
               core.warning(`Failed to post suggestion comment: ${error.message}`);
             }
