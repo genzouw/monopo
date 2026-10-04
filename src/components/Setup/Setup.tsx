@@ -271,6 +271,7 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
               placeholder={`プレイヤー${i + 1}のなまえ`}
               aria-label={`プレイヤー${i + 1}のなまえ（最大${MAX_NAME_LENGTH}文字）`}
               maxLength={MAX_NAME_LENGTH}
+              required
               aria-required="true"
               aria-invalid={names[i].trim().length === 0}
               aria-errormessage={
