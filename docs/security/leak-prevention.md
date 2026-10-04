@@ -217,3 +217,12 @@ Vite では `VITE_` から始まる環境変数が、Next.js では `NEXT_PUBLIC
 ### 追加の漏洩防止対策 (コミット前検知のファイル拡張)
 
 特定の強力なクレデンシャルファイル (`.p8`, `.ovpn`, `.kdbx`, `.publishsettings`) や開発者ローカルのクラウドCLI認証ディレクトリ (`.aws/`, `.kube/`, `.docker/`) が誤ってコミットされないように、`.gitignore`、`.gitattributes`、`.vscode/settings.json`、および `.pre-commit-config.yaml` (`forbid-sensitive-files`) の対象を拡張しました。これにより機密ファイルのコミット前検知が強化されます。
+
+### CI 検知強化 (TruffleHog)
+
+CI 上で動作する TruffleHog（`trufflehog.yml`）では、PR 実行時に `base` を空、`head` を PR の head SHA に指定し、PR の head に至る全履歴を走査します。
+`base` と `head` の両方を空にすると、action（v3.97.9）が `pull_request` の base / head SHA を補完して `--since-commit` に渡すため、PR のコミット範囲に限った差分スキャンになります。
+このため PR では `base` を空のまま、`head` のみを明示しています。
+PR 以外のイベントは action 既定の挙動です。`push` は `github.event.before` からの差分、週次の `schedule` と `workflow_dispatch` は全履歴を走査します。
+これにより、base より前の履歴に混入した有効なシークレットも PR の段階で検知できます。
+TruffleHog は `--only-verified` により、実際に外部プロバイダで有効と判定されたシークレットのみを検知するため、全履歴スキャン化しても過剰検知（ノイズ）は発生しません。

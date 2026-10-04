@@ -37,7 +37,10 @@ jobs:
         uses: trufflesecurity/trufflehog@4dd8831c5f12599465d4d45c3c447b4018a34c85 # v3.97.9
         with:
           path: ./
-          base: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || '' }}
+          # PR では base を空にして head のみ指定し、PR の head に至る全履歴を走査する。
+          # 両方を空にすると action.yml が base.sha / head.sha を補完し、PR の差分スキャンになる。
+          # PR 以外のイベントは両方空のまま action 既定の挙動（push は差分、schedule / workflow_dispatch は全履歴）とする。
+          base: ''
           head: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || '' }}
           # 実際に外部プロバイダに有効か検証できたシークレット（Active Verified）のみ検知する
           # Gitleaks のパターンマッチと役割を分けるため --only-verified を使用
