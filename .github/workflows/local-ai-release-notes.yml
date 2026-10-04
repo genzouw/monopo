@@ -63,8 +63,9 @@ jobs:
           BASE_REF: ${{ steps.refs.outputs.base_ref }}
           HEAD_REF: ${{ steps.refs.outputs.head_ref }}
         run: |
-          git log --pretty=format:"- %s" "${BASE_REF}..${HEAD_REF}" > commits.txt
-          cut -c 1-3000 commits.txt > commits_truncated.txt
+          git log -n 100 --pretty=format:"- %s" "${BASE_REF}..${HEAD_REF}" > commits.txt
+          # 全体を 3000 バイトで切り詰める（cut -c は行ごとの切り詰めで全体量を制限できない）
+          head -c 3000 commits.txt > commits_truncated.txt
           cp .github/release-notes-instructions.md instructions.txt
 
       - name: Setup Ollama
