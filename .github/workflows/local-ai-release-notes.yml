@@ -59,8 +59,11 @@ jobs:
       - name: Get Commits
         id: commits
         if: steps.refs.outputs.base_ref != ''
+        env:
+          BASE_REF: ${{ steps.refs.outputs.base_ref }}
+          HEAD_REF: ${{ steps.refs.outputs.head_ref }}
         run: |
-          git log --pretty=format:"- %s" ${{ steps.refs.outputs.base_ref }}..${{ steps.refs.outputs.head_ref }} > commits.txt
+          git log --pretty=format:"- %s" "${BASE_REF}..${HEAD_REF}" > commits.txt
           cat commits.txt | cut -c 1-3000 > commits_truncated.txt
           cat .github/release-notes-instructions.md > instructions.txt
 
@@ -94,7 +97,7 @@ jobs:
       - name: Generate Release Notes with Local Ollama
         id: generate-notes
         if: steps.refs.outputs.base_ref != ''
-        uses: ./.github/actions/ollama-generate
+        uses: ./.github/actions/ollama-generate # zizmor: ignore[self-repository] 本ワークフローはタグ push / 手動実行でのみ動作し、チェックアウト済みのタグ時点のローカルアクションを使うため意図的に`./`を使用（他の local-ai-*.yml と同方針）
         with:
           prompt: ${{ steps.build-prompt.outputs.result }}
 
