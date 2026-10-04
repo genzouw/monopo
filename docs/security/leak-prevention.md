@@ -217,3 +217,9 @@ Vite では `VITE_` から始まる環境変数が、Next.js では `NEXT_PUBLIC
 ### 追加の漏洩防止対策 (コミット前検知のファイル拡張)
 
 特定の強力なクレデンシャルファイル (`.p8`, `.ovpn`, `.kdbx`, `.publishsettings`) や開発者ローカルのクラウドCLI認証ディレクトリ (`.aws/`, `.kube/`, `.docker/`) が誤ってコミットされないように、`.gitignore`、`.gitattributes`、`.vscode/settings.json`、および `.pre-commit-config.yaml` (`forbid-sensitive-files`) の対象を拡張しました。これにより機密ファイルのコミット前検知が強化されます。
+
+### CI 検知強化 (TruffleHog)
+
+CI 上で動作する TruffleHog（`trufflehog.yml`）の設定を更新し、PR においても差分のみならず、リポジトリの全履歴・全ファイルを走査するように変更しました。
+これにより、過去のコミットで混入した有効なシークレットが、ファイルの移動や別 PR を経由して main ブランチにマージされるリスクを未然に防ぎます。
+TruffleHog は `--only-verified` により、実際に外部プロバイダで有効と判定されたシークレットのみを検知するため、全履歴スキャン化しても過剰検知（ノイズ）は発生しません。
