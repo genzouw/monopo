@@ -64,8 +64,8 @@ jobs:
           HEAD_REF: ${{ steps.refs.outputs.head_ref }}
         run: |
           git log --pretty=format:"- %s" "${BASE_REF}..${HEAD_REF}" > commits.txt
-          cat commits.txt | cut -c 1-3000 > commits_truncated.txt
-          cat .github/release-notes-instructions.md > instructions.txt
+          cut -c 1-3000 commits.txt > commits_truncated.txt
+          cp .github/release-notes-instructions.md instructions.txt
 
       - name: Setup Ollama
         if: steps.refs.outputs.base_ref != ''
