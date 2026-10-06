@@ -36,8 +36,8 @@ id_dsa -diff export-ignore
 .sst/** -diff export-ignore
 .envrc -diff export-ignore
 # AI agent workspaces (to prevent local context leakage in diffs/archives)
-.bolt/** -diff export-ignore
-.lovable/** -diff export-ignore
+**/.bolt/** -diff export-ignore
+**/.lovable/** -diff export-ignore
 .history/** -diff export-ignore
 .copilot/** -diff export-ignore
 .cursor/** -diff export-ignore
