@@ -317,7 +317,7 @@ jobs:
             -o -path "*/.cursor/*" -o -path "*/.claude/*" -o -path "*/.aider*/*" \
             -o -path "*/.continue/*" -o -path "*/.jules/*" -o -path "*/.cline/*" \
             -o -path "*/.windsurf/*" -o -path "*/.trae/*" -o -path "*/.roo/*" \
-            -o -path "*/.cascade/*" \
+            -o -path "*/.cascade/*" -o -path "*/.bolt/*" -o -path "*/.lovable/*" \
             -o -path "*/.aws/*" -o -path "*/.kube/*" -o -path "*/.docker/*" \
             \) -not -name ".env.example" -not -path "./.secretlintrc.json" -not -path "./.github/workflows/secretlint.yml" -not -path "*/node_modules/*" -not -path "*/.git/*" || true)
 
