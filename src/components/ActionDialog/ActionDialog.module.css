@@ -257,3 +257,15 @@
   outline: 2px solid var(--color-danger, #ff4d4f);
   outline-offset: 1px;
 }
+
+@media (hover: hover) {
+  .tradePropertyChip:not([aria-disabled='true']):not(:disabled):hover {
+    border-color: var(--color-primary);
+  }
+  .moneyQuickButton:not([aria-disabled='true']):not(:disabled):hover {
+    filter: brightness(0.9);
+  }
+  .moneyQuickButtonClear:not([aria-disabled='true']):not(:disabled):hover {
+    filter: brightness(0.95);
+  }
+}
