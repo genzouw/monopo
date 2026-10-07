@@ -6,7 +6,7 @@
 > **GitHub Models 推論API退役に伴う稼働状況について（Issue #573）**
 >
 > 本ドキュメントに登場する GitHub Models を利用するワークフロー群は、モデルIDは `gpt-4o-mini` に更新済みですが、GitHub Models 推論API自体が2026年7月30日付で退役したため、**現在は生成処理が成功しません**（移行状況は Issue #573 で追跡）。
-> `.github/workflows/ai-prompt-evaluator.yml`（Promptfoo）は、他のローカルAIワークフロー（`local-ai-pr-description.yml` 等）と同様にローカルLLM（Ollama / `deepseek-r1:1.5b`）へ移行済みで、`GH_MODELS_TOKEN` に依存しなくなりました。**本ドキュメントで GitHub Models 依存として残るのは以下の対応内容のみです。**
+> **本ドキュメントで、GitHub Models 推論API退役後の稼働状況として残る対応内容は以下のみです。**
 >
 > - スケジュール実行（cron）を停止中: `ai-weekly-summary.yml` / `ai-tech-trend-analyzer.yml` / `ai-tech-news-digest.yml` / `ai-code-optimizer.yml`（手動実行 `workflow_dispatch` のみ可能）
 > - 生成に失敗した場合は Issue / PR へのコメント投稿を見送り、`core.warning` で Actions の注釈に記録
@@ -122,24 +122,6 @@ Issueの内容をもとに実装に必要なファイルのリストと大まか
 
 3. **コスト制御**
    - 公開リポジトリでは誰でも Issue を作成でき、Issue作成のたびに Tavily API 呼び出しが発生するため、`search_depth` は高コスト（2クレジット/回）な `advanced` ではなく低コスト（1クレジット/回）な `basic` を使用しています。
-
-## 新規: Promptfoo (AI Prompt Evaluator) の設定
-
-PR作成時にプロンプトへの変更（`prompts/**`）が含まれている場合、変更前と変更後のプロンプトを自動的に評価・比較し、PRにコメントとしてレポートを通知する `.github/workflows/ai-prompt-evaluator.yml` を追加しました。
-最新のLLMセキュリティテスト、およびプロンプトの回帰テストを目的としています。
-
-> **【更新 / Refs #573】** GitHub Models は2026年7月30日付で退役したため、評価モデルを他のローカルAIワークフロー（`local-ai-pr-description.yml` 等）と同一のOllama（`deepseek-r1:1.5b`）へ移行しました。以下はGitHub Models利用時点の設定内容であり、**現在は無効です**。
-
-1. ~~**GitHub Secretsの設定 (必須)**~~ （不要）
-   - ~~GitHub Models を評価モデルとして使用しますが、Actionの環境変数に `GH_MODELS_TOKEN` の注入が必要です。~~
-   - Ollama はAPIキー不要のため、`GH_MODELS_TOKEN` の登録は不要です（既存の登録がある場合も、本ワークフローからは参照されません）。
-
-2. **Secrets の信頼範囲について**
-   - 評価にAPIキー等のSecretsを使用しないため、フォーク由来のPRであっても同一リポジトリ由来のPRと同じ評価結果が得られます。
-
-3. **`redteam`（LLM脆弱性診断）を設けない判断（Refs #460, #642）**
-   - monopo 本体（ボードゲームWebアプリ）はランタイムで LLM を一切呼ばず、評価対象の `sample-prompt.json` も CI 疎通確認用でユーザー入力を受け取らないため、診断すべき攻撃面がアプリ側に存在しません。
-   - CI 上で LLM を利用する `.github/workflows/local-ai-*.yml` 側のプロンプトインジェクション対策は別途対応済みです（Refs #642）。
 
 ## 更新: AI Tech News Digest の設定
 

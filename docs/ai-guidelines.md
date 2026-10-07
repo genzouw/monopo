@@ -9,7 +9,7 @@
 - **禁止**: 従量課金の検索 API (`TAVILY_API_KEY` / `EXA_API_KEY` / `SERPAPI_KEY` 等) の CI 組み込み。
 - **禁止**: 「無料枠に収まる前提」での従量課金 API 利用。レート制限超過で課金が始まる構造そのものを禁止します。
 - **禁止**: 有料プラン / 有料トライアル / クレジットカード登録を必要とするサービスの導入、およびオーナーへの新規 Secret 登録依頼。
-- **禁止**: `github/copilot-release-notes` 等、有料サブスクリプションに依存する GitHub Actions の利用。代わりにローカルLLM (`./.github/actions/ollama-generate` 等) を活用してください。
+- **禁止**: `github/copilot-release-notes` 等、有料サブスクリプションに依存する GitHub Actions の利用。
 - **許可**: 公開 OSS 向けに完全無料の GitHub Action / GitHub App、Secrets 不要のローカル LLM、リポジトリ内で完結するスクリプト。
 - **許可**: 開発者個人のローカル環境で自分の負担で AI ツールを使うこと。禁止しているのは CI/CD への組み込みです。
 
@@ -65,5 +65,3 @@
 - 新たなAIツールやサービスを導入する際は、公開リポジトリにおいて無料で利用可能であることを前提としてください。また、それらを設定するための手動の事前作業（Secretsへのトークン追加など）は必ずプルリクエストの説明に記載してください。
 
 - `CLAUDE.md` は Claude Code 向けの設定ファイルとして自動生成されます。
-- CI失敗時にDuckDuckGo検索とローカルOllamaを用いて修正案を提案する `local-ai-build-fix-suggester.yml` ワークフローを導入しています。これも完全に無料で動作します。
-- PRでの不足テストケースを提案する `local-ai-test-suggester.yml` ワークフローを導入しています。これも完全に無料で動作します。

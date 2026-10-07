@@ -67,7 +67,6 @@ ai-report-*.md -diff export-ignore
 .github/workflows/osv-scanner.yml diff
 .github/workflows/pre-commit.yml diff
 .github/workflows/secretlint.yml diff
-.github/workflows/ai-issue-triage.yml diff
 .github/workflows/actionlint.yml diff
 .github/workflows/aislop.yml diff
 *.p8 -diff export-ignore
