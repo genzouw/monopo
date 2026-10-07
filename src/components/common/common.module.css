@@ -155,3 +155,9 @@
   flex-wrap: wrap;
   flex-shrink: 0;
 }
+
+@media (hover: hover) {
+  .button:not([aria-disabled='true']):not(:disabled):hover {
+    opacity: 0.9;
+  }
+}
