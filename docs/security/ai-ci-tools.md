@@ -6,7 +6,7 @@
 > **GitHub Models 推論API退役に伴う稼働状況について（Issue #573）**
 >
 > 本ドキュメントに登場する GitHub Models を利用するワークフロー群は、モデルIDは `gpt-4o-mini` に更新済みですが、GitHub Models 推論API自体が2026年7月30日付で退役したため、**現在は生成処理が成功しません**（移行状況は Issue #573 で追跡）。
-> **本ドキュメントで GitHub Models 依存として残るのは以下の対応内容のみです。**
+> **本ドキュメントで、GitHub Models 推論API退役後の稼働状況として残る対応内容は以下のみです。**
 >
 > - スケジュール実行（cron）を停止中: `ai-weekly-summary.yml` / `ai-tech-trend-analyzer.yml` / `ai-tech-news-digest.yml` / `ai-code-optimizer.yml`（手動実行 `workflow_dispatch` のみ可能）
 > - 生成に失敗した場合は Issue / PR へのコメント投稿を見送り、`core.warning` で Actions の注釈に記録
