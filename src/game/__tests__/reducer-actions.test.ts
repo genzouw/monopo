@@ -1043,6 +1043,25 @@ describe('SELL_PROPERTY', () => {
     expect(next).toEqual(state);
   });
 
+  it('抵当中の物件は売れない（抵当解除費用の踏み倒し防止）', () => {
+    let state = startedGame();
+    state = withPropertyOwner(state, 'mediterranean', 'player-0', {
+      isMortgaged: true,
+    });
+    state = {
+      ...state,
+      players: state.players.map((p) =>
+        p.id === 'player-0' ? { ...p, properties: ['mediterranean'] } : p,
+      ),
+    };
+    const next = gameReducer(state, {
+      type: 'SELL_PROPERTY',
+      propertyId: 'mediterranean',
+    });
+    expect(next).toEqual(state);
+    expect(next.auction).toBeNull();
+  });
+
   it('売却オークションで誰も入札せず終了 → 売却者に開始価格が入金され空白地になる', () => {
     let state = startedGame();
     state = withPropertyOwner(state, 'mediterranean', 'player-0');

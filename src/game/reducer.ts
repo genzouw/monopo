@@ -1339,6 +1339,8 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       if (!propState || propState.ownerId !== player.id) return state;
       // 家が建っている物件は売れない（先に家を売る必要がある）
       if (propState.houses > 0) return state;
+      // 抵当中の物件は売れない（落札時に抵当が解除されて抵当解除費用を踏み倒せるため）
+      if (propState.isMortgaged) return state;
 
       // 開始価格はオーナーなしの状態の購入価格（最低価格）
       const startingBid = space.price ?? 0;

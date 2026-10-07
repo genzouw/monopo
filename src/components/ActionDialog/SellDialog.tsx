@@ -113,6 +113,7 @@ export default function SellDialog({
           const propState = propertyStates[space.id];
           const houses = propState?.houses ?? 0;
           const hasHouses = houses > 0;
+          const isMortgaged = propState?.isMortgaged ?? false;
           const houseLabel =
             houses === 5 ? '🏨' : houses > 0 ? `🏠×${houses}` : '';
           const sellPrice = Math.floor((space.houseCost ?? 0) / 2);
@@ -135,7 +136,9 @@ export default function SellDialog({
                 <div className={styles.buildItemInfo}>
                   {hasHouses
                     ? `家を売る: +$${sellPrice}`
-                    : `購入価格: $${space.price}`}
+                    : isMortgaged
+                      ? '🔒 抵当中は売れないよ（先に抵当を解除してね）'
+                      : `購入価格: $${space.price}`}
                 </div>
               </div>
               <div style={{ marginLeft: 'auto', alignSelf: 'center' }}>
@@ -151,6 +154,7 @@ export default function SellDialog({
                   <Button
                     size="small"
                     variant="danger"
+                    aria-disabled={isMortgaged}
                     onClick={() => onSell(space.id)}
                   >
                     売りだす
