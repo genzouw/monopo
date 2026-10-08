@@ -102,5 +102,7 @@ GitHub 公式の `dependency-review-action` を利用し、PR の段階で新た
 
 ### 追加の漏洩防止対策 (Checkov によるコミット前検知)
 
-ローカル環境でのシークレットの混入を未然に防ぐため、`.pre-commit-config.yaml` に Checkov のフックを追加し、`secrets` フレームワークに限定したスキャンを必須化しています。
-これにより、CI 上で soft_fail として運用されている Checkov スキャンの一部（シークレット検知）をローカルで強制ブロックし、秘密情報が含まれたコミットが行われるのを防ぎます。
+ローカル環境でのシークレットの混入を未然に防ぐため、`.pre-commit-config.yaml` に Checkov のシークレット用フック (`checkov_secrets`) を追加しています。このフックは `always_run` で全ファイルを対象にし、`secrets` フレームワークのみで変更ファイルをスキャンします。シークレットを含む一時ファイルに対して `pre-commit run checkov_secrets --files <file>` が失敗することを確認済みです。
+これにより、CI 上で `soft_fail` として運用されている Checkov スキャンの一部（シークレット検知）を、ローカルのコミット前に失敗させて検知できます。
+
+Checkov の secrets は検出パターンによる粗い検知で、gitleaks / detect-secrets と検出範囲が重なる部分が大きくなります。追加の理由は、検出ルールの異なるツールを重ねて見逃しを減らすことです。
