@@ -36,7 +36,7 @@ jobs:
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
-          QUERY="${PR_TITLE} generative AI CI/CD trends best practices"
+          QUERY="${PR_TITLE} generative AI CI/CD trends open source completely free API GitHub Actions 2024 2025"
           python3 scripts/ai-pr-context-search.py --query "$QUERY" > search_results.txt
       - name: Upload search results
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
