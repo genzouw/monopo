@@ -157,8 +157,10 @@
   cursor: pointer;
   border-radius: var(--radius-sm);
 }
-.featureRow:hover {
-  background: #f8f8f8;
+@media (hover: hover) {
+  .featureRow:hover {
+    background: #f8f8f8;
+  }
 }
 /* キーボードでチェックボックスにフォーカスした際も、hoverと同じ背景をクリック領域全体（行）に表示し体験を揃える */
 .featureRow:has(input[type='checkbox']:focus-visible) {
