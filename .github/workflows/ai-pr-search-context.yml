@@ -33,8 +33,9 @@ jobs:
         run: pip install -r requirements-ddgs.txt
       - name: Run DDGS Search Script
         id: ddgs_search
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
-          PR_TITLE="${{ github.event.pull_request.title }}"
           QUERY="${PR_TITLE} generative AI CI/CD trends best practices"
           python3 scripts/ai-pr-context-search.py --query "$QUERY" > search_results.txt
       - name: Post Search Results to PR
