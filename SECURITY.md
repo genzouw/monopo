@@ -99,3 +99,8 @@ GitHub 公式の `dependency-review-action` を利用し、PR の段階で新た
 ### 追加の漏洩防止対策 (コミット前検知のファイル拡張)
 
 特定の強力なクレデンシャルファイル (`.p8`, `.ovpn`, `.kdbx`, `.publishsettings`) や開発者ローカルのクラウドCLI認証ディレクトリ (`.aws/`, `.kube/`, `.docker/`) が誤ってコミットされないように、`.gitignore`、`.gitattributes`、`.vscode/settings.json`、および `.pre-commit-config.yaml` (`forbid-sensitive-files`) の対象を拡張しました。これにより機密ファイルのコミット前検知が強化されます。
+
+### 追加の漏洩防止対策 (Checkov によるコミット前検知)
+
+ローカル環境でのシークレットの混入を未然に防ぐため、`.pre-commit-config.yaml` に Checkov のフックを追加し、`secrets` フレームワークに限定したスキャンを必須化しています。
+これにより、CI 上で soft_fail として運用されている Checkov スキャンの一部（シークレット検知）をローカルで強制ブロックし、秘密情報が含まれたコミットが行われるのを防ぎます。

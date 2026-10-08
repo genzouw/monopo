@@ -102,3 +102,9 @@ repos:
       # --force-exclude は残す）。除外語は .typos.toml で管理する。
       - id: typos
         args: ['--force-exclude']
+
+  - repo: https://github.com/bridgecrewio/checkov
+    rev: 3.2.328
+    hooks:
+      - id: checkov
+        args: ['--framework', 'secrets']
