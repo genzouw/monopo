@@ -93,13 +93,38 @@ jobs:
               return;
             }
 
+            // 検索結果は第三者コンテンツのため、整形前に正規化する。
+            // 改行を畳んで引用の途切れを防ぎ、メンション・Issue 参照を無効化し、
+            // Markdown/HTML の記法を打ち消す。ゼロ幅スペース (U+200B) を挟むことで通知と自動リンクを防ぐ
+            const clean = (s) =>
+              String(s ?? '')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .slice(0, 300)
+                .replace(/[@#]/g, (c) => `${c}\u200b`)
+                .replace(/[`<>\[\]\\]/g, (c) => `\\${c}`);
+            // http(s) 以外のスキーム (javascript: 等) は除外し、括弧は URL エンコードしてリンク記法の崩れを防ぐ
+            const safeHref = (u) => {
+              const href = String(u ?? '').trim();
+              if (!/^https?:\/\//i.test(href)) return '';
+              return href.replace(/[()\s<>]/g, (c) => encodeURIComponent(c));
+            };
+            const items = data
+              .map((r) => ({ title: clean(r.title), href: safeHref(r.href), body: clean(r.body) }))
+              .filter((r) => r.href);
+
+            if (items.length === 0) {
+              console.log('有効な検索結果が0件でした。');
+              return;
+            }
+
             const body = [
               marker,
               '## 🤖 AI Search Context Gathering',
               '',
               'このPRに関する参考情報を最新のウェブ検索（DuckDuckGo）から取得しました。AIによるレビューや実装の参考にしてください。',
               '',
-              ...data.map((r) => `- **[${r.title}](${r.href})**\n  > ${r.body}`),
+              ...items.map((r) => `- **[${r.title}](${r.href})**\n  > ${r.body}`),
               '',
               '<sub>※ このコメントは `ai-pr-search-context.yml` ワークフローにより自動生成されました。完全無料のAPIを利用しています。</sub>',
             ].join('\n');
