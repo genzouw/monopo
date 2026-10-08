@@ -185,6 +185,13 @@ PRの自動承認を行う `.github/workflows/ai-codeball-approver.yml`（Codeba
 - **Tavily Search APIの検索深度**: 全てのワークフローで `search_depth` を `basic` に設定しています。`advanced` はクレジット消費が激しくなりますが、技術検索では `basic` で十分な鮮度の情報が得られるためコスト削減を優先しています。
 - **タイムアウトの設定**: 外部APIへのFetchリクエストに対し、Tavily Search APIには30秒、GitHub Models APIには120秒の `AbortSignal.timeout` を設定し、無応答によるGitHub Actionsランナーの滞留（ハング）を防止しています。
 
+## 新規: AI PR Search Context の設定
+
+PR のタイトルをもとに DuckDuckGo 検索 (`ddgs`) で関連情報を収集し、PR コメントとして提示する `.github/workflows/ai-pr-search-context.yml` を追加しました。検索を行う `search` ジョブは `contents: read` のみで動作し、コメントを投稿する `post-comment` ジョブだけが `pull-requests: write` を持ちます。fork からの PR では投稿ジョブをスキップします。
+
+1. **GitHub Secretsの設定**
+   - 設定は不要です。`ddgs` は API キー不要で完全に無料で利用できます。投稿には既定の `GITHUB_TOKEN` を使用します。
+
 ## 新規: Pollen Supply Chain Scan の設定
 
 Perplexity AIが開発したサプライチェーンスキャナBumblebeeの派生版であり、GitHub Actions等のCI環境にも対応した `Bantuson/pollen` を利用した `.github/workflows/pollen-scan.yml` を追加しました。
