@@ -10,7 +10,8 @@
 - **禁止**: 「無料枠に収まる前提」での従量課金 API 利用。レート制限超過で課金が始まる構造そのものを禁止します。
 - **禁止**: 有料プラン / 有料トライアル / クレジットカード登録を必要とするサービスの導入、およびオーナーへの新規 Secret 登録依頼。
 - **禁止**: `github/copilot-release-notes` 等、有料サブスクリプションに依存する GitHub Actions の利用。
-- **許可**: 公開 OSS 向けに完全無料の GitHub Action / GitHub App、Secrets 不要のローカル LLM、リポジトリ内で完結するスクリプト。
+- **禁止**: ローカル LLM (Ollama / llama.cpp 等) を CI の runner 上で動かす自動化の追加。API キー不要・完全無料であっても禁止です。開発者個人の端末で動かすことは対象外です。
+- **許可**: 公開 OSS 向けに完全無料の GitHub Action / GitHub App、リポジトリ内で完結するスクリプト。
 - **許可**: 開発者個人のローカル環境で自分の負担で AI ツールを使うこと。禁止しているのは CI/CD への組み込みです。
 
 判断に迷ったら PR を作らず Issue でオーナー (@genzouw) に相談してください。詳細は [`AGENTS.md`](https://github.com/genzouw/monopo/blob/main/AGENTS.md) を参照してください。
