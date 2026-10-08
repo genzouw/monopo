@@ -138,9 +138,11 @@
   color: var(--color-text-light);
   opacity: 0.8;
 }
-.dialogCloseButton:hover {
-  opacity: 1;
-  background: rgba(0, 0, 0, 0.05);
+@media (hover: hover) {
+  .dialogCloseButton:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.05);
+  }
 }
 .dialogCloseButton:focus-visible {
   outline: 2px solid var(--color-primary);
