@@ -149,12 +149,9 @@ GitHub Marketplace の [Code Review AI](https://github.com/marketplace/code-revi
    - PR の差分は外部サービス（`code-review-ai.web.app`）へ送信されます。本リポジトリは公開のため差分自体は公開情報ですが、非公開リポジトリへ横展開しない方針とします。
    - 問題が発生した場合は `Settings > Integrations > Applications` から即時アンインストールしてください。
 
-## 新規: Open Code Review の設定
+## Open Code Review
 
-PR作成時にAI生成コードのハルシネーションや非推奨API、ロジックのギャップを検出するローカルLLMベースの品質ゲートとして `raye-deng/open-code-review@v2.1.5` を導入しました。
-
-1. **GitHub Secretsの設定**
-   - 追加のAPIキー設定は不要です。デフォルトの `GITHUB_TOKEN` を使用して動作します。
+`raye-deng/open-code-review@v2.1.5` は CI runner 上でローカル LLM を使用するため、`AGENTS.md` の `MUST NOT` により導入しません。このリポジトリの workflow には参照がありません。
 
 ## 新規: AI Documentation Sync Checker の設定
 
