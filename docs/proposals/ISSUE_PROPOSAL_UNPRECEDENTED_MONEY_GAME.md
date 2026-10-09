@@ -13,7 +13,7 @@ labels: ['enhancement', 'proposal', 'game-design', 'game-mechanics']
 2. **時間の証券化と寿命トレード（労働と資本の究極の格差）**
 3. **宇宙経済と小惑星マイニング（究極のムーンショット投資）**
 
-> 📎 **関連提案との整合性:** 「個人の人的資本トークン化」は、`ISSUE_PROPOSAL_SKILL_CAPITAL_AND_GIG_ECONOMY.md`、リポジトリルート直下の `ISSUE_PROPOSAL_ASSET_MANAGEMENT.md`（「人的資本への投資とギグエコノミー」）、`ISSUE_PROPOSAL_INNOVATIVE_WEALTH_SIMULATION.md`（「人的資本とキャリア投資」）と主題が重なります。人的資本そのものの扱い（スキル投資による給与の増加など）は各書を正規仕様とし、本書は定義しません。また本書の「IPO」は、`ISSUE_PROPOSAL_TRADITIONAL_AND_MODERN_MECHANICS.md` 等の「スタートアップのIPO」（`resolveVCInvestment`、エリアを対象とする）とは別物で、プレイヤー個人を対象にします。したがって本書が新規に提案する範囲は、他プレイヤーの株を買う「個人株」と、GOボーナス・通行料収入への永続的な配当義務の2点に限ります。
+> 📎 **関連提案との整合性:** 「個人の人的資本トークン化」は、`ISSUE_PROPOSAL_SKILL_CAPITAL_AND_GIG_ECONOMY.md`、リポジトリルート直下の `ISSUE_PROPOSAL_ASSET_MANAGEMENT.md`（「人的資本への投資とギグエコノミー」）、`ISSUE_PROPOSAL_INNOVATIVE_WEALTH_SIMULATION.md`（「人的資本とキャリア投資」）と主題が重なります。人的資本そのものの扱い（スキル投資による給与の増加など）は各書を正規仕様とし、本書は定義しません。また本書の「IPO」は、`ISSUE_PROPOSAL_TRADITIONAL_AND_MODERN_MECHANICS.md` 等の「スタートアップのIPO」（`resolveVCInvestment`、エリアを対象とする）とは別物で、プレイヤー個人を対象にします。したがって人的資本トークン化で本書が新規に提案する範囲は、他プレイヤーの株を買う「個人株」と、GOボーナス・通行料収入への永続的な配当義務の2点に限ります。
 
 ## ⚙️ ゲーム内での具体的なメカニクス
 
