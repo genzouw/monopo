@@ -2,6 +2,7 @@
 name: '💡 新機能提案（マネーゲーム・教育的機能）'
 description: '現実社会を模倣した革新的なマネーゲーム機能の追加提案'
 title: '【提案】monopo への現実的・教育的マネーゲーム機能の追加: 「時間」の証券化・個人トークン化・宇宙経済の導入'
+labels: ['enhancement', 'proposal', 'game-design', 'game-mechanics']
 ---
 
 ## 🎯 提案する機能の概要
