@@ -23,14 +23,14 @@ jobs:
       pull-requests: write
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@c95a14d0e5bab51a9f56296a4eb0e416910cd350 # v2.10.3
+        uses: step-security/harden-runner@351661ca32ac09a36dc5ee2d536e3128f2a3c8ed # v2.22.0
         with:
           egress-policy: audit
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       # Open Code Review は API キーがなくても L1/L2 スキャン (TF-IDF 等) で PR をレビューします。
-      - uses: raye-deng/open-code-review@9e572b5de038eaa1abff0c4af3c28c9008c21dab # v2.1.0
+      - uses: raye-deng/open-code-review@2a4b12983c990e1498ca6c34d095bd54c128e53f # v2.1.0
         with:
           sla: L1
           threshold: 70
