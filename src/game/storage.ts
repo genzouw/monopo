@@ -183,6 +183,8 @@ export function loadSetupConfig(): SetupConfig | null {
         f.loan = config.features.loan;
       if (typeof config.features.creditScore === 'boolean')
         f.creditScore = config.features.creditScore;
+      if (typeof config.features.altAssets === 'boolean')
+        f.altAssets = config.features.altAssets;
       features = f;
     }
     return {
