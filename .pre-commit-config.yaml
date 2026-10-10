@@ -86,9 +86,13 @@ repos:
         files: '^\.pre-commit-config\.yaml$'
         pass_filenames: false
 
+      # package.json の `secretlint` スクリプトは "**/*" でリポジトリ全体を走査し、
+      # フックに渡されたファイル名と exclude を無視する。そのためここでは
+      # `bun x secretlint` を直接呼び、渡されたファイルだけを検査する。
+      # bun と依存関係（bun install）が必要で、CI は pre-commit.yml で用意する。
       - id: secretlint
         name: secretlint
-        entry: bun run secretlint
+        entry: bun x --no-install secretlint
         language: system
         types: [text]
         exclude: '(\.secrets\.baseline|bun\.lockb?|package-lock\.json)$'
