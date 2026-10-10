@@ -31,7 +31,7 @@ repos:
         stages: [commit]
 
   - repo: https://github.com/trufflesecurity/trufflehog
-    rev: v3.98.0
+    rev: v3.99.0
     hooks:
       - id: trufflehog
         stages: [commit]
@@ -94,7 +94,7 @@ repos:
         exclude: '\.env\.example$|^\.secretlintrc\.json$|^\.github/workflows/secretlint\.yml$'
 
   - repo: https://github.com/crate-ci/typos
-    rev: v1.50.3
+    rev: v1.51.1
     hooks:
       # フック定義の既定 args は [--write-changes, --force-exclude] で、検出した語を
       # その場で自動修正する。スペル修正は文脈によって誤った語に置き換わりうるため、
@@ -104,7 +104,7 @@ repos:
         args: ['--force-exclude']
 
   - repo: https://github.com/bridgecrewio/checkov
-    rev: 3.3.23
+    rev: 3.3.25
     hooks:
       # id: checkov は files: \.tf$ のため .tf の無い本リポジトリでは起動しない。
       # checkov_secrets は always_run で全ファイルを対象にし、既定 args の -f で
