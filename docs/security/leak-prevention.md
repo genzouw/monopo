@@ -228,3 +228,8 @@ CI 上で動作する TruffleHog（`trufflehog.yml`）では、PR 実行時に `
 PR 以外のイベントは action 既定の挙動です。`push` は `github.event.before` からの差分、週次の `schedule` と `workflow_dispatch` は全履歴を走査します。
 これにより、base より前の履歴に混入した有効なシークレットも PR の段階で検知できます。
 TruffleHog は `--only-verified` により、実際に外部プロバイダで有効と判定されたシークレットのみを検知するため、全履歴スキャン化しても過剰検知（ノイズ）は発生しません。
+
+### 追加のカスタム漏洩検知・抑止対策 (コミット前検知の Secretlint 拡張)
+
+これまで CI（GitHub Actions）のみで実行されていた Secretlint を、`pre-commit` のローカルフックとしても実行するように設定を追加しました。
+これにより、開発者が誤ってシークレットをコミットしようとした際、Gitleaks や TruffleHog に加えて、Secretlint の多層的なルール（API トークンや秘密鍵の包括的なパターンマッチ）によって、より確実にローカルで検知・ブロックされます。
