@@ -86,6 +86,13 @@ repos:
         files: '^\.pre-commit-config\.yaml$'
         pass_filenames: false
 
+      - id: secretlint
+        name: secretlint
+        entry: bun run secretlint
+        language: system
+        types: [text]
+        exclude: '(\.secrets\.baseline|bun\.lockb?|package-lock\.json)$'
+
       - id: forbid-sensitive-files
         name: Prevent committing sensitive files and AI workspaces
         entry: '❌ Error: Attempted to commit banned sensitive files or AI workspaces. Please remove them from your commit (e.g., git reset HEAD <file>).'
