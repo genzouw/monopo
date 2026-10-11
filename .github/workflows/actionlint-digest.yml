@@ -3,8 +3,10 @@ name: actionlint digest
 # .pre-commit-config.yaml の actionlint-docker の entry に書かれた digest が、
 # タグの実体と一致するかをレジストリへ問い合わせて検証する。
 # ネットワーク依存のため、ローカルの pre-commit ではなく、設定を変更する PR でだけ実行する。
-# 不一致は失敗、レジストリへ到達できない場合は警告を残して成功扱いにする
+# 不一致・docker 無し・タグ不在は失敗、レジストリへ到達できない場合は警告を残して成功扱いにする
 # （詳細は scripts/verify-actionlint-digest.sh）。
+# 助言的なチェックであり、必須チェックではない（paths フィルタ付きのため、対象外の PR では実行されない）。
+# 必須化するかはオーナーの判断で、その場合は paths を外して常時実行にする必要がある。
 on:
   pull_request:
     branches: [main, master]

@@ -8,6 +8,9 @@
 #   4. 一時的な失敗の後に成功する → 再試行で一致を確認できる
 #   5. entry の形式不正（digest 欠落）→ 終了コード 1
 #   6. repo ブロック消失 → 終了コード 1
+#   7. タグ不在（stderr に manifest unknown）→ 終了コード 1、再試行しない
+#   8. docker 無し（終了コード 127）→ 終了コード 1、再試行しない
+#   9. 到達不能の警告に最後の stderr 1 行が含まれる
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -53,6 +56,14 @@ make_stub_ok() {
 make_stub_fail() {
   local file="$1" counter="$2"
   printf '#!/usr/bin/env bash\necho x >>"%s"\nexit 1\n' "$counter" >"$file"
+  chmod +x "$file"
+}
+
+# 指定した stderr を出して、指定した終了コードで失敗するスタブ。呼び出し回数を counter へ追記する。
+make_stub_err() {
+  local file="$1" counter="$2" code="$3" message="$4"
+  printf '#!/usr/bin/env bash\necho x >>"%s"\necho "first line" >&2\necho "%s" >&2\nexit %s\n' \
+    "$counter" "$message" "$code" >"$file"
   chmod +x "$file"
 }
 
@@ -144,6 +155,30 @@ echo "── 6. repo ブロック消失 ──"
 noblock_config="$WORKDIR/noblock.yaml"
 printf 'repos:\n  - repo: https://github.com/example/other-hook\n    rev: v9.9.9\n    hooks:\n      - id: other-hook\n' >"$noblock_config"
 assert_case "ブロック消失" "$noblock_config" "$stub_ok" 1 "rhysd/actionlint の repo ブロックが見つかりません"
+
+echo ""
+echo "── 7. タグ不在（manifest unknown は即失敗、再試行しない） ──"
+stub_nomanifest="$WORKDIR/stub-nomanifest.sh"
+counter_nomanifest="$WORKDIR/counter-nomanifest"
+make_stub_err "$stub_nomanifest" "$counter_nomanifest" 1 "ERROR: docker.io/rhysd/actionlint:1.7.12: manifest unknown"
+assert_case "タグ不在" "$ok_config" "$stub_nomanifest" 1 "レジストリに見つかりません"
+assert_count "タグ不在の試行回数" "$counter_nomanifest" 1
+
+echo ""
+echo "── 8. docker 無し（終了コード 127 は即失敗、再試行しない） ──"
+stub_nodocker="$WORKDIR/stub-nodocker.sh"
+counter_nodocker="$WORKDIR/counter-nodocker"
+make_stub_err "$stub_nodocker" "$counter_nodocker" 127 "docker: command not found"
+assert_case "docker無し" "$ok_config" "$stub_nodocker" 1 "実行できない"
+assert_count "docker無しの試行回数" "$counter_nodocker" 1
+
+echo ""
+echo "── 9. 到達不能の警告に最後の stderr 1 行を含む ──"
+stub_net="$WORKDIR/stub-net.sh"
+counter_net="$WORKDIR/counter-net"
+make_stub_err "$stub_net" "$counter_net" 1 "dial tcp: lookup registry-1.docker.io: no such host"
+assert_case "到達不能の原因表示" "$ok_config" "$stub_net" 0 "最後のエラー: dial tcp: lookup registry-1.docker.io: no such host"
+assert_count "到達不能の試行回数" "$counter_net" 3
 
 echo ""
 if [ "$exit_code" -eq 0 ]; then

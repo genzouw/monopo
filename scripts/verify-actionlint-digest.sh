@@ -13,10 +13,11 @@
 #
 # 終了コード:
 #   0: 一致した、またはレジストリへ到達できず検証を行えなかった（::warning:: を出力する）
-#   1: digest 不一致、または設定ファイルの形式不正
+#   1: digest 不一致、設定ファイルの形式不正、docker を実行できない、タグがレジストリに無い
 #
-# 到達不能を成功扱いにするのは、ネットワーク不調で無関係な PR を止めないため。
-# 警告は必ずログに残し、無言では通さない。
+# 成功扱いにするのは到達不能（ネットワーク断・rate limit・認証失敗）だけである。
+# ネットワーク不調で無関係な PR を止めないためで、警告に最後の stderr 1 行を含め、無言では通さない。
+# docker が無い・タグが無い場合は再試行しても直らず、検証が常に空振りになるため失敗にする。
 #
 # 環境変数（テスト用・調整用）:
 #   VERIFY_INSPECT_CMD  タグから manifest digest を取得するコマンド。
@@ -75,15 +76,39 @@ inspect_digest() {
   fi
 }
 
+# 取得の失敗は原因で扱いを分ける。
+#   - docker が無い（終了コード 127 / command not found）、タグが無い（manifest unknown など）:
+#     設定側かランナー側の問題で、再試行しても直らないため即座に失敗（exit 1）にする。
+#   - それ以外（ネットワーク断・rate limit・認証失敗など到達不能）: 再試行し、
+#     最後の stderr 1 行を添えた警告つきで成功扱いにする。
 actual_digest=""
+last_err=""
 attempt=1
 while [ "$attempt" -le "$RETRIES" ]; do
-  out="$(inspect_digest "$ref" 2>/dev/null)" || out=""
-  out="$(printf '%s\n' "$out" | head -n 1 | tr -d '[:space:]')"
-  if printf '%s' "$out" | grep -qE '^sha256:[0-9a-f]{64}$'; then
-    actual_digest="$out"
-    break
+  status=0
+  err_file="$(mktemp)"
+  out="$(inspect_digest "$ref" 2>"$err_file")" || status=$?
+  last_err="$(grep -v '^[[:space:]]*$' "$err_file" | tail -n 1 || true)"
+  rm -f "$err_file"
+
+  if [ "$status" -eq 0 ]; then
+    out="$(printf '%s\n' "$out" | head -n 1 | tr -d '[:space:]')"
+    if printf '%s' "$out" | grep -qE '^sha256:[0-9a-f]{64}$'; then
+      actual_digest="$out"
+      break
+    fi
+    last_err="${last_err:-取得コマンドが digest 形式でない出力を返しました}"
+  elif [ "$status" -eq 127 ] || printf '%s' "$last_err" | grep -qiE 'command not found|executable file not found'; then
+    echo "::error title=actionlint digest 検証不可::docker を実行できません: ${last_err:-終了コード ${status}}"
+    echo "❌ 取得コマンド（docker buildx）を実行できないため、検証できません。ランナーの構成を確認してください。" >&2
+    exit 1
+  elif printf '%s' "$last_err" | grep -qiE 'manifest unknown|name unknown|no such manifest|not found'; then
+    echo "::error title=actionlint タグ不在::${ref} がレジストリに存在しません: ${last_err}"
+    echo "❌ ${ref} がレジストリに見つかりません。entry のタグを確認してください。" >&2
+    echo "   詳細: ${last_err}" >&2
+    exit 1
   fi
+
   if [ "$attempt" -lt "$RETRIES" ]; then
     sleep "$RETRY_SLEEP"
   fi
@@ -91,8 +116,9 @@ while [ "$attempt" -le "$RETRIES" ]; do
 done
 
 if [ -z "$actual_digest" ]; then
-  echo "::warning title=actionlint digest 未検証::${ref} の manifest digest をレジストリから取得できませんでした（${RETRIES} 回試行）。digest の実体検証をスキップします。"
-  echo "⚠️ ${ref} の digest を取得できず、検証を行えませんでした（成功扱い）"
+  reason="${last_err:-原因不明（stderr なし）}"
+  echo "::warning title=actionlint digest 未検証::${ref} の manifest digest をレジストリから取得できませんでした（${RETRIES} 回試行）。digest の実体検証をスキップします。最後のエラー: ${reason}"
+  echo "⚠️ ${ref} の digest を取得できず、検証を行えませんでした（成功扱い）。最後のエラー: ${reason}"
   exit 0
 fi
 
