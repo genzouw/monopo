@@ -85,6 +85,9 @@ export function isVCMatured(
 export const ESG_DIVIDEND_RATE = 0.05; // 毎 ESG_DIVIDEND_INTERVAL ターンに 5%
 export const ESG_DIVIDEND_INTERVAL = 10; // 10ターンごとに配当
 // TODO (Phase 2-b): 保有 1 件につき課税所得から 500 控除
+// 結線は genzouw/monopo#675 で行う。マージ後に @public を外す。
+// それまでは Knip の未使用 export 検出から除外する。
+/** @public */
 export const ESG_TAX_DEDUCTION_PER_HOLDING = 500;
 
 // ESG 配当額を計算（端数切り捨て）
