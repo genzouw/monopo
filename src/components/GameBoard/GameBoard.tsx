@@ -33,6 +33,7 @@ import TradeDialog from '../ActionDialog/TradeDialog';
 import BankruptDialog from '../ActionDialog/BankruptDialog';
 import ForceBuyDialog from '../ActionDialog/ForceBuyDialog';
 import StockDialog from '../ActionDialog/StockDialog';
+import AltAssetDialog from '../ActionDialog/AltAssetDialog';
 import LoanDialog from '../ActionDialog/LoanDialog';
 import InsuranceDialog from '../ActionDialog/InsuranceDialog';
 import EconomyIndicator from './EconomyIndicator';
@@ -284,6 +285,8 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
   // P1 拡張: 株式ダイアログ
   const showStockDialog = state.turnPhase === 'stock' && !!state.stockMarket;
   const stocksEnabled = state.features?.stocks === true;
+  const showAltAssetDialog = state.turnPhase === 'altAsset';
+  const altAssetsEnabled = state.features?.altAssets === true;
   // ローン拡張
   const loanEnabled = state.features?.loan === true;
   const [showLoanDialog, setShowLoanDialog] = useState(false);
@@ -546,6 +549,16 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                   📈 おうえんカード
                 </Button>
               )}
+              {altAssetsEnabled && (
+                <Button
+                  size="small"
+                  variant="secondary"
+                  className={styles.subActionButton}
+                  onClick={() => dispatch({ type: 'OPEN_ALT_ASSET_DIALOG' })}
+                >
+                  🪙 あたらしい投資
+                </Button>
+              )}
               {loanEnabled && (
                 <Button
                   size="small"
@@ -694,6 +707,18 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
             dispatch({ type: 'SELL_STOCK', color, shares })
           }
           onClose={() => dispatch({ type: 'CLOSE_STOCK_DIALOG' })}
+        />
+      )}
+
+      {showAltAssetDialog && (
+        <AltAssetDialog
+          currentPlayer={currentPlayer}
+          onBuyCrypto={(amount) => dispatch({ type: 'BUY_CRYPTO', amount })}
+          onSellCrypto={() => dispatch({ type: 'SELL_CRYPTO' })}
+          onInvestVC={(amount) => dispatch({ type: 'INVEST_VC', amount })}
+          onBuyESG={(amount) => dispatch({ type: 'BUY_ESG', amount })}
+          onSellESG={(index) => dispatch({ type: 'SELL_ESG', index })}
+          onClose={() => dispatch({ type: 'CLOSE_ALT_ASSET_DIALOG' })}
         />
       )}
 

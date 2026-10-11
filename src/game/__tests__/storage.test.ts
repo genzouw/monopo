@@ -539,6 +539,28 @@ describe('saveSetupConfig / loadSetupConfig', () => {
     expect(loaded?.features).toEqual({});
   });
 
+  // P3 拡張: altAssets フラグの保存・復元
+  it('features.altAssets を保存して復元できる', () => {
+    saveSetupConfig({
+      ...validConfig,
+      features: { altAssets: true },
+    });
+    const loaded = loadSetupConfig();
+    expect(loaded?.features).toEqual({ altAssets: true });
+  });
+
+  it('features.altAssets の非 boolean な値は読み込み時に破棄される', () => {
+    localStorage.setItem(
+      SETUP_KEY,
+      JSON.stringify({
+        ...validConfig,
+        features: { altAssets: 'yes' },
+      }),
+    );
+    const loaded = loadSetupConfig();
+    expect(loaded?.features).toEqual({});
+  });
+
   it('features の複数フラグを同時に保存・復元できる', () => {
     saveSetupConfig({
       ...validConfig,
