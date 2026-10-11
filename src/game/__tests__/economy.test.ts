@@ -177,9 +177,93 @@ describe('economy.ts 純粋関数', () => {
       const result = validateStockBuy(state, 'player-0', 'brown', 3);
       expect(result).toEqual({ ok: true, cost: 300 });
     });
+
+    it('整数でない shares は INVALID_SHARES', () => {
+      const state = startGame({ stocks: true });
+      expect(validateStockBuy(state, 'player-0', 'brown', 1.5)).toEqual({
+        ok: false,
+        reason: 'INVALID_SHARES',
+      });
+    });
+
+    it('対象カラーの市場が無ければ COLOR_UNKNOWN', () => {
+      const state = { ...startGame({ stocks: true }), stockMarket: {} };
+      expect(validateStockBuy(state, 'player-0', 'brown', 1)).toEqual({
+        ok: false,
+        reason: 'COLOR_UNKNOWN',
+      });
+    });
+
+    it('銀行の残株を超える購入は INSUFFICIENT_BANK_SHARES', () => {
+      const state = startGame({ stocks: true });
+      expect(
+        validateStockBuy(state, 'player-0', 'brown', STOCK_TOTAL_SHARES + 1),
+      ).toEqual({ ok: false, reason: 'INSUFFICIENT_BANK_SHARES' });
+    });
+
+    it('存在しないプレイヤーは COLOR_UNKNOWN', () => {
+      const state = startGame({ stocks: true });
+      expect(validateStockBuy(state, 'nobody', 'brown', 1)).toEqual({
+        ok: false,
+        reason: 'COLOR_UNKNOWN',
+      });
+    });
+
+    it('銀行残株の検証はプレイヤーの存在確認より先に行われる', () => {
+      const state = startGame({ stocks: true });
+      expect(
+        validateStockBuy(state, 'nobody', 'brown', STOCK_TOTAL_SHARES + 1),
+      ).toEqual({ ok: false, reason: 'INSUFFICIENT_BANK_SHARES' });
+    });
   });
 
   describe('validateStockSell', () => {
+    it('stocks 機能 OFF なら STOCKS_DISABLED', () => {
+      const state = startGame({ stocks: false });
+      expect(validateStockSell(state, 'player-0', 'brown', 1)).toEqual({
+        ok: false,
+        reason: 'STOCKS_DISABLED',
+      });
+    });
+
+    it('shares が 0 以下なら INVALID_SHARES', () => {
+      const state = startGame({ stocks: true });
+      expect(validateStockSell(state, 'player-0', 'brown', 0)).toEqual({
+        ok: false,
+        reason: 'INVALID_SHARES',
+      });
+    });
+
+    it('対象カラーの市場が無ければ COLOR_UNKNOWN', () => {
+      const state = { ...startGame({ stocks: true }), stockMarket: {} };
+      expect(validateStockSell(state, 'player-0', 'brown', 1)).toEqual({
+        ok: false,
+        reason: 'COLOR_UNKNOWN',
+      });
+    });
+
+    it('存在しないプレイヤーは COLOR_UNKNOWN', () => {
+      const state = startGame({ stocks: true });
+      expect(validateStockSell(state, 'nobody', 'brown', 1)).toEqual({
+        ok: false,
+        reason: 'COLOR_UNKNOWN',
+      });
+    });
+
+    it('保有株があれば株価 × 株数の proceeds を返す', () => {
+      const base = startGame({ stocks: true });
+      const state = {
+        ...base,
+        players: base.players.map((p) =>
+          p.id === 'player-0' ? { ...p, stocks: { brown: 5 } } : p,
+        ),
+      };
+      expect(validateStockSell(state, 'player-0', 'brown', 3)).toEqual({
+        ok: true,
+        proceeds: 300,
+      });
+    });
+
     it('保有株不足なら INSUFFICIENT_HOLDINGS', () => {
       const state = startGame({ stocks: true });
       const result = validateStockSell(state, 'player-0', 'brown', 1);

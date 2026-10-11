@@ -1,0 +1,8 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema-jsonc.json",
+  "project": ["src/**/*.{ts,tsx}", "scripts/**/*.ts"],
+  // 同一ファイル内でしか使わない export は報告しない。目的は「参照ゼロ」(結線し忘れ) の検出
+  "ignoreExportsUsedInFile": true,
+  // コードから import されず、pre-commit / CI からだけ起動されるツール
+  "ignoreDependencies": ["@secretlint/secretlint-rule-preset-recommend"],
+}
