@@ -13,11 +13,12 @@
 #
 # 終了コード:
 #   0: 一致した、またはレジストリへ到達できず検証を行えなかった（::warning:: を出力する）
-#   1: digest 不一致、設定ファイルの形式不正、docker を実行できない、タグがレジストリに無い
+#   1: digest 不一致、設定ファイルの形式不正、docker または補助コマンド（docker-credential-* など）を実行できない、タグがレジストリに無い
 #
 # 成功扱いにするのは到達不能（ネットワーク断・rate limit・認証失敗）だけである。
 # ネットワーク不調で無関係な PR を止めないためで、警告に最後の stderr 1 行を含め、無言では通さない。
-# docker が無い・タグが無い場合は再試行しても直らず、検証が常に空振りになるため失敗にする。
+# docker または補助コマンド（docker-credential-* など）が無い・タグが無い場合は再試行しても直らず、
+# 検証が常に空振りになるため失敗にする。認証ヘルパーの不在は認証失敗（到達不能）とは別で、失敗側に入る。
 #
 # 環境変数（テスト用・調整用）:
 #   VERIFY_INSPECT_CMD  タグから manifest digest を取得するコマンド。
@@ -77,8 +78,9 @@ inspect_digest() {
 }
 
 # 取得の失敗は原因で扱いを分ける。
-#   - docker が無い・buildx プラグインが無い（終了コード 127 / command not found /
-#     is not a docker command）、タグが無い（manifest unknown など）:
+#   - docker が無い・buildx プラグインが無い・docker-credential-* などの補助コマンドが無い
+#     （終了コード 127 / command not found / is not a docker command / executable file not found）、
+#     タグが無い（manifest unknown など）:
 #     設定側かランナー側の問題で、再試行しても直らないため即座に失敗（exit 1）にする。
 #   - それ以外（ネットワーク断・rate limit・認証失敗など到達不能）: 再試行し、
 #     最後の stderr 1 行を添えた警告つきで成功扱いにする。
