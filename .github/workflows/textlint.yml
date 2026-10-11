@@ -1,0 +1,62 @@
+name: textlint
+
+# 日本語の Markdown 文書の文体ゆれ・冗長表現・一文の長さを textlint で検査する。
+# 既存文書に未解消の指摘が残っているため、現時点では指摘を注釈として出すのみで、ジョブは失敗させない
+# (continue-on-error)。指摘が 0 件になった時点で continue-on-error を外し、必須チェックへ昇格させる。
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**/*.md'
+      - '.textlintrc.json'
+      - '.textlintignore'
+      - 'package.json'
+      - 'bun.lock'
+      - '.github/workflows/textlint.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - '**/*.md'
+      - '.textlintrc.json'
+      - '.textlintignore'
+      - 'package.json'
+      - 'bun.lock'
+      - '.github/workflows/textlint.yml'
+
+concurrency:
+  group: textlint-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  textlint:
+    name: textlint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.2
+      - name: Cache bun dependencies
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+      - run: bun install --frozen-lockfile --ignore-scripts
+      - name: Run textlint
+        # TODO(#789): 既存文書の指摘を解消したら continue-on-error を外す
+        continue-on-error: true
+        # shell: bash は -eo pipefail で実行されるため、tee を挟んでも bun run の終了コードが残る
+        shell: bash
+        run: bun run lint:text 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"

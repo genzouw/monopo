@@ -1,0 +1,19 @@
+node_modules/
+dist/
+coverage/
+
+# AI 生成の提案書・設計メモ。人手で保守する文書ではないため対象外にする
+docs/proposals/**
+docs/superpowers/**
+
+# ライセンス全文 (英語)
+LICENSE.md
+
+# docs/ai-guidelines.md から bun run sync:ai-guidelines で自動生成されるファイル
+CLAUDE.md
+AGENTS.md
+.github/copilot-instructions.md
+
+# ルート直下の機能提案書 (docs/proposals/ と同じく AI 生成の提案書)
+ISSUE_PROPOSAL_*.md
+PROPOSAL_*.md
