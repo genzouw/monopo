@@ -85,7 +85,11 @@ describe('AltAssetDialog', () => {
         ],
       }),
     );
-    fireEvent.click(screen.getAllByRole('button', { name: 'うる' })[1]);
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: '2けんめの ESG（$500、2ターンめ）をうる',
+      }),
+    );
     expect(h.onSellESG).toHaveBeenCalledWith(1);
   });
 

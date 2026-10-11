@@ -138,6 +138,7 @@ export default function AltAssetDialog({
                 size="small"
                 variant="secondary"
                 onClick={() => onSellESG(index)}
+                aria-label={`${index + 1}けんめの ESG（$${holding.amount.toLocaleString()}、${holding.investedTurn}ターンめ）をうる`}
               >
                 うる
               </Button>
