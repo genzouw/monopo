@@ -20,7 +20,8 @@
     "sync:ai-guidelines": "bun run scripts/sync-ai-guidelines.ts",
     "sync:ai-guidelines:check": "bun run scripts/sync-ai-guidelines.ts --check",
     "prepare": "husky",
-    "secretlint": "secretlint \"**/*\""
+    "secretlint": "secretlint \"**/*\"",
+    "lint:text": "textlint \"**/*.md\""
   },
   "dependencies": {
     "howler": "^2.2.4",
@@ -53,6 +54,8 @@
     "prettier": "^3.9.4",
     "repomix": "1.18.1",
     "secretlint": "^13.0.4",
+    "textlint": "15.8.0",
+    "textlint-rule-preset-ja-technical-writing": "12.0.2",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.59.3",
     "vite": "^8.0.16",
