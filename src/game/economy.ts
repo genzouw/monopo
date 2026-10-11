@@ -163,17 +163,37 @@ export type StockBuyReason =
   | 'INSUFFICIENT_BANK_SHARES'
   | 'INSUFFICIENT_FUNDS';
 
+// 株の売買に共通する事前検証（株式機能の有効化・株数・市場の存在）。
+// 売買で後続の検証順序が異なるため、共通の先頭 3 段階だけをここへ切り出す。
+type StockPrecheckResult =
+  | { ok: true; market: ColorGroupStock }
+  | {
+      ok: false;
+      reason: 'STOCKS_DISABLED' | 'INVALID_SHARES' | 'COLOR_UNKNOWN';
+    };
+
+function precheckStockTrade(
+  state: GameState,
+  color: ColorGroup,
+  shares: number,
+): StockPrecheckResult {
+  if (!isStocksEnabled(state)) return { ok: false, reason: 'STOCKS_DISABLED' };
+  if (!Number.isInteger(shares) || shares <= 0)
+    return { ok: false, reason: 'INVALID_SHARES' };
+  const market = state.stockMarket?.[color];
+  if (!market) return { ok: false, reason: 'COLOR_UNKNOWN' };
+  return { ok: true, market };
+}
+
 export function validateStockBuy(
   state: GameState,
   playerId: string,
   color: ColorGroup,
   shares: number,
 ): StockBuyValidation {
-  if (!isStocksEnabled(state)) return { ok: false, reason: 'STOCKS_DISABLED' };
-  if (!Number.isInteger(shares) || shares <= 0)
-    return { ok: false, reason: 'INVALID_SHARES' };
-  const market = state.stockMarket?.[color];
-  if (!market) return { ok: false, reason: 'COLOR_UNKNOWN' };
+  const precheck = precheckStockTrade(state, color, shares);
+  if (!precheck.ok) return { ok: false, reason: precheck.reason };
+  const { market } = precheck;
   if (market.bankShares < shares)
     return { ok: false, reason: 'INSUFFICIENT_BANK_SHARES' };
   const player = state.players.find((p) => p.id === playerId);
@@ -203,11 +223,9 @@ export function validateStockSell(
   color: ColorGroup,
   shares: number,
 ): StockSellValidation {
-  if (!isStocksEnabled(state)) return { ok: false, reason: 'STOCKS_DISABLED' };
-  if (!Number.isInteger(shares) || shares <= 0)
-    return { ok: false, reason: 'INVALID_SHARES' };
-  const market = state.stockMarket?.[color];
-  if (!market) return { ok: false, reason: 'COLOR_UNKNOWN' };
+  const precheck = precheckStockTrade(state, color, shares);
+  if (!precheck.ok) return { ok: false, reason: precheck.reason };
+  const { market } = precheck;
   const player = state.players.find((p) => p.id === playerId);
   if (!player) return { ok: false, reason: 'COLOR_UNKNOWN' };
   const owned = player.stocks?.[color] ?? 0;
