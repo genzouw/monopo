@@ -60,6 +60,7 @@ test-results
 # （gitignore は後勝ちのため、上の *secret* パターンより後に置く必要がある）
 !.secretlintrc.json
 !.github/workflows/secretlint.yml
+!.github/workflows/audit-secrets.yml
 *.npmrc
 .netrc
 *.p12
