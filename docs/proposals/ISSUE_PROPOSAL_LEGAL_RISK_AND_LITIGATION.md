@@ -12,7 +12,7 @@ labels: ['enhancement', 'proposal', 'game-design', 'game-mechanics']
 1. **裁判所マスと訴訟・弁護士費用の概念 (Litigation & Legal Fees)**
 2. **クラスアクション（集団訴訟）と和解交渉 (Class Action & Settlement)**
 
-> 📎 **関連提案との整合性:** 特許の取得とパテントトロール行為（特許を他プレイヤーの行動に対して行使する仕組み）は、`ISSUE_PROPOSAL_EVOLUTIONARY_ASSET_MANAGEMENT.md` の「知的財産権（IP）とロイヤリティ」（28・38 行目）が既に定義しており、`ISSUE_PROPOSAL_FRACTIONAL_RESERVE_BANK_RUN.md` と `ISSUE_PROPOSAL_CROWD_BAILOUT.md` も同一のメカニクスとして扱っています。そのため本提案では特許の取得を扱いません。既存の IP カードの権利行使を「ロイヤリティの自動徴収」から「訴訟するか見逃すか」の選択に拡張する場合の、訴訟フェーズ（上記 1・2）だけを新規の論点とします。ゲーム機能のロードマップは #159 が正本です。
+> 📎 **関連提案との整合性:** 特許の取得とパテントトロール行為（特許を他プレイヤーの行動に対して行使する仕組み）は、`ISSUE_PROPOSAL_EVOLUTIONARY_ASSET_MANAGEMENT.md` の概要節とメカニクス節にある「知的財産権（IP）とロイヤリティ」が既に定義しており、`ISSUE_PROPOSAL_FRACTIONAL_RESERVE_BANK_RUN.md` と `ISSUE_PROPOSAL_CROWD_BAILOUT.md` も同一のメカニクスとして扱っています。そのため本提案では特許の取得を扱いません。既存の IP カードの権利行使を「ロイヤリティの自動徴収」から「訴訟するか見逃すか」の選択に拡張する場合の、訴訟フェーズ（上記 1・2）だけを新規の論点とします。ゲーム機能のロードマップは #159 が正本です。
 
 ## ⚙️ ゲーム内での具体的なメカニクス (How)
 
