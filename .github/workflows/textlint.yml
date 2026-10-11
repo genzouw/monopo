@@ -55,6 +55,8 @@ jobs:
             ${{ runner.os }}-bun-
       - run: bun install --frozen-lockfile --ignore-scripts
       - name: Run textlint
-        # TODO: 既存文書の指摘を解消したら continue-on-error を外す
+        # TODO(#789): 既存文書の指摘を解消したら continue-on-error を外す
         continue-on-error: true
-        run: bun run lint:text
+        # shell: bash は -eo pipefail で実行されるため、tee を挟んでも bun run の終了コードが残る
+        shell: bash
+        run: bun run lint:text 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
