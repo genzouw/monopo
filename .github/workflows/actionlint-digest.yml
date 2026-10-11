@@ -1,0 +1,40 @@
+name: actionlint digest
+
+# .pre-commit-config.yaml の actionlint-docker の entry に書かれた digest が、
+# タグの実体と一致するかをレジストリへ問い合わせて検証する。
+# ネットワーク依存のため、ローカルの pre-commit ではなく、設定を変更する PR でだけ実行する。
+# 不一致は失敗、レジストリへ到達できない場合は警告を残して成功扱いにする
+# （詳細は scripts/verify-actionlint-digest.sh）。
+on:
+  pull_request:
+    branches: [main, master]
+    paths:
+      - '.pre-commit-config.yaml'
+      - 'scripts/verify-actionlint-digest.sh'
+      - 'scripts/test-verify-actionlint-digest.sh'
+      - '.github/workflows/actionlint-digest.yml'
+
+concurrency:
+  group: actionlint-digest-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify-digest:
+    name: actionlint digest matches tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Run verify-actionlint-digest.sh regression test
+        run: ./scripts/test-verify-actionlint-digest.sh
+      - name: Verify actionlint digest against registry
+        run: ./scripts/verify-actionlint-digest.sh .pre-commit-config.yaml
