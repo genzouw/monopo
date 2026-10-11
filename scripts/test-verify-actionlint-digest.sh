@@ -11,6 +11,7 @@
 #   7. タグ不在（stderr に manifest unknown）→ 終了コード 1、再試行しない
 #   8. docker 無し（終了コード 127）→ 終了コード 1、再試行しない
 #   9. 到達不能の警告に最後の stderr 1 行が含まれる
+#  10. buildx プラグイン無し（終了コード 1、is not a docker command）→ 終了コード 1、再試行しない
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -179,6 +180,14 @@ counter_net="$WORKDIR/counter-net"
 make_stub_err "$stub_net" "$counter_net" 1 "dial tcp: lookup registry-1.docker.io: no such host"
 assert_case "到達不能の原因表示" "$ok_config" "$stub_net" 0 "最後のエラー: dial tcp: lookup registry-1.docker.io: no such host"
 assert_count "到達不能の試行回数" "$counter_net" 3
+
+echo ""
+echo "── 10. buildx プラグイン無し（終了コード 1 でも実行不能として即失敗、再試行しない） ──"
+stub_nobuildx="$WORKDIR/stub-nobuildx.sh"
+counter_nobuildx="$WORKDIR/counter-nobuildx"
+make_stub_err "$stub_nobuildx" "$counter_nobuildx" 1 "docker: 'buildx' is not a docker command."
+assert_case "buildx無し" "$ok_config" "$stub_nobuildx" 1 "実行できない"
+assert_count "buildx無しの試行回数" "$counter_nobuildx" 1
 
 echo ""
 if [ "$exit_code" -eq 0 ]; then

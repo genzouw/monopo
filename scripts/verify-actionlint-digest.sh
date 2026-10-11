@@ -77,7 +77,8 @@ inspect_digest() {
 }
 
 # 取得の失敗は原因で扱いを分ける。
-#   - docker が無い（終了コード 127 / command not found）、タグが無い（manifest unknown など）:
+#   - docker が無い・buildx プラグインが無い（終了コード 127 / command not found /
+#     is not a docker command）、タグが無い（manifest unknown など）:
 #     設定側かランナー側の問題で、再試行しても直らないため即座に失敗（exit 1）にする。
 #   - それ以外（ネットワーク断・rate limit・認証失敗など到達不能）: 再試行し、
 #     最後の stderr 1 行を添えた警告つきで成功扱いにする。
@@ -98,7 +99,7 @@ while [ "$attempt" -le "$RETRIES" ]; do
       break
     fi
     last_err="${last_err:-取得コマンドが digest 形式でない出力を返しました}"
-  elif [ "$status" -eq 127 ] || printf '%s' "$last_err" | grep -qiE 'command not found|executable file not found'; then
+  elif [ "$status" -eq 127 ] || printf '%s' "$last_err" | grep -qiE 'command not found|executable file not found|is not a docker command'; then
     echo "::error title=actionlint digest 検証不可::docker を実行できません: ${last_err:-終了コード ${status}}"
     echo "❌ 取得コマンド（docker buildx）を実行できないため、検証できません。ランナーの構成を確認してください。" >&2
     exit 1
