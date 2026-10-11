@@ -10,6 +10,7 @@ name: mutation
 # (stryker-mutator/stryker-js#6210)。そのため stryker.config.json では coverageAnalysis を
 # off にし、ミュータントごとに全テストを実行する。修正版が出たら perTest に戻す。
 on:
+  # checkov:skip=CKV_GHA_7: mutate は対象 glob の絞り込みにのみ使う。env 経由で渡してシェル展開せず、成果物は検査用レポートで配布物のビルドに影響しない
   schedule:
     # 毎週月曜 07:00 JST (= 日曜 22:00 UTC)
     - cron: '0 22 * * 0'
