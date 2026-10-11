@@ -12,7 +12,6 @@
   "incremental": true,
   "incrementalFile": "reports/stryker-incremental.json",
   "tempDirName": ".stryker-tmp",
-  "coverageAnalysis": "perTest",
-  "ignoreStatic": true,
+  "coverageAnalysis": "off",
   "thresholds": { "high": 80, "low": 60, "break": null }
 }

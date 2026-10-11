@@ -4,11 +4,22 @@ name: mutation
 # 段階導入の初期段階として必須チェックにはしない。PR では動かさず、週次と手動実行のみとする。
 # 生存ミュータントの一覧は artifact (mutation-report) のレポートで確認し、
 # 境界値テストを足す優先順位に使う。break 閾値は null のため、スコアでは失敗しない。
+#
+# 既知の制約: @stryker-mutator/vitest-runner 10.0.0 は Vitest 5 でテスト名フィルタが
+# 一致せず、coverageAnalysis: perTest だと全ミュータントが生存扱いになる
+# (stryker-mutator/stryker-js#6210)。そのため stryker.config.json では coverageAnalysis を
+# off にし、ミュータントごとに全テストを実行する。修正版が出たら perTest に戻す。
 on:
   schedule:
     # 毎週月曜 07:00 JST (= 日曜 22:00 UTC)
     - cron: '0 22 * * 0'
   workflow_dispatch:
+    inputs:
+      mutate:
+        description: '対象を絞る glob (空なら src/game/ 全体)。例: src/game/systems/loan.ts'
+        required: false
+        default: ''
+        type: string
 
 concurrency:
   group: mutation-${{ github.ref }}
@@ -21,8 +32,8 @@ jobs:
   mutation:
     name: Mutation test (src/game)
     runs-on: ubuntu-latest
-    # 実行時間の実測値で見直す (ローカル実測は PR 本文を参照)
-    timeout-minutes: 60
+    # 全体の実行時間は未確認 (ローカルでは cards.ts だけで 4 分強)。上限は GitHub の 360 分
+    timeout-minutes: 360
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
@@ -42,7 +53,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-bun-
       - run: bun install --frozen-lockfile --ignore-scripts
-      - run: bun run test:mutation
+      - name: Run Stryker
+        env:
+          MUTATE: ${{ inputs.mutate }}
+        run: |
+          if [ -n "$MUTATE" ]; then
+            bun run test:mutation --mutate "$MUTATE"
+          else
+            bun run test:mutation
+          fi
       - name: Upload mutation report
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
