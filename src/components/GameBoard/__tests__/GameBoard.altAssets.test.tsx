@@ -60,11 +60,49 @@ describe('GameBoard 代替資産導線の統合', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: 'とじる' }));
 
-    expect(dispatch).toHaveBeenCalledWith({ type: 'BUY_CRYPTO', amount: 500 });
-    expect(dispatch).toHaveBeenCalledWith({ type: 'INVEST_VC', amount: 500 });
-    expect(dispatch).toHaveBeenCalledWith({ type: 'BUY_ESG', amount: 500 });
-    expect(dispatch).toHaveBeenCalledWith({ type: 'SELL_CRYPTO' });
-    expect(dispatch).toHaveBeenCalledWith({ type: 'SELL_ESG', index: 0 });
-    expect(dispatch).toHaveBeenCalledWith({ type: 'CLOSE_ALT_ASSET_DIALOG' });
+    // クリック順に、対応する action が 1 回ずつ dispatch されること
+    expect(dispatch.mock.calls).toEqual([
+      [{ type: 'BUY_CRYPTO', amount: 500 }],
+      [{ type: 'INVEST_VC', amount: 500 }],
+      [{ type: 'BUY_ESG', amount: 500 }],
+      [{ type: 'SELL_CRYPTO' }],
+      [{ type: 'SELL_ESG', index: 0 }],
+      [{ type: 'CLOSE_ALT_ASSET_DIALOG' }],
+    ]);
+  });
+
+  it('altAssets 有効時は投資ボタンから OPEN_ALT_ASSET_DIALOG を dispatch し、状態遷移後にダイアログが表示される', () => {
+    const dispatch = vi.fn();
+    const base = gameReducer(createInitialGameState(), {
+      type: 'START_GAME',
+      playerNames: ['たろう', 'はなこ'],
+      playerTokens: ['🚗', '🎩'],
+      features: { altAssets: true },
+    });
+    const { rerender } = render(<GameBoard state={base} dispatch={dispatch} />);
+
+    expect(screen.queryByRole('button', { name: 'とじる' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /あたらしい投資/ }));
+    expect(dispatch.mock.calls).toEqual([[{ type: 'OPEN_ALT_ASSET_DIALOG' }]]);
+
+    // reducer による遷移後の状態でダイアログが表示されること
+    const opened = gameReducer(base, { type: 'OPEN_ALT_ASSET_DIALOG' });
+    expect(opened.turnPhase).toBe('altAsset');
+    rerender(<GameBoard state={opened} dispatch={dispatch} />);
+    expect(
+      screen.getByRole('button', { name: 'ふしぎなコインを$500でかう' }),
+    ).toBeTruthy();
+  });
+
+  it('altAssets 無効時は投資ボタンが表示されない', () => {
+    const base = gameReducer(createInitialGameState(), {
+      type: 'START_GAME',
+      playerNames: ['たろう', 'はなこ'],
+      playerTokens: ['🚗', '🎩'],
+      features: { altAssets: false },
+    });
+    render(<GameBoard state={base} dispatch={vi.fn()} />);
+
+    expect(screen.queryByRole('button', { name: /あたらしい投資/ })).toBeNull();
   });
 });
