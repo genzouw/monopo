@@ -234,3 +234,11 @@ TruffleHog は `--only-verified` により、実際に外部プロバイダで�
 
 これまで CI（GitHub Actions）のみで実行されていた Secretlint を、`pre-commit` のローカルフックとしても実行するように設定を追加しました。
 これにより、開発者が誤ってシークレットをコミットしようとした際、Gitleaks や TruffleHog に加えて、Secretlint の多層的なルール（API トークンや秘密鍵の包括的なパターンマッチ）によって、より確実にローカルで検知・ブロックされます。
+
+### CI 検知強化 (detect-secrets CI ワークフロー導入)
+
+`Yelp/detect-secrets` の検査を単独で実行する CI ワークフロー（`audit-secrets.yml`）を新設しました。
+検査内容は `.pre-commit-config.yaml` の `detect-secrets` フックと同じ（`.secrets.baseline` との差分検査、同じ除外パターン、同じバージョン `1.5.0`）で、検知範囲は増えません。`pre-commit.yml` は `pre-commit run --all-files` で全フックをまとめて実行するため、`bun install` や他フックの結果と混ざらずに detect-secrets の失敗だけを切り分けられるよう、独立したジョブとして残しています。
+
+- 実行契機: PR・push・週次の `schedule`・手動実行
+- バージョン: `pip install detect-secrets==1.5.0` で固定し、`.pre-commit-config.yaml` の `rev` と揃える。更新するときは両方を同時に変更すること
