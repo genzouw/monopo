@@ -100,8 +100,8 @@ while [ "$attempt" -le "$RETRIES" ]; do
     fi
     last_err="${last_err:-取得コマンドが digest 形式でない出力を返しました}"
   elif [ "$status" -eq 127 ] || printf '%s' "$last_err" | grep -qiE 'command not found|executable file not found|is not a docker command'; then
-    echo "::error title=actionlint digest 検証不可::docker を実行できません: ${last_err:-終了コード ${status}}"
-    echo "❌ 取得コマンド（docker buildx）を実行できないため、検証できません。ランナーの構成を確認してください。" >&2
+    echo "::error title=actionlint digest 検証不可::docker または補助コマンドを実行できません: ${last_err:-終了コード ${status}}"
+    echo "❌ 取得コマンド（docker buildx、または docker-credential-* などの補助コマンド）を実行できないため、検証できません。ランナーの構成を確認してください。" >&2
     exit 1
   elif printf '%s' "$last_err" | grep -qiE 'manifest unknown|name unknown|no such manifest|not found'; then
     echo "::error title=actionlint タグ不在::${ref} がレジストリに存在しません: ${last_err}"
