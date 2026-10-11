@@ -1,7 +1,9 @@
 name: mutation
 
 # Stryker によるミューテーションテスト (src/game/ 限定)。
-# 段階導入の初期段階として必須チェックにはしない。PR では動かさず、週次と手動実行のみとする。
+# 段階導入の初期段階として必須チェックにはしない。PR では動かさず、手動実行のみとする。
+# 全体実行の所要時間が未計測のため、週次の schedule は置かない。mutate 入力で小さいファイルを
+# 実行して所要時間を実測し、1 job が上限 (360 分) に収まる見込みが立ってから schedule を足す。
 # 生存ミュータントの一覧は artifact (mutation-report) のレポートで確認し、
 # 境界値テストを足す優先順位に使う。break 閾値は null のため、スコアでは失敗しない。
 #
@@ -11,9 +13,6 @@ name: mutation
 # off にし、ミュータントごとに全テストを実行する。修正版が出たら perTest に戻す。
 on:
   # checkov:skip=CKV_GHA_7: mutate は対象 glob の絞り込みにのみ使う。env 経由で渡してシェル展開せず、成果物は検査用レポートで配布物のビルドに影響しない
-  schedule:
-    # 毎週月曜 07:00 JST (= 日曜 22:00 UTC)
-    - cron: '0 22 * * 0'
   workflow_dispatch:
     inputs:
       mutate:
