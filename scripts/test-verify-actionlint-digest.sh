@@ -12,6 +12,7 @@
 #   8. docker 無し（終了コード 127）→ 終了コード 1、再試行しない
 #   9. 到達不能の警告に最後の stderr 1 行が含まれる
 #  10. buildx プラグイン無し（終了コード 1、is not a docker command）→ 終了コード 1、再試行しない
+#  11. docker-credential-* 無し（executable file not found）→ 終了コード 1、メッセージが補助コマンドに言及する
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -188,6 +189,14 @@ counter_nobuildx="$WORKDIR/counter-nobuildx"
 make_stub_err "$stub_nobuildx" "$counter_nobuildx" 1 "docker: 'buildx' is not a docker command."
 assert_case "buildx無し" "$ok_config" "$stub_nobuildx" 1 "実行できない"
 assert_count "buildx無しの試行回数" "$counter_nobuildx" 1
+
+echo ""
+echo "── 11. 認証ヘルパー無し（docker-credential-* は docker 本体ではなく補助コマンドとして案内する） ──"
+stub_nocred="$WORKDIR/stub-nocred.sh"
+counter_nocred="$WORKDIR/counter-nocred"
+make_stub_err "$stub_nocred" "$counter_nocred" 1 'error getting credentials - err: exec: "docker-credential-desktop": executable file not found in PATH'
+assert_case "認証ヘルパー無し" "$ok_config" "$stub_nocred" 1 "docker-credential-*"
+assert_count "認証ヘルパー無しの試行回数" "$counter_nocred" 1
 
 echo ""
 if [ "$exit_code" -eq 0 ]; then
