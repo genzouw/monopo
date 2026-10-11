@@ -21,10 +21,10 @@
     "sync:ai-guidelines:check": "bun run scripts/sync-ai-guidelines.ts --check",
     "prepare": "husky",
     "secretlint": "secretlint \"**/*\"",
+    "knip": "knip",
     "lint:text": "textlint \"**/*.md\""
   },
   "dependencies": {
-    "howler": "^2.2.4",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"
   },
@@ -36,7 +36,6 @@
     "@secretlint/secretlint-rule-preset-recommend": "^13.0.4",
     "@testing-library/jest-dom": "^7.0.0",
     "@testing-library/react": "^16.3.2",
-    "@types/howler": "^2.2.12",
     "@types/node": "^26.0.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
@@ -49,6 +48,7 @@
     "globals": "^17.6.0",
     "husky": "9.1.7",
     "jsdom": "^30.0.0",
+    "knip": "6.36.0",
     "license-checker-rseidelsohn": "5.0.1",
     "lint-staged": "^17.0.5",
     "prettier": "^3.9.4",

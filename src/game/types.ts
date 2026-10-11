@@ -164,6 +164,11 @@ export type TradeValidationResult =
   { isValid: true } | { isValid: false; reason: TradeInvalidReason };
 
 // ── P3-a 拡張: ローン状態 ──
+/**
+ * 現在はどこからも参照されない。docs/proposals/ISSUE_PROPOSAL_INNOVATIVE_REALITY_MONEY_GAME.md の
+ * CDO 提案が型名で参照するため残している。Knip の未使用 export 検出から除外する。
+ * @public
+ */
 export type LoanState = {
   principal: number; // 残元本
   annualRate: number; // 現在の年利（小数）
