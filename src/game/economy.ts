@@ -115,6 +115,21 @@ export function calculateDividendPool(rentAmount: number): number {
   return Math.floor((rentAmount * DIVIDEND_RATE_PCT) / 100);
 }
 
+/**
+ * 配当の対象プレイヤーか判定する（破産者・家賃の受取人・支払者は除外）。
+ * @param p 判定対象のプレイヤー
+ * @param rentRecipientId 家賃を受け取ったプレイヤーの ID（居ない場合は null）
+ * @param payerId 家賃を支払ったプレイヤーの ID
+ * @returns 配当の対象であれば true
+ */
+function isDividendEligible(
+  p: Player,
+  rentRecipientId: string | null,
+  payerId: string,
+): boolean {
+  return !p.isBankrupt && p.id !== rentRecipientId && p.id !== payerId;
+}
+
 // 配当配分: 各プレイヤーへの配当額（家賃を受け取った owner と payer は除外）
 // rentRecipientId に配当を渡さないことで「自分の物件からの配当を自分が貰う」二重取りを防止する。
 // payerId（家賃を支払った人）にも配当を渡さないようにし、支払いと配当が相殺する不自然さを排除する。
@@ -130,20 +145,19 @@ export function distributeDividends(
   const pool = calculateDividendPool(rentAmount);
   if (pool <= 0) return result;
 
-  // 配当対象プレイヤーの抽出
-  const eligible = players.filter(
-    (p) => !p.isBankrupt && p.id !== rentRecipientId && p.id !== payerId,
-  );
   // 持株数の合計（対象プレイヤー内の合計のみで按分する。
   // 銀行株や除外されたプレイヤー保有分は配分対象外。これにより
   // 配当総額が予算 pool を超えない。）
+  // 配当は頻繁に発生するため、中間配列を作らず合計と配分の 2 パスで処理する。
   let totalEligibleShares = 0;
-  for (const p of eligible) {
+  for (const p of players) {
+    if (!isDividendEligible(p, rentRecipientId, payerId)) continue;
     totalEligibleShares += p.stocks?.[color] ?? 0;
   }
   if (totalEligibleShares <= 0) return result;
 
-  for (const p of eligible) {
+  for (const p of players) {
+    if (!isDividendEligible(p, rentRecipientId, payerId)) continue;
     const shares = p.stocks?.[color] ?? 0;
     if (shares <= 0) continue;
     const amount = Math.floor((pool * shares) / totalEligibleShares);
