@@ -130,25 +130,18 @@ export function distributeDividends(
   // 持株数の合計（対象プレイヤー内の合計のみで按分する。
   // 銀行株や除外されたプレイヤー保有分は配分対象外。これにより
   // 配当総額が予算 pool を超えない。）
-  // ⚡ Bolt: Replace .filter() with a manual loop to avoid array allocation overhead
-  // during frequent rent payments. This reduces GC pressure.
-  const eligiblePlayers: Player[] = [];
+  // 配当は頻繁に発生するため、中間配列を作らず合計と配分の 2 パスで処理する。
   let totalEligibleShares = 0;
-
   for (const p of players) {
-    if (!p.isBankrupt && p.id !== rentRecipientId && p.id !== payerId) {
-      const shares = p.stocks?.[color] ?? 0;
-      if (shares > 0) {
-        eligiblePlayers.push(p);
-        totalEligibleShares += shares;
-      }
-    }
+    if (p.isBankrupt || p.id === rentRecipientId || p.id === payerId) continue;
+    totalEligibleShares += p.stocks?.[color] ?? 0;
   }
-
   if (totalEligibleShares <= 0) return result;
 
-  for (const p of eligiblePlayers) {
+  for (const p of players) {
+    if (p.isBankrupt || p.id === rentRecipientId || p.id === payerId) continue;
     const shares = p.stocks?.[color] ?? 0;
+    if (shares <= 0) continue;
     const amount = Math.floor((pool * shares) / totalEligibleShares);
     if (amount > 0) result[p.id] = amount;
   }
