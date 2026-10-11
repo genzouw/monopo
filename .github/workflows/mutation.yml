@@ -1,0 +1,74 @@
+name: mutation
+
+# Stryker によるミューテーションテスト (src/game/ 限定)。
+# 段階導入の初期段階として必須チェックにはしない。PR では動かさず、手動実行のみとする。
+# 全体実行の所要時間が未計測のため、週次の schedule は置かない。mutate 入力で小さいファイルを
+# 実行して所要時間を実測し、1 job が上限 (360 分) に収まる見込みが立ってから schedule を足す。
+# 生存ミュータントの一覧は artifact (mutation-report) のレポートで確認し、
+# 境界値テストを足す優先順位に使う。break 閾値は null のため、スコアでは失敗しない。
+#
+# 既知の制約: @stryker-mutator/vitest-runner 10.0.0 は Vitest 5 でテスト名フィルタが
+# 一致せず、coverageAnalysis: perTest だと全ミュータントが生存扱いになる
+# (stryker-mutator/stryker-js#6210)。そのため stryker.config.json では coverageAnalysis を
+# off にし、ミュータントごとに全テストを実行する。修正版が出たら perTest に戻す。
+on:
+  # checkov:skip=CKV_GHA_7: mutate は対象 glob の絞り込みにのみ使う。env 経由で渡してシェル展開せず、成果物は検査用レポートで配布物のビルドに影響しない
+  workflow_dispatch:
+    inputs:
+      mutate:
+        description: '対象を絞る glob (空なら src/game/ 全体)。例: src/game/systems/loan.ts'
+        required: false
+        default: ''
+        type: string
+
+concurrency:
+  group: mutation-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  mutation:
+    name: Mutation test (src/game)
+    runs-on: ubuntu-latest
+    # 全体の実行時間は未確認 (ローカルでは cards.ts だけで 4 分強)。上限は GitHub の 360 分
+    timeout-minutes: 360
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.2
+      - name: Cache bun dependencies
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+      - run: bun install --frozen-lockfile --ignore-scripts
+      - name: Run Stryker
+        env:
+          MUTATE: ${{ inputs.mutate }}
+        run: |
+          if [ -n "$MUTATE" ]; then
+            # --mutate は stryker.config.json の mutate を置き換えるため、除外を再指定する。
+            # --mutate を繰り返すと最後の指定だけが残るため、カンマ区切りで 1 つにまとめる。
+            # --mutate="..." の形で渡し、値が - で始まっても別オプションとして解釈させない。
+            bun run test:mutation "--mutate=${MUTATE},!src/game/__tests__/**,!src/game/types.ts"
+          else
+            bun run test:mutation
+          fi
+      - name: Upload mutation report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mutation-report
+          path: reports/mutation/
+          retention-days: 14
