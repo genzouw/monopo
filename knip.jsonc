@@ -7,6 +7,6 @@
   "ignoreDependencies": [
     "@secretlint/secretlint-rule-preset-recommend",
     // .textlintrc.json の plugins から名前で解決される (textlint 本体の依存として入る)
-    "@textlint/textlint-plugin-markdown"
+    "@textlint/textlint-plugin-markdown",
   ],
 }
