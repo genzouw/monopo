@@ -480,9 +480,14 @@ function handleLanding(state: GameState): GameState {
             state.players,
           )
         : {};
-      const dividendPaid = isStocksEnabled(state)
-        ? Object.values(dividends).reduce((a, b) => a + b, 0)
-        : 0;
+      // ⚡ Bolt: Replace Object.values().reduce() with a for-in loop to avoid array allocation
+      // when calculating the total dividend paid.
+      let dividendPaid = 0;
+      if (isStocksEnabled(state)) {
+        for (const pid in dividends) {
+          dividendPaid += dividends[pid];
+        }
+      }
       const ownerProceeds = rent - dividendPaid;
 
       const newPlayers = state.players.map((p) => {
