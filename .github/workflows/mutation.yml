@@ -1,0 +1,52 @@
+name: mutation
+
+# Stryker によるミューテーションテスト (src/game/ 限定)。
+# 段階導入の初期段階として必須チェックにはしない。PR では動かさず、週次と手動実行のみとする。
+# 生存ミュータントの一覧は artifact (mutation-report) のレポートで確認し、
+# 境界値テストを足す優先順位に使う。break 閾値は null のため、スコアでは失敗しない。
+on:
+  schedule:
+    # 毎週月曜 07:00 JST (= 日曜 22:00 UTC)
+    - cron: '0 22 * * 0'
+  workflow_dispatch:
+
+concurrency:
+  group: mutation-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  mutation:
+    name: Mutation test (src/game)
+    runs-on: ubuntu-latest
+    # 実行時間の実測値で見直す (ローカル実測は PR 本文を参照)
+    timeout-minutes: 60
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.2
+      - name: Cache bun dependencies
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+      - run: bun install --frozen-lockfile --ignore-scripts
+      - run: bun run test:mutation
+      - name: Upload mutation report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mutation-report
+          path: reports/mutation/
+          retention-days: 14

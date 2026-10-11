@@ -1,0 +1,18 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "testRunner": "vitest",
+  "mutate": [
+    "src/game/**/*.ts",
+    "!src/game/__tests__/**",
+    "!src/game/types.ts"
+  ],
+  "reporters": ["clear-text", "html", "json"],
+  "htmlReporter": { "fileName": "reports/mutation/mutation.html" },
+  "jsonReporter": { "fileName": "reports/mutation/mutation.json" },
+  "incremental": true,
+  "incrementalFile": "reports/stryker-incremental.json",
+  "tempDirName": ".stryker-tmp",
+  "coverageAnalysis": "perTest",
+  "ignoreStatic": true,
+  "thresholds": { "high": 80, "low": 60, "break": null }
+}
