@@ -51,6 +51,19 @@ describe('AltAssetDialog', () => {
     expect(h.onBuyESG).toHaveBeenCalledWith(500);
   });
 
+  it('同じ金額の購入ボタンが資産ごとに区別できるアクセシブル名を持つ', () => {
+    renderDialog(makePlayer());
+    const names = screen
+      .getAllByRole('button', { name: /\$500で/ })
+      .map((b) => b.getAttribute('aria-label'));
+    expect(new Set(names).size).toBe(3);
+    expect(names).toEqual([
+      'ふしぎなコインを$500でかう',
+      'みらいのかいしゃを$500でとうしする',
+      'ちきゅうにやさしい投資を$500でかう',
+    ]);
+  });
+
   it('所持金が足りない金額の購入は呼ばれない', () => {
     const h = renderDialog(makePlayer({ money: 50 }));
     for (const b of screen.getAllByRole('button', { name: /\$100で/ })) {

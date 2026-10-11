@@ -38,9 +38,13 @@ export default function AltAssetDialog({
   const vcInvestments = currentPlayer.vcInvestments ?? [];
   const esgHoldings = currentPlayer.esgHoldings ?? [];
 
-  /** 金額ごとの購入ボタン行を描画する。所持金不足のときは理由を表示して無効化する。 */
+  /**
+   * 金額ごとの購入ボタン行を描画する。所持金不足のときは理由を表示して無効化する。
+   * `assetLabel` は `aria-label` に含め、暗号資産・VC・ESG で同じ金額のボタンを区別できるようにする。
+   */
   const renderAmountButtons = (
     idPrefix: string,
+    assetLabel: string,
     verb: string,
     onSelect: (amount: number) => void,
   ) => (
@@ -62,6 +66,7 @@ export default function AltAssetDialog({
             <Button
               size="small"
               onClick={() => onSelect(amount)}
+              aria-label={`${assetLabel}を$${amount}で${verb}`}
               aria-disabled={isShort}
               aria-describedby={isShort ? hintId : undefined}
               title={isShort ? 'おかねがたりないよ' : undefined}
@@ -97,7 +102,7 @@ export default function AltAssetDialog({
             ? `もっているコイン: ${crypto.units.toFixed(2)}こ / いまのかち: $${sellCrypto(crypto).toLocaleString()}`
             : 'まだもっていないよ'}
         </div>
-        {renderAmountButtons('crypto', 'かう', onBuyCrypto)}
+        {renderAmountButtons('crypto', 'ふしぎなコイン', 'かう', onBuyCrypto)}
         <Button
           size="small"
           variant="secondary"
@@ -118,7 +123,12 @@ export default function AltAssetDialog({
                 .reduce((sum, v) => sum + v.amount, 0)
                 .toLocaleString()}）`}
         </div>
-        {renderAmountButtons('vc', 'とうしする', onInvestVC)}
+        {renderAmountButtons(
+          'vc',
+          'みらいのかいしゃ',
+          'とうしする',
+          onInvestVC,
+        )}
       </div>
 
       <div className={styles.propertyInfo}>
@@ -145,7 +155,7 @@ export default function AltAssetDialog({
             </div>
           ))
         )}
-        {renderAmountButtons('esg', 'かう', onBuyESG)}
+        {renderAmountButtons('esg', 'ちきゅうにやさしい投資', 'かう', onBuyESG)}
       </div>
     </Dialog>
   );
