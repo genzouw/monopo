@@ -4,9 +4,11 @@ name: semantic-pr
 # ロジックの実体・変更は ci-workflows 側で一元管理する (トリガー定義のみここで持つ)。
 # 参照 SHA の更新は Renovate (github-actions manager) が自動で PR を出す。
 # PR タイトルが Conventional Commits に従っているかを検査する (AGENTS.md 4 章)。
+# タイトル規約は squash 先のブランチによらず同じため、branches は絞らない
+# (ベースを main 以外にしたスタック PR や、後から付け替えた PR でも検査する)。
 on:
   pull_request:
-    branches: [main, master]
+    branches: ['**']
     types: [opened, edited, reopened, ready_for_review, synchronize]
 
 concurrency:
