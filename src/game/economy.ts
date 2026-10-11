@@ -112,7 +112,13 @@ export function calculateDividendPool(rentAmount: number): number {
   return Math.floor((rentAmount * DIVIDEND_RATE_PCT) / 100);
 }
 
-// 配当の対象プレイヤーか（破産者・家賃の受取人・支払者は除外）
+/**
+ * 配当の対象プレイヤーか判定する（破産者・家賃の受取人・支払者は除外）。
+ * @param p 判定対象のプレイヤー
+ * @param rentRecipientId 家賃を受け取ったプレイヤーの ID（居ない場合は null）
+ * @param payerId 家賃を支払ったプレイヤーの ID
+ * @returns 配当の対象であれば true
+ */
 function isDividendEligible(
   p: Player,
   rentRecipientId: string | null,
