@@ -58,7 +58,10 @@ jobs:
           MUTATE: ${{ inputs.mutate }}
         run: |
           if [ -n "$MUTATE" ]; then
-            bun run test:mutation --mutate "$MUTATE"
+            # --mutate は stryker.config.json の mutate を置き換えるため、除外を再指定する。
+            # --mutate を繰り返すと最後の指定だけが残るため、カンマ区切りで 1 つにまとめる。
+            # --mutate="..." の形で渡し、値が - で始まっても別オプションとして解釈させない。
+            bun run test:mutation "--mutate=${MUTATE},!src/game/__tests__/**,!src/game/types.ts"
           else
             bun run test:mutation
           fi
