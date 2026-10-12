@@ -35,8 +35,10 @@ jobs:
             const { owner, repo } = context.repo;
             const pull = context.payload.pull_request;
             const marker = '<!-- proposal-duplicate-notice -->';
+            // 索引（docs/proposals/README.md）は提案ではないため数えない
             const isProposal = (path) =>
-              path.startsWith('docs/proposals/') || /^ISSUE_PROPOSAL_[^/]*\.md$/.test(path);
+              path !== 'docs/proposals/README.md' &&
+              (path.startsWith('docs/proposals/') || /^ISSUE_PROPOSAL_[^/]*\.md$/.test(path));
 
             try {
               const files = await github.paginate(github.rest.pulls.listFiles, {
