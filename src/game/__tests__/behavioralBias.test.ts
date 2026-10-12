@@ -38,6 +38,7 @@ describe('behavioralBias', () => {
       expect(r.event?.kind).toBe('bubbleStarted');
       expect(r.event?.color).toBe('red');
       expect(r.event?.message).toContain('FOMO');
+      expect(r.event?.message).toContain('つぎの ばんから');
     });
 
     it('閾値の 1 株手前ではバブルに入らない', () => {

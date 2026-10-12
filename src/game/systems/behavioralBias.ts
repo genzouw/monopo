@@ -182,7 +182,7 @@ export function recordStockTrade(
       kind: 'bubbleStarted',
       color,
       message:
-        `「${COLOR_LABELS[color]}」のかぶが、みんなに かわれて ねだんが ぐんぐん あがっているよ。` +
+        `「${COLOR_LABELS[color]}」のかぶを、みんなが どんどん かっているよ。つぎの ばんから、かうときの ねだんが あがるよ。` +
         'これは「バブル」。「かわないと そんする！」と あせる きもちが FOMO（フォーモ）だよ。' +
         'ねだんが ほんとうの かちより たかく なっていないか、おちついて かんがえてみよう。',
     };
