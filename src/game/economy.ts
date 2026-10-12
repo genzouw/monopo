@@ -64,8 +64,8 @@ export function createInitialStockMarket(): Record<
 }
 
 // 指定プレイヤーの指定カラーグループにおける株の保有比率（0-1）を返す
-// 現在は未使用。docs/proposals の提案書が保有比率の算出元として参照するため残している。
-// Knip の未使用 export 検出から除外する。
+// 現在は未使用。株主行動（アクティビスト・プロキシファイト）の拡張（Issue #823）で保有比率の
+// 算出元として使う想定のため残している。Knip の未使用 export 検出から除外する。
 /** @public */
 export function getStockHoldingRatio(
   color: ColorGroup,
