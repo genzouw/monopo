@@ -165,8 +165,8 @@ export type TradeValidationResult =
 
 // ── P3-a 拡張: ローン状態 ──
 /**
- * 現在はどこからも参照されない。docs/proposals/ISSUE_PROPOSAL_INNOVATIVE_REALITY_MONEY_GAME.md の
- * CDO 提案が型名で参照するため残している。Knip の未使用 export 検出から除外する。
+ * 現在はどこからも参照されない。金融危機の連鎖（CDO・不良債権）の拡張（Issue #818）で使う想定の型として
+ * 残している。Knip の未使用 export 検出から除外する。
  * @public
  */
 export type LoanState = {

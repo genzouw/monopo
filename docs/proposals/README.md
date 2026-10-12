@@ -38,31 +38,52 @@ git show <削除コミット>^:docs/proposals/ISSUE_PROPOSAL_<名前>.md
 | [#828](https://github.com/genzouw/monopo/issues/828) | 司法リスク（裁判所マス・訴訟・弁護士費用・集団訴訟と和解）             | LEGAL_RISK_AND_LITIGATION                                                          |
 | [#210](https://github.com/genzouw/monopo/issues/210) | 信用取引の強制決済の数値仕様（コメントで追記）                         | ADVANCED_STOCK_SYSTEM（直下）                                                      |
 
+### コメントで仕様を追記した既存の Issue
+
+削除した提案のうち、受け皿の Issue に載っていなかった仕様を、既存の Issue へコメントで追記しました。
+
+| Issue                                                | 追記した内容                                                                                        | 主な出典                                                                                                          |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| [#669](https://github.com/genzouw/monopo/issues/669) | DeFi（AMM・インパーマネント・ロス・ステーキングのロック・監査済み／無監査プール・フラッシュローン） | MARKET_MAKER_AND_LIQUIDITY、INNOVATIVE_FINANCE_AND_TRADITION、NEXT_GEN_FINANCE、ASSET_MANAGEMENT（直下）          |
+| [#651](https://github.com/genzouw/monopo/issues/651) | QE/QT、好況時の政策金利の上乗せ、現金保有税、物価指数の扱い                                         | INNOVATIVE_REALITY_MONEY_GAME、MODERN_MONEY_GAME_FEATURES、ASSET_MANAGEMENT（直下）、EDUCATIONAL_ASSET_MANAGEMENT |
+| [#672](https://github.com/genzouw/monopo/issues/672) | 年金の賦課方式、メガトレンドと技術革新による陳腐化、救済イベント（徳政令）                          | ADVANCED_FINANCIAL_EDUCATION、COMPREHENSIVE_ECONOMIC_SIMULATION                                                   |
+| [#675](https://github.com/genzouw/monopo/issues/675) | 相続税、提案時の税率の例                                                                            | COMPREHENSIVE_WEALTH_EDUCATION、ASSET_MANAGEMENT（直下）                                                          |
+| [#670](https://github.com/genzouw/monopo/issues/670) | 損失回避バイアス、デフォルト・ナッジ、FOMO メーターのボーナス                                       | BEHAVIORAL_ECONOMICS_AND_NUDGE、ADVANCED_FINANCIAL_EDUCATION                                                      |
+| [#209](https://github.com/genzouw/monopo/issues/209) | スキルタグ、ギグワーク、ジョブホッピング、自己投資の複利                                            | SKILL_CAPITAL_AND_GIG_ECONOMY、NEXT_GEN_ASSET_MANAGEMENT、ASSET_MANAGEMENT（直下）                                |
+| [#212](https://github.com/genzouw/monopo/issues/212) | AI 自動化設備と UBI 税                                                                              | NEXT_GEN_FINANCE                                                                                                  |
+| [#667](https://github.com/genzouw/monopo/issues/667) | 口単位の分割、カラーグループ単位の REIT 化、トークン投票                                            | ASSET_MANAGEMENT（直下）、INNOVATIVE_REALITY_MONEY_GAME、INNOVATIVE_WEALTH_SIMULATION                             |
+| [#668](https://github.com/genzouw/monopo/issues/668) | 両替手数料、レートの更新と再現性                                                                    | EVOLUTIONARY_ASSET_MANAGEMENT                                                                                     |
+| [#210](https://github.com/genzouw/monopo/issues/210) | プットオプションとヘッジ                                                                            | COMPREHENSIVE_ECONOMIC_SIMULATION                                                                                 |
+| [#159](https://github.com/genzouw/monopo/issues/159) | 段階的導入の方式、周回ボーナス、暗号資産の拡張案                                                    | ADVANCED_FINANCIAL_EDUCATION、TRADITIONAL_AND_MODERN_FINANCE、ITADAKI_AND_MODERN_FINANCE                          |
+
+[#816](https://github.com/genzouw/monopo/issues/816)〜[#827](https://github.com/genzouw/monopo/issues/827) にも、本文に無かった数値と仕様を、コメントで追記しています。
+
 ### 既存の Issue がカバーするテーマ
 
-| テーマ                                           | Issue                                                                                                             |
-| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
-| 信用取引・オプション・インデックスファンド       | [#210](https://github.com/genzouw/monopo/issues/210)                                                              |
-| マクロ景気、ローン・信用スコア、保険、敵対的買収 | [#159](https://github.com/genzouw/monopo/issues/159)（2.1・2.2・2.4・1.2）                                        |
-| 暗号資産・VC                                     | [#159](https://github.com/genzouw/monopo/issues/159)（2.5）、[#652](https://github.com/genzouw/monopo/issues/652) |
-| 累進課税・固定資産税・ESG 控除                   | [#675](https://github.com/genzouw/monopo/issues/675)                                                              |
-| TOB・ホワイトナイト                              | [#677](https://github.com/genzouw/monopo/issues/677)                                                              |
-| REITs・DAO 共同所有                              | [#667](https://github.com/genzouw/monopo/issues/667)                                                              |
-| 為替・多通貨                                     | [#668](https://github.com/genzouw/monopo/issues/668)                                                              |
-| スマートコントラクト・DeFi                       | [#669](https://github.com/genzouw/monopo/issues/669)                                                              |
-| 行動経済学・FOMO・ナッジ                         | [#670](https://github.com/genzouw/monopo/issues/670)                                                              |
-| 地政学・サプライチェーン                         | [#671](https://github.com/genzouw/monopo/issues/671)                                                              |
-| 人口減少・年金                                   | [#672](https://github.com/genzouw/monopo/issues/672)                                                              |
-| NISA 型の非課税口座                              | [#673](https://github.com/genzouw/monopo/issues/673)                                                              |
-| ESG・炭素税                                      | [#666](https://github.com/genzouw/monopo/issues/666)                                                              |
-| マネーサプライ・インフレ                         | [#651](https://github.com/genzouw/monopo/issues/651)                                                              |
-| ベーシックインカム                               | [#212](https://github.com/genzouw/monopo/issues/212)                                                              |
-| 人的資本・ギグエコノミー                         | [#209](https://github.com/genzouw/monopo/issues/209)                                                              |
-| 動的地価                                         | [#211](https://github.com/genzouw/monopo/issues/211)                                                              |
-| 法人化                                           | [#213](https://github.com/genzouw/monopo/issues/213)                                                              |
-| プレイヤー間オークション                         | [#214](https://github.com/genzouw/monopo/issues/214)                                                              |
+| テーマ                                           | Issue                                                                      |
+| ------------------------------------------------ | -------------------------------------------------------------------------- |
+| 信用取引・オプション・インデックスファンド       | [#210](https://github.com/genzouw/monopo/issues/210)                       |
+| マクロ景気、ローン・信用スコア、保険、敵対的買収 | [#159](https://github.com/genzouw/monopo/issues/159)（2.1・2.2・2.4・1.2） |
+| 暗号資産・VC                                     | [#159](https://github.com/genzouw/monopo/issues/159)（2.5）                |
+| 累進課税・固定資産税・ESG 控除                   | [#675](https://github.com/genzouw/monopo/issues/675)                       |
+| TOB・ホワイトナイト                              | [#677](https://github.com/genzouw/monopo/issues/677)                       |
+| REITs・DAO 共同所有                              | [#667](https://github.com/genzouw/monopo/issues/667)                       |
+| 為替・多通貨                                     | [#668](https://github.com/genzouw/monopo/issues/668)                       |
+| スマートコントラクト・DeFi                       | [#669](https://github.com/genzouw/monopo/issues/669)                       |
+| 行動経済学・FOMO・ナッジ                         | [#670](https://github.com/genzouw/monopo/issues/670)                       |
+| 地政学・サプライチェーン                         | [#671](https://github.com/genzouw/monopo/issues/671)                       |
+| 人口減少・年金                                   | [#672](https://github.com/genzouw/monopo/issues/672)                       |
+| NISA 型の非課税口座                              | [#673](https://github.com/genzouw/monopo/issues/673)                       |
+| ESG・炭素税                                      | [#666](https://github.com/genzouw/monopo/issues/666)                       |
+| マネーサプライ・インフレ                         | [#651](https://github.com/genzouw/monopo/issues/651)                       |
+| ベーシックインカム                               | [#212](https://github.com/genzouw/monopo/issues/212)                       |
+| 人的資本・ギグエコノミー                         | [#209](https://github.com/genzouw/monopo/issues/209)                       |
+| 動的地価                                         | [#211](https://github.com/genzouw/monopo/issues/211)                       |
+| 法人化                                           | [#213](https://github.com/genzouw/monopo/issues/213)                       |
+| プレイヤー間オークション                         | [#214](https://github.com/genzouw/monopo/issues/214)                       |
 
 ## 補足
 
-- 本文を 1 件ずつ突き合わせた分類ではなく、テーマ名と節見出しから分類した。受け皿の Issue に載っていない細部は、上記の手順で出典を読む
-- リポジトリ直下の `PROPOSAL_INNOVATIVE_MONEY_GAME.md` は、この整理の対象外として残している
+本文を 1 件ずつ突き合わせた分類ではなく、テーマ名と節見出しから分類しました。受け皿の Issue に載っていない細部は、上記の手順で出典を読んでください。
+
+リポジトリ直下の `PROPOSAL_INNOVATIVE_MONEY_GAME.md` は、この整理の対象外として残しています。
