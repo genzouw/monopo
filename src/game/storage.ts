@@ -7,8 +7,10 @@ import type {
 import type {
   BehavioralBiasState,
   BiasMarketState,
+  BiasTurnNet,
 } from './systems/behavioralBias';
 import { STOCK_COLOR_GROUPS } from './economy';
+import { isBehavioralBiasActive } from './systems/behavioralBias';
 import {
   TOKENS,
   MIN_PLAYERS,
@@ -56,6 +58,20 @@ function isFiniteInt(v: unknown): v is number {
   return typeof v === 'number' && Number.isInteger(v);
 }
 
+/** 履歴 1 件（手番と買い越し数）を検証し、不正なら null を返す。 */
+function sanitizeBiasTurn(entry: unknown): BiasTurnNet | null {
+  if (entry === null || typeof entry !== 'object') return null;
+  const e = entry as Record<string, unknown>;
+  if (
+    !isFiniteInt(e.turn) ||
+    typeof e.net !== 'number' ||
+    !Number.isFinite(e.net)
+  ) {
+    return null;
+  }
+  return { turn: e.turn, net: e.net };
+}
+
 function sanitizeBiasMarket(raw: unknown): BiasMarketState | null {
   if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) {
     return null;
@@ -66,16 +82,9 @@ function sanitizeBiasMarket(raw: unknown): BiasMarketState | null {
   }
   const recent: BiasMarketState['recent'] = [];
   for (const entry of m.recent) {
-    if (entry === null || typeof entry !== 'object') return null;
-    const e = entry as Record<string, unknown>;
-    if (
-      !isFiniteInt(e.turn) ||
-      typeof e.net !== 'number' ||
-      !Number.isFinite(e.net)
-    ) {
-      return null;
-    }
-    recent.push({ turn: e.turn, net: e.net });
+    const turn = sanitizeBiasTurn(entry);
+    if (!turn) return null;
+    recent.push(turn);
   }
   const started = m.bubbleStartedTurn;
   if (started !== null && !isFiniteInt(started)) return null;
@@ -171,10 +180,9 @@ export function loadGame(): GameState | null {
     // 行動経済学拡張: バイアス状態は深く検証する。不正な形は捨て（バブルなし＝平常に戻る）、
     // 機能 OFF の保存データに残っていた状態は持ち越さない。
     if (state.behavioralBias !== undefined) {
-      state.behavioralBias =
-        state.features?.behavioralBias === true
-          ? sanitizeBiasState(state.behavioralBias)
-          : undefined;
+      state.behavioralBias = isBehavioralBiasActive(state.features)
+        ? sanitizeBiasState(state.behavioralBias)
+        : undefined;
     }
     return state;
   } catch {

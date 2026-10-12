@@ -630,6 +630,18 @@ describe('loadGame: behavioralBias の検証', () => {
     expect(loadGame()?.behavioralBias).toEqual({});
   });
 
+  it('履歴の不正な entry（null・非数の net）と bubbleStartedTurn の不正値は市場ごと取り除く', () => {
+    saveWithBias({
+      brown: { recent: [null], bubbleStartedTurn: null },
+      red: { recent: [{ turn: 1, net: 'a' }], bubbleStartedTurn: null },
+      blue: { recent: [], bubbleStartedTurn: 'x' },
+      green: { recent: [{ turn: 2, net: 3 }], bubbleStartedTurn: null },
+    });
+    expect(loadGame()?.behavioralBias).toEqual({
+      green: { recent: [{ turn: 2, net: 3 }], bubbleStartedTurn: null },
+    });
+  });
+
   it('配列・文字列など object でない値は undefined に落とす', () => {
     saveWithBias([1, 2]);
     expect(loadGame()?.behavioralBias).toBeUndefined();
@@ -641,6 +653,14 @@ describe('loadGame: behavioralBias の検証', () => {
     saveWithBias(
       { brown: { recent: [], bubbleStartedTurn: 1 } },
       { stocks: true },
+    );
+    expect(loadGame()?.behavioralBias).toBeUndefined();
+  });
+
+  it('stocks OFF（behavioralBias のみ ON）でも作動しないため持ち越さない', () => {
+    saveWithBias(
+      { brown: { recent: [], bubbleStartedTurn: 1 } },
+      { stocks: false, behavioralBias: true },
     );
     expect(loadGame()?.behavioralBias).toBeUndefined();
   });
