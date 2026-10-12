@@ -17,6 +17,8 @@ import type {
 import type { GameAction } from '../../game/actions';
 import { MAX_JAIL_TURNS } from '../../game/reducer';
 import { calculateTotalAssets, getSpaceById } from '../../game/rules';
+import { isStockBubbleEffective } from '../../game/economy';
+import { isBehavioralBiasActive } from '../../game/systems/behavioralBias';
 import PlayerPanel from '../PlayerPanel/PlayerPanel';
 import MiniMap from '../Board/MiniMap';
 import Dice from '../Dice/Dice';
@@ -699,6 +701,13 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
           stockMarket={state.stockMarket}
           economyStatus={
             state.features?.macroEconomy ? state.economyStatus : undefined
+          }
+          bubbleColors={
+            isBehavioralBiasActive(state.features)
+              ? (Object.keys(state.stockMarket) as ColorGroup[]).filter((c) =>
+                  isStockBubbleEffective(state, c),
+                )
+              : undefined
           }
           onBuy={(color, shares) =>
             dispatch({ type: 'BUY_STOCK', color, shares })
