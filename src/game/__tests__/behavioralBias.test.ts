@@ -135,6 +135,12 @@ describe('behavioralBias', () => {
       expect(isBubble(r.state, 'red')).toBe(false);
     });
 
+    it('崩壊メッセージは基準価格に戻るとは言わず、上乗せ分がなくなると伝える', () => {
+      const r = advanceBiasTurn(bubbleAt1, 2, 'crisis');
+      expect(r.events[0].message).toContain('うわのせ');
+      expect(r.events[0].message).not.toContain('もとの たかさ');
+    });
+
     it('バブルでない色は何も起きず、古い履歴だけが掃除される', () => {
       const s = recordStockTrade(createInitialBiasState(), 'blue', 3, 1).state;
       const r = advanceBiasTurn(s, 1 + BUBBLE_WINDOW_TURNS, 'crisis');

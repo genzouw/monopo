@@ -194,7 +194,7 @@ export function advanceBiasTurn(
         kind: 'bubbleBurst',
         color: key,
         message:
-          `「${COLOR_LABELS[key]}」の バブルが はじけたよ！ ねだんが もとの たかさに もどったよ。` +
+          `「${COLOR_LABELS[key]}」の バブルが はじけたよ！ バブルで うわのせされていた ぶんの ねだんが なくなったよ。` +
           'みんなが かうから かう、という あせりで たかい ねだんで かうと、そんを しやすいんだ。',
       });
       continue;
