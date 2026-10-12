@@ -13,6 +13,11 @@ import {
   applyEconomyFactor,
   isMacroEconomyEnabled,
 } from './systems/macroEconomy';
+import {
+  composeBubblePrice,
+  isBehavioralBiasActive,
+  isBubbleEffective,
+} from './systems/behavioralBias';
 
 // TODO: balance review — マジックナンバーは将来のバランス調整で見直す
 export const STOCK_INITIAL_PRICE = 100;
@@ -107,6 +112,34 @@ export function getPricingEconomyStatus(
   state: GameState,
 ): EconomyStatus | undefined {
   return isMacroEconomyEnabled(state) ? state.economyStatus : undefined;
+}
+
+// 指定した色のバブルが、この手番の買い価格に効くかを返す。
+// 機能 OFF（behavioralBias・stocks のいずれか）なら常に false で、既存挙動と完全互換。
+// 開始と同じ手番は false（isBubbleEffective）。売り・清算・担保評価はバブルを掛けない
+// （side の規約。買い価格だけが buy、それ以外は sell）。
+export function isStockBubbleEffective(
+  state: GameState,
+  color: ColorGroup,
+): boolean {
+  if (!isBehavioralBiasActive(state.features)) return false;
+  return isBubbleEffective(
+    state.behavioralBias ?? {},
+    color,
+    state.turnCount ?? 0,
+  );
+}
+
+// 買い価格（バブル乗数あり）。表示と請求（validateStockBuy）で同じ値を使う。
+export function getStockBuyPrice(state: GameState, color: ColorGroup): number {
+  const market = state.stockMarket?.[color];
+  if (!market) return 0;
+  return composeBubblePrice(
+    market.pricePerShare,
+    isStockBubbleEffective(state, color),
+    getPricingEconomyStatus(state),
+    'buy',
+  );
 }
 
 // 家賃支払時の配当総額（家賃の DIVIDEND_RATE_PCT%）
@@ -212,10 +245,7 @@ export function validateStockBuy(
     return { ok: false, reason: 'INSUFFICIENT_BANK_SHARES' };
   const player = state.players.find((p) => p.id === playerId);
   if (!player) return { ok: false, reason: 'COLOR_UNKNOWN' };
-  const price = getEffectiveStockPrice(
-    market.pricePerShare,
-    getPricingEconomyStatus(state),
-  );
+  const price = getStockBuyPrice(state, color);
   const cost = price * shares;
   if (player.money < cost) return { ok: false, reason: 'INSUFFICIENT_FUNDS' };
   return { ok: true, cost };

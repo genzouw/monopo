@@ -195,6 +195,7 @@ export function liquidateNonPropertyAssets(
   }
 
   // ③ 株式（現在の景気を加味した実効株価で換金）
+  // 売り側の価格（side='sell'）のため、バブル乗数は掛けない（買い価格だけが割高になる）。
   if (updated.stocks && stockMarket) {
     for (const [color, shares] of Object.entries(updated.stocks)) {
       const market = stockMarket[color as ColorGroup];

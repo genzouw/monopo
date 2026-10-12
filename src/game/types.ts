@@ -1,3 +1,4 @@
+import type { BehavioralBiasState } from './systems/behavioralBias';
 // ── プレイヤートークン ──
 export const TOKENS = ['🚗', '🎩', '👞', '🐕', '🚀', '🌟'] as const;
 
@@ -88,6 +89,7 @@ export type FeatureFlags = {
   creditScore?: boolean; // 信用スコア（借入金利優遇・物件購入制限）
   loan?: boolean; // 変動/固定金利ローン（銀行借入・景気連動金利・GOマス利息引落）
   progressiveTax?: boolean; // 累進課税・公共基金・再分配・節税アクション（寄付控除）
+  behavioralBias?: boolean; // 行動経済学バイアス（FOMO・バブル）。stocks が ON のときだけ作動する
 };
 
 // ── P1 拡張: エリア株（カラーグループ株） ──
@@ -239,6 +241,8 @@ export type GameState = {
   economyStatus?: EconomyStatus;
   // 累進課税拡張: 累進課税で徴収した税を蓄積する公共基金（features.progressiveTax が有効なときのみ意味を持つ）
   publicFund?: number;
+  // 行動経済学拡張: 色ごとのバイアス状態（features.behavioralBias かつ stocks が有効なときのみ意味を持つ）
+  behavioralBias?: BehavioralBiasState;
 };
 
 // ── ファクトリ関数 ──

@@ -47,6 +47,13 @@ import {
 } from './systems/altAssets';
 import { liquidateNonPropertyAssets } from './systems/loan';
 import {
+  advanceBiasTurn,
+  createInitialBiasState,
+  isBehavioralBiasActive,
+  recordStockTrade,
+  type BehavioralBiasState,
+} from './systems/behavioralBias';
+import {
   FIRE_PROBABILITY,
   calculateFirePayout,
   calculatePremium,
@@ -815,6 +822,10 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         economyStatus: action.features?.macroEconomy ? 'normal' : undefined,
         // 累進課税拡張: 公共基金を初期化（progressiveTax ON 時のみ）
         publicFund: action.features?.progressiveTax ? 0 : undefined,
+        // 行動経済学拡張: 機能が作動する条件（stocks かつ behavioralBias）のときだけ初期化
+        behavioralBias: isBehavioralBiasActive(action.features)
+          ? createInitialBiasState()
+          : undefined,
       };
     }
 
@@ -1744,6 +1755,18 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       if (stateAfterInsurance.message !== stateAfterAlt.message) {
         eventMessages.push(stateAfterInsurance.message);
       }
+      // 行動経済学拡張: バブルの崩壊判定。turnCount を進めた後の値と、景気更新後の景気で呼ぶ。
+      // 機能 OFF のときはキーも付けず、状態を既存挙動と同一に保つ。
+      let biasPatch: { behavioralBias: BehavioralBiasState } | null = null;
+      if (isBehavioralBiasActive(state.features)) {
+        const advanced = advanceBiasTurn(
+          state.behavioralBias ?? createInitialBiasState(),
+          nextTurnCount,
+          isMacroEconomyEnabled(state) ? newEconomyStatus : undefined,
+        );
+        biasPatch = { behavioralBias: advanced.state };
+        for (const ev of advanced.events) eventMessages.push(ev.message);
+      }
       const turnAnnouncement =
         (nextPlayer.inJail
           ? `${nextPlayer.name}のばんだよ！刑務所にいるよ`
@@ -1758,6 +1781,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         dice: { values: [1, 1], doubles: 0, rolled: false },
         economyStatus: newEconomyStatus,
         stockMarket: newStockMarket,
+        ...(biasPatch ?? {}),
         message: [...eventMessages, turnAnnouncement].join(' '),
       };
     }
@@ -2084,6 +2108,21 @@ function applyStockTrade(
   });
   const market = state.stockMarket?.[color];
   if (!market) return { ...state, players: newPlayers };
+  // 行動経済学拡張: 売買を記録し、閾値を超えたらバブルに入れる（買いは正・売りは負）。
+  let biasPatch: Pick<GameState, 'behavioralBias' | 'message'> | null = null;
+  if (isBehavioralBiasActive(state.features)) {
+    const recorded = recordStockTrade(
+      state.behavioralBias ?? createInitialBiasState(),
+      color,
+      sharesDelta,
+      state.turnCount ?? 0,
+      getPricingEconomyStatus(state),
+    );
+    biasPatch = {
+      behavioralBias: recorded.state,
+      message: recorded.event ? recorded.event.message : state.message,
+    };
+  }
   // 売買 1 株あたり ±PRICE_DELTA_PER_SHARE で価格を動かす（買い=上昇／売り=下降）
   const priceDelta = sharesDelta * PRICE_DELTA_PER_SHARE;
   const nextPrice = calculateNextPrice(market.pricePerShare, priceDelta);
@@ -2095,7 +2134,12 @@ function applyStockTrade(
       pricePerShare: nextPrice,
     },
   };
-  return { ...state, players: newPlayers, stockMarket: newStockMarket };
+  return {
+    ...state,
+    players: newPlayers,
+    stockMarket: newStockMarket,
+    ...(biasPatch ?? {}),
+  };
 }
 
 // ── P1 ヘルパー: 家・ホテル建設/売却による株価ブースト ──

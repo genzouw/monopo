@@ -1,4 +1,16 @@
-import type { EconomyStatus, FeatureFlags, GameState } from './types';
+import type {
+  ColorGroup,
+  EconomyStatus,
+  FeatureFlags,
+  GameState,
+} from './types';
+import type {
+  BehavioralBiasState,
+  BiasMarketState,
+  BiasTurnNet,
+} from './systems/behavioralBias';
+import { STOCK_COLOR_GROUPS } from './economy';
+import { isBehavioralBiasActive } from './systems/behavioralBias';
 import {
   TOKENS,
   MIN_PLAYERS,
@@ -38,6 +50,69 @@ const VALID_ECONOMY_STATUSES: readonly EconomyStatus[] = [
   'recession',
   'crisis',
 ];
+
+// 行動経済学拡張: 窓内に保持する履歴の上限（改ざんによる巨大配列の読み込みを防ぐ）
+const MAX_BIAS_RECENT_ENTRIES = 16;
+
+function isFiniteInt(v: unknown): v is number {
+  return typeof v === 'number' && Number.isInteger(v);
+}
+
+/** 履歴 1 件（手番と買い越し数）を検証し、不正なら null を返す。 */
+function sanitizeBiasTurn(entry: unknown): BiasTurnNet | null {
+  if (entry === null || typeof entry !== 'object') return null;
+  const e = entry as Record<string, unknown>;
+  if (
+    !isFiniteInt(e.turn) ||
+    typeof e.net !== 'number' ||
+    !Number.isFinite(e.net)
+  ) {
+    return null;
+  }
+  return { turn: e.turn, net: e.net };
+}
+
+/** 履歴の配列を検証し、不正（配列でない・上限超え・不正な要素）なら null を返す。 */
+function sanitizeBiasRecent(raw: unknown): BiasMarketState['recent'] | null {
+  if (!Array.isArray(raw) || raw.length > MAX_BIAS_RECENT_ENTRIES) return null;
+  const recent: BiasMarketState['recent'] = [];
+  for (const entry of raw) {
+    const turn = sanitizeBiasTurn(entry);
+    if (!turn) return null;
+    recent.push(turn);
+  }
+  return recent;
+}
+
+function sanitizeBiasMarket(raw: unknown): BiasMarketState | null {
+  if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) {
+    return null;
+  }
+  const m = raw as Record<string, unknown>;
+  const recent = sanitizeBiasRecent(m.recent);
+  if (!recent) return null;
+  const started = m.bubbleStartedTurn;
+  if (started !== null && !isFiniteInt(started)) return null;
+  return { recent, bubbleStartedTurn: started };
+}
+
+/**
+ * 保存データの behavioralBias を検証し、安全な形へ落とす。
+ * 未知の色キー・不正な市場状態は取り除き、全体が object でなければ undefined を返す。
+ */
+function sanitizeBiasState(raw: unknown): BehavioralBiasState | undefined {
+  if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) {
+    return undefined;
+  }
+  const out: BehavioralBiasState = {};
+  const source = raw as Record<string, unknown>;
+  for (const color of STOCK_COLOR_GROUPS as ColorGroup[]) {
+    if (!Object.prototype.hasOwnProperty.call(source, color)) continue;
+    const market = sanitizeBiasMarket(source[color]);
+    if (market) out[color] = market;
+  }
+  return out;
+}
 
 function readWithLegacyFallback(key: string, legacyKey: string): string | null {
   const current = localStorage.getItem(key);
@@ -106,6 +181,13 @@ export function loadGame(): GameState | null {
       !VALID_ECONOMY_STATUSES.includes(state.economyStatus)
     ) {
       state.economyStatus = undefined;
+    }
+    // 行動経済学拡張: バイアス状態は深く検証する。不正な形は捨て（バブルなし＝平常に戻る）、
+    // 機能 OFF の保存データに残っていた状態は持ち越さない。
+    if (state.behavioralBias !== undefined) {
+      state.behavioralBias = isBehavioralBiasActive(state.features)
+        ? sanitizeBiasState(state.behavioralBias)
+        : undefined;
     }
     return state;
   } catch {
@@ -185,6 +267,8 @@ export function loadSetupConfig(): SetupConfig | null {
         f.creditScore = config.features.creditScore;
       if (typeof config.features.altAssets === 'boolean')
         f.altAssets = config.features.altAssets;
+      if (typeof config.features.behavioralBias === 'boolean')
+        f.behavioralBias = config.features.behavioralBias;
       features = f;
     }
     return {

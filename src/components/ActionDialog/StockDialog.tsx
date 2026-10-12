@@ -15,6 +15,13 @@ type StockDialogProps = {
   stockMarket: Partial<Record<ColorGroup, ColorGroupStock>>;
   /** 景気を加味した実効株価を表示するための現在の景気ステータス（macroEconomy 無効時は未指定）。 */
   economyStatus?: EconomyStatus;
+  /** バブルが有効（買い価格に乗数が掛かる）なカラーグループ。機能 OFF のときは未指定。 */
+  bubbleColors?: ColorGroup[];
+  /**
+   * 色ごとの買い価格（請求額と同じ getStockBuyPrice の値）。
+   * 未指定の色は景気補正のみの価格（バブルなし）を使う。
+   */
+  buyPrices?: Partial<Record<ColorGroup, number>>;
   onBuy: (color: ColorGroup, shares: number) => void;
   onSell: (color: ColorGroup, shares: number) => void;
   onClose: () => void;
@@ -42,6 +49,8 @@ export default function StockDialog({
   currentPlayer,
   stockMarket,
   economyStatus,
+  bubbleColors,
+  buyPrices,
   onBuy,
   onSell,
   onClose,
@@ -78,10 +87,15 @@ export default function StockDialog({
           const market = stockMarket[color];
           if (!market) return null;
           const owned = currentPlayer.stocks?.[color] ?? 0;
-          const price = getEffectiveStockPrice(
+          // 売り価格（バブル乗数なし）と買い価格（バブル中は割高）を分けて持つ。
+          // 買い価格は呼び出し側が getStockBuyPrice で算出した値を受け取り、
+          // 請求（validateStockBuy）と同じ経路に揃える。
+          const sellPrice = getEffectiveStockPrice(
             market.pricePerShare,
             economyStatus,
           );
+          const inBubble = bubbleColors?.includes(color) === true;
+          const price = buyPrices?.[color] ?? sellPrice;
           const isMoneyShort = currentPlayer.money < price;
           const isBankShort = market.bankShares < SHARES_PER_TRADE;
           const canBuy = !isMoneyShort && !isBankShort;
@@ -97,9 +111,17 @@ export default function StockDialog({
             <div key={color} className={styles.propertyInfo}>
               <div className={styles.propertyName}>{COLOR_LABEL[color]}</div>
               <div className={styles.propertyPrice}>
-                かかく: ${price} / じぶん: {owned}まい / ぎんこう:{' '}
-                {market.bankShares}まい
+                {inBubble
+                  ? `かうとき: $${price} / うるとき: $${sellPrice}`
+                  : `かかく: $${price}`}{' '}
+                / じぶん: {owned}まい / ぎんこう: {market.bankShares}まい
               </div>
+              {inBubble && (
+                <div role="status" className={styles.noMoneyHintTight}>
+                  🎈 バブルちゅう！ みんなが かうから、かうときの ねだんが
+                  あがっているよ
+                </div>
+              )}
               {!canBuy && buyDisabledReason && (
                 <div
                   id={buyDescId}

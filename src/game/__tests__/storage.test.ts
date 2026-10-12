@@ -584,3 +584,97 @@ describe('saveSetupConfig / loadSetupConfig', () => {
     });
   });
 });
+
+describe('loadGame: behavioralBias の検証', () => {
+  function saveWithBias(
+    bias: unknown,
+    features: Record<string, boolean> = { stocks: true, behavioralBias: true },
+  ) {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        ...createPlayingState(),
+        features,
+        behavioralBias: bias,
+      }),
+    );
+  }
+
+  it('正しい形は保持する', () => {
+    const bias = {
+      brown: { recent: [{ turn: 1, net: 4 }], bubbleStartedTurn: 1 },
+    };
+    saveWithBias(bias);
+    expect(loadGame()?.behavioralBias).toEqual(bias);
+  });
+
+  it('不正な市場状態・未知の色は取り除く', () => {
+    saveWithBias({
+      brown: { recent: [{ turn: 'x', net: 1 }], bubbleStartedTurn: null },
+      blue: { recent: [], bubbleStartedTurn: 2 },
+      unknown: { recent: [], bubbleStartedTurn: 1 },
+    });
+    expect(loadGame()?.behavioralBias).toEqual({
+      blue: { recent: [], bubbleStartedTurn: 2 },
+    });
+  });
+
+  it('履歴が巨大な配列・NaN 相当の値は取り除く', () => {
+    saveWithBias({
+      brown: {
+        recent: Array.from({ length: 1000 }, (_, i) => ({ turn: i, net: 1 })),
+        bubbleStartedTurn: null,
+      },
+      red: { recent: [], bubbleStartedTurn: 1.5 },
+    });
+    expect(loadGame()?.behavioralBias).toEqual({});
+  });
+
+  it('履歴の不正な entry（null・非数の net）と bubbleStartedTurn の不正値は市場ごと取り除く', () => {
+    saveWithBias({
+      brown: { recent: [null], bubbleStartedTurn: null },
+      red: { recent: [{ turn: 1, net: 'a' }], bubbleStartedTurn: null },
+      blue: { recent: [], bubbleStartedTurn: 'x' },
+      green: { recent: [{ turn: 2, net: 3 }], bubbleStartedTurn: null },
+    });
+    expect(loadGame()?.behavioralBias).toEqual({
+      green: { recent: [{ turn: 2, net: 3 }], bubbleStartedTurn: null },
+    });
+  });
+
+  it('配列・文字列など object でない値は undefined に落とす', () => {
+    saveWithBias([1, 2]);
+    expect(loadGame()?.behavioralBias).toBeUndefined();
+    saveWithBias('x');
+    expect(loadGame()?.behavioralBias).toBeUndefined();
+  });
+
+  it('機能 OFF の保存データに残った状態は持ち越さない', () => {
+    saveWithBias(
+      { brown: { recent: [], bubbleStartedTurn: 1 } },
+      { stocks: true },
+    );
+    expect(loadGame()?.behavioralBias).toBeUndefined();
+  });
+
+  it('stocks OFF（behavioralBias のみ ON）でも作動しないため持ち越さない', () => {
+    saveWithBias(
+      { brown: { recent: [], bubbleStartedTurn: 1 } },
+      { stocks: false, behavioralBias: true },
+    );
+    expect(loadGame()?.behavioralBias).toBeUndefined();
+  });
+
+  it('loadSetupConfig は behavioralBias の boolean を受け入れる', () => {
+    localStorage.setItem(
+      SETUP_KEY,
+      JSON.stringify({
+        playerCount: 2,
+        names: ['A', 'B', 'C', 'D'],
+        tokens: [TOKENS[0], TOKENS[1], TOKENS[2], TOKENS[3]],
+        features: { stocks: true, behavioralBias: true },
+      }),
+    );
+    expect(loadSetupConfig()?.features?.behavioralBias).toBe(true);
+  });
+});
