@@ -17,7 +17,7 @@ import type {
 import type { GameAction } from '../../game/actions';
 import { MAX_JAIL_TURNS } from '../../game/reducer';
 import { calculateTotalAssets, getSpaceById } from '../../game/rules';
-import { isStockBubbleEffective } from '../../game/economy';
+import { getStockBuyPrice, isStockBubbleEffective } from '../../game/economy';
 import { isBehavioralBiasActive } from '../../game/systems/behavioralBias';
 import PlayerPanel from '../PlayerPanel/PlayerPanel';
 import MiniMap from '../Board/MiniMap';
@@ -709,6 +709,12 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                 )
               : undefined
           }
+          buyPrices={Object.fromEntries(
+            (Object.keys(state.stockMarket) as ColorGroup[]).map((c) => [
+              c,
+              getStockBuyPrice(state, c),
+            ]),
+          )}
           onBuy={(color, shares) =>
             dispatch({ type: 'BUY_STOCK', color, shares })
           }

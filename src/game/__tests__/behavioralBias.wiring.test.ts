@@ -133,6 +133,14 @@ describe('行動経済学バイアスの結線', () => {
       expect(getStockBuyPrice(s, 'brown')).toBe(
         Math.floor(base * 0.4 * BUBBLE_MULTIPLIER + 1e-9),
       );
+      // 表示に使う買い価格と、請求（validateStockBuy の cost）が危機とバブルの重なりでも一致する
+      const v = validateStockBuy(
+        s,
+        s.players[s.currentPlayerIndex].id,
+        'brown',
+        1,
+      );
+      expect(v).toEqual({ ok: true, cost: getStockBuyPrice(s, 'brown') });
       s = endTurn(s);
       expect(s.behavioralBias?.brown?.bubbleStartedTurn).toBeNull();
       expect(s.stockMarket!.brown!.pricePerShare).toBe(base);

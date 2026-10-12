@@ -6,7 +6,6 @@ import type {
   Player,
 } from '../../game/types';
 import { getEffectiveStockPrice } from '../../game/economy';
-import { composeBubblePrice } from '../../game/systems/behavioralBias';
 import Dialog from '../common/Dialog';
 import Button from '../common/Button';
 import styles from './ActionDialog.module.css';
@@ -18,6 +17,11 @@ type StockDialogProps = {
   economyStatus?: EconomyStatus;
   /** バブルが有効（買い価格に乗数が掛かる）なカラーグループ。機能 OFF のときは未指定。 */
   bubbleColors?: ColorGroup[];
+  /**
+   * 色ごとの買い価格（請求額と同じ getStockBuyPrice の値）。
+   * 未指定の色は景気補正のみの価格（バブルなし）を使う。
+   */
+  buyPrices?: Partial<Record<ColorGroup, number>>;
   onBuy: (color: ColorGroup, shares: number) => void;
   onSell: (color: ColorGroup, shares: number) => void;
   onClose: () => void;
@@ -46,6 +50,7 @@ export default function StockDialog({
   stockMarket,
   economyStatus,
   bubbleColors,
+  buyPrices,
   onBuy,
   onSell,
   onClose,
@@ -83,18 +88,14 @@ export default function StockDialog({
           if (!market) return null;
           const owned = currentPlayer.stocks?.[color] ?? 0;
           // 売り価格（バブル乗数なし）と買い価格（バブル中は割高）を分けて持つ。
-          // 買いボタンの表示と請求（validateStockBuy）は同じ買い価格を使う。
+          // 買い価格は呼び出し側が getStockBuyPrice で算出した値を受け取り、
+          // 請求（validateStockBuy）と同じ経路に揃える。
           const sellPrice = getEffectiveStockPrice(
             market.pricePerShare,
             economyStatus,
           );
           const inBubble = bubbleColors?.includes(color) === true;
-          const price = composeBubblePrice(
-            market.pricePerShare,
-            inBubble,
-            economyStatus,
-            'buy',
-          );
+          const price = buyPrices?.[color] ?? sellPrice;
           const isMoneyShort = currentPlayer.money < price;
           const isBankShort = market.bankShares < SHARES_PER_TRADE;
           const canBuy = !isMoneyShort && !isBankShort;

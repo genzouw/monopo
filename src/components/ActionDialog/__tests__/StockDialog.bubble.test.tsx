@@ -29,12 +29,16 @@ const market: Partial<Record<'brown', ColorGroupStock>> = {
   },
 };
 
-function renderDialog(bubbleColors?: 'brown'[]) {
+function renderDialog(
+  bubbleColors?: 'brown'[],
+  buyPrices?: Partial<Record<'brown', number>>,
+) {
   return render(
     <StockDialog
       currentPlayer={player}
       stockMarket={market}
       bubbleColors={bubbleColors}
+      buyPrices={buyPrices}
       onBuy={vi.fn()}
       onSell={vi.fn()}
       onClose={vi.fn()}
@@ -50,8 +54,13 @@ describe('StockDialog のバブル表示', () => {
   });
 
   it('バブル中は、買い価格（乗数あり）と売り価格（乗数なし）を分けて表示する', () => {
-    renderDialog(['brown']);
+    renderDialog(['brown'], { brown: 140 });
     expect(screen.getByText(/かうとき: \$140 \/ うるとき: \$100/)).toBeTruthy();
     expect(screen.getByText(/バブルちゅう/)).toBeTruthy();
+  });
+
+  it('買い価格は呼び出し側から渡された値をそのまま表示する（ダイアログ側で再計算しない）', () => {
+    renderDialog(['brown'], { brown: 56 });
+    expect(screen.getByText(/かうとき: \$56 \/ うるとき: \$100/)).toBeTruthy();
   });
 });
