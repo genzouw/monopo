@@ -6,16 +6,19 @@
 
 ## 削除した提案ドキュメントを読む
 
-削除したファイルは git 履歴に残っています。削除コミットを探して、その親から読みます。
+削除したファイルは git 履歴に残っています。`NAME` を読みたい提案の名前に置き換えて、削除コミットを探し、その親から読みます。
 
 ```bash
+# 例: docs/proposals/ISSUE_PROPOSAL_ADVANCED_FINANCIAL_EDUCATION.md を読む
+NAME=ADVANCED_FINANCIAL_EDUCATION
+FILE="docs/proposals/ISSUE_PROPOSAL_${NAME}.md"
 # 削除コミットを探す
-git log --diff-filter=D --format='%H %s' -- docs/proposals/ISSUE_PROPOSAL_<名前>.md
+COMMIT="$(git log --diff-filter=D --format=%H -1 -- "$FILE")"
 # 削除コミットの親から内容を読む
-git show <削除コミット>^:docs/proposals/ISSUE_PROPOSAL_<名前>.md
+git show "${COMMIT}^:${FILE}"
 ```
 
-リポジトリ直下にあった `ISSUE_PROPOSAL_ADVANCED_STOCK_SYSTEM.md` と `ISSUE_PROPOSAL_ASSET_MANAGEMENT.md` も同じ手順で読めます（パスはリポジトリ直下）。
+リポジトリ直下にあった `ISSUE_PROPOSAL_ADVANCED_STOCK_SYSTEM.md` と `ISSUE_PROPOSAL_ASSET_MANAGEMENT.md` も同じ手順で読めます。その場合は、`FILE` をリポジトリ直下のパス（`FILE=ISSUE_PROPOSAL_ASSET_MANAGEMENT.md`）にします。
 
 ## 提案の受け皿となる Issue
 
