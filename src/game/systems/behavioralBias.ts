@@ -110,12 +110,15 @@ function pruneWindow(recent: BiasTurnNet[], turn: number): BiasTurnNet[] {
  * 株の売買を記録し、閾値を超えたらバブルに入れる。
  *
  * 純買い越しは直近 `BUBBLE_WINDOW_TURNS` ターンの合計で数える（売りは差し引く）。
- * すでにバブル中の色は、記録だけ行い再度の突入は起こさない。入力の状態は変更しない。
+ * すでにバブル中の色は、記録だけ行い再度の突入は起こさない。
+ * 景気が不況・金融危機のときは、閾値以上でも新しいバブルを始めない
+ * （同じターンに崩壊したバブルへ再突入しないため）。入力の状態は変更しない。
  *
  * @param state 現在のバイアス状態。
  * @param color 売買された株のカラーグループ。
  * @param sharesDelta 純買い株数（買い = 正、売り = 負）。0 は何もしない。
  * @param turn 現在のターン数。
+ * @param economyStatus 現在の景気（macroEconomy が OFF なら undefined。その場合は抑止しない）。
  * @returns 更新後の状態と、バブルに入ったときだけ種明かしの出来事。
  */
 export function recordStockTrade(
@@ -123,6 +126,7 @@ export function recordStockTrade(
   color: ColorGroup,
   sharesDelta: number,
   turn: number,
+  economyStatus?: EconomyStatus,
 ): { state: BehavioralBiasState; event: BiasEvent | null } {
   if (!Number.isFinite(sharesDelta) || sharesDelta === 0) {
     return { state, event: null };
@@ -139,10 +143,12 @@ export function recordStockTrade(
     recent.push({ turn, net: sharesDelta });
   }
 
+  const downturn = economyStatus === 'recession' || economyStatus === 'crisis';
   let bubbleStartedTurn = prev.bubbleStartedTurn;
   let event: BiasEvent | null = null;
   if (
     bubbleStartedTurn == null &&
+    !downturn &&
     windowNet(recent) >= BUBBLE_NET_BUY_THRESHOLD
   ) {
     bubbleStartedTurn = turn;

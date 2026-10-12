@@ -135,6 +135,26 @@ describe('behavioralBias', () => {
       expect(isBubble(r.state, 'red')).toBe(false);
     });
 
+    it('崩壊と同じターンに閾値以上を買っても、不況・金融危機中は再突入しない', () => {
+      for (const status of ['recession', 'crisis'] as const) {
+        const burst = advanceBiasTurn(bubbleAt1, 2, status).state;
+        const r = recordStockTrade(burst, 'red', T, 2, status);
+        expect(isBubble(r.state, 'red')).toBe(false);
+        expect(r.event).toBeNull();
+      }
+    });
+
+    it('景気が平常に戻れば、閾値以上の買いで再びバブルに入れる', () => {
+      const r = recordStockTrade(
+        createInitialBiasState(),
+        'red',
+        T,
+        5,
+        'normal',
+      );
+      expect(isBubble(r.state, 'red')).toBe(true);
+    });
+
     it('崩壊メッセージは基準価格に戻るとは言わず、上乗せ分がなくなると伝える', () => {
       const r = advanceBiasTurn(bubbleAt1, 2, 'crisis');
       expect(r.events[0].message).toContain('うわのせ');
