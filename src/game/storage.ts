@@ -72,20 +72,25 @@ function sanitizeBiasTurn(entry: unknown): BiasTurnNet | null {
   return { turn: e.turn, net: e.net };
 }
 
+/** 履歴の配列を検証し、不正（配列でない・上限超え・不正な要素）なら null を返す。 */
+function sanitizeBiasRecent(raw: unknown): BiasMarketState['recent'] | null {
+  if (!Array.isArray(raw) || raw.length > MAX_BIAS_RECENT_ENTRIES) return null;
+  const recent: BiasMarketState['recent'] = [];
+  for (const entry of raw) {
+    const turn = sanitizeBiasTurn(entry);
+    if (!turn) return null;
+    recent.push(turn);
+  }
+  return recent;
+}
+
 function sanitizeBiasMarket(raw: unknown): BiasMarketState | null {
   if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) {
     return null;
   }
   const m = raw as Record<string, unknown>;
-  if (!Array.isArray(m.recent) || m.recent.length > MAX_BIAS_RECENT_ENTRIES) {
-    return null;
-  }
-  const recent: BiasMarketState['recent'] = [];
-  for (const entry of m.recent) {
-    const turn = sanitizeBiasTurn(entry);
-    if (!turn) return null;
-    recent.push(turn);
-  }
+  const recent = sanitizeBiasRecent(m.recent);
+  if (!recent) return null;
   const started = m.bubbleStartedTurn;
   if (started !== null && !isFiniteInt(started)) return null;
   return { recent, bubbleStartedTurn: started };
