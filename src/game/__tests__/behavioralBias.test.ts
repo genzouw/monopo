@@ -5,7 +5,9 @@ import {
   BUBBLE_NET_BUY_THRESHOLD,
   BUBBLE_WINDOW_TURNS,
   advanceBiasTurn,
+  composeBubbleFactor,
   composeBubblePrice,
+  isBubbleEffective,
   createInitialBiasState,
   isBehavioralBiasActive,
   isBubble,
@@ -56,7 +58,7 @@ describe('behavioralBias', () => {
     it('窓の外に出た古い買いは数えない', () => {
       let s = createInitialBiasState();
       s = recordStockTrade(s, 'blue', T - 1, 1).state;
-      const r = recordStockTrade(s, 'blue', 1, 1 + BUBBLE_WINDOW_TURNS);
+      const r = recordStockTrade(s, 'blue', 1, 4);
       expect(isBubble(r.state, 'blue')).toBe(false);
     });
 
@@ -103,18 +105,14 @@ describe('behavioralBias', () => {
       1,
     ).state;
 
-    it('開始から規定ターン未満では崩壊しない', () => {
-      const r = advanceBiasTurn(
-        bubbleAt1,
-        1 + BUBBLE_DURATION_TURNS - 1,
-        'normal',
-      );
+    it('開始から 4 手番後（有効 4 手番目）まで崩壊しない', () => {
+      const r = advanceBiasTurn(bubbleAt1, 5, 'normal');
       expect(isBubble(r.state, 'red')).toBe(true);
       expect(r.events).toEqual([]);
     });
 
-    it('開始から規定ターンちょうどで崩壊し、種明かしが付く', () => {
-      const r = advanceBiasTurn(bubbleAt1, 1 + BUBBLE_DURATION_TURNS, 'normal');
+    it('開始から 5 手番後（有効 4 手番が過ぎた）に崩壊し、種明かしが付く', () => {
+      const r = advanceBiasTurn(bubbleAt1, 6, 'normal');
       expect(isBubble(r.state, 'red')).toBe(false);
       expect(r.events).toHaveLength(1);
       expect(r.events[0].kind).toBe('bubbleBurst');
@@ -163,14 +161,58 @@ describe('behavioralBias', () => {
 
     it('バブルでない色は何も起きず、古い履歴だけが掃除される', () => {
       const s = recordStockTrade(createInitialBiasState(), 'blue', 3, 1).state;
-      const r = advanceBiasTurn(s, 1 + BUBBLE_WINDOW_TURNS, 'crisis');
+      const r = advanceBiasTurn(s, 4, 'crisis');
       expect(r.events).toEqual([]);
       expect(r.state.blue).toBeUndefined();
     });
 
     it('景気が未指定（macroEconomy OFF）でも期間で崩壊する', () => {
-      const r = advanceBiasTurn(bubbleAt1, 1 + BUBBLE_DURATION_TURNS);
+      const r = advanceBiasTurn(bubbleAt1, 6);
       expect(isBubble(r.state, 'red')).toBe(false);
+    });
+  });
+
+  describe('isBubbleEffective', () => {
+    const s = recordStockTrade(createInitialBiasState(), 'red', T, 3).state;
+
+    it('開始手番では有効でなく、次の手番から有効になる', () => {
+      expect(isBubble(s, 'red')).toBe(true);
+      expect(isBubbleEffective(s, 'red', 3)).toBe(false);
+      expect(isBubbleEffective(s, 'red', 4)).toBe(true);
+    });
+
+    it('バブルのない色は有効でない', () => {
+      expect(isBubbleEffective(s, 'blue', 4)).toBe(false);
+      expect(isBubbleEffective(createInitialBiasState(), 'red', 4)).toBe(false);
+    });
+
+    it('10 株を買った同じ手番では、買っても売っても乗数が掛からない', () => {
+      const eff = isBubbleEffective(s, 'red', 3);
+      expect(composeBubblePrice(100, eff, 'normal', 'buy')).toBe(100);
+      expect(composeBubblePrice(100, eff, 'normal', 'sell')).toBe(100);
+    });
+  });
+
+  describe('composeBubbleFactor', () => {
+    it('範囲内ではそのまま積を返す', () => {
+      expect(composeBubbleFactor(0.7, 1.4)).toBeCloseTo(0.98);
+    });
+
+    it('上限 2.0 を超える積は 2.0 にクランプする', () => {
+      expect(composeBubbleFactor(1.8, 1.4)).toBe(2.0);
+    });
+
+    it('下限 0.3 を下回る積は 0.3 にクランプする', () => {
+      expect(composeBubbleFactor(0.2, 1.4)).toBe(0.3);
+    });
+  });
+
+  describe('定数（Issue の推奨値）', () => {
+    it('値を固定する', () => {
+      expect(BUBBLE_WINDOW_TURNS).toBe(3);
+      expect(BUBBLE_NET_BUY_THRESHOLD).toBe(10);
+      expect(BUBBLE_MULTIPLIER).toBe(1.4);
+      expect(BUBBLE_DURATION_TURNS).toBe(4);
     });
   });
 
@@ -183,47 +225,46 @@ describe('behavioralBias', () => {
         'recession',
         'crisis',
       ] as const) {
-        expect(composeBubblePrice(137, false, status)).toBe(
+        expect(composeBubblePrice(137, false, status, 'buy')).toBe(
           getEffectiveStockPrice(137, status),
         );
       }
     });
 
-    it('景気 OFF のバブルは基準価格に乗数だけを掛ける', () => {
-      expect(composeBubblePrice(100, true)).toBe(
-        Math.floor(100 * BUBBLE_MULTIPLIER),
-      );
+    it('景気 OFF のバブルは買い価格に乗数だけを掛ける', () => {
+      expect(composeBubblePrice(100, true, undefined, 'buy')).toBe(140);
     });
 
     it('景気乗数とバブル乗数は積で合成される', () => {
-      expect(composeBubblePrice(100, true, 'recession')).toBe(98);
+      expect(composeBubblePrice(100, true, 'recession', 'buy')).toBe(98);
+      expect(composeBubblePrice(100, true, 'boom', 'buy')).toBe(182);
     });
 
-    it('好況でも 2.0 倍を超えず発散しない', () => {
-      expect(composeBubblePrice(100, true, 'boom')).toBeLessThanOrEqual(200);
-      expect(composeBubblePrice(100, true, 'boom')).toBe(182);
+    it('バブル中でも売り価格には乗数を掛けない', () => {
+      for (const status of [undefined, 'boom', 'normal', 'crisis'] as const) {
+        expect(composeBubblePrice(100, true, status, 'sell')).toBe(
+          getEffectiveStockPrice(100, status),
+        );
+      }
     });
 
     it('崩壊後の価格は基準価格（景気のみ）へ戻る', () => {
       const base = 120;
-      const bubbled = composeBubblePrice(base, true, 'normal');
-      expect(bubbled).toBeGreaterThan(base);
-      const s = recordStockTrade(createInitialBiasState(), 'red', T, 1).state;
-      const burst = advanceBiasTurn(
-        s,
-        1 + BUBBLE_DURATION_TURNS,
-        'normal',
-      ).state;
-      expect(composeBubblePrice(base, isBubble(burst, 'red'), 'normal')).toBe(
+      expect(composeBubblePrice(base, true, 'normal', 'buy')).toBeGreaterThan(
         base,
       );
+      const s = recordStockTrade(createInitialBiasState(), 'red', T, 1).state;
+      const burst = advanceBiasTurn(s, 6, 'normal').state;
+      const eff = isBubbleEffective(burst, 'red', 6);
+      expect(composeBubblePrice(base, eff, 'normal', 'buy')).toBe(base);
     });
 
     it('金融危機と崩壊が同時でも減少率は景気乗数の 1 回分だけ', () => {
       const base = 100;
       const s = recordStockTrade(createInitialBiasState(), 'red', T, 1).state;
       const burst = advanceBiasTurn(s, 2, 'crisis').state;
-      const price = composeBubblePrice(base, isBubble(burst, 'red'), 'crisis');
+      const eff = isBubbleEffective(burst, 'red', 2);
+      const price = composeBubblePrice(base, eff, 'crisis', 'buy');
       expect(price).toBe(getEffectiveStockPrice(base, 'crisis'));
       expect(price).toBe(40);
     });

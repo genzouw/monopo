@@ -17,13 +17,19 @@ import {
 } from './macroEconomy';
 
 // TODO: balance review — マジックナンバーは将来のバランス調整で見直す
-/** 純買い越しを数える直近ターン数（現在ターンを含む）。 */
+// 「ターン」の単位: `turnCount`（END_TURN＝手番ごとに 1 増える）。1 周ではない。
+// プレイヤーが 4 人なら 4 手番で 1 周なので、窓 3・期間 4 は 1 周前後に相当する。
+// 人数が違えば、同じ定数でも周回に対する長さが変わる（2 人なら 2 周前後、6 人なら 1 周未満）。
+/** 純買い越しを数える直近の手番数（現在の手番を含む）。人数に依存する。 */
 export const BUBBLE_WINDOW_TURNS = 3;
 /** バブルに入る、窓内の純買い越し株数の閾値（以上で入る）。 */
 export const BUBBLE_NET_BUY_THRESHOLD = 10;
-/** バブル中に実効価格へ掛ける乗数。 */
+/** バブル中に、買い価格へ掛ける乗数。売り価格には掛けない。 */
 export const BUBBLE_MULTIPLIER = 1.4;
-/** バブル開始からこのターン数が経つと崩壊する。 */
+/**
+ * バブルが有効な手番数。開始の手番は乗数が 1.0 のままで、その次の手番から数える。
+ * 開始手番を S とすると、有効なのは S+1 〜 S+この値 の手番で、S+この値+1 で崩壊する。
+ */
 export const BUBBLE_DURATION_TURNS = 4;
 
 /** 1 ターン分の純買い越し株数（買い = 正、売り = 負）。 */
@@ -98,6 +104,26 @@ export function isBubble(
   return state[color]?.bubbleStartedTurn != null;
 }
 
+/**
+ * 指定した色のバブルが、この手番で価格に効くかを返す。
+ *
+ * バブルは開始した手番の「次の手番」から有効になる。開始と同じ手番では false を返し、
+ * 同一手番内の買いと売りで価格差を取る裁定を防ぐ。
+ *
+ * @param state バイアス状態。
+ * @param color 判定するカラーグループ。
+ * @param turn 現在のターン数。
+ * @returns バブルが開始済みで、かつ開始手番より後なら true。
+ */
+export function isBubbleEffective(
+  state: BehavioralBiasState,
+  color: ColorGroup,
+  turn: number,
+): boolean {
+  const started = state[color]?.bubbleStartedTurn;
+  return started != null && turn > started;
+}
+
 function windowNet(recent: BiasTurnNet[]): number {
   return recent.reduce((sum, t) => sum + t.net, 0);
 }
@@ -170,7 +196,7 @@ export function recordStockTrade(
 /**
  * ターンを進め、崩壊条件を満たしたバブルを終わらせる。
  *
- * 崩壊条件は「開始から `BUBBLE_DURATION_TURNS` ターン経過」または
+ * 崩壊条件は「有効になってから `BUBBLE_DURATION_TURNS` 手番が過ぎた」（開始手番は数えない）または
  * 「景気が不況・金融危機」。崩壊した色は買い越しの履歴も消し、
  * すぐに再突入しないようにする。基準価格には触れない。
  *
@@ -193,7 +219,7 @@ export function advanceBiasTurn(
     const started = market.bubbleStartedTurn;
     if (
       started != null &&
-      (downturn || turn - started >= BUBBLE_DURATION_TURNS)
+      (downturn || turn - started > BUBBLE_DURATION_TURNS)
     ) {
       next[key] = { recent: [], bubbleStartedTurn: null };
       events.push({
@@ -213,32 +239,54 @@ export function advanceBiasTurn(
 }
 
 /**
+ * 景気乗数とバブル乗数の積を、景気と同じクランプ範囲（0.3〜2.0）に収める。
+ *
+ * 現在の定数（景気 0.4〜1.3、バブル 1.4）では範囲に到達しない（0.56〜1.82）。
+ * 定数や景気乗数を変えても価格が発散・消滅しないための防御で、単体テストで境界を押さえる。
+ *
+ * @param economyFactor 景気乗数。
+ * @param bubbleMultiplier バブル乗数。
+ * @returns クランプ済みの合成乗数。
+ */
+export function composeBubbleFactor(
+  economyFactor: number,
+  bubbleMultiplier: number,
+): number {
+  return Math.min(
+    ECONOMY_FACTOR_MAX,
+    Math.max(ECONOMY_FACTOR_MIN, economyFactor * bubbleMultiplier),
+  );
+}
+
+/**
  * 基準価格から、景気とバブルを合成した実効株価を返す。
  *
- * バブル中は、景気乗数にバブル乗数を掛けた積を景気と同じクランプ範囲
- * （0.3〜2.0）に収める。バブルでなければ `applyEconomyFactor` と完全に同じ結果を返す
+ * 買い（`side === 'buy'`）でバブルが有効なときだけ、景気乗数にバブル乗数を掛けた積を使う。
+ * 売り（`'sell'`）にはバブル乗数を掛けず、基準価格 × 景気乗数にする（買い手だけが
+ * 熱狂で割高に買わされる仕様。保有株を売って利ざやを得る裁定を作らない）。
+ * バブルが有効でなければ `applyEconomyFactor` と完全に同じ結果を返す
  * （macroEconomy OFF の `economyStatus` 未指定なら基準価格そのまま）。
+ * 「有効」は `isBubbleEffective` の結果を渡す（開始手番は false）。
  *
  * @param basePrice 基準価格（`pricePerShare`）。
- * @param bubble バブル中なら true。
+ * @param bubbleEffective バブルが有効なら true。
  * @param economyStatus 景気（macroEconomy が OFF なら undefined）。
+ * @param side 買い価格か売り価格か。
  * @returns 切り捨て済みの実効株価。
  */
 export function composeBubblePrice(
   basePrice: number,
-  bubble: boolean,
-  economyStatus?: EconomyStatus,
+  bubbleEffective: boolean,
+  economyStatus: EconomyStatus | undefined,
+  side: 'buy' | 'sell',
 ): number {
-  if (!bubble) {
+  if (!bubbleEffective || side === 'sell') {
     return economyStatus
       ? applyEconomyFactor(basePrice, economyStatus)
       : basePrice;
   }
   const economyFactor = economyStatus ? ECONOMY_FACTORS[economyStatus] : 1;
-  const factor = Math.min(
-    ECONOMY_FACTOR_MAX,
-    Math.max(ECONOMY_FACTOR_MIN, economyFactor * BUBBLE_MULTIPLIER),
-  );
+  const factor = composeBubbleFactor(economyFactor, BUBBLE_MULTIPLIER);
   // 浮動小数の誤差（100 * 0.98 = 97.999...）で 1 下がらないよう、微小値を足してから切り捨てる
   return Math.floor(basePrice * factor + 1e-9);
 }
