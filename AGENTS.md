@@ -100,8 +100,8 @@
 
 誤検知や、課金を伴わない正当な参照を除外する手段は次の 2 つです。
 
-- 対象行に `free-policy: allow <理由>` を含むコメントを書きます
-- スタブ (`.github/workflows/free-policy.yml`) の `allowed_secrets` に Secret 名を追加します。ただし、鍵名パターン (`*_API_KEY` / `*_API_TOKEN` / `*_SECRET_KEY`・プロバイダ名付き) に合致する名前は指定できません (プロバイダ名付きでなく、名前に `GITHUB` を単語として含むものは指定できます)。指定できない名前を書くと、`enforce` の値にかかわらず job が失敗します。その場合は行内マーカーを使ってください
+- 対象行に `free-policy: allow <理由>` を含むコメントを書きます。ただし、プロバイダ名付きの鍵名や課金可能な API のホスト名を含む行、動的な添字と `secrets` コンテキスト全体の参照は、マーカーを付けても除外されません (条件は [ci-workflows README の「段階導入と例外」](https://github.com/genzouw/ci-workflows#段階導入と例外) を参照してください)
+- スタブ (`.github/workflows/free-policy.yml`) の `allowed_secrets` に Secret 名を追加します。ただし、鍵名パターン (`*_API_KEY` / `*_API_TOKEN` / `*_SECRET_KEY`・プロバイダ名付き) に合致する名前は指定できません (プロバイダ名付きでなく、名前に `GITHUB` を単語として含むものは指定できます)。指定できない名前を書くと、`enforce` の値にかかわらず job が失敗します。その場合は、プロバイダ名付きでない行は行内マーカーを使ってください (プロバイダ名付きの鍵名はマーカーでも除外されません)
 
 どちらも次のルールに従ってください。
 
