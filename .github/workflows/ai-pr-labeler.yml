@@ -14,8 +14,10 @@ permissions:
 jobs:
   label:
     name: Auto Label PR
-    # fork からの PR は GITHUB_TOKEN が読み取り専用となりラベル付与に失敗するため対象外にする
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    # fork からの PR と Dependabot の PR は GITHUB_TOKEN が読み取り専用となりラベル操作に失敗するため対象外にする
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.actor != 'dependabot[bot]'
     permissions:
       contents: read
       pull-requests: write
@@ -36,17 +38,26 @@ jobs:
             const pull_number = context.payload.pull_request.number;
             const title = context.payload.pull_request.title.toLowerCase();
 
-            const labelsToAdd = [];
+            const LABEL = 'ai-integration';
             // タイトルにai・robot・coderabbitが単語として含まれる場合、ai-integrationラベルを付与する。
             // fail / main / detail などの部分一致を避けるため、前後が英字でないことを条件にする。
             // 日本語が隣接する「AIツール」でも一致させるため、\b ではなく英字の否定先読み・後読みを使う。
-            if (/(?<![a-z])(ai|robot|coderabbit)(?![a-z])/.test(title)) labelsToAdd.push('ai-integration');
+            const shouldLabel = /(?<![a-z])(ai|robot|coderabbit)(?![a-z])/.test(title);
+            const hasLabel = context.payload.pull_request.labels.some((l) => l.name === LABEL);
 
-            if (labelsToAdd.length > 0) {
+            if (shouldLabel && !hasLabel) {
               await github.rest.issues.addLabels({
                 owner,
                 repo,
                 issue_number: pull_number,
-                labels: labelsToAdd
+                labels: [LABEL]
+              });
+            } else if (!shouldLabel && hasLabel) {
+              // edited でタイトルが変わり条件を満たさなくなった場合は、付与済みのラベルを外す。
+              await github.rest.issues.removeLabel({
+                owner,
+                repo,
+                issue_number: pull_number,
+                name: LABEL
               });
             }
