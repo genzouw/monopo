@@ -37,8 +37,10 @@ jobs:
             const title = context.payload.pull_request.title.toLowerCase();
 
             const labelsToAdd = [];
-            // タイトルにaiやrobotが含まれる場合、ai-integrationラベルを付与する
-            if (title.includes('ai') || title.includes('robot') || title.includes('coderabbit')) labelsToAdd.push('ai-integration');
+            // タイトルにai・robot・coderabbitが単語として含まれる場合、ai-integrationラベルを付与する。
+            // fail / main / detail などの部分一致を避けるため、前後が英字でないことを条件にする。
+            // 日本語が隣接する「AIツール」でも一致させるため、\b ではなく英字の否定先読み・後読みを使う。
+            if (/(?<![a-z])(ai|robot|coderabbit)(?![a-z])/.test(title)) labelsToAdd.push('ai-integration');
 
             if (labelsToAdd.length > 0) {
               await github.rest.issues.addLabels({
