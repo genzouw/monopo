@@ -141,6 +141,9 @@ function distributeSocialDividend(
   let newPublicFund = state.publicFund ?? 0;
   let redistributionAmount = 0;
 
+  // 破産していないプレイヤーを先に算出し、以降で再利用して配列の再アロケーションを避ける
+  const activePlayers = state.players.filter((p) => !p.isBankrupt);
+
   if (isProgressiveTaxEnabled(state)) {
     const totalAssets = calculateTotalAssets(
       currentPlayer,
@@ -150,7 +153,6 @@ function distributeSocialDividend(
     const taxableIncome = calculateTaxableIncome(selfBonusBase, donationAmount);
     taxPaid = calculateProgressiveTax(taxableIncome, totalAssets);
     newPublicFund += taxPaid;
-    const activePlayers = state.players.filter((p) => !p.isBankrupt);
     redistributionAmount = calculatePublicFundRedistribution(newPublicFund);
     const perCapitaForRedist =
       redistributionAmount > 0 && activePlayers.length > 0
@@ -173,7 +175,6 @@ function distributeSocialDividend(
   }
 
   // プレイヤー資産の更新
-  const activePlayers = state.players.filter((p) => !p.isBankrupt);
   const perCapitaRedistribution =
     redistributionAmount > 0 && activePlayers.length > 0
       ? Math.floor(redistributionAmount / activePlayers.length)
