@@ -5,7 +5,7 @@ from ddgs import DDGS
 
 
 def fetch_results(query):
-    """DuckDuckGo のみを検索先に指定して検索し、タイトル・URL・本文を持つ辞書のリストを返す。
+    """ddgs の auto backend(複数の検索エンジン)で検索し、タイトル・URL・本文を持つ辞書のリストを返す。
 
     Args:
         query: 検索クエリ。
@@ -13,7 +13,7 @@ def fetch_results(query):
     Returns:
         最大 3 件の検索結果。各要素は title / href / body を持つ。
     """
-    results = DDGS().text(query, max_results=3, backend="lite")
+    results = DDGS().text(query, max_results=3, backend="auto")
     return [
         {
             "title": r.get("title", ""),
