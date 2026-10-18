@@ -141,7 +141,7 @@ function distributeSocialDividend(
   let newPublicFund = state.publicFund ?? 0;
   let redistributionAmount = 0;
 
-  // ⚡ Bolt: Cache activePlayers early to avoid redundant array allocations
+  // 破産していないプレイヤーを先に算出し、以降で再利用して配列の再アロケーションを避ける
   const activePlayers = state.players.filter((p) => !p.isBankrupt);
 
   if (isProgressiveTaxEnabled(state)) {
