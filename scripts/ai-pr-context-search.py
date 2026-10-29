@@ -13,7 +13,7 @@ def fetch_results(query):
     Returns:
         最大 3 件の検索結果。各要素は title / href / body を持つ。
     """
-    results = DDGS().text(query, max_results=3, backend="auto")
+    results = DDGS().text(query, max_results=3, backend="lite")
     return [
         {
             "title": r.get("title", ""),
