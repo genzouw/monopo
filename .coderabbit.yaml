@@ -61,6 +61,7 @@ reviews:
         - シークレットの露出 (echo / set-output 経由のリーク) が無いか。
         - 外部 action は SHA pin されているか。
         - permissions: が最小権限になっているか。
+        - LLM プロバイダの API キー (OPENAI_API_KEY など) の追加がないか。
     - path: 'db/migrations/**'
       instructions: |
         Drizzle のマイグレーション SQL です。以下を必ず確認してください:

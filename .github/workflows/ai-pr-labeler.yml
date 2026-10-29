@@ -39,10 +39,10 @@ jobs:
             const title = context.payload.pull_request.title.toLowerCase();
 
             const LABEL = 'ai-integration';
-            // タイトルにai・robot・coderabbitが単語として含まれる場合、ai-integrationラベルを付与する。
+            // タイトルにai・robot・coderabbit・llm・gpt・claude・gemini・deepseek・openai・anthropic・copilot・repomixが単語として含まれる場合、ai-integrationラベルを付与する。
             // fail / main / detail などの部分一致を避けるため、前後が英字でないことを条件にする。
             // 日本語が隣接する「AIツール」でも一致させるため、\b ではなく英字の否定先読み・後読みを使う。
-            const shouldLabel = /(?<![a-z])(ai|robot|coderabbit)(?![a-z])/.test(title);
+            const shouldLabel = /(?<![a-z])(ai|robot|coderabbit|llm|gpt|claude|gemini|deepseek|openai|anthropic|copilot|repomix)(?![a-z])/.test(title);
             const hasLabel = context.payload.pull_request.labels.some((l) => l.name === LABEL);
 
             if (shouldLabel && !hasLabel) {
