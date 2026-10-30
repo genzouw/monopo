@@ -19,7 +19,7 @@ permissions:
   contents: read
 jobs:
   gitleaks:
-    uses: genzouw/ci-workflows/.github/workflows/gitleaks.yml@8e0bcc2387a9a57c0b5066fc08522ffdff7d565e # v1.5.30
+    uses: genzouw/ci-workflows/.github/workflows/gitleaks.yml@3410dbf4dcb4b4f6a85e13aefacda954ef5177b3 # v1.5.36
     permissions:
       contents: read
       security-events: write
