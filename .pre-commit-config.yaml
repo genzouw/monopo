@@ -31,7 +31,7 @@ repos:
         stages: [commit]
 
   - repo: https://github.com/trufflesecurity/trufflehog
-    rev: v3.99.4
+    rev: v3.99.7
     hooks:
       - id: trufflehog
         stages: [commit]
