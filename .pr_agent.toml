@@ -1,0 +1,6 @@
+[pr_reviewer]
+extra_instructions = """
+- The project is a web-based board game built with React, Vite, TypeScript, and CSS Modules.
+- Review Japanese documentation and comments.
+- Do not check build artifacts like node_modules or dist folders.
+"""
