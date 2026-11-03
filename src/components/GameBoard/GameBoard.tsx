@@ -452,6 +452,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
       <div
         className={`${styles.message} ${state.message ? '' : styles.messageEmpty}`}
         role="status"
+        aria-live="polite"
       >
         {state.message || ' '}
       </div>
