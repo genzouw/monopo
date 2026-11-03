@@ -196,12 +196,3 @@ Perplexity AIが開発したサプライチェーンスキャナBumblebeeの派�
 
 1. **追加の設定等**
    - 外部への通信を行わず、ソースファイルも読み取らない安全な設計（Go 1.25+ で標準ライブラリのみ使用）のため、追加のAPIキー等の設定は不要です。
-
-## 新規: Qodo Merge (PR-Agent) の設定
-
-オープンソースリポジトリ向けに完全無料で提供されている GitHub App「Qodo Merge (旧 PR-Agent)」を利用した、AIによる高度なコードレビュー・PR品質向上ツールを導入しました。
-設定はリポジトリ直下の `.pr_agent.toml` に配置されています。
-
-1. **GitHub App のインストール (必須)**
-   - [Qodo Merge - Free for Open Source Projects](https://github.com/marketplace/qodo-merge-pro-for-open-source) ページから対象リポジトリへ GitHub App としてインストールしてください。
-   - インストールするだけで、PR作成時や `/improve` コマンド実行時に自動的にレビューコメントが投稿されます。
