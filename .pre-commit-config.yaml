@@ -31,7 +31,7 @@ repos:
         stages: [commit]
 
   - repo: https://github.com/trufflesecurity/trufflehog
-    rev: v3.99.7
+    rev: v3.99.8
     hooks:
       - id: trufflehog
         stages: [commit]
@@ -59,7 +59,7 @@ repos:
   # 旧名は 301 リダイレクトで解決するが、旧名で誰かが新規リポジトリを作成した時点で
   # リダイレクトは失われるため、正規名で参照する。
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
-    rev: v1.31.1
+    rev: v1.32.0
     hooks:
       # --offline を明示し、実行モードを環境非依存に固定する。
       # zizmor は GH_TOKEN / GITHUB_TOKEN / ZIZMOR_GITHUB_TOKEN のいずれかが
@@ -106,7 +106,7 @@ repos:
         exclude: '\.env\.example$|^\.secretlintrc\.json$|^\.github/workflows/(secretlint|audit-secrets)\.yml$'
 
   - repo: https://github.com/crate-ci/typos
-    rev: v1.51.1
+    rev: v1.52.0
     hooks:
       # フック定義の既定 args は [--write-changes, --force-exclude] で、検出した語を
       # その場で自動修正する。スペル修正は文脈によって誤った語に置き換わりうるため、
@@ -116,7 +116,7 @@ repos:
         args: ['--force-exclude']
 
   - repo: https://github.com/bridgecrewio/checkov
-    rev: 3.4.0
+    rev: 3.4.3
     hooks:
       # id: checkov は files: \.tf$ のため .tf の無い本リポジトリでは起動しない。
       # checkov_secrets は always_run で全ファイルを対象にし、既定 args の -f で
