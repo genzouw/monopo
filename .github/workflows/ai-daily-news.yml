@@ -44,19 +44,19 @@ jobs:
 
             const match = results.match(/<ddgs-results>\n([\s\S]*?)\n<\/ddgs-results>/);
             if (!match) {
-              console.log('ニュースが取得できませんでした。');
+              core.setFailed('ニュースが取得できませんでした。');
               return;
             }
             let data = [];
             try {
               data = JSON.parse(match[1]);
             } catch (e) {
-              console.log('JSONパースエラー', e);
+              core.setFailed(`JSONパースエラー: ${e}`);
               return;
             }
 
             if (data.length === 0) {
-              console.log('ニュースが0件でした。');
+              core.setFailed('ニュースが0件でした。');
               return;
             }
 
@@ -77,12 +77,19 @@ jobs:
               .filter((r) => r.url);
 
             if (items.length === 0) {
-              console.log('有効なニュースが0件でした。');
+              core.setFailed('有効なニュースが0件でした。');
               return;
             }
 
             const date = new Date().toISOString().split('T')[0];
             const title = `📰 AI Daily News - ${date}`;
+            const existing = await github.paginate(github.rest.issues.listForRepo, {
+              owner, repo, labels: 'ai-news', state: 'all', per_page: 100,
+            });
+            if (existing.some((i) => i.title === title)) {
+              console.log(`同日の Issue が既に存在するためスキップします: ${title}`);
+              return;
+            }
             const body = [
               '## 🤖 今日のAI最新ニュース',
               '',
