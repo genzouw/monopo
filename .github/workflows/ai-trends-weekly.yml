@@ -1,0 +1,46 @@
+name: AI & CI/CD Weekly Trends
+
+on:
+  schedule:
+    - cron: '0 0 * * 0' # 毎週日曜日の深夜
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  fetch-trends:
+    name: Fetch Trends and Create Issue
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.13'
+      - name: Install dependencies
+        run: pip install -r requirements-ddgs.txt
+      - name: Fetch AI Trends
+        run: python3 scripts/ai-trends-weekly.py > trends_report.md
+      - name: Create Issue
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('trends_report.md', 'utf8');
+            const date = new Date().toISOString().split('T')[0];
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🤖 ウィークリー AI & CI/CD トレンドレポート (${date})`,
+              body: body
+            });
