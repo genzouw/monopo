@@ -7,13 +7,15 @@ on:
 
 permissions:
   contents: read
-  issues: write
 
 jobs:
   fetch-trends:
     name: Fetch Trends and Create Issue
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
