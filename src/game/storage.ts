@@ -1,9 +1,4 @@
-import type {
-  ColorGroup,
-  EconomyStatus,
-  FeatureFlags,
-  GameState,
-} from './types';
+import type { EconomyStatus, FeatureFlags, GameState } from './types';
 import type {
   BehavioralBiasState,
   BiasMarketState,
@@ -106,7 +101,7 @@ function sanitizeBiasState(raw: unknown): BehavioralBiasState | undefined {
   }
   const out: BehavioralBiasState = {};
   const source = raw as Record<string, unknown>;
-  for (const color of STOCK_COLOR_GROUPS as ColorGroup[]) {
+  for (const color of STOCK_COLOR_GROUPS) {
     if (!Object.prototype.hasOwnProperty.call(source, color)) continue;
     const market = sanitizeBiasMarket(source[color]);
     if (market) out[color] = market;

@@ -1263,7 +1263,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     // ── FORCE_BUY (P1.2拡張: 3〜5倍可変買い) ──
     case 'FORCE_BUY': {
       const player = state.players[state.currentPlayerIndex];
-      const space = state.board[player.position]!;
+      const space = state.board[player.position];
       const propState = state.propertyStates[space.id];
       if (!propState?.ownerId || propState.ownerId === player.id) return state;
 

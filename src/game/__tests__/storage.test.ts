@@ -14,47 +14,46 @@ const SETUP_KEY = 'monopo-setup';
 const LEGACY_STORAGE_KEY = 'monopoly-save';
 const LEGACY_SETUP_KEY = 'monopoly-setup';
 
-const createPlayingState = (): GameState =>
-  ({
-    phase: 'playing',
-    players: [
-      {
-        id: 'p1',
-        name: 'たろう',
-        token: '🚗',
-        money: 1500,
-        position: 0,
-        properties: [],
-        inJail: false,
-        jailTurns: 0,
-        getOutOfJailCards: 0,
-        isBankrupt: false,
-      },
-      {
-        id: 'p2',
-        name: 'はなこ',
-        token: '🎩',
-        money: 1500,
-        position: 0,
-        properties: [],
-        inJail: false,
-        jailTurns: 0,
-        getOutOfJailCards: 0,
-        isBankrupt: false,
-      },
-    ],
-    currentPlayerIndex: 0,
-    board: [],
-    propertyStates: {},
-    cards: { chance: [], communityChest: [] },
-    dice: { values: [1, 1], doubles: 0, rolled: false },
-    turnPhase: 'roll',
-    auction: null,
-    trade: null,
-    currentCard: null,
-    message: '',
-    winnerId: null,
-  }) as GameState;
+const createPlayingState = (): GameState => ({
+  phase: 'playing',
+  players: [
+    {
+      id: 'p1',
+      name: 'たろう',
+      token: '🚗',
+      money: 1500,
+      position: 0,
+      properties: [],
+      inJail: false,
+      jailTurns: 0,
+      getOutOfJailCards: 0,
+      isBankrupt: false,
+    },
+    {
+      id: 'p2',
+      name: 'はなこ',
+      token: '🎩',
+      money: 1500,
+      position: 0,
+      properties: [],
+      inJail: false,
+      jailTurns: 0,
+      getOutOfJailCards: 0,
+      isBankrupt: false,
+    },
+  ],
+  currentPlayerIndex: 0,
+  board: [],
+  propertyStates: {},
+  cards: { chance: [], communityChest: [] },
+  dice: { values: [1, 1], doubles: 0, rolled: false },
+  turnPhase: 'roll',
+  auction: null,
+  trade: null,
+  currentCard: null,
+  message: '',
+  winnerId: null,
+});
 
 beforeEach(() => {
   localStorage.clear();
