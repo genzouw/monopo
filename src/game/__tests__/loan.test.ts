@@ -315,7 +315,7 @@ describe('loan', () => {
             creditScore: 500,
           },
         ],
-      } as unknown as Partial<GameState>);
+      });
       expect(validateRepayLoan(state, 'p1', 300)).toEqual({ ok: true });
     });
 
@@ -353,7 +353,7 @@ describe('loan', () => {
             creditScore: 500,
           },
         ],
-      } as unknown as Partial<GameState>);
+      });
       expect(validateRepayLoan(state, 'p1', 100)).toEqual({
         ok: false,
         reason: 'INSUFFICIENT_FUNDS',
