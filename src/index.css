@@ -1,7 +1,13 @@
 :root {
   /* ポップ/カジュアル カラーパレット */
   --color-bg: #fff8f0;
+  /* 背景・枠線・装飾用の主色。文字色には使わない（#ffffff 上で約2.78:1 のため） */
   --color-primary: #ff6b6b;
+  /* 主色の文字用。#ffffff 上で約4.89:1、#fff8f0 上で約4.65:1 のコントラスト比を確保し、
+     WCAG 2.1 SC 1.4.3 (Contrast Minimum) の4.5:1基準を満たす */
+  --color-primary-text: #c94040;
+  /* 主色の背景に載せる文字色。#ff6b6b 上で約5.73:1 のコントラスト比を確保し、4.5:1基準を満たす */
+  --color-on-primary: #222222;
   --color-secondary: #4ecdc4;
   --color-accent: #ffe66d;
   --color-text: #2c3e50;
