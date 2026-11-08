@@ -65,7 +65,7 @@
   justify-content: center;
   font-size: clamp(20px, 5cqi, 36px);
   font-weight: 900;
-  color: var(--color-primary);
+  color: var(--color-primary-text);
 }
 /* 中央スペースの上部に重ねる表示枠。サイコロは中央のままにするため absolute で浮かせる */
 .miniCenterOverlay {

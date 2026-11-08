@@ -40,7 +40,7 @@
   }
 }
 .doubles {
-  color: var(--color-primary);
+  color: var(--color-primary-text);
 }
 .diceResult {
   text-align: center;
