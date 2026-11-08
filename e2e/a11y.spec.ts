@@ -5,6 +5,12 @@ type AxeResults = Awaited<ReturnType<AxeBuilder['analyze']>>;
 type AxeViolation = AxeResults['violations'][number];
 type AxeNode = AxeViolation['nodes'][number];
 
+/** color-contrast チェックが返す data のうち、本テストで参照する項目 */
+interface ColorContrastData {
+  fgColor?: string;
+  bgColor?: string;
+}
+
 // 検査対象は WCAG 2.1 の A / AA 相当のルールに限る
 const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
 
@@ -19,13 +25,12 @@ const KNOWN_LOW_CONTRAST_COLOR = '#ff6b6b';
  * @returns 前景色か背景色が既知の色であれば true
  */
 function isKnownLowContrast(node: AxeNode): boolean {
-  return node.any.some(
-    (check) =>
-      check.id === 'color-contrast' &&
-      [check.data?.fgColor, check.data?.bgColor].includes(
-        KNOWN_LOW_CONTRAST_COLOR,
-      ),
-  );
+  return node.any.some((check) => {
+    if (check.id !== 'color-contrast') return false;
+    // axe の check.data は any 型のため、必要な形に絞って扱う
+    const data = check.data as ColorContrastData | null | undefined;
+    return [data?.fgColor, data?.bgColor].includes(KNOWN_LOW_CONTRAST_COLOR);
+  });
 }
 
 /**
