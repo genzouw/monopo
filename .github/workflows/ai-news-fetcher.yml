@@ -1,0 +1,63 @@
+name: Scheduled AI News Fetcher
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  fetch-news:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install -r requirements-ddgs.txt
+      - name: Fetch AI News
+        run: |
+          python3 -c "
+          from ddgs import DDGS
+          import json
+
+          try:
+              results = DDGS().text('generative ai CI/CD trends open source free', max_results=5, backend='lite')
+              with open('news.json', 'w') as f:
+                  json.dump(list(results), f)
+          except Exception as e:
+              print(f'Error fetching news: {e}')
+              with open('news.json', 'w') as f:
+                  json.dump([], f)
+          "
+      - name: Create Issue
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const fs = require('fs');
+            const news = JSON.parse(fs.readFileSync('news.json', 'utf8'));
+
+            if (news.length === 0) {
+              console.log('No news found.');
+              return;
+            }
+
+            const body = news.map(item => \`- [\${item.title}](\${item.href})\n  > \${item.body}\`).join('\n\n');
+            const title = \`🤖 AI CI/CD Trends Daily Digest - \${new Date().toISOString().split('T')[0]}\`;
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: \`最新の AI CI/CD トレンド情報をお届けします。\n\n\${body}\n\n<sub>この Issue は \\\`ai-news-fetcher.yml\\\` により自動生成されました。完全無料のAPIを利用しています。</sub>\`
+            });
