@@ -22,7 +22,11 @@ def clean_url(url):
 
 
 def fetch_news(query):
-    results = DDGS().text(query, max_results=5, backend='lite')
+    """DuckDuckGo でクエリを検索し、サニタイズ済みの結果（title / url / body）を最大 5 件返す。
+
+    ddgs 9.16.1 に backend='lite' は存在せず auto へフォールバックして百科事典の記事が混入するため、duckduckgo を明示する。
+    """
+    results = DDGS().text(query, max_results=5, backend='duckduckgo')
     return [
         {
             "title": clean(r.get("title", ""), 120),
@@ -33,6 +37,7 @@ def fetch_news(query):
     ]
 
 def main():
+    """検索結果を Issue 本文用の Markdown として標準出力へ書き出す。0 件のときは何も出力しない。"""
     year = datetime.datetime.now().year
     query = f"Generative AI CI/CD Open Source {year}"
     try:
