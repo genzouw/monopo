@@ -38,6 +38,10 @@ jobs:
           script: |
             const fs = require('fs');
             const body = fs.readFileSync('ai_news.md', 'utf8');
+            if (!body.trim()) {
+              core.info('検索結果が 0 件のため Issue を作成しません');
+              return;
+            }
             const date = new Date().toISOString().split('T')[0];
             const title = `🤖 今週のAI・CI/CD 最新ニュース速報 (${date})`;
 

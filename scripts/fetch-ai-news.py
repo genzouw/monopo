@@ -42,7 +42,7 @@ def main():
         sys.exit(1)
 
     if not results:
-        print("No news found.")
+        print("No news found.", file=sys.stderr)
         sys.exit(0)
 
     print("## 🤖 本日のAI・CI/CD 最新ニュース速報\n")
