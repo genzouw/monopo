@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 
 def fetch_news(query):
     # backend="news" provides recent news articles which is better for trends
-    results = DDGS().news(query, max_results=5)
+    results = DDGS().news(query, timelimit="w", max_results=5)
     return [
         {
             "title": r.get("title", ""),
@@ -26,7 +26,7 @@ def main():
         formatted_results = fetch_news(args.query)
     except Exception as e:
         print(f"<ddgs-error>{str(e)}</ddgs-error>", file=sys.stderr)
-        formatted_results = []
+        sys.exit(1)
 
     print("<ddgs-results>")
     print(json.dumps(formatted_results, ensure_ascii=False, indent=2))
