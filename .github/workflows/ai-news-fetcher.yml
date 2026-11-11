@@ -1,0 +1,105 @@
+name: AI Trends & News Fetcher
+
+on:
+  schedule:
+    - cron: '0 0 * * 1' # Run every Monday at midnight UTC
+  workflow_dispatch: # Allow manual trigger
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  fetch-news:
+    name: Fetch AI CI/CD Trends
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.15'
+
+      - name: Install dependencies
+        run: pip install -r requirements-ddgs.txt
+
+      - name: Run DDGS News Fetch Script
+        id: ddgs_news
+        run: |
+          QUERY="generative AI CI/CD trends open source completely free API GitHub Actions"
+          python3 scripts/ai-news-fetch.py --query "$QUERY" > news_results.txt
+
+      - name: Create Issue with News
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const results = fs.readFileSync('news_results.txt', 'utf8');
+            const { owner, repo } = context.repo;
+
+            const match = results.match(/<ddgs-results>\n([\s\S]*?)\n<\/ddgs-results>/);
+            if (!match) {
+              console.log('ニュースが取得できませんでした。');
+              return;
+            }
+            let data = [];
+            try {
+              data = JSON.parse(match[1]);
+            } catch (e) {
+              console.log('JSONパースエラー', e);
+              return;
+            }
+
+            if (data.length === 0) {
+              console.log('ニュースが0件でした。');
+              return;
+            }
+
+            const clean = (s) => String(s ?? '').replace(/\s+/g, ' ').trim().slice(0, 300);
+            const safeHref = (u) => {
+              const href = String(u ?? '').trim();
+              if (!/^https?:\/\//i.test(href)) return '';
+              return href;
+            };
+
+            const items = data
+              .map((r) => ({ title: clean(r.title), href: safeHref(r.href), body: clean(r.body), date: clean(r.date) }))
+              .filter((r) => r.href);
+
+            if (items.length === 0) {
+              console.log('有効なニュースが0件でした。');
+              return;
+            }
+
+            const dateStr = new Date().toISOString().split('T')[0];
+            const issueTitle = `Weekly AI & CI/CD Trends: ${dateStr}`;
+
+            const body = [
+              '## 🤖 AI & CI/CD 最新トレンド情報',
+              '',
+              '生成AIやCI/CD、オープンソースに関する最新のニュースを取得しました。',
+              '今後の開発自動化やプロトタイプ導入の参考にしてください。',
+              '',
+              ...items.map((r) => `### [${r.title}](${r.href})\n**日時:** ${r.date}\n> ${r.body}\n`),
+              '',
+              '---',
+              '<sub>※ このIssueは `ai-news-fetcher.yml` ワークフローにより自動生成されました。完全無料のAPIを利用しています。</sub>'
+            ].join('\n');
+
+            await github.rest.issues.create({
+              owner,
+              repo,
+              title: issueTitle,
+              body: body,
+              labels: ['ai-integration', 'enhancement']
+            });
