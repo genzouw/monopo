@@ -14,6 +14,8 @@ import type { GameAction } from './actions';
 import { BOARD_SPACES, createPropertyStates } from './board';
 import { CHANCE_CARDS, COMMUNITY_CHEST_CARDS, shuffleCards } from './cards';
 import {
+  getCurrentPlayer,
+  getSpaceAt,
   getSpaceById,
   calculateRent,
   canBuildHouse,
@@ -132,7 +134,7 @@ function distributeSocialDividend(
     ? applyEconomyFactor(SOCIAL_DIVIDEND_OTHERS, state.economyStatus!)
     : SOCIAL_DIVIDEND_OTHERS;
 
-  const currentPlayer = state.players[state.currentPlayerIndex];
+  const currentPlayer = getCurrentPlayer(state);
   // DONATE アクションで蓄積された寄付額を GO 通過時に控除として適用し、クリアする
   const donationAmount = currentPlayer.pendingDonation ?? 0;
 
@@ -221,11 +223,50 @@ export function rollDice(): [number, number] {
   return [getSecureRandomInt(1, 6), getSecureRandomInt(1, 6)];
 }
 
+/**
+ * プレイヤー配列から指定位置のプレイヤーを返す。
+ * 手番・競売の手番はプレイヤー数で剰余を取って進めるため、常に範囲内にある。
+ * 範囲外は状態が壊れていることを意味するため、黙って続行せず例外を投げる。
+ *
+ * @param players - プレイヤー一覧
+ * @param index - プレイヤーの位置（0 始まり）
+ * @returns 指定位置のプレイヤー
+ * @throws {Error} `index` がプレイヤー配列の範囲外のとき
+ */
+function getPlayerAt(players: Player[], index: number): Player {
+  const player = players[index];
+  if (!player) {
+    throw new Error(`プレイヤーが見つかりません（index: ${index}）`);
+  }
+  return player;
+}
+
+/**
+ * 物件の状態を返す。
+ * 物件の状態はゲーム開始時に `createPropertyStates` で全物件分を作るため、物件 ID に対して常に存在する。
+ * 存在しない場合は状態が壊れていることを意味するため、黙って続行せず例外を投げる。
+ *
+ * @param propertyStates - 物件 ID から物件の状態への対応
+ * @param propertyId - 物件 ID
+ * @returns 物件の状態
+ * @throws {Error} `propertyId` の状態が存在しないとき
+ */
+function getPropertyState(
+  propertyStates: Record<string, PropertyState>,
+  propertyId: string,
+): PropertyState {
+  const propState = propertyStates[propertyId];
+  if (!propState) {
+    throw new Error(`物件の状態が見つかりません（${propertyId}）`);
+  }
+  return propState;
+}
+
 function nextActivePlayer(players: Player[], currentIndex: number): number {
   const total = players.length;
   let next = (currentIndex + 1) % total;
   let count = 0;
-  while (players[next].isBankrupt && count < total) {
+  while (getPlayerAt(players, next).isBankrupt && count < total) {
     next = (next + 1) % total;
     count++;
   }
@@ -254,7 +295,7 @@ function checkWinner(players: Player[]): string | null {
  * - 物件なし → 自動破産
  */
 function checkNegativeMoney(state: GameState): GameState {
-  const currentPlayer = state.players[state.currentPlayerIndex];
+  const currentPlayer = getCurrentPlayer(state);
 
   // 現在のプレイヤーが所持金マイナスか
   if (!currentPlayer || currentPlayer.isBankrupt || currentPlayer.money >= 0) {
@@ -264,7 +305,7 @@ function checkNegativeMoney(state: GameState): GameState {
   // P3-a 拡張: 非不動産資産の自動清算（破産処理優先順位: ①暗号資産→②VC→③株式）
   let workingState = state;
   if (state.features?.altAssets || state.features?.loan) {
-    const player = workingState.players[workingState.currentPlayerIndex];
+    const player = getCurrentPlayer(workingState);
     const { updatedPlayer, proceeds } = liquidateNonPropertyAssets(
       player,
       workingState.stockMarket,
@@ -287,8 +328,7 @@ function checkNegativeMoney(state: GameState): GameState {
     }
   }
 
-  const currentPlayerAfter =
-    workingState.players[workingState.currentPlayerIndex];
+  const currentPlayerAfter = getCurrentPlayer(workingState);
 
   // 物件を持っていれば強制売りだし
   // (家がある物件のみの場合もあるので、家を売るか物件を売るか選べるようにする)
@@ -323,15 +363,17 @@ function drawCard(
   deck: Card[],
   cardType: 'chance' | 'communityChest',
 ): { card: Card; newDeck: Card[] } {
-  if (deck.length === 0) {
-    const fresh =
-      cardType === 'chance'
+  // 山札が尽きていれば、元のカード一覧をシャッフルして作り直す
+  const source =
+    deck.length > 0
+      ? deck
+      : cardType === 'chance'
         ? shuffleCards(CHANCE_CARDS)
         : shuffleCards(COMMUNITY_CHEST_CARDS);
-    return { card: fresh[0], newDeck: fresh.slice(1) };
+  const [card, ...newDeck] = source;
+  if (!card) {
+    throw new Error(`カードの一覧が空です（${cardType}）`);
   }
-  const card = deck[0];
-  const newDeck = deck.slice(1);
   return { card, newDeck };
 }
 
@@ -339,7 +381,7 @@ function updateCurrentPlayer(
   state: GameState,
   updates: Partial<Player>,
 ): GameState {
-  const currentPlayer = state.players[state.currentPlayerIndex];
+  const currentPlayer = getCurrentPlayer(state);
   if (!currentPlayer) return state; // Safety check if index is out of bounds
 
   // ⚡ Bolt: 構造共有 (Structural Sharing) と遅延クローンによる最適化
@@ -362,7 +404,7 @@ function updateCurrentPlayer(
 }
 
 function sendToJail(state: GameState): GameState {
-  const player = state.players[state.currentPlayerIndex];
+  const player = getCurrentPlayer(state);
   const newState = updateCurrentPlayer(state, {
     position: 10,
     inJail: true,
@@ -377,8 +419,8 @@ function sendToJail(state: GameState): GameState {
 }
 
 function handleLanding(state: GameState): GameState {
-  const player = state.players[state.currentPlayerIndex];
-  const space = state.board[player.position];
+  const player = getCurrentPlayer(state);
+  const space = getSpaceAt(state.board, player.position);
 
   switch (space.type) {
     case 'corner': {
@@ -496,7 +538,8 @@ function handleLanding(state: GameState): GameState {
       const newPlayers = state.players.map((p) => {
         if (p.id === player.id) return { ...p, money: p.money - rent };
         if (p.id === owner.id) return { ...p, money: p.money + ownerProceeds };
-        if (dividends[p.id]) return { ...p, money: p.money + dividends[p.id] };
+        const dividend = dividends[p.id];
+        if (dividend) return { ...p, money: p.money + dividend };
         return p;
       });
 
@@ -535,7 +578,7 @@ function handleLanding(state: GameState): GameState {
 }
 
 function applyCardEffect(state: GameState, card: Card): GameState {
-  const player = state.players[state.currentPlayerIndex];
+  const player = getCurrentPlayer(state);
   const action = card.action;
 
   switch (action.type) {
@@ -749,7 +792,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
   // forceSell中にプラスになったらendTurnに戻す
   if (result.turnPhase === 'forceSell') {
-    const player = result.players[result.currentPlayerIndex];
+    const player = getCurrentPlayer(result);
     if (player && player.money >= 0) {
       return {
         ...result,
@@ -791,7 +834,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
           ? CREDIT_SCORE_INITIAL
           : undefined,
       }));
-      const firstPlayer = players[0];
+      const firstPlayer = getPlayerAt(players, 0);
       // P1 拡張: 株式機能 ON のときだけ市場を初期化（OFF時は undefined のまま既存挙動）
       const stockMarket = action.features?.stocks
         ? createInitialStockMarket()
@@ -832,7 +875,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
 
     // ── ROLL_DICE ──
     case 'ROLL_DICE': {
-      const player = state.players[state.currentPlayerIndex];
+      const player = getCurrentPlayer(state);
 
       // 刑務所内の場合
       if (player.inJail) {
@@ -875,7 +918,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
 
     // ── FINISH_MOVING ──
     case 'FINISH_MOVING': {
-      const player = state.players[state.currentPlayerIndex];
+      const player = getCurrentPlayer(state);
       const steps = state.dice.values[0] + state.dice.values[1];
       const oldPos = player.position;
       const newPos = (oldPos + steps) % 40;
@@ -911,8 +954,8 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
 
     // ── BUY_PROPERTY ──
     case 'BUY_PROPERTY': {
-      const player = state.players[state.currentPlayerIndex];
-      const space = state.board[player.position];
+      const player = getCurrentPlayer(state);
+      const space = getSpaceAt(state.board, player.position);
       if (!space || !space.price) return state;
 
       // 信用スコア拡張: スコアが低い場合、高額物件の購入を制限
@@ -930,7 +973,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       const newPropertyStates: Record<string, PropertyState> = {
         ...state.propertyStates,
         [space.id]: {
-          ...state.propertyStates[space.id],
+          ...getPropertyState(state.propertyStates, space.id),
           ownerId: player.id,
         },
       };
@@ -950,8 +993,8 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
 
     // ── DECLINE_PURCHASE ──
     case 'DECLINE_PURCHASE': {
-      const player = state.players[state.currentPlayerIndex];
-      const space = state.board[player.position];
+      const player = getCurrentPlayer(state);
+      const space = getSpaceAt(state.board, player.position);
       if (!space) return state;
 
       const startingBid = space.price ?? 0;
@@ -976,7 +1019,10 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     case 'PLACE_BID': {
       if (!state.auction) return state;
       const auction = state.auction;
-      const activeBidder = state.players[auction.activePlayerIndex];
+      const activeBidder = getPlayerAt(
+        state.players,
+        auction.activePlayerIndex,
+      );
 
       // 初回入札時は開始価格と同額を許容、2回目以降は現在のビッドより大きい必要がある
       const minBid =
@@ -1003,7 +1049,10 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     case 'PASS_AUCTION': {
       if (!state.auction) return state;
       const auction = state.auction;
-      const activeBidder = state.players[auction.activePlayerIndex];
+      const activeBidder = getPlayerAt(
+        state.players,
+        auction.activePlayerIndex,
+      );
 
       const newPassedIds = [...auction.passedPlayerIds, activeBidder.id];
       const activePlayers = state.players.filter(
@@ -1027,7 +1076,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
           const newPropertyStates: Record<string, PropertyState> = {
             ...state.propertyStates,
             [auction.propertyId]: {
-              ...state.propertyStates[auction.propertyId],
+              ...getPropertyState(state.propertyStates, auction.propertyId),
               ownerId: winner.id,
               isMortgaged: false,
             },
@@ -1082,7 +1131,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
           const newPropertyStates: Record<string, PropertyState> = {
             ...state.propertyStates,
             [auction.propertyId]: {
-              ...state.propertyStates[auction.propertyId],
+              ...getPropertyState(state.propertyStates, auction.propertyId),
               ownerId: null,
               isMortgaged: false,
               houses: 0,
@@ -1125,8 +1174,8 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
 
     // ── DRAW_CARD ──
     case 'DRAW_CARD': {
-      const player = state.players[state.currentPlayerIndex];
-      const space = state.board[player.position];
+      const player = getCurrentPlayer(state);
+      const space = getSpaceAt(state.board, player.position);
       if (!space) return state;
 
       const isChance = space.type === 'chance';
@@ -1159,8 +1208,8 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
 
     // ── PAY_TAX ──
     case 'PAY_TAX': {
-      const player = state.players[state.currentPlayerIndex];
-      const space = state.board[player.position];
+      const player = getCurrentPlayer(state);
+      const space = getSpaceAt(state.board, player.position);
       if (!space || !space.price) return state;
 
       const newState = updateCurrentPlayer(state, {
@@ -1176,7 +1225,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
 
     // ── BUILD_HOUSE ──
     case 'BUILD_HOUSE': {
-      const player = state.players[state.currentPlayerIndex];
+      const player = getCurrentPlayer(state);
       if (
         !canBuildHouse(
           action.propertyId,
@@ -1190,7 +1239,10 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       const space = getSpaceById(action.propertyId, state.board);
       if (!space?.houseCost) return state;
 
-      const currentPropState = state.propertyStates[action.propertyId];
+      const currentPropState = getPropertyState(
+        state.propertyStates,
+        action.propertyId,
+      );
       const newPropertyStates: Record<string, PropertyState> = {
         ...state.propertyStates,
         [action.propertyId]: {
@@ -1219,7 +1271,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
 
     // ── SELL_HOUSE ──
     case 'SELL_HOUSE': {
-      const player = state.players[state.currentPlayerIndex];
+      const player = getCurrentPlayer(state);
       if (
         !canSellHouse(
           action.propertyId,
@@ -1233,7 +1285,10 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       const space = getSpaceById(action.propertyId, state.board);
       if (!space?.houseCost) return state;
 
-      const currentPropState = state.propertyStates[action.propertyId];
+      const currentPropState = getPropertyState(
+        state.propertyStates,
+        action.propertyId,
+      );
       const sellPrice = Math.floor(space.houseCost / 2);
       const newPropertyStates: Record<string, PropertyState> = {
         ...state.propertyStates,
@@ -1262,8 +1317,8 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
 
     // ── FORCE_BUY (P1.2拡張: 3〜5倍可変買い) ──
     case 'FORCE_BUY': {
-      const player = state.players[state.currentPlayerIndex];
-      const space = state.board[player.position];
+      const player = getCurrentPlayer(state);
+      const space = getSpaceAt(state.board, player.position);
       const propState = state.propertyStates[space.id];
       if (!propState?.ownerId || propState.ownerId === player.id) return state;
 
@@ -1324,7 +1379,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
 
     // ── ACTIVATE_POISON_PILL (ポイズンピル防衛策の発動) ──
     case 'ACTIVATE_POISON_PILL': {
-      const player = state.players[state.currentPlayerIndex];
+      const player = getCurrentPlayer(state);
       const propState = state.propertyStates[action.propertyId];
       if (
         !propState ||
@@ -1343,7 +1398,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
 
     // ── SELL_PROPERTY (オークション形式で売り出し) ──
     case 'SELL_PROPERTY': {
-      const player = state.players[state.currentPlayerIndex];
+      const player = getCurrentPlayer(state);
       const space = getSpaceById(action.propertyId, state.board);
       if (!space) return state;
 
@@ -1399,7 +1454,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
 
     // ── OPEN_TRADE_DIALOG ──
     case 'OPEN_TRADE_DIALOG': {
-      const player = state.players[state.currentPlayerIndex];
+      const player = getCurrentPlayer(state);
       const trade = {
         fromPlayerId: player.id,
         toPlayerId: action.targetPlayerId,
@@ -1466,13 +1521,13 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       const newPropertyStates = { ...state.propertyStates };
       for (const propId of offer.offerProperties) {
         newPropertyStates[propId] = {
-          ...newPropertyStates[propId],
+          ...getPropertyState(newPropertyStates, propId),
           ownerId: offer.toPlayerId,
         };
       }
       for (const propId of offer.requestProperties) {
         newPropertyStates[propId] = {
-          ...newPropertyStates[propId],
+          ...getPropertyState(newPropertyStates, propId),
           ownerId: offer.fromPlayerId,
         };
       }
@@ -1517,7 +1572,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
 
     // ── PAY_JAIL_FINE ──
     case 'PAY_JAIL_FINE': {
-      const player = state.players[state.currentPlayerIndex];
+      const player = getCurrentPlayer(state);
       const newState = updateCurrentPlayer(state, {
         money: player.money - JAIL_FINE,
         inJail: false,
@@ -1533,7 +1588,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
 
     // ── USE_JAIL_CARD ──
     case 'USE_JAIL_CARD': {
-      const player = state.players[state.currentPlayerIndex];
+      const player = getCurrentPlayer(state);
       if (player.getOutOfJailCards <= 0) return state;
       const newState = updateCurrentPlayer(state, {
         getOutOfJailCards: player.getOutOfJailCards - 1,
@@ -1550,7 +1605,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
 
     // ── ROLL_FOR_JAIL ──
     case 'ROLL_FOR_JAIL': {
-      const player = state.players[state.currentPlayerIndex];
+      const player = getCurrentPlayer(state);
       const [d1, d2] = rollDice();
       const isDoubles = d1 === d2;
 
@@ -1601,7 +1656,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
 
     // ── DECLARE_BANKRUPTCY ──
     case 'DECLARE_BANKRUPTCY': {
-      const player = state.players[state.currentPlayerIndex];
+      const player = getCurrentPlayer(state);
       const creditorId = action.creditorId;
 
       // 物件をすべて没収または債権者に渡す
@@ -1611,13 +1666,13 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       for (const propId of player.properties) {
         if (creditorId) {
           newPropertyStates[propId] = {
-            ...newPropertyStates[propId],
+            ...getPropertyState(newPropertyStates, propId),
             ownerId: creditorId,
             houses: 0,
           };
         } else {
           newPropertyStates[propId] = {
-            ...newPropertyStates[propId],
+            ...getPropertyState(newPropertyStates, propId),
             ownerId: null,
             houses: 0,
             isMortgaged: false,
@@ -1673,7 +1728,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
 
     // ── END_TURN ──
     case 'END_TURN': {
-      const player = state.players[state.currentPlayerIndex];
+      const player = getCurrentPlayer(state);
       const isDoubles =
         state.dice.values[0] === state.dice.values[1] && state.dice.rolled;
 
@@ -1700,7 +1755,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         stateAfterAlt.players,
         stateAfterAlt.currentPlayerIndex,
       );
-      const nextPlayer = stateAfterAlt.players[nextIndex];
+      const nextPlayer = getPlayerAt(stateAfterAlt.players, nextIndex);
 
       // P2-a 拡張: 景気サイクル更新
       let newEconomyStatus = state.economyStatus;
@@ -1803,7 +1858,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       return { ...state, turnPhase: phase };
     }
     case 'BUY_STOCK': {
-      const player = state.players[state.currentPlayerIndex];
+      const player = getCurrentPlayer(state);
       const result = validateStockBuy(
         state,
         player.id,
@@ -1820,7 +1875,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       );
     }
     case 'SELL_STOCK': {
-      const player = state.players[state.currentPlayerIndex];
+      const player = getCurrentPlayer(state);
       const result = validateStockSell(
         state,
         player.id,
@@ -1849,7 +1904,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     }
     case 'BUY_CRYPTO': {
       if (!state.features?.altAssets) return state;
-      const player = state.players[state.currentPlayerIndex];
+      const player = getCurrentPlayer(state);
       if (action.amount <= 0 || player.money < action.amount) return state;
       const currentPrice =
         player.cryptoHolding?.currentPrice ?? CRYPTO_INITIAL_PRICE;
@@ -1871,7 +1926,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     }
     case 'SELL_CRYPTO': {
       if (!state.features?.altAssets) return state;
-      const player = state.players[state.currentPlayerIndex];
+      const player = getCurrentPlayer(state);
       if (!player.cryptoHolding) return state;
       const proceeds = sellCrypto(player.cryptoHolding);
       return updateCurrentPlayer(state, {
@@ -1881,7 +1936,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     }
     case 'INVEST_VC': {
       if (!state.features?.altAssets) return state;
-      const player = state.players[state.currentPlayerIndex];
+      const player = getCurrentPlayer(state);
       if (action.amount <= 0 || player.money < action.amount) return state;
       const newVC: VCInvestment = {
         amount: action.amount,
@@ -1894,7 +1949,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     }
     case 'BUY_ESG': {
       if (!state.features?.altAssets) return state;
-      const player = state.players[state.currentPlayerIndex];
+      const player = getCurrentPlayer(state);
       if (action.amount <= 0 || player.money < action.amount) return state;
       const newESG: ESGHolding = {
         amount: action.amount,
@@ -1907,10 +1962,10 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     }
     case 'SELL_ESG': {
       if (!state.features?.altAssets) return state;
-      const player = state.players[state.currentPlayerIndex];
+      const player = getCurrentPlayer(state);
       const holdings = player.esgHoldings ?? [];
-      if (action.index < 0 || action.index >= holdings.length) return state;
       const holding = holdings[action.index];
+      if (!holding) return state;
       const newHoldings = holdings.filter((_, i) => i !== action.index);
       return updateCurrentPlayer(state, {
         money: player.money + holding.amount,
@@ -1920,7 +1975,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
 
     // ── ローン拡張: 借入 ──
     case 'TAKE_LOAN': {
-      const currentPlayer = state.players[state.currentPlayerIndex];
+      const currentPlayer = getCurrentPlayer(state);
       if (
         !currentPlayer ||
         currentPlayer.id !== action.playerId ||
@@ -1953,7 +2008,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
 
     // ── ローン拡張: 返済 ──
     case 'REPAY_LOAN': {
-      const currentPlayer = state.players[state.currentPlayerIndex];
+      const currentPlayer = getCurrentPlayer(state);
       if (
         !currentPlayer ||
         currentPlayer.id !== action.playerId ||
@@ -1990,7 +2045,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     // ここでは寄付額を一時的にstateに保存する仕組みは設けず、
     // 即時に公共基金へ寄付として反映する（控除はGO計算で推算）。
     case 'DONATE': {
-      const currentPlayerForDonate = state.players[state.currentPlayerIndex];
+      const currentPlayerForDonate = getCurrentPlayer(state);
       if (
         !currentPlayerForDonate ||
         currentPlayerForDonate.id !== action.playerId ||
@@ -2040,7 +2095,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     // ── P2-c 拡張: 不動産保険 ──
     case 'BUY_INSURANCE': {
       if (!isInsuranceEnabled(state)) return state;
-      const player = state.players[state.currentPlayerIndex];
+      const player = getCurrentPlayer(state);
       const propState = state.propertyStates[action.propertyId];
       // 自分が所有している物件のみ保険加入可
       if (!propState || propState.ownerId !== player.id) return state;
@@ -2068,7 +2123,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     }
     case 'CANCEL_INSURANCE': {
       if (!isInsuranceEnabled(state)) return state;
-      const player = state.players[state.currentPlayerIndex];
+      const player = getCurrentPlayer(state);
       const propState = state.propertyStates[action.propertyId];
       if (!propState || propState.ownerId !== player.id) return state;
       if (!isPropertyInsured(state.insuranceState, action.propertyId))
@@ -2172,8 +2227,8 @@ function nextAuctionPlayer(state: GameState, auction: AuctionState): number {
   let next = (auction.activePlayerIndex + 1) % total;
   let count = 0;
   while (
-    (state.players[next].isBankrupt ||
-      auction.passedPlayerIds.includes(state.players[next].id)) &&
+    (getPlayerAt(state.players, next).isBankrupt ||
+      auction.passedPlayerIds.includes(getPlayerAt(state.players, next).id)) &&
     count < total
   ) {
     next = (next + 1) % total;
