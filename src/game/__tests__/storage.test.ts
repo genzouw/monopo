@@ -8,6 +8,7 @@ import {
 } from '../storage';
 import type { GameState } from '../types';
 import { TOKENS } from '../types';
+import { BOARD_SPACES } from '../board';
 
 const STORAGE_KEY = 'monopo-save';
 const SETUP_KEY = 'monopo-setup';
@@ -43,7 +44,7 @@ const createPlayingState = (): GameState => ({
     },
   ],
   currentPlayerIndex: 0,
-  board: [],
+  board: BOARD_SPACES,
   propertyStates: {},
   cards: { chance: [], communityChest: [] },
   dice: { values: [1, 1], doubles: 0, rolled: false },
@@ -132,6 +133,71 @@ describe('saveGame / loadGame', () => {
       JSON.stringify({ ...base, players: [base.players[0], 'string'] }),
     );
     expect(loadGame()).toBeNull();
+  });
+
+  describe('手番と位置の範囲検証', () => {
+    /**
+     * 保存データの一部を書き換えて localStorage に置く。
+     *
+     * @param patch - 書き換える state の値
+     */
+    const saveWith = (patch: Record<string, unknown>) => {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ ...createPlayingState(), ...patch }),
+      );
+    };
+
+    /**
+     * 先頭プレイヤーの position だけを書き換えた players を返す。
+     *
+     * @param position - 先頭プレイヤーに設定する位置（信頼できない値を想定）
+     * @returns 書き換え後の players
+     */
+    const playersWithPosition = (position: unknown) => {
+      const [first, ...rest] = createPlayingState().players;
+      return [{ ...first, position }, ...rest];
+    };
+
+    it.each([
+      ['プレイヤー数と同じ', 2],
+      ['負の値', -1],
+      ['小数', 0.5],
+      ['数値でない', '0'],
+      ['未指定', undefined],
+    ])('currentPlayerIndexが%sならnullを返す', (_, currentPlayerIndex) => {
+      saveWith({ currentPlayerIndex });
+      expect(loadGame()).toBeNull();
+    });
+
+    it('currentPlayerIndexが最後のプレイヤーなら復元できる', () => {
+      saveWith({ currentPlayerIndex: 1 });
+      expect(loadGame()?.currentPlayerIndex).toBe(1);
+    });
+
+    it.each([
+      ['盤面のマス数と同じ', BOARD_SPACES.length],
+      ['負の値', -1],
+      ['小数', 1.5],
+      ['数値でない', '3'],
+      ['null', null],
+    ])('positionが%sならnullを返す', (_, position) => {
+      saveWith({ players: playersWithPosition(position) });
+      expect(loadGame()).toBeNull();
+    });
+
+    it('positionが最後のマスなら復元できる', () => {
+      saveWith({ players: playersWithPosition(BOARD_SPACES.length - 1) });
+      expect(loadGame()?.players[0].position).toBe(BOARD_SPACES.length - 1);
+    });
+
+    it.each([
+      ['空配列', []],
+      ['配列でない', {}],
+    ])('boardが%sならnullを返す', (_, board) => {
+      saveWith({ board });
+      expect(loadGame()).toBeNull();
+    });
   });
 
   it('壊れたJSONはnullを返す', () => {

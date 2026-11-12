@@ -140,6 +140,41 @@ export function saveGame(state: GameState): void {
   }
 }
 
+/**
+ * 値が `0 <= value < length` を満たす整数かどうかを判定する。
+ *
+ * @param value - 検証する値（信頼できない入力）
+ * @param length - 添字の上限（この値は含まない）
+ * @returns 配列の添字として範囲内の整数なら true
+ */
+function isIndexInRange(value: unknown, length: number): boolean {
+  return (
+    typeof value === 'number' &&
+    Number.isInteger(value) &&
+    value >= 0 &&
+    value < length
+  );
+}
+
+/**
+ * 保存データの手番（`currentPlayerIndex`）と各プレイヤーの位置（`position`）が、
+ * プレイヤー配列・盤面配列の範囲内にあるかを検証する。
+ * `players` の配列性と要素がオブジェクトであることは、呼び出し側で検証済みとする。
+ *
+ * @param state - JSON から復元した直後の状態（信頼できない入力）
+ * @returns 手番と全プレイヤーの位置が範囲内なら true
+ */
+function hasValidIndices(state: GameState): boolean {
+  if (!Array.isArray(state.board) || state.board.length === 0) return false;
+  const boardSize = state.board.length;
+  return (
+    isIndexInRange(state.currentPlayerIndex, state.players.length) &&
+    state.players.every((p) =>
+      isIndexInRange((p as Record<string, unknown>).position, boardSize),
+    )
+  );
+}
+
 export function loadGame(): GameState | null {
   try {
     const saved = readWithLegacyFallback(STORAGE_KEY, LEGACY_STORAGE_KEY);
@@ -165,6 +200,13 @@ export function loadGame(): GameState | null {
           ),
       )
     ) {
+      return null;
+    }
+    // Security Enhancement: 手番と各プレイヤーの位置は、盤面・プレイヤー配列の添字として
+    // そのまま使われる（`state.players[state.currentPlayerIndex]` /
+    // `state.board[player.position]`）。範囲外だと undefined を読んでクラッシュするため、
+    // 改ざん・破損した保存データは復元しない。
+    if (!hasValidIndices(state)) {
       return null;
     }
     // Security Enhancement: economyStatus は macroEconomy 有効時に
