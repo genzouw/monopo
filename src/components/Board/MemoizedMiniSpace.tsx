@@ -76,13 +76,11 @@ const areEqual = (
 ) => {
   if (prevProps.playersHere.length !== nextProps.playersHere.length)
     return false;
-  for (let i = 0; i < prevProps.playersHere.length; i++) {
-    if (
-      prevProps.playersHere[i].id !== nextProps.playersHere[i].id ||
-      prevProps.playersHere[i].token !== nextProps.playersHere[i].token
-    )
-      return false;
-  }
+  const samePlayers = prevProps.playersHere.every((prev, i) => {
+    const next = nextProps.playersHere[i];
+    return prev.id === next?.id && prev.token === next.token;
+  });
+  if (!samePlayers) return false;
 
   const prevPropState = prevProps.propState;
   const nextPropState = nextProps.propState;

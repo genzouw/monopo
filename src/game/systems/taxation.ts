@@ -70,10 +70,12 @@ export function calculateProgressiveTax(
       return Math.floor(taxableIncome * bracket.rate);
     }
   }
-  return Math.floor(
-    taxableIncome *
-      PROGRESSIVE_TAX_BRACKETS[PROGRESSIVE_TAX_BRACKETS.length - 1].rate,
-  );
+  const topBracket = PROGRESSIVE_TAX_BRACKETS.at(-1);
+  // PROGRESSIVE_TAX_BRACKETS は空でない定数配列なので、通常は起きない
+  if (!topBracket) {
+    throw new Error('累進課税の税率表が空です');
+  }
+  return Math.floor(taxableIncome * topBracket.rate);
 }
 
 /**

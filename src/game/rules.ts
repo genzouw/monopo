@@ -37,6 +37,60 @@ function getBoardCache(board: BoardSpace[]): BoardCache {
   return cache;
 }
 
+/**
+ * 手番のプレイヤーを返す。
+ * `currentPlayerIndex` は reducer と `loadGame()` の検証で常に範囲内に保たれる。
+ * 範囲外は状態が壊れていることを意味するため、黙って続行せず例外を投げる。
+ *
+ * @param state - ゲーム状態
+ * @returns 手番のプレイヤー
+ * @throws {Error} `currentPlayerIndex` がプレイヤー配列の範囲外のとき
+ */
+export function getCurrentPlayer(state: GameState): Player {
+  const player = state.players[state.currentPlayerIndex];
+  if (!player) {
+    throw new Error(
+      `手番のプレイヤーが見つかりません（currentPlayerIndex: ${state.currentPlayerIndex}）`,
+    );
+  }
+  return player;
+}
+
+/**
+ * 盤面上の位置にあるマスを返す。
+ * プレイヤーの位置は移動時に盤面のマス数で剰余を取り、`loadGame()` でも検証されるため常に範囲内にある。
+ * 範囲外は状態が壊れていることを意味するため、黙って続行せず例外を投げる。
+ *
+ * @param board - 盤面のマス一覧
+ * @param position - マスの位置（0 始まり）
+ * @returns 指定位置のマス
+ * @throws {Error} `position` が盤面の範囲外のとき
+ */
+export function getSpaceAt(board: BoardSpace[], position: number): BoardSpace {
+  const space = board[position];
+  if (!space) {
+    throw new Error(`盤面にマスがありません（position: ${position}）`);
+  }
+  return space;
+}
+
+/**
+ * マスの家賃表から指定段階の家賃を返す。
+ * 家賃表は `board.ts` の静的データで、段階は所有数・建物数から決まるため常に範囲内にある。
+ *
+ * @param space - 家賃表を持つマス
+ * @param level - 家賃表の添字（鉄道は所有数 - 1、物件は建物数）
+ * @returns 家賃
+ * @throws {Error} 家賃表がない、または `level` が範囲外のとき
+ */
+function rentAt(space: BoardSpace, level: number): number {
+  const rent = space.rent?.[level];
+  if (rent === undefined) {
+    throw new Error(`家賃表に段階 ${level} がありません（${space.id}）`);
+  }
+  return rent;
+}
+
 export function getSpaceById(
   propertyId: string,
   board: BoardSpace[],
@@ -99,7 +153,7 @@ export function calculateRent(
         ownedRailroads++;
       }
     }
-    return space.rent![ownedRailroads - 1];
+    return rentAt(space, ownedRailroads - 1);
   }
   if (space.type === 'utility') {
     const utilityIds = cache.byType.get('utility') ?? [];
@@ -113,8 +167,8 @@ export function calculateRent(
     const diceTotal = diceValues[0] + diceValues[1];
     return diceTotal * (ownedUtilities === 1 ? 4 : 10);
   }
-  if (state.houses > 0) return space.rent![state.houses];
-  const baseRent = space.rent![0];
+  if (state.houses > 0) return rentAt(space, state.houses);
+  const baseRent = rentAt(space, 0);
   if (ownsFullColorGroup(propertyId, state.ownerId, propertyStates, board))
     return baseRent * 2;
   return baseRent;

@@ -407,8 +407,9 @@ describe('reducer 保険統合', () => {
     });
 
     it('火災が発生しなければ従来どおりターン告知のみ表示される', () => {
-      vi.spyOn(randomModule, 'getSecureRandomInt').mockReturnValue(99);
+      // 山札のシャッフルに影響しないよう、ゲーム開始後にモックする
       let state = startGame({ insurance: true });
+      vi.spyOn(randomModule, 'getSecureRandomInt').mockReturnValue(99);
       const { state: withProp } = buyPropertyForPlayer(state);
       state = {
         ...withProp,
@@ -419,8 +420,9 @@ describe('reducer 保険統合', () => {
     });
 
     it('保険料残高不足時に保険が全解除されマイナス残高にならない', () => {
-      vi.spyOn(randomModule, 'getSecureRandomInt').mockReturnValue(99);
+      // 山札のシャッフルに影響しないよう、ゲーム開始後にモックする
       let state = startGame({ insurance: true });
+      vi.spyOn(randomModule, 'getSecureRandomInt').mockReturnValue(99);
       const { state: withProp, propId } = buyPropertyForPlayer(state);
       state = gameReducer(withProp, {
         type: 'BUY_INSURANCE',

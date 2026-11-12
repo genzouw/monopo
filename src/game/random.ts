@@ -6,9 +6,23 @@ const MAX_UINT32 = 0xffffffff;
 const UINT32_RANGE = MAX_UINT32 + 1;
 const randomBuffer = new Uint32Array(1);
 
-export function getSecureRandom(): number {
+/**
+ * Web Crypto API で 32 ビット符号なし整数の乱数を 1 つ生成する。
+ *
+ * @returns 0 以上 `MAX_UINT32` 以下の整数
+ * @throws {Error} 乱数バッファが空のとき（長さ 1 で確保しているため通常は起きない）
+ */
+function readRandomUint32(): number {
   crypto.getRandomValues(randomBuffer);
-  return randomBuffer[0] / UINT32_RANGE;
+  const value = randomBuffer[0];
+  if (value === undefined) {
+    throw new Error('乱数バッファが空です');
+  }
+  return value;
+}
+
+export function getSecureRandom(): number {
+  return readRandomUint32() / UINT32_RANGE;
 }
 
 export function getSecureRandomInt(min: number, max: number): number {
@@ -17,8 +31,7 @@ export function getSecureRandomInt(min: number, max: number): number {
 
   let x: number;
   do {
-    crypto.getRandomValues(randomBuffer);
-    x = randomBuffer[0];
+    x = readRandomUint32();
   } while (x >= limit);
 
   return min + (x % range);

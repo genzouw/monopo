@@ -139,7 +139,10 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
     const existingIndex = newTokens.findIndex(
       (t, i) => t === token && i !== playerIndex,
     );
-    if (existingIndex !== -1) newTokens[existingIndex] = newTokens[playerIndex];
+    const previousToken = newTokens[playerIndex];
+    // 他のプレイヤーが選んでいたコマなら、自分が使っていたコマと入れ替える
+    if (existingIndex !== -1 && previousToken !== undefined)
+      newTokens[existingIndex] = previousToken;
     newTokens[playerIndex] = token;
     setSelectedTokens(newTokens);
   };
@@ -259,43 +262,45 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
         アイコンをタップしてコマをえらべるよ
       </div>
       <div className={styles.playerList}>
-        {Array.from({ length: playerCount }).map((_, i) => (
+        {Array.from({ length: playerCount }, (_, i) => ({
+          name: names[i] ?? '',
+          token: selectedTokens[i] ?? '',
+        })).map(({ name, token }, i) => (
           <div key={i} className={styles.playerRow}>
             <button
               type="button"
               className={styles.tokenButton}
               onClick={() => {
                 const currentIdx = TOKENS.indexOf(
-                  selectedTokens[i] as (typeof TOKENS)[number],
+                  token as (typeof TOKENS)[number],
                 );
-                const nextToken = TOKENS[(currentIdx + 1) % TOKENS.length];
+                const nextToken =
+                  TOKENS.at((currentIdx + 1) % TOKENS.length) ?? TOKENS[0];
                 handleTokenChange(i, nextToken);
               }}
-              aria-label={`${names[i] || DEFAULT_NAMES[i]}のコマを変更する（現在のコマ: ${selectedTokens[i]}）`}
-              title={`${names[i] || DEFAULT_NAMES[i]}のコマを変更する（現在のコマ: ${selectedTokens[i]}）`}
+              aria-label={`${name || DEFAULT_NAMES[i]}のコマを変更する（現在のコマ: ${token}）`}
+              title={`${name || DEFAULT_NAMES[i]}のコマを変更する（現在のコマ: ${token}）`}
             >
-              <span aria-hidden="true">{selectedTokens[i]}</span>
+              <span aria-hidden="true">{token}</span>
             </button>
             <input
               className={styles.nameInput}
-              value={names[i]}
+              value={name}
               onChange={(e) => handleNameChange(i, e.target.value)}
               placeholder={`プレイヤー${i + 1}のなまえ`}
               aria-label={`プレイヤー${i + 1}のなまえ（最大${MAX_NAME_LENGTH}文字）`}
               maxLength={MAX_NAME_LENGTH}
               required
               aria-required="true"
-              aria-invalid={names[i].trim().length === 0}
+              aria-invalid={name.trim().length === 0}
               aria-errormessage={
-                names[i].trim().length === 0
+                name.trim().length === 0
                   ? `${baseId}-name-error-${i}`
                   : undefined
               }
               aria-describedby={[
                 `${baseId}-char-count-${i}`,
-                names[i].trim().length === 0
-                  ? `${baseId}-name-error-${i}`
-                  : null,
+                name.trim().length === 0 ? `${baseId}-name-error-${i}` : null,
               ]
                 .filter(Boolean)
                 .join(' ')}
@@ -305,9 +310,9 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
               className={styles.charCount}
               role="status"
             >
-              {[...names[i]].length}/{MAX_NAME_LENGTH}
+              {[...name].length}/{MAX_NAME_LENGTH}
             </span>
-            {names[i].trim().length === 0 && (
+            {name.trim().length === 0 && (
               <span
                 id={`${baseId}-name-error-${i}`}
                 className={styles.errorMessage}

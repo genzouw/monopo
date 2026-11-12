@@ -16,7 +16,11 @@ import type {
 } from '../../game/types';
 import type { GameAction } from '../../game/actions';
 import { MAX_JAIL_TURNS } from '../../game/reducer';
-import { calculateTotalAssets, getSpaceById } from '../../game/rules';
+import {
+  calculateTotalAssets,
+  getCurrentPlayer,
+  getSpaceById,
+} from '../../game/rules';
 import { getStockBuyPrice, isStockBubbleEffective } from '../../game/economy';
 import { isBehavioralBiasActive } from '../../game/systems/behavioralBias';
 import PlayerPanel from '../PlayerPanel/PlayerPanel';
@@ -128,7 +132,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
     diceRef.current = state.dice.values;
   }, [state.dice.values]);
 
-  const currentPlayer = state.players[state.currentPlayerIndex];
+  const currentPlayer = getCurrentPlayer(state);
 
   const currentSpace = state.board[currentPlayer.position];
   const isPurchasable =
