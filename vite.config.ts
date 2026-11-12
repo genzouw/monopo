@@ -36,6 +36,7 @@ export default defineConfig(({ command }) => ({
         '**/*.config.*',
         '**/*.test.*',
         'src/test-setup.ts',
+        'src/test-utils.ts',
         'src/main.tsx',
       ],
       thresholds: {

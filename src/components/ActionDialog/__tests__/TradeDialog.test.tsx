@@ -2,6 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, fireEvent, screen, cleanup } from '@testing-library/react';
 import TradeDialog from '../TradeDialog';
 import type { Player } from '../../../game/types';
+import { itemAt } from '../../../test-utils';
 
 afterEach(() => {
   cleanup();
@@ -38,7 +39,7 @@ describe('TradeDialog', () => {
         onClose={vi.fn()}
       />,
     );
-    const [offerMoneyInput] = screen.getAllByLabelText('おかね: $');
+    const offerMoneyInput = itemAt(screen.getAllByLabelText('おかね: $'), 0);
     fireEvent.change(offerMoneyInput, { target: { value: '-1' } });
     // 入力は無視されず state に反映される（無反応にしない）
     expect(offerMoneyInput).toHaveValue(-1);
@@ -66,7 +67,7 @@ describe('TradeDialog', () => {
         onClose={vi.fn()}
       />,
     );
-    const [, requestMoneyInput] = screen.getAllByLabelText('おかね: $');
+    const requestMoneyInput = itemAt(screen.getAllByLabelText('おかね: $'), 1);
     fireEvent.change(requestMoneyInput, { target: { value: '-1' } });
     expect(requestMoneyInput).toHaveValue(-1);
     expect(screen.getByText('0以上の金額を入力してね')).toBeInTheDocument();

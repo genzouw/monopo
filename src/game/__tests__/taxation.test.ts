@@ -10,6 +10,7 @@ import {
   calculatePublicFundRedistribution,
   isProgressiveTaxEnabled,
 } from '../systems/taxation';
+import { itemAt } from '../../test-utils';
 
 const makeState = (enabled: boolean): Pick<GameState, 'features'> => ({
   features: { progressiveTax: enabled },
@@ -165,8 +166,8 @@ describe('累進課税統合テスト（reducer）', () => {
         i === 0 ? { ...p, money: 15000 } : p,
       ),
     };
-    const before = richState.players[0].money;
-    const after = moveToGo(richState).players[0].money;
+    const before = itemAt(richState.players, 0).money;
+    const after = itemAt(moveToGo(richState).players, 0).money;
     // 資産多くても通常配当（150）もらえる
     expect(after - before).toBeGreaterThanOrEqual(150);
   });
@@ -174,8 +175,8 @@ describe('累進課税統合テスト（reducer）', () => {
   it('progressiveTax ON: 資産が少ない（3000未満）プレイヤーは税額0', () => {
     const state = startGame({ progressiveTax: true });
     // 初期資産1500 → 3000未満なので税率0
-    const before = state.players[0].money;
-    const after = moveToGo(state).players[0].money;
+    const before = itemAt(state.players, 0).money;
+    const after = itemAt(moveToGo(state).players, 0).money;
     expect(after - before).toBeGreaterThanOrEqual(150);
   });
 
@@ -187,8 +188,8 @@ describe('累進課税統合テスト（reducer）', () => {
         i === 0 ? { ...p, money: 15000 } : p,
       ),
     };
-    const before = richState.players[0].money;
-    const after = moveToGo(richState).players[0].money;
+    const before = itemAt(richState.players, 0).money;
+    const after = itemAt(moveToGo(richState).players, 0).money;
     // macroEconomy OFFなので基準配当=150, 税=floor(150*0.4)=60, 手取り=90
     expect(after - before).toBeGreaterThanOrEqual(88);
     expect(after - before).toBeLessThan(150);

@@ -116,8 +116,8 @@ describe('behavioralBias', () => {
       const r = advanceBiasTurn(bubbleAt1, 6, 'normal');
       expect(isBubble(r.state, 'red')).toBe(false);
       expect(r.events).toHaveLength(1);
-      expect(r.events[0].kind).toBe('bubbleBurst');
-      expect(r.events[0].message).toContain('バブル');
+      expect(r.events[0]?.kind).toBe('bubbleBurst');
+      expect(r.events[0]?.message).toContain('バブル');
     });
 
     it('不況・金融危機への遷移で、期間内でも崩壊する', () => {
@@ -156,8 +156,8 @@ describe('behavioralBias', () => {
 
     it('崩壊メッセージは基準価格に戻るとは言わず、上乗せ分がなくなると伝える', () => {
       const r = advanceBiasTurn(bubbleAt1, 2, 'crisis');
-      expect(r.events[0].message).toContain('うわのせ');
-      expect(r.events[0].message).not.toContain('もとの たかさ');
+      expect(r.events[0]?.message).toContain('うわのせ');
+      expect(r.events[0]?.message).not.toContain('もとの たかさ');
     });
 
     it('バブルでない色は何も起きず、古い履歴だけが掃除される', () => {
