@@ -106,7 +106,7 @@ repos:
         exclude: '\.env\.example$|^\.secretlintrc\.json$|^\.github/workflows/(secretlint|audit-secrets)\.yml$'
 
   - repo: https://github.com/crate-ci/typos
-    rev: v1.52.1
+    rev: v1.52.2
     hooks:
       # フック定義の既定 args は [--write-changes, --force-exclude] で、検出した語を
       # その場で自動修正する。スペル修正は文脈によって誤った語に置き換わりうるため、
