@@ -298,7 +298,7 @@ function checkNegativeMoney(state: GameState): GameState {
   const currentPlayer = getCurrentPlayer(state);
 
   // 現在のプレイヤーが所持金マイナスか
-  if (!currentPlayer || currentPlayer.isBankrupt || currentPlayer.money >= 0) {
+  if (currentPlayer.isBankrupt || currentPlayer.money >= 0) {
     return state;
   }
 
@@ -382,7 +382,7 @@ function updateCurrentPlayer(
   updates: Partial<Player>,
 ): GameState {
   const currentPlayer = getCurrentPlayer(state);
-  if (!currentPlayer) return state; // Safety check if index is out of bounds
+  // 範囲外の手番は getCurrentPlayer が例外を投げる
 
   // ⚡ Bolt: 構造共有 (Structural Sharing) と遅延クローンによる最適化
   // - What: 実際に値が変更される場合のみ新しいプレイヤーオブジェクトを生成する
@@ -793,7 +793,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
   // forceSell中にプラスになったらendTurnに戻す
   if (result.turnPhase === 'forceSell') {
     const player = getCurrentPlayer(result);
-    if (player && player.money >= 0) {
+    if (player.money >= 0) {
       return {
         ...result,
         turnPhase: 'endTurn',
@@ -801,7 +801,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       };
     }
     // まだマイナスで物件もない → 破産
-    if (player && player.properties.length === 0) {
+    if (player.properties.length === 0) {
       return checkNegativeMoney(result);
     }
     return result;
@@ -1976,11 +1976,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     // ── ローン拡張: 借入 ──
     case 'TAKE_LOAN': {
       const currentPlayer = getCurrentPlayer(state);
-      if (
-        !currentPlayer ||
-        currentPlayer.id !== action.playerId ||
-        currentPlayer.isBankrupt
-      ) {
+      if (currentPlayer.id !== action.playerId || currentPlayer.isBankrupt) {
         return state;
       }
       const validation = validateTakeLoan(
@@ -2009,11 +2005,7 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     // ── ローン拡張: 返済 ──
     case 'REPAY_LOAN': {
       const currentPlayer = getCurrentPlayer(state);
-      if (
-        !currentPlayer ||
-        currentPlayer.id !== action.playerId ||
-        currentPlayer.isBankrupt
-      ) {
+      if (currentPlayer.id !== action.playerId || currentPlayer.isBankrupt) {
         return state;
       }
       const validation = validateRepayLoan(
@@ -2047,7 +2039,6 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     case 'DONATE': {
       const currentPlayerForDonate = getCurrentPlayer(state);
       if (
-        !currentPlayerForDonate ||
         currentPlayerForDonate.id !== action.playerId ||
         currentPlayerForDonate.isBankrupt
       ) {
