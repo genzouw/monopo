@@ -372,7 +372,7 @@ describe('reducer 保険統合', () => {
       const space = state.board.find((s) => s.id === propId)!;
       state = { ...state, dice: { values: [1, 2], doubles: 0, rolled: true } };
       state = gameReducer(state, { type: 'END_TURN' });
-      expect(state.players[0]?.properties).not.toContain(propId);
+      expect(itemAt(state.players, 0).properties).not.toContain(propId);
       expect(state.players[0]?.money).toBe(moneyBefore + (space.price ?? 0));
       expect(state.insuranceState?.[propId]).toBeUndefined();
     });
@@ -389,7 +389,7 @@ describe('reducer 保険統合', () => {
         dice: { values: [1, 2], doubles: 0, rolled: true },
       };
       state = gameReducer(state, { type: 'END_TURN' });
-      expect(state.players[0]?.properties).not.toContain(propId);
+      expect(itemAt(state.players, 0).properties).not.toContain(propId);
       expect(state.players[0]?.money).toBe(moneyBefore + scrapValue);
     });
 

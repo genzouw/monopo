@@ -392,7 +392,7 @@ describe('reducer P1 拡張', () => {
         color: 'brown',
         shares: 3,
       });
-      expect(state.players[0]?.stocks?.brown).toBeUndefined();
+      expect(itemAt(state.players, 0).stocks?.brown).toBeUndefined();
       expect(state.players[0]?.money).toBe(
         // 買い: 3 * 100 払い、株価 +15 上昇
         // 売り: 3 * 115 受取り（115 = 100 + 3*5）

@@ -481,7 +481,9 @@ describe('ACTIVATE_POISON_PILL', () => {
       type: 'ACTIVATE_POISON_PILL',
       propertyId: 'mediterranean',
     });
-    expect(next.propertyStates['mediterranean']?.poisonPillActive).toBeFalsy();
+    expect(
+      valueOf(next.propertyStates, 'mediterranean').poisonPillActive,
+    ).toBeFalsy();
   });
 });
 
@@ -863,7 +865,7 @@ describe('トレード (OPEN/PROPOSE/ACCEPT/REJECT/CLOSE)', () => {
     state = gameReducer(state, { type: 'PROPOSE_TRADE', offer });
     const next = gameReducer(state, { type: 'ACCEPT_TRADE' });
     expect(next.players[0]?.money).toBe(1700);
-    expect(next.players[0]?.properties).not.toContain('mediterranean');
+    expect(itemAt(next.players, 0).properties).not.toContain('mediterranean');
     expect(next.players[1]?.money).toBe(1300);
     expect(next.players[1]?.properties).toContain('mediterranean');
     expect(next.propertyStates['mediterranean']?.ownerId).toBe('player-1');
@@ -1087,7 +1089,7 @@ describe('SELL_PROPERTY', () => {
     expect(next.propertyStates['mediterranean']?.ownerId).toBeNull();
     // 売却者 (player-0) は startingBid (=60) を受け取り、物件を失う
     expect(next.players[0]?.money).toBe(1560);
-    expect(next.players[0]?.properties).not.toContain('mediterranean');
+    expect(itemAt(next.players, 0).properties).not.toContain('mediterranean');
     // 他プレイヤーの所持金は変わらない
     expect(next.players[1]?.money).toBe(1500);
   });
@@ -1114,7 +1116,7 @@ describe('SELL_PROPERTY', () => {
     expect(next.auction).toBeNull();
     expect(next.propertyStates['mediterranean']?.ownerId).toBeNull();
     expect(next.players[0]?.money).toBe(1560);
-    expect(next.players[0]?.properties).not.toContain('mediterranean');
+    expect(itemAt(next.players, 0).properties).not.toContain('mediterranean');
   });
 });
 

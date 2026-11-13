@@ -162,14 +162,14 @@ describe('reducer: BUY_CRYPTO / SELL_CRYPTO', () => {
   it('資金不足の場合は BUY_CRYPTO が無視される', () => {
     const state = startGame({ altAssets: true });
     const after = gameReducer(state, { type: 'BUY_CRYPTO', amount: 99999 });
-    expect(after.players[0]?.cryptoHolding).toBeUndefined();
+    expect(itemAt(after.players, 0).cryptoHolding).toBeUndefined();
   });
 
   it('SELL_CRYPTO で暗号資産が消えて資金が戻る', () => {
     const state = startGame({ altAssets: true });
     const bought = gameReducer(state, { type: 'BUY_CRYPTO', amount: 500 });
     const sold = gameReducer(bought, { type: 'SELL_CRYPTO' });
-    expect(sold.players[0]?.cryptoHolding).toBeUndefined();
+    expect(itemAt(sold.players, 0).cryptoHolding).toBeUndefined();
     // 1500 で開始 → 500 で購入（残 1000）→ 同じ価格で売却（+500）→ 元の 1500 に戻る
     expect(sold.players[0]?.money).toBe(1500);
   });
@@ -197,7 +197,7 @@ describe('reducer: BUY_ESG / SELL_ESG', () => {
     const state = startGame({ altAssets: true });
     const bought = gameReducer(state, { type: 'BUY_ESG', amount: 400 });
     const sold = gameReducer(bought, { type: 'SELL_ESG', index: 0 });
-    expect(sold.players[0]?.esgHoldings).toBeUndefined();
+    expect(itemAt(sold.players, 0).esgHoldings).toBeUndefined();
     expect(sold.players[0]?.money).toBe(1500);
   });
 });
