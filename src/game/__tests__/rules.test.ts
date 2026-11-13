@@ -4,6 +4,8 @@ import { BOARD_SPACES } from '../board';
 import { createInitialGameState, gameReducer } from '../reducer';
 import {
   calculateRent,
+  getCurrentPlayer,
+  getSpaceAt,
   canBuildHouse,
   findNearestSpace,
   calculateTotalAssets,
@@ -517,5 +519,46 @@ describe('validateTradeOffer', () => {
       makeOffer({ offerProperties: ['mediterranean'] }),
     );
     expect(result).toEqual({ isValid: false, reason: 'PROPERTY_HAS_HOUSES' });
+  });
+});
+
+describe('getCurrentPlayer', () => {
+  it('手番のプレイヤーを返す', () => {
+    const state = createInitialGameState();
+    const started = gameReducer(state, {
+      type: 'START_GAME',
+      playerNames: ['A', 'B'],
+      playerTokens: ['🚗', '🎩'],
+    });
+    expect(getCurrentPlayer({ ...started, currentPlayerIndex: 1 }).name).toBe(
+      'B',
+    );
+  });
+
+  it('currentPlayerIndexが範囲外なら例外を投げる', () => {
+    const started = gameReducer(createInitialGameState(), {
+      type: 'START_GAME',
+      playerNames: ['A', 'B'],
+      playerTokens: ['🚗', '🎩'],
+    });
+    expect(() =>
+      getCurrentPlayer({ ...started, currentPlayerIndex: 2 }),
+    ).toThrow('currentPlayerIndex: 2');
+  });
+});
+
+describe('getSpaceAt', () => {
+  it('指定位置のマスを返す', () => {
+    expect(getSpaceAt(BOARD_SPACES, 0)).toBe(BOARD_SPACES[0]);
+    expect(getSpaceAt(BOARD_SPACES, BOARD_SPACES.length - 1)).toBe(
+      BOARD_SPACES[BOARD_SPACES.length - 1],
+    );
+  });
+
+  it('positionが範囲外なら例外を投げる', () => {
+    expect(() => getSpaceAt(BOARD_SPACES, BOARD_SPACES.length)).toThrow(
+      `position: ${BOARD_SPACES.length}`,
+    );
+    expect(() => getSpaceAt(BOARD_SPACES, -1)).toThrow('position: -1');
   });
 });

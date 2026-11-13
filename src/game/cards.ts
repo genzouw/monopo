@@ -203,7 +203,14 @@ export function shuffleCards(cards: Card[]): Card[] {
   const shuffled = [...cards];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = getSecureRandomInt(0, i);
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    const a = shuffled[i];
+    const b = shuffled[j];
+    // i と j はどちらも 0 以上 shuffled.length 未満なので、通常は起きない
+    if (a === undefined || b === undefined) {
+      throw new Error(`シャッフル中に範囲外の添字を参照しました（${i}, ${j}）`);
+    }
+    shuffled[i] = b;
+    shuffled[j] = a;
   }
   return shuffled;
 }
