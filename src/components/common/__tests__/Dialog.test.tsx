@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, fireEvent, screen, cleanup } from '@testing-library/react';
 import { afterEach } from 'vitest';
 import Dialog from '../Dialog';
+import { itemAt } from '../../../test-utils';
 
 afterEach(() => {
   cleanup();
@@ -133,8 +134,8 @@ describe('Dialog', () => {
       </Dialog>,
     );
     const buttons = screen.getAllByRole('button');
-    const first = buttons[0];
-    const last = buttons[buttons.length - 1];
+    const first = itemAt(buttons, 0);
+    const last = itemAt(buttons, buttons.length - 1);
     last.focus();
     fireEvent.keyDown(last, { key: 'Tab' });
     expect(document.activeElement).toBe(first);
@@ -155,8 +156,8 @@ describe('Dialog', () => {
       </Dialog>,
     );
     const buttons = screen.getAllByRole('button');
-    const first = buttons[0];
-    const last = buttons[buttons.length - 1];
+    const first = itemAt(buttons, 0);
+    const last = itemAt(buttons, buttons.length - 1);
     first.focus();
     fireEvent.keyDown(first, { key: 'Tab', shiftKey: true });
     expect(document.activeElement).toBe(last);

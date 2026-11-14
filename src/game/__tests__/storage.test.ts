@@ -70,7 +70,7 @@ describe('saveGame / loadGame', () => {
     saveGame(state);
     const loaded = loadGame();
     expect(loaded).not.toBeNull();
-    expect(loaded?.players[0].name).toBe('たろう');
+    expect(loaded?.players[0]?.name).toBe('たろう');
   });
 
   it('phase=playing以外のstateは保存しない', () => {
@@ -188,7 +188,7 @@ describe('saveGame / loadGame', () => {
 
     it('positionが最後のマスなら復元できる', () => {
       saveWith({ players: playersWithPosition(BOARD_SPACES.length - 1) });
-      expect(loadGame()?.players[0].position).toBe(BOARD_SPACES.length - 1);
+      expect(loadGame()?.players[0]?.position).toBe(BOARD_SPACES.length - 1);
     });
 
     it.each([
@@ -316,7 +316,7 @@ describe('legacy key migration', () => {
     localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(legacyState));
     const loaded = loadGame();
     expect(loaded).not.toBeNull();
-    expect(loaded?.players[0].name).toBe('たろう');
+    expect(loaded?.players[0]?.name).toBe('たろう');
     expect(localStorage.getItem(STORAGE_KEY)).not.toBeNull();
     expect(localStorage.getItem(LEGACY_STORAGE_KEY)).toBeNull();
   });
@@ -331,7 +331,7 @@ describe('legacy key migration', () => {
         players: [{ ...newState.players[0], name: 'old' }],
       }),
     );
-    expect(loadGame()?.players[0].name).toBe('たろう');
+    expect(loadGame()?.players[0]?.name).toBe('たろう');
     expect(localStorage.getItem(LEGACY_STORAGE_KEY)).not.toBeNull();
   });
 

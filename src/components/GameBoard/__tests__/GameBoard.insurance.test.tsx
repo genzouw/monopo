@@ -3,6 +3,7 @@ import { render, fireEvent, screen, cleanup } from '@testing-library/react';
 import GameBoard from '../GameBoard';
 import { createInitialGameState, gameReducer } from '../../../game/reducer';
 import type { GameState } from '../../../game/types';
+import { getCurrentPlayer } from '../../../game/rules';
 
 afterEach(() => {
   cleanup();
@@ -27,7 +28,7 @@ function makeInsuranceState(options?: {
   });
   const prop = base.board.find((s) => s.type === 'property');
   if (!prop) throw new Error('テスト用の土地マスが見つかりません');
-  const current = base.players[base.currentPlayerIndex];
+  const current = getCurrentPlayer(base);
   const state: GameState = {
     ...base,
     // サブアクションを開ける手番フェーズに固定する

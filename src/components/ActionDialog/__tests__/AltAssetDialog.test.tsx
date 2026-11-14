@@ -2,6 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, fireEvent, screen, cleanup } from '@testing-library/react';
 import AltAssetDialog from '../AltAssetDialog';
 import type { Player } from '../../../game/types';
+import { itemAt } from '../../../test-utils';
 
 afterEach(() => {
   cleanup();
@@ -43,9 +44,9 @@ describe('AltAssetDialog', () => {
     const h = renderDialog(makePlayer());
     const buttons = screen.getAllByRole('button', { name: /\$500で/ });
     // 並び順: 暗号資産 → VC → ESG
-    fireEvent.click(buttons[0]);
-    fireEvent.click(buttons[1]);
-    fireEvent.click(buttons[2]);
+    fireEvent.click(itemAt(buttons, 0));
+    fireEvent.click(itemAt(buttons, 1));
+    fireEvent.click(itemAt(buttons, 2));
     expect(h.onBuyCrypto).toHaveBeenCalledWith(500);
     expect(h.onInvestVC).toHaveBeenCalledWith(500);
     expect(h.onBuyESG).toHaveBeenCalledWith(500);

@@ -115,8 +115,8 @@ describe('ROLL_DICE', () => {
     };
     const jailState = gameReducer(stateWith2Doubles, { type: 'ROLL_DICE' });
     // 3回目のゾロ目 → 刑務所
-    expect(jailState.players[jailState.currentPlayerIndex].position).toBe(10);
-    expect(jailState.players[jailState.currentPlayerIndex].inJail).toBe(true);
+    expect(jailState.players[jailState.currentPlayerIndex]?.position).toBe(10);
+    expect(jailState.players[jailState.currentPlayerIndex]?.inJail).toBe(true);
 
     vi.restoreAllMocks();
   });
@@ -134,7 +134,7 @@ describe('FINISH_MOVING', () => {
       turnPhase: 'moving',
     };
     const next = gameReducer(state, { type: 'FINISH_MOVING' });
-    expect(next.players[0].position).toBe(7); // 0 + 7
+    expect(next.players[0]?.position).toBe(7); // 0 + 7
   });
 
   it('GOを通過したら $150 もらい、他のプレイヤーは $50 もらう', () => {
@@ -150,11 +150,11 @@ describe('FINISH_MOVING', () => {
     };
     const next = gameReducer(state, { type: 'FINISH_MOVING' });
     // 38 + 7 = 45 → 5 (GOを超えた)
-    expect(next.players[0].position).toBe(5);
-    expect(next.players[0].money).toBe(1650); // 1500 + 150
-    expect(next.players[1].money).toBe(1550); // 1500 + 50
-    expect(next.players[2].money).toBe(1550); // 1500 + 50
-    expect(next.players[3].money).toBe(1550); // 1500 + 50
+    expect(next.players[0]?.position).toBe(5);
+    expect(next.players[0]?.money).toBe(1650); // 1500 + 150
+    expect(next.players[1]?.money).toBe(1550); // 1500 + 50
+    expect(next.players[2]?.money).toBe(1550); // 1500 + 50
+    expect(next.players[3]?.money).toBe(1550); // 1500 + 50
   });
 
   it('GO（position 0）を踏んだ場合も社会配当を分配する', () => {
@@ -170,9 +170,9 @@ describe('FINISH_MOVING', () => {
     };
     const next = gameReducer(state, { type: 'FINISH_MOVING' });
     // 37 + 3 = 40 → 0 (GO着地) → GOを通ったので+150
-    expect(next.players[0].position).toBe(0);
-    expect(next.players[0].money).toBe(1650); // 1500 + 150
-    expect(next.players[1].money).toBe(1550); // 1500 + 50
+    expect(next.players[0]?.position).toBe(0);
+    expect(next.players[0]?.money).toBe(1650); // 1500 + 150
+    expect(next.players[1]?.money).toBe(1550); // 1500 + 50
   });
 });
 
@@ -189,9 +189,9 @@ describe('BUY_PROPERTY', () => {
       ),
     };
     const next = gameReducer(state, { type: 'BUY_PROPERTY' });
-    expect(next.players[0].money).toBe(1440); // 1500 - 60
-    expect(next.players[0].properties).toContain('mediterranean');
-    expect(next.propertyStates['mediterranean'].ownerId).toBe('player-0');
+    expect(next.players[0]?.money).toBe(1440); // 1500 - 60
+    expect(next.players[0]?.properties).toContain('mediterranean');
+    expect(next.propertyStates['mediterranean']?.ownerId).toBe('player-0');
   });
 
   it('turnPhase が endTurn になる', () => {
@@ -286,7 +286,7 @@ describe('PAY_TAX', () => {
       ),
     };
     const next = gameReducer(state, { type: 'PAY_TAX' });
-    expect(next.players[0].money).toBe(1300); // 1500 - 200
+    expect(next.players[0]?.money).toBe(1300); // 1500 - 200
     expect(next.turnPhase).toBe('endTurn');
   });
 });
@@ -302,8 +302,8 @@ describe('PAY_JAIL_FINE', () => {
       position: 10,
     });
     const next = gameReducer(state, { type: 'PAY_JAIL_FINE' });
-    expect(next.players[0].money).toBe(1450);
-    expect(next.players[0].inJail).toBe(false);
+    expect(next.players[0]?.money).toBe(1450);
+    expect(next.players[0]?.inJail).toBe(false);
     expect(next.turnPhase).toBe('roll');
   });
 });
@@ -320,8 +320,8 @@ describe('USE_JAIL_CARD', () => {
       position: 10,
     });
     const next = gameReducer(state, { type: 'USE_JAIL_CARD' });
-    expect(next.players[0].inJail).toBe(false);
-    expect(next.players[0].getOutOfJailCards).toBe(0);
+    expect(next.players[0]?.inJail).toBe(false);
+    expect(next.players[0]?.getOutOfJailCards).toBe(0);
     expect(next.turnPhase).toBe('roll');
   });
 });
