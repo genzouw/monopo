@@ -266,6 +266,8 @@ export default function Setup({ onStart, onResume, savedGame }: SetupProps) {
           name: names[i] ?? '',
           token: selectedTokens[i] ?? '',
         })).map(({ name, token }, i) => (
+          // 行の添字がそのままプレイヤーの席番号であり、並びの入れ替えが起きない
+          // eslint-disable-next-line @eslint-react/no-array-index-key
           <div key={i} className={styles.playerRow}>
             <button
               type="button"

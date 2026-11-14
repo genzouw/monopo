@@ -960,7 +960,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                       <span>💰 かかく</span>
                       <span style={{ fontWeight: 700 }}>${space.price}</span>
                     </div>
-                    {space.mortgageValue && (
+                    {!!space.mortgageValue && (
                       <div
                         style={{
                           display: 'flex',
@@ -978,7 +978,7 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                   </>
                 )}
 
-                {isProp && space.houseCost && (
+                {isProp && !!space.houseCost && (
                   <div
                     style={{
                       display: 'flex',
@@ -1001,6 +1001,8 @@ export default function GameBoard({ state, dispatch }: GameBoardProps) {
                     </div>
                     {space.rent.map((r, i) => (
                       <div
+                        // 家賃表は家の軒数ごとの固定の並びで、要素の入れ替え・追加・削除が起きない
+                        // eslint-disable-next-line @eslint-react/no-array-index-key
                         key={i}
                         style={{
                           display: 'flex',
