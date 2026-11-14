@@ -79,6 +79,7 @@
         "eslint",
         "eslint-*",
         "@eslint/**",
+        "@eslint-react/**",
         "typescript-eslint",
         "@typescript-eslint/**"
       ],
