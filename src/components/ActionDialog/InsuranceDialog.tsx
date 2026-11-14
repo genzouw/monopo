@@ -68,7 +68,7 @@ export default function InsuranceDialog({
   onCancel,
   onClose,
 }: InsuranceDialogProps) {
-  const hintIdBase = useId();
+  const hintBaseId = useId();
   // 火災リスクのある「土地（property）」のみ保険対象。鉄道・公共施設は除外する。
   // 60FPS アニメーション中の再レンダリングでの再計算を避けるためメモ化する。
   const ownedProperties = useMemo(() => {
@@ -170,7 +170,7 @@ export default function InsuranceDialog({
                       aria-disabled={!canAfford}
                       aria-describedby={
                         buyDisabledReason
-                          ? `${hintIdBase}-buy-${space.id}`
+                          ? `${hintBaseId}-buy-${space.id}`
                           : undefined
                       }
                       title={buyDisabledReason}
@@ -179,7 +179,7 @@ export default function InsuranceDialog({
                     </Button>
                     {buyDisabledReason && (
                       <div
-                        id={`${hintIdBase}-buy-${space.id}`}
+                        id={`${hintBaseId}-buy-${space.id}`}
                         className={styles.noMoneyHintTight}
                         role="status"
                       >

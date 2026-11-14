@@ -56,7 +56,7 @@ export default function BuildDialog({
   onSell,
   onClose,
 }: BuildDialogProps) {
-  const hintIdBase = useId();
+  const hintBaseId = useId();
   // ⚡ Bolt: useMemo to prevent mapping, filtering, and sorting the properties array on every render.
   // This avoids O(N log N) recalculation of ownedProperties on every keystroke or update within the dialog.
   const ownedProperties = useMemo(() => {
@@ -144,7 +144,7 @@ export default function BuildDialog({
                     aria-disabled={buildDisabledReason !== undefined}
                     aria-describedby={
                       buildDisabledReason !== undefined
-                        ? `${hintIdBase}-build-${space.id}`
+                        ? `${hintBaseId}-build-${space.id}`
                         : undefined
                     }
                     title={buildDisabledReason}
@@ -153,7 +153,7 @@ export default function BuildDialog({
                   </Button>
                   {buildDisabledReason !== undefined && (
                     <div
-                      id={`${hintIdBase}-build-${space.id}`}
+                      id={`${hintBaseId}-build-${space.id}`}
                       className={styles.noMoneyHintTight}
                       role="status"
                     >
@@ -169,7 +169,7 @@ export default function BuildDialog({
                     aria-disabled={sellDisabledReason !== undefined}
                     aria-describedby={
                       sellDisabledReason !== undefined
-                        ? `${hintIdBase}-sell-${space.id}`
+                        ? `${hintBaseId}-sell-${space.id}`
                         : undefined
                     }
                     title={sellDisabledReason}
@@ -178,7 +178,7 @@ export default function BuildDialog({
                   </Button>
                   {sellDisabledReason !== undefined && (
                     <div
-                      id={`${hintIdBase}-sell-${space.id}`}
+                      id={`${hintBaseId}-sell-${space.id}`}
                       className={styles.noMoneyHintTight}
                       role="status"
                     >

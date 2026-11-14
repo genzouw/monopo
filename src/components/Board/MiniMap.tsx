@@ -95,7 +95,9 @@ const MiniMap = memo(function MiniMap({
           );
         })}
         <div className={styles.miniCenter}>
-          {overlay && <div className={styles.miniCenterOverlay}>{overlay}</div>}
+          {!!overlay && (
+            <div className={styles.miniCenterOverlay}>{overlay}</div>
+          )}
           {children ?? '🎲'}
         </div>
       </div>

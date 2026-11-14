@@ -139,6 +139,8 @@ export default function AltAssetDialog({
           <div className={styles.propertyPrice}>まだもっていないよ</div>
         ) : (
           esgHoldings.map((holding, index) => (
+            // 同じターン・同じ金額の保有が重なりうるため一意な ID がない。行は内部状態を持たないので、売却で添字がずれても表示は崩れない
+            // eslint-disable-next-line @eslint-react/no-array-index-key
             <div key={`${holding.investedTurn}-${index}`}>
               <span className={styles.propertyPrice}>
                 ${holding.amount.toLocaleString()}（{holding.investedTurn}

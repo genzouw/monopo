@@ -61,7 +61,7 @@ export default function Dialog({
           {title}
         </div>
         <div className={styles.dialogBody}>{children}</div>
-        {actions && <div className={styles.dialogActions}>{actions}</div>}
+        {!!actions && <div className={styles.dialogActions}>{actions}</div>}
         {onClose && (
           // 閉じるボタンは絶対配置のため見た目の位置は変わらないが、
           // DOM順をここに置くことで useFocusTrap のマウント時初期フォーカスが
