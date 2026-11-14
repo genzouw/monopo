@@ -22,6 +22,7 @@ import {
   validateStockBuy,
   validateStockSell,
 } from '../economy';
+import { itemAt } from '../../test-utils';
 
 function makePlayer(overrides: Partial<Player> = {}): Player {
   return {
@@ -357,7 +358,7 @@ describe('reducer P1 拡張', () => {
         color: 'brown',
         shares: 2,
       });
-      const buyer = next.players[0];
+      const buyer = itemAt(next.players, 0);
       expect(buyer.money).toBe(1500 - STOCK_INITIAL_PRICE * 2);
       expect(buyer.stocks?.brown).toBe(2);
       expect(next.stockMarket?.brown?.bankShares).toBe(STOCK_TOTAL_SHARES - 2);
@@ -391,8 +392,8 @@ describe('reducer P1 拡張', () => {
         color: 'brown',
         shares: 3,
       });
-      expect(state.players[0].stocks?.brown).toBeUndefined();
-      expect(state.players[0].money).toBe(
+      expect(itemAt(state.players, 0).stocks?.brown).toBeUndefined();
+      expect(state.players[0]?.money).toBe(
         // 買い: 3 * 100 払い、株価 +15 上昇
         // 売り: 3 * 115 受取り（115 = 100 + 3*5）
         1500 - 3 * 100 + 3 * (STOCK_INITIAL_PRICE + 3 * PRICE_DELTA_PER_SHARE),
@@ -412,7 +413,7 @@ describe('reducer P1 拡張', () => {
         (s) => s.id,
       );
       let state = startGame({ stocks: true });
-      const playerId = state.players[0].id;
+      const playerId = itemAt(state.players, 0).id;
       // カラーグループ全所有・抵当なしの状態を組み立て
       const propStates = { ...state.propertyStates };
       for (const id of colorGroup) {
@@ -443,7 +444,7 @@ describe('reducer P1 拡張', () => {
       const colorGroup = BOARD_SPACES.filter((s) => s.color === 'brown').map(
         (s) => s.id,
       );
-      const playerId = state.players[0].id;
+      const playerId = itemAt(state.players, 0).id;
       const propStates = { ...state.propertyStates };
       for (const id of colorGroup) {
         propStates[id] = { ownerId: playerId, houses: 0, isMortgaged: false };
@@ -472,7 +473,7 @@ describe('reducer P1 拡張', () => {
         (s) => s.id,
       );
       let state = startGame({ stocks: true });
-      const playerId = state.players[0].id;
+      const playerId = itemAt(state.players, 0).id;
       const propStates = { ...state.propertyStates };
       // 全物件に家1軒
       for (const id of colorGroup) {

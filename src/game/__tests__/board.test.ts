@@ -6,18 +6,18 @@ describe('BOARD_SPACES', () => {
     expect(BOARD_SPACES).toHaveLength(40);
   });
   it('position 0はGO', () => {
-    expect(BOARD_SPACES[0].name).toBe('GO');
-    expect(BOARD_SPACES[0].type).toBe('corner');
+    expect(BOARD_SPACES[0]?.name).toBe('GO');
+    expect(BOARD_SPACES[0]?.type).toBe('corner');
   });
   it('position 10は刑務所', () => {
-    expect(BOARD_SPACES[10].name).toBe('刑務所');
-    expect(BOARD_SPACES[10].type).toBe('corner');
+    expect(BOARD_SPACES[10]?.name).toBe('刑務所');
+    expect(BOARD_SPACES[10]?.type).toBe('corner');
   });
   it('position 20はFree Parking', () => {
-    expect(BOARD_SPACES[20].type).toBe('corner');
+    expect(BOARD_SPACES[20]?.type).toBe('corner');
   });
   it('position 30はGo to Jail', () => {
-    expect(BOARD_SPACES[30].type).toBe('corner');
+    expect(BOARD_SPACES[30]?.type).toBe('corner');
   });
   it('各マスのpositionがインデックスと一致する', () => {
     BOARD_SPACES.forEach((space, index) => {

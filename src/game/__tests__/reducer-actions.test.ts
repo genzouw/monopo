@@ -2,6 +2,8 @@ import * as randomModule from '../random';
 import { describe, it, expect, vi } from 'vitest';
 import { createInitialGameState, gameReducer } from '../reducer';
 import type { GameState, Card } from '../types';
+import { itemAt, valueOf } from '../../test-utils';
+import { getSpaceAt } from '../rules';
 
 // ── ヘルパー ──
 
@@ -42,7 +44,7 @@ function withPropertyOwner(
     propertyStates: {
       ...state.propertyStates,
       [propertyId]: {
-        ...state.propertyStates[propertyId],
+        ...valueOf(state.propertyStates, propertyId),
         ownerId,
         ...extra,
       },
@@ -63,8 +65,8 @@ describe('FINISH_MOVING - handleLanding 各種マス', () => {
       turnPhase: 'moving',
     };
     const next = gameReducer(state, { type: 'FINISH_MOVING' });
-    expect(next.players[0].position).toBe(10);
-    expect(next.players[0].inJail).toBe(true);
+    expect(next.players[0]?.position).toBe(10);
+    expect(next.players[0]?.inJail).toBe(true);
     expect(next.turnPhase).toBe('endTurn');
   });
 
@@ -78,7 +80,7 @@ describe('FINISH_MOVING - handleLanding 各種マス', () => {
     };
     const next = gameReducer(state, { type: 'FINISH_MOVING' });
     // position 4 = income-tax
-    expect(next.players[0].position).toBe(4);
+    expect(next.players[0]?.position).toBe(4);
     expect(next.turnPhase).toBe('action');
   });
 
@@ -92,7 +94,7 @@ describe('FINISH_MOVING - handleLanding 各種マス', () => {
     };
     const next = gameReducer(state, { type: 'FINISH_MOVING' });
     // position 7 = chance-1
-    expect(next.players[0].position).toBe(7);
+    expect(next.players[0]?.position).toBe(7);
     expect(next.turnPhase).toBe('action');
   });
 
@@ -106,7 +108,7 @@ describe('FINISH_MOVING - handleLanding 各種マス', () => {
     };
     const next = gameReducer(state, { type: 'FINISH_MOVING' });
     // position 2 = community-chest-1
-    expect(next.players[0].position).toBe(2);
+    expect(next.players[0]?.position).toBe(2);
     expect(next.turnPhase).toBe('action');
   });
 
@@ -120,7 +122,7 @@ describe('FINISH_MOVING - handleLanding 各種マス', () => {
       turnPhase: 'moving',
     };
     const next = gameReducer(state, { type: 'FINISH_MOVING' });
-    expect(next.players[0].position).toBe(3);
+    expect(next.players[0]?.position).toBe(3);
     expect(next.turnPhase).toBe('endTurn');
   });
 
@@ -135,8 +137,8 @@ describe('FINISH_MOVING - handleLanding 各種マス', () => {
       turnPhase: 'moving',
     };
     const next = gameReducer(state, { type: 'FINISH_MOVING' });
-    expect(next.players[0].money).toBe(1496); // -4 (rent)
-    expect(next.players[1].money).toBe(1504); // +4 (rent)
+    expect(next.players[0]?.money).toBe(1496); // -4 (rent)
+    expect(next.players[1]?.money).toBe(1504); // +4 (rent)
   });
 
   it('抵当に入った物件にとまっても家賃は払わない', () => {
@@ -151,7 +153,7 @@ describe('FINISH_MOVING - handleLanding 各種マス', () => {
       turnPhase: 'moving',
     };
     const next = gameReducer(state, { type: 'FINISH_MOVING' });
-    expect(next.players[0].money).toBe(1500);
+    expect(next.players[0]?.money).toBe(1500);
     expect(next.turnPhase).toBe('endTurn');
   });
 
@@ -296,9 +298,9 @@ describe('オークション (PLACE_BID / PASS_AUCTION)', () => {
     expect(next.auction).toBeNull();
     expect(next.turnPhase).toBe('endTurn');
     // 物件は空白地のまま、所持金変動なし
-    expect(next.propertyStates['mediterranean'].ownerId).toBeNull();
-    expect(next.players[0].money).toBe(1500);
-    expect(next.players[1].money).toBe(1500);
+    expect(next.propertyStates['mediterranean']?.ownerId).toBeNull();
+    expect(next.players[0]?.money).toBe(1500);
+    expect(next.players[1]?.money).toBe(1500);
   });
 
   it('入札者が居て他がパスすれば落札される', () => {
@@ -311,9 +313,9 @@ describe('オークション (PLACE_BID / PASS_AUCTION)', () => {
     state = gameReducer(state, { type: 'PLACE_BID', amount: 100 });
     const next = gameReducer(state, { type: 'PASS_AUCTION' });
     expect(next.auction).toBeNull();
-    expect(next.players[0].money).toBe(1400); // -100
-    expect(next.players[0].properties).toContain('mediterranean');
-    expect(next.propertyStates['mediterranean'].ownerId).toBe('player-0');
+    expect(next.players[0]?.money).toBe(1400); // -100
+    expect(next.players[0]?.properties).toContain('mediterranean');
+    expect(next.propertyStates['mediterranean']?.ownerId).toBe('player-0');
   });
 });
 
@@ -338,8 +340,8 @@ describe('BUILD_HOUSE / SELL_HOUSE', () => {
       propertyId: 'mediterranean',
     });
     // mediterranean.houseCost = 50
-    expect(next.players[0].money).toBe(1450);
-    expect(next.propertyStates['mediterranean'].houses).toBe(1);
+    expect(next.players[0]?.money).toBe(1450);
+    expect(next.propertyStates['mediterranean']?.houses).toBe(1);
   });
 
   it('家を売ると半額もらえて houses が減る', () => {
@@ -350,7 +352,7 @@ describe('BUILD_HOUSE / SELL_HOUSE', () => {
       propertyStates: {
         ...state.propertyStates,
         mediterranean: {
-          ...state.propertyStates.mediterranean,
+          ...valueOf(state.propertyStates, 'mediterranean'),
           houses: 1,
         },
       },
@@ -360,8 +362,8 @@ describe('BUILD_HOUSE / SELL_HOUSE', () => {
       propertyId: 'mediterranean',
     });
     // sellPrice = floor(50 / 2) = 25
-    expect(next.players[0].money).toBe(1525);
-    expect(next.propertyStates['mediterranean'].houses).toBe(0);
+    expect(next.players[0]?.money).toBe(1525);
+    expect(next.propertyStates['mediterranean']?.houses).toBe(0);
   });
 
   it('canBuildHouse が false のときは何もしない', () => {
@@ -402,10 +404,10 @@ describe('FORCE_BUY / DECLINE_FORCE_BUY', () => {
     };
     const next = gameReducer(state, { type: 'FORCE_BUY' });
     // P1.2 拡張: 家なしなので乗数3倍。cost = floor(60 * 3.0) = 180, toOwner = floor(180 * 60%) = 108
-    expect(next.players[0].money).toBe(820);
-    expect(next.players[1].money).toBe(1608);
-    expect(next.players[0].properties).toContain('mediterranean');
-    expect(next.propertyStates['mediterranean'].ownerId).toBe('player-0');
+    expect(next.players[0]?.money).toBe(820);
+    expect(next.players[1]?.money).toBe(1608);
+    expect(next.players[0]?.properties).toContain('mediterranean');
+    expect(next.propertyStates['mediterranean']?.ownerId).toBe('player-0');
     expect(next.turnPhase).toBe('endTurn');
   });
 
@@ -428,9 +430,9 @@ describe('FORCE_BUY / DECLINE_FORCE_BUY', () => {
     const next = gameReducer(state, { type: 'FORCE_BUY' });
     // ポイズンピル有効: 家なし乗数3倍 + ボーナス1 = 4倍
     // cost = floor(60 * 4.0) = 240, toOwner = floor(240 * 60%) = 144
-    expect(next.players[0].money).toBe(1760);
-    expect(next.players[1].money).toBe(1644);
-    expect(next.players[0].properties).toContain('mediterranean');
+    expect(next.players[0]?.money).toBe(1760);
+    expect(next.players[1]?.money).toBe(1644);
+    expect(next.players[0]?.properties).toContain('mediterranean');
     expect(next.turnPhase).toBe('endTurn');
   });
 
@@ -461,7 +463,7 @@ describe('ACTIVATE_POISON_PILL', () => {
       type: 'ACTIVATE_POISON_PILL',
       propertyId: 'mediterranean',
     });
-    expect(next.propertyStates['mediterranean'].poisonPillActive).toBe(true);
+    expect(next.propertyStates['mediterranean']?.poisonPillActive).toBe(true);
     expect(next.turnPhase).toBe('action');
   });
 
@@ -479,7 +481,9 @@ describe('ACTIVATE_POISON_PILL', () => {
       type: 'ACTIVATE_POISON_PILL',
       propertyId: 'mediterranean',
     });
-    expect(next.propertyStates['mediterranean'].poisonPillActive).toBeFalsy();
+    expect(
+      valueOf(next.propertyStates, 'mediterranean').poisonPillActive,
+    ).toBeFalsy();
   });
 });
 
@@ -503,7 +507,7 @@ describe('DRAW_CARD + DISMISS_CARD (applyCardEffect)', () => {
     });
     state = gameReducer(state, { type: 'DRAW_CARD' });
     const next = gameReducer(state, { type: 'DISMISS_CARD' });
-    expect(next.players[0].money).toBe(1600);
+    expect(next.players[0]?.money).toBe(1600);
     expect(next.turnPhase).toBe('endTurn');
   });
 
@@ -518,7 +522,7 @@ describe('DRAW_CARD + DISMISS_CARD (applyCardEffect)', () => {
     });
     state = gameReducer(state, { type: 'DRAW_CARD' });
     const next = gameReducer(state, { type: 'DISMISS_CARD' });
-    expect(next.players[0].money).toBe(1450);
+    expect(next.players[0]?.money).toBe(1450);
   });
 
   it('moneyFromPlayers (受け取り)', () => {
@@ -532,9 +536,9 @@ describe('DRAW_CARD + DISMISS_CARD (applyCardEffect)', () => {
     });
     state = gameReducer(state, { type: 'DRAW_CARD' });
     const next = gameReducer(state, { type: 'DISMISS_CARD' });
-    expect(next.players[0].money).toBe(1520); // 1500 + 10*2
-    expect(next.players[1].money).toBe(1490); // 1500 - 10
-    expect(next.players[2].money).toBe(1490);
+    expect(next.players[0]?.money).toBe(1520); // 1500 + 10*2
+    expect(next.players[1]?.money).toBe(1490); // 1500 - 10
+    expect(next.players[2]?.money).toBe(1490);
   });
 
   it('moneyFromPlayers (支払い)', () => {
@@ -548,8 +552,8 @@ describe('DRAW_CARD + DISMISS_CARD (applyCardEffect)', () => {
     });
     state = gameReducer(state, { type: 'DRAW_CARD' });
     const next = gameReducer(state, { type: 'DISMISS_CARD' });
-    expect(next.players[0].money).toBe(1400); // 1500 - 50*2
-    expect(next.players[1].money).toBe(1550); // 1500 + 50
+    expect(next.players[0]?.money).toBe(1400); // 1500 - 50*2
+    expect(next.players[1]?.money).toBe(1550); // 1500 + 50
   });
 
   it('jail カードで刑務所に送られる', () => {
@@ -563,8 +567,8 @@ describe('DRAW_CARD + DISMISS_CARD (applyCardEffect)', () => {
     });
     state = gameReducer(state, { type: 'DRAW_CARD' });
     const next = gameReducer(state, { type: 'DISMISS_CARD' });
-    expect(next.players[0].position).toBe(10);
-    expect(next.players[0].inJail).toBe(true);
+    expect(next.players[0]?.position).toBe(10);
+    expect(next.players[0]?.inJail).toBe(true);
   });
 
   it('jailFree カードで刑務所カードがもらえる', () => {
@@ -578,7 +582,7 @@ describe('DRAW_CARD + DISMISS_CARD (applyCardEffect)', () => {
     });
     state = gameReducer(state, { type: 'DRAW_CARD' });
     const next = gameReducer(state, { type: 'DISMISS_CARD' });
-    expect(next.players[0].getOutOfJailCards).toBe(1);
+    expect(next.players[0]?.getOutOfJailCards).toBe(1);
   });
 
   it('move カードで指定位置に移動 (GO 通過なし)', () => {
@@ -593,8 +597,8 @@ describe('DRAW_CARD + DISMISS_CARD (applyCardEffect)', () => {
     });
     state = gameReducer(state, { type: 'DRAW_CARD' });
     const next = gameReducer(state, { type: 'DISMISS_CARD' });
-    expect(next.players[0].position).toBe(11);
-    expect(next.players[0].money).toBe(1500); // GO 通過していない
+    expect(next.players[0]?.position).toBe(11);
+    expect(next.players[0]?.money).toBe(1500); // GO 通過していない
   });
 
   it('move カードで指定位置に移動 (GO 通過あり)', () => {
@@ -609,9 +613,9 @@ describe('DRAW_CARD + DISMISS_CARD (applyCardEffect)', () => {
     });
     state = gameReducer(state, { type: 'DRAW_CARD' });
     const next = gameReducer(state, { type: 'DISMISS_CARD' });
-    expect(next.players[0].position).toBe(5);
-    expect(next.players[0].money).toBe(1650); // 1500 + 150
-    expect(next.players[1].money).toBe(1550); // 1500 + 50
+    expect(next.players[0]?.position).toBe(5);
+    expect(next.players[0]?.money).toBe(1650); // 1500 + 150
+    expect(next.players[1]?.money).toBe(1550); // 1500 + 50
   });
 
   it('moveRelative で相対移動', () => {
@@ -626,7 +630,7 @@ describe('DRAW_CARD + DISMISS_CARD (applyCardEffect)', () => {
     });
     state = gameReducer(state, { type: 'DRAW_CARD' });
     const next = gameReducer(state, { type: 'DISMISS_CARD' });
-    expect(next.players[0].position).toBe(4);
+    expect(next.players[0]?.position).toBe(4);
   });
 
   it('repair で家・ホテル分の支払い', () => {
@@ -640,12 +644,12 @@ describe('DRAW_CARD + DISMISS_CARD (applyCardEffect)', () => {
       propertyStates: {
         ...state.propertyStates,
         mediterranean: {
-          ...state.propertyStates.mediterranean,
+          ...valueOf(state.propertyStates, 'mediterranean'),
           ownerId: 'player-0',
           houses: 2,
         },
         baltic: {
-          ...state.propertyStates.baltic,
+          ...valueOf(state.propertyStates, 'baltic'),
           ownerId: 'player-0',
           houses: 5, // ホテル
         },
@@ -660,7 +664,7 @@ describe('DRAW_CARD + DISMISS_CARD (applyCardEffect)', () => {
     state = gameReducer(state, { type: 'DRAW_CARD' });
     const next = gameReducer(state, { type: 'DISMISS_CARD' });
     // 2軒 * 25 + ホテル * 100 = 150
-    expect(next.players[0].money).toBe(1350);
+    expect(next.players[0]?.money).toBe(1350);
   });
 
   it('moveNearest で最寄りの鉄道へ', () => {
@@ -675,8 +679,10 @@ describe('DRAW_CARD + DISMISS_CARD (applyCardEffect)', () => {
     state = gameReducer(state, { type: 'DRAW_CARD' });
     const next = gameReducer(state, { type: 'DISMISS_CARD' });
     // position 7 から最寄り鉄道 = 15 (pennsylvania-rr / みなみ鉄道)
-    expect(next.players[0].position).toBe(15);
-    expect(next.board[next.players[0].position].type).toBe('railroad');
+    expect(next.players[0]?.position).toBe(15);
+    expect(getSpaceAt(next.board, itemAt(next.players, 0).position).type).toBe(
+      'railroad',
+    );
   });
 
   it('communityChest からも引ける', () => {
@@ -690,7 +696,7 @@ describe('DRAW_CARD + DISMISS_CARD (applyCardEffect)', () => {
     });
     state = gameReducer(state, { type: 'DRAW_CARD' });
     const next = gameReducer(state, { type: 'DISMISS_CARD' });
-    expect(next.players[0].money).toBe(1700);
+    expect(next.players[0]?.money).toBe(1700);
   });
 
   it('カードが空のときは新しいデッキを補充', () => {
@@ -715,10 +721,10 @@ describe('ROLL_FOR_JAIL', () => {
     // startedGame 後にモック設定（shuffleCards にモックを消費させない）
     vi.spyOn(randomModule, 'getSecureRandomInt').mockReturnValue(1); // 常に1が出る → ゾロ目
     const next = gameReducer(state, { type: 'ROLL_FOR_JAIL' });
-    expect(next.players[0].inJail).toBe(false);
-    expect(next.players[0].jailTurns).toBe(0);
+    expect(next.players[0]?.inJail).toBe(false);
+    expect(next.players[0]?.jailTurns).toBe(0);
     // ROLL_FOR_JAIL ではまだ移動しない（アニメーション後に FINISH_MOVING で進む）
-    expect(next.players[0].position).toBe(10);
+    expect(next.players[0]?.position).toBe(10);
     expect(next.turnPhase).toBe('moving');
     expect(next.dice.values).toEqual([1, 1]);
     vi.restoreAllMocks();
@@ -726,7 +732,7 @@ describe('ROLL_FOR_JAIL', () => {
 
   it('3回目の試行でゾロ目が出なければ$50払って強制出獄', () => {
     let state = startedGame();
-    const moneyBefore = state.players[0].money;
+    const moneyBefore = itemAt(state.players, 0).money;
     state = withCurrentPlayer(state, {
       inJail: true,
       jailTurns: 2, // +1 で 3 → 強制出獄
@@ -736,11 +742,11 @@ describe('ROLL_FOR_JAIL', () => {
       .mockReturnValueOnce(1)
       .mockReturnValueOnce(4); // 1, 4
     const next = gameReducer(state, { type: 'ROLL_FOR_JAIL' });
-    expect(next.players[0].inJail).toBe(false);
-    expect(next.players[0].jailTurns).toBe(0);
-    expect(next.players[0].money).toBe(moneyBefore - 50);
+    expect(next.players[0]?.inJail).toBe(false);
+    expect(next.players[0]?.jailTurns).toBe(0);
+    expect(next.players[0]?.money).toBe(moneyBefore - 50);
     // 移動はアニメーション後の FINISH_MOVING で行うため、ここではまだ進まない
-    expect(next.players[0].position).toBe(10);
+    expect(next.players[0]?.position).toBe(10);
     expect(next.turnPhase).toBe('moving');
     vi.restoreAllMocks();
   });
@@ -756,8 +762,8 @@ describe('ROLL_FOR_JAIL', () => {
       .mockReturnValueOnce(1)
       .mockReturnValueOnce(4); // 1, 4
     const next = gameReducer(state, { type: 'ROLL_FOR_JAIL' });
-    expect(next.players[0].inJail).toBe(true);
-    expect(next.players[0].jailTurns).toBe(1);
+    expect(next.players[0]?.inJail).toBe(true);
+    expect(next.players[0]?.jailTurns).toBe(1);
     expect(next.turnPhase).toBe('endTurn');
     vi.restoreAllMocks();
   });
@@ -773,8 +779,8 @@ describe('ROLL_FOR_JAIL', () => {
       .mockReturnValueOnce(1)
       .mockReturnValueOnce(4); // 1, 4
     const next = gameReducer(state, { type: 'ROLL_FOR_JAIL' });
-    expect(next.players[0].inJail).toBe(true);
-    expect(next.players[0].jailTurns).toBe(2);
+    expect(next.players[0]?.inJail).toBe(true);
+    expect(next.players[0]?.jailTurns).toBe(2);
     expect(next.turnPhase).toBe('endTurn');
     vi.restoreAllMocks();
   });
@@ -858,11 +864,11 @@ describe('トレード (OPEN/PROPOSE/ACCEPT/REJECT/CLOSE)', () => {
     };
     state = gameReducer(state, { type: 'PROPOSE_TRADE', offer });
     const next = gameReducer(state, { type: 'ACCEPT_TRADE' });
-    expect(next.players[0].money).toBe(1700);
-    expect(next.players[0].properties).not.toContain('mediterranean');
-    expect(next.players[1].money).toBe(1300);
-    expect(next.players[1].properties).toContain('mediterranean');
-    expect(next.propertyStates['mediterranean'].ownerId).toBe('player-1');
+    expect(next.players[0]?.money).toBe(1700);
+    expect(itemAt(next.players, 0).properties).not.toContain('mediterranean');
+    expect(next.players[1]?.money).toBe(1300);
+    expect(next.players[1]?.properties).toContain('mediterranean');
+    expect(next.propertyStates['mediterranean']?.ownerId).toBe('player-1');
     expect(next.trade).toBeNull();
   });
 
@@ -898,7 +904,7 @@ describe('トレード (OPEN/PROPOSE/ACCEPT/REJECT/CLOSE)', () => {
       fromPlayerId: 'player-0',
       toPlayerId: 'player-1',
       offerProperties: [],
-      offerMoney: state.players[0].money + 1,
+      offerMoney: itemAt(state.players, 0).money + 1,
       offerJailCards: 0,
       requestProperties: [],
       requestMoney: 0,
@@ -964,7 +970,7 @@ describe('トレード (OPEN/PROPOSE/ACCEPT/REJECT/CLOSE)', () => {
     const before = state;
     const next = gameReducer(state, { type: 'ACCEPT_TRADE' });
     expect(next).toBe(before);
-    expect(next.players[0].money).toBe(offerMoney - 1);
+    expect(next.players[0]?.money).toBe(offerMoney - 1);
   });
 });
 
@@ -1080,12 +1086,12 @@ describe('SELL_PROPERTY', () => {
     expect(next.auction).toBeNull();
     expect(next.turnPhase).toBe('endTurn');
     // 物件は空白地化
-    expect(next.propertyStates['mediterranean'].ownerId).toBeNull();
+    expect(next.propertyStates['mediterranean']?.ownerId).toBeNull();
     // 売却者 (player-0) は startingBid (=60) を受け取り、物件を失う
-    expect(next.players[0].money).toBe(1560);
-    expect(next.players[0].properties).not.toContain('mediterranean');
+    expect(next.players[0]?.money).toBe(1560);
+    expect(itemAt(next.players, 0).properties).not.toContain('mediterranean');
     // 他プレイヤーの所持金は変わらない
-    expect(next.players[1].money).toBe(1500);
+    expect(next.players[1]?.money).toBe(1500);
   });
 
   it('3人プレイの売却オークションで全員パス → 売却者に開始価格が入金される', () => {
@@ -1108,9 +1114,9 @@ describe('SELL_PROPERTY', () => {
     // player-2 がパス → 全員パス → 終了
     const next = gameReducer(state, { type: 'PASS_AUCTION' });
     expect(next.auction).toBeNull();
-    expect(next.propertyStates['mediterranean'].ownerId).toBeNull();
-    expect(next.players[0].money).toBe(1560);
-    expect(next.players[0].properties).not.toContain('mediterranean');
+    expect(next.propertyStates['mediterranean']?.ownerId).toBeNull();
+    expect(next.players[0]?.money).toBe(1560);
+    expect(itemAt(next.players, 0).properties).not.toContain('mediterranean');
   });
 });
 
@@ -1132,10 +1138,10 @@ describe('DECLARE_BANKRUPTCY', () => {
       type: 'DECLARE_BANKRUPTCY',
       creditorId: null,
     });
-    expect(next.players[0].isBankrupt).toBe(true);
-    expect(next.players[0].money).toBe(0);
-    expect(next.players[0].properties).toEqual([]);
-    expect(next.propertyStates['mediterranean'].ownerId).toBeNull();
+    expect(next.players[0]?.isBankrupt).toBe(true);
+    expect(next.players[0]?.money).toBe(0);
+    expect(next.players[0]?.properties).toEqual([]);
+    expect(next.propertyStates['mediterranean']?.ownerId).toBeNull();
   });
 
   it('債権者ありで破産すると債権者に物件と所持金が渡る', () => {
@@ -1153,9 +1159,9 @@ describe('DECLARE_BANKRUPTCY', () => {
       type: 'DECLARE_BANKRUPTCY',
       creditorId: 'player-1',
     });
-    expect(next.players[0].isBankrupt).toBe(true);
-    expect(next.players[1].money).toBe(1550); // 1500 + 50
-    expect(next.propertyStates['mediterranean'].ownerId).toBe('player-1');
+    expect(next.players[0]?.isBankrupt).toBe(true);
+    expect(next.players[1]?.money).toBe(1550); // 1500 + 50
+    expect(next.propertyStates['mediterranean']?.ownerId).toBe('player-1');
   });
 
   it('最後の1人を残して破産すると勝者が決まる', () => {
@@ -1218,7 +1224,7 @@ describe('所持金マイナス時のフェーズ遷移', () => {
       ),
     };
     const next = gameReducer(state, { type: 'CLOSE_BUILD_DIALOG' });
-    expect(next.players[0].isBankrupt).toBe(true);
+    expect(next.players[0]?.isBankrupt).toBe(true);
     expect(next.phase).toBe('finished');
     expect(next.winnerId).toBe('player-1');
   });

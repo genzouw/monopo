@@ -14,6 +14,7 @@ import {
   canUnmortgage,
   validateTradeOffer,
 } from '../rules';
+import { itemAt } from '../../test-utils';
 
 function makePlayer(overrides: Partial<Player> = {}): Player {
   return {
@@ -425,7 +426,7 @@ describe('validateTradeOffer', () => {
 
   it('提示者の所持金超過は INSUFFICIENT_FUNDS', () => {
     const state = startedGame();
-    const fromMoney = state.players[0].money;
+    const fromMoney = itemAt(state.players, 0).money;
     const result = validateTradeOffer(
       state,
       makeOffer({ offerMoney: fromMoney + 1 }),
@@ -435,7 +436,7 @@ describe('validateTradeOffer', () => {
 
   it('受け手の所持金超過は INSUFFICIENT_FUNDS', () => {
     const state = startedGame();
-    const toMoney = state.players[1].money;
+    const toMoney = itemAt(state.players, 1).money;
     const result = validateTradeOffer(
       state,
       makeOffer({ requestMoney: toMoney + 1 }),

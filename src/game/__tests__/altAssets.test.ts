@@ -15,6 +15,7 @@ import {
 } from '../systems/altAssets';
 import { createInitialGameState, gameReducer } from '../reducer';
 import type { GameState } from '../types';
+import { itemAt } from '../../test-utils';
 
 function startGame(features?: { altAssets?: boolean }): GameState {
   return gameReducer(createInitialGameState(), {
@@ -153,24 +154,24 @@ describe('reducer: BUY_CRYPTO / SELL_CRYPTO', () => {
   it('BUY_CRYPTO でプレイヤーの資金が減り暗号資産を保有する', () => {
     const state = startGame({ altAssets: true });
     const after = gameReducer(state, { type: 'BUY_CRYPTO', amount: 500 });
-    expect(after.players[0].money).toBe(1000);
-    expect(after.players[0].cryptoHolding).toBeDefined();
-    expect(after.players[0].cryptoHolding!.units).toBeCloseTo(0.5);
+    expect(after.players[0]?.money).toBe(1000);
+    expect(after.players[0]?.cryptoHolding).toBeDefined();
+    expect(after.players[0]?.cryptoHolding!.units).toBeCloseTo(0.5);
   });
 
   it('資金不足の場合は BUY_CRYPTO が無視される', () => {
     const state = startGame({ altAssets: true });
     const after = gameReducer(state, { type: 'BUY_CRYPTO', amount: 99999 });
-    expect(after.players[0].cryptoHolding).toBeUndefined();
+    expect(itemAt(after.players, 0).cryptoHolding).toBeUndefined();
   });
 
   it('SELL_CRYPTO で暗号資産が消えて資金が戻る', () => {
     const state = startGame({ altAssets: true });
     const bought = gameReducer(state, { type: 'BUY_CRYPTO', amount: 500 });
     const sold = gameReducer(bought, { type: 'SELL_CRYPTO' });
-    expect(sold.players[0].cryptoHolding).toBeUndefined();
+    expect(itemAt(sold.players, 0).cryptoHolding).toBeUndefined();
     // 1500 で開始 → 500 で購入（残 1000）→ 同じ価格で売却（+500）→ 元の 1500 に戻る
-    expect(sold.players[0].money).toBe(1500);
+    expect(sold.players[0]?.money).toBe(1500);
   });
 });
 
@@ -178,9 +179,9 @@ describe('reducer: INVEST_VC', () => {
   it('INVEST_VC で資金が減り VC 投資が記録される', () => {
     const state = startGame({ altAssets: true });
     const after = gameReducer(state, { type: 'INVEST_VC', amount: 300 });
-    expect(after.players[0].money).toBe(1200);
-    expect(after.players[0].vcInvestments).toHaveLength(1);
-    expect(after.players[0].vcInvestments![0].amount).toBe(300);
+    expect(after.players[0]?.money).toBe(1200);
+    expect(after.players[0]?.vcInvestments).toHaveLength(1);
+    expect(after.players[0]?.vcInvestments?.[0]?.amount).toBe(300);
   });
 });
 
@@ -188,16 +189,16 @@ describe('reducer: BUY_ESG / SELL_ESG', () => {
   it('BUY_ESG で資金が減り ESG 保有が追加される', () => {
     const state = startGame({ altAssets: true });
     const after = gameReducer(state, { type: 'BUY_ESG', amount: 400 });
-    expect(after.players[0].money).toBe(1100);
-    expect(after.players[0].esgHoldings).toHaveLength(1);
+    expect(after.players[0]?.money).toBe(1100);
+    expect(after.players[0]?.esgHoldings).toHaveLength(1);
   });
 
   it('SELL_ESG で ESG 保有が削除されて資金が戻る', () => {
     const state = startGame({ altAssets: true });
     const bought = gameReducer(state, { type: 'BUY_ESG', amount: 400 });
     const sold = gameReducer(bought, { type: 'SELL_ESG', index: 0 });
-    expect(sold.players[0].esgHoldings).toBeUndefined();
-    expect(sold.players[0].money).toBe(1500);
+    expect(itemAt(sold.players, 0).esgHoldings).toBeUndefined();
+    expect(sold.players[0]?.money).toBe(1500);
   });
 });
 
@@ -206,7 +207,7 @@ describe('reducer: ESGが10ターンごとに配当を支払う', () => {
     let state = startGame({ altAssets: true });
     // プレイヤー0がESG購入
     state = gameReducer(state, { type: 'BUY_ESG', amount: 1000 });
-    const moneyAfterBuy = state.players[0].money; // 500
+    const moneyAfterBuy = itemAt(state.players, 0).money; // 500
 
     // 10ターン分 END_TURN を発行（2プレイヤーで交互、各5回ずつ）
     for (let i = 0; i < 10; i++) {
@@ -223,7 +224,7 @@ describe('reducer: 暗号資産価格がターンごとに変動する', () => {
   it('END_TURN ごとに暗号資産の現在価格が更新される', () => {
     let state = startGame({ altAssets: true });
     state = gameReducer(state, { type: 'BUY_CRYPTO', amount: 500 });
-    const priceAfterBuy = state.players[0].cryptoHolding!.currentPrice;
+    const priceAfterBuy = itemAt(state.players, 0).cryptoHolding!.currentPrice;
 
     state = gameReducer(state, { type: 'END_TURN' });
 

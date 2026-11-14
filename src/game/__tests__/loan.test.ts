@@ -13,6 +13,7 @@ import {
   validateRepayLoan,
   isLoanEnabled,
 } from '../systems/loan';
+import { itemAt } from '../../test-utils';
 
 const makeState = (overrides: Partial<GameState> = {}): GameState =>
   ({
@@ -129,7 +130,7 @@ describe('loan', () => {
   describe('getLoanInterestRate', () => {
     it('macroEconomy無効時はDEFAULT_LOAN_INTEREST_RATEを返す（変動）', () => {
       const state = makeState({ features: { loan: true } });
-      const player = state.players[0];
+      const player = itemAt(state.players, 0);
       expect(getLoanInterestRate(state, player, 'variable')).toBe(
         DEFAULT_LOAN_INTEREST_RATE,
       );
@@ -140,7 +141,7 @@ describe('loan', () => {
         features: { loan: true, macroEconomy: true },
         economyStatus: 'crisis',
       });
-      const player = state.players[0];
+      const player = itemAt(state.players, 0);
       expect(getLoanInterestRate(state, player, 'fixed')).toBe(FIXED_LOAN_RATE);
     });
 
@@ -156,7 +157,7 @@ describe('loan', () => {
           features: { loan: true, macroEconomy: true },
           economyStatus: status,
         });
-        const player = state.players[0];
+        const player = itemAt(state.players, 0);
         const expectedBase = LOAN_INTEREST_RATES[status];
         // creditScore=500（割引0）なので基本金利そのまま
         expect(getLoanInterestRate(state, player, 'variable')).toBe(
@@ -186,7 +187,7 @@ describe('loan', () => {
           },
         ],
       } as unknown as Partial<GameState>);
-      const player = state.players[0];
+      const player = itemAt(state.players, 0);
       // normal=0.1 + discount(-0.05) = 0.05、ただし最低0
       expect(getLoanInterestRate(state, player, 'variable')).toBe(0.05);
     });
@@ -212,7 +213,7 @@ describe('loan', () => {
           },
         ],
       } as unknown as Partial<GameState>);
-      const player = state.players[0];
+      const player = itemAt(state.players, 0);
       // normal=0.1 + penalty(+0.05) = 0.15
       expect(getLoanInterestRate(state, player, 'variable')).toBe(0.15);
     });
@@ -238,7 +239,7 @@ describe('loan', () => {
           },
         ],
       } as unknown as Partial<GameState>);
-      const player = state.players[0];
+      const player = itemAt(state.players, 0);
       // boom=0.05 + discount(-0.05) = 0 → 0（負にはならない）
       expect(getLoanInterestRate(state, player, 'variable')).toBe(0);
     });

@@ -13,6 +13,7 @@ import {
   BUBBLE_MULTIPLIER,
   BUBBLE_NET_BUY_THRESHOLD,
 } from '../systems/behavioralBias';
+import { getCurrentPlayer } from '../rules';
 
 function startGame(features?: FeatureFlags): GameState {
   const s = gameReducer(createInitialGameState(), {
@@ -77,12 +78,7 @@ describe('行動経済学バイアスの結線', () => {
       const buyPrice = Math.floor(base * BUBBLE_MULTIPLIER + 1e-9);
       expect(getStockBuyPrice(s, 'brown')).toBe(buyPrice);
       // 請求（validateStockBuy）は表示と同じ買い価格
-      const v = validateStockBuy(
-        s,
-        s.players[s.currentPlayerIndex].id,
-        'brown',
-        2,
-      );
+      const v = validateStockBuy(s, getCurrentPlayer(s).id, 'brown', 2);
       expect(v).toEqual({ ok: true, cost: buyPrice * 2 });
     });
 
@@ -91,7 +87,7 @@ describe('行動経済学バイアスの結線', () => {
       s = buy(s, BUBBLE_NET_BUY_THRESHOLD);
       s = endTurn(s);
       s = endTurn(s); // 買った本人（index 0）の手番へ戻す
-      const holder = s.players[s.currentPlayerIndex];
+      const holder = getCurrentPlayer(s);
       const base = s.stockMarket!.brown!.pricePerShare;
       expect(isStockBubbleEffective(s, 'brown')).toBe(true);
       const v = validateStockSell(s, holder.id, 'brown', 1);
@@ -134,12 +130,7 @@ describe('行動経済学バイアスの結線', () => {
         Math.floor(base * 0.4 * BUBBLE_MULTIPLIER + 1e-9),
       );
       // 表示に使う買い価格と、請求（validateStockBuy の cost）が危機とバブルの重なりでも一致する
-      const v = validateStockBuy(
-        s,
-        s.players[s.currentPlayerIndex].id,
-        'brown',
-        1,
-      );
+      const v = validateStockBuy(s, getCurrentPlayer(s).id, 'brown', 1);
       expect(v).toEqual({ ok: true, cost: getStockBuyPrice(s, 'brown') });
       s = endTurn(s);
       expect(s.behavioralBias?.brown?.bubbleStartedTurn).toBeNull();

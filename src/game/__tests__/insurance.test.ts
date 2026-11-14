@@ -18,6 +18,7 @@ import {
   validateBuyInsurance,
 } from '../systems/insurance';
 import type { GameState } from '../types';
+import { itemAt } from '../../test-utils';
 
 function startGame(features?: { insurance?: boolean }): GameState {
   return gameReducer(createInitialGameState(), {
@@ -152,7 +153,7 @@ describe('validateBuyInsurance', () => {
     };
     const result = validateBuyInsurance(
       stateWithProp,
-      stateWithProp.players[0].id,
+      itemAt(stateWithProp.players, 0).id,
       'prop-brown-1',
     );
     expect(result.ok).toBe(false);
@@ -163,7 +164,7 @@ describe('validateBuyInsurance', () => {
     const state = startGame({ insurance: true });
     const result = validateBuyInsurance(
       state,
-      state.players[0].id,
+      itemAt(state.players, 0).id,
       'prop-brown-1',
     );
     expect(result.ok).toBe(false);
@@ -181,7 +182,7 @@ describe('validateBuyInsurance', () => {
     };
     const result = validateBuyInsurance(
       stateWithPropNoMoney,
-      stateWithPropNoMoney.players[0].id,
+      itemAt(stateWithPropNoMoney.players, 0).id,
       propId,
     );
     expect(result.ok).toBe(false);
@@ -221,39 +222,39 @@ describe('reducer 保険統合', () => {
     it('insurance OFF のとき BUY_INSURANCE は無視される', () => {
       let state = startGame({ insurance: false });
       state = buyProperty(state);
-      const propId = state.players[0].properties[0];
-      const before = state.players[0].money;
+      const propId = itemAt(itemAt(state.players, 0).properties, 0);
+      const before = itemAt(state.players, 0).money;
       state = gameReducer(state, { type: 'BUY_INSURANCE', propertyId: propId });
-      expect(state.players[0].money).toBe(before);
+      expect(state.players[0]?.money).toBe(before);
       expect(state.insuranceState).toBeUndefined();
     });
 
     it('保険加入で保険料が引かれ insuranceState に登録される', () => {
       let state = startGame({ insurance: true });
       state = buyProperty(state);
-      const propId = state.players[0].properties[0];
+      const propId = itemAt(itemAt(state.players, 0).properties, 0);
       const space = state.board.find((s) => s.id === propId)!;
       const expectedPremium = Math.floor((space.price ?? 0) * INSURANCE_RATE);
-      const moneyBefore = state.players[0].money;
+      const moneyBefore = itemAt(state.players, 0).money;
       state = gameReducer(state, { type: 'BUY_INSURANCE', propertyId: propId });
-      expect(state.players[0].money).toBe(moneyBefore - expectedPremium);
+      expect(state.players[0]?.money).toBe(moneyBefore - expectedPremium);
       expect(state.insuranceState?.[propId]).toBe(true);
     });
 
     it('すでに加入済みの物件に再度 BUY_INSURANCE しても変化なし', () => {
       let state = startGame({ insurance: true });
       state = buyProperty(state);
-      const propId = state.players[0].properties[0];
+      const propId = itemAt(itemAt(state.players, 0).properties, 0);
       state = gameReducer(state, { type: 'BUY_INSURANCE', propertyId: propId });
-      const moneyAfterFirst = state.players[0].money;
+      const moneyAfterFirst = itemAt(state.players, 0).money;
       state = gameReducer(state, { type: 'BUY_INSURANCE', propertyId: propId });
-      expect(state.players[0].money).toBe(moneyAfterFirst);
+      expect(state.players[0]?.money).toBe(moneyAfterFirst);
     });
 
     it('CANCEL_INSURANCE で insuranceState から削除される', () => {
       let state = startGame({ insurance: true });
       state = buyProperty(state);
-      const propId = state.players[0].properties[0];
+      const propId = itemAt(itemAt(state.players, 0).properties, 0);
       state = gameReducer(state, { type: 'BUY_INSURANCE', propertyId: propId });
       expect(state.insuranceState?.[propId]).toBe(true);
       state = gameReducer(state, {
@@ -266,17 +267,17 @@ describe('reducer 保険統合', () => {
     it('自分が所有していない物件の保険加入はできない', () => {
       let state = startGame({ insurance: true });
       state = buyProperty(state);
-      const propId = state.players[0].properties[0];
+      const propId = itemAt(itemAt(state.players, 0).properties, 0);
       const stateWithP2Turn = {
         ...state,
         currentPlayerIndex: 1,
       };
-      const moneyBefore = stateWithP2Turn.players[1].money;
+      const moneyBefore = itemAt(stateWithP2Turn.players, 1).money;
       const after = gameReducer(stateWithP2Turn, {
         type: 'BUY_INSURANCE',
         propertyId: propId,
       });
-      expect(after.players[1].money).toBe(moneyBefore);
+      expect(after.players[1]?.money).toBe(moneyBefore);
       expect(after.insuranceState?.[propId]).toBeUndefined();
     });
 
@@ -289,13 +290,13 @@ describe('reducer 保険統合', () => {
         ),
       };
       state = gameReducer(state, { type: 'BUY_PROPERTY' });
-      const propId = state.players[0].properties[0];
-      const moneyBefore = state.players[0].money;
+      const propId = itemAt(itemAt(state.players, 0).properties, 0);
+      const moneyBefore = itemAt(state.players, 0).money;
       const after = gameReducer(state, {
         type: 'BUY_INSURANCE',
         propertyId: propId,
       });
-      expect(after.players[0].money).toBe(moneyBefore);
+      expect(after.players[0]?.money).toBe(moneyBefore);
       expect(after.insuranceState?.[propId]).toBeUndefined();
     });
 
@@ -308,13 +309,13 @@ describe('reducer 保険統合', () => {
         ),
       };
       state = gameReducer(state, { type: 'BUY_PROPERTY' });
-      const propId = state.players[0].properties[0];
-      const moneyBefore = state.players[0].money;
+      const propId = itemAt(itemAt(state.players, 0).properties, 0);
+      const moneyBefore = itemAt(state.players, 0).money;
       const after = gameReducer(state, {
         type: 'BUY_INSURANCE',
         propertyId: propId,
       });
-      expect(after.players[0].money).toBe(moneyBefore);
+      expect(after.players[0]?.money).toBe(moneyBefore);
       expect(after.insuranceState?.[propId]).toBeUndefined();
     });
   });
@@ -353,7 +354,10 @@ describe('reducer 保険統合', () => {
         ),
       };
       const afterBuy = gameReducer(withPosition, { type: 'BUY_PROPERTY' });
-      return { state: afterBuy, propId: afterBuy.players[0].properties[0] };
+      return {
+        state: afterBuy,
+        propId: itemAt(itemAt(afterBuy.players, 0).properties, 0),
+      };
     }
 
     it('END_TURN 時に火災が発生し物件が消滅する（保険あり）', () => {
@@ -364,12 +368,12 @@ describe('reducer 保険統合', () => {
         type: 'BUY_INSURANCE',
         propertyId: propId,
       });
-      const moneyBefore = state.players[0].money;
+      const moneyBefore = itemAt(state.players, 0).money;
       const space = state.board.find((s) => s.id === propId)!;
       state = { ...state, dice: { values: [1, 2], doubles: 0, rolled: true } };
       state = gameReducer(state, { type: 'END_TURN' });
-      expect(state.players[0].properties).not.toContain(propId);
-      expect(state.players[0].money).toBe(moneyBefore + (space.price ?? 0));
+      expect(itemAt(state.players, 0).properties).not.toContain(propId);
+      expect(state.players[0]?.money).toBe(moneyBefore + (space.price ?? 0));
       expect(state.insuranceState?.[propId]).toBeUndefined();
     });
 
@@ -377,7 +381,7 @@ describe('reducer 保険統合', () => {
       vi.spyOn(randomModule, 'getSecureRandomInt').mockReturnValue(1);
       let state = startGame({ insurance: true });
       const { state: withProp, propId } = buyPropertyForPlayer(state);
-      const moneyBefore = withProp.players[0].money;
+      const moneyBefore = itemAt(withProp.players, 0).money;
       const space = withProp.board.find((s) => s.id === propId)!;
       const scrapValue = Math.floor((space.price ?? 0) * FIRE_SCRAP_RATE);
       state = {
@@ -385,8 +389,8 @@ describe('reducer 保険統合', () => {
         dice: { values: [1, 2], doubles: 0, rolled: true },
       };
       state = gameReducer(state, { type: 'END_TURN' });
-      expect(state.players[0].properties).not.toContain(propId);
-      expect(state.players[0].money).toBe(moneyBefore + scrapValue);
+      expect(itemAt(state.players, 0).properties).not.toContain(propId);
+      expect(state.players[0]?.money).toBe(moneyBefore + scrapValue);
     });
 
     it('火災発生時は火災メッセージがターン告知に上書きされず表示される', () => {
@@ -438,7 +442,7 @@ describe('reducer 保険統合', () => {
       state = { ...state, dice: { values: [1, 2], doubles: 0, rolled: true } };
       state = gameReducer(state, { type: 'END_TURN' });
       expect(state.insuranceState?.[propId]).toBeUndefined();
-      expect(state.players[0].money).toBeGreaterThanOrEqual(0);
+      expect(state.players[0]?.money).toBeGreaterThanOrEqual(0);
     });
   });
 
@@ -456,7 +460,7 @@ describe('reducer 保険統合', () => {
         propertyStates: {
           ...state.propertyStates,
           [propId]: {
-            ownerId: state.players[0].id,
+            ownerId: itemAt(state.players, 0).id,
             houses: 2,
             isMortgaged: false,
           },
@@ -472,7 +476,7 @@ describe('reducer 保険統合', () => {
         },
       };
       const after = gameReducer(stateWithHouse, { type: 'DISMISS_CARD' });
-      expect(after.propertyStates[propId].houses).toBe(1);
+      expect(after.propertyStates[propId]?.houses).toBe(1);
     });
 
     it('blackSwanDisasterカード: 保険あり物件は家が失われない', () => {
@@ -488,7 +492,7 @@ describe('reducer 保険統合', () => {
         propertyStates: {
           ...state.propertyStates,
           [propId]: {
-            ownerId: state.players[0].id,
+            ownerId: itemAt(state.players, 0).id,
             houses: 2,
             isMortgaged: false,
             isInsured: true,
@@ -505,8 +509,8 @@ describe('reducer 保険統合', () => {
         },
       };
       const after = gameReducer(stateWithInsurance, { type: 'DISMISS_CARD' });
-      expect(after.propertyStates[propId].houses).toBe(2);
-      expect(after.propertyStates[propId].isInsured).toBe(false);
+      expect(after.propertyStates[propId]?.houses).toBe(2);
+      expect(after.propertyStates[propId]?.isInsured).toBe(false);
     });
   });
 });

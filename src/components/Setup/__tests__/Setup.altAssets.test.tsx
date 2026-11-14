@@ -39,6 +39,6 @@ describe('Setup altAssets トグルの永続化', () => {
     fireEvent.click(screen.getByRole('button', { name: 'ゲームスタート！' }));
 
     expect(onStart).toHaveBeenCalledTimes(1);
-    expect(onStart.mock.calls[0][2]).toMatchObject({ altAssets: true });
+    expect(onStart.mock.calls[0]?.[2]).toMatchObject({ altAssets: true });
   });
 });
