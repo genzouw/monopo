@@ -2,7 +2,7 @@
   "ci": {
     "collect": {
       "startServerCommand": "bun run preview",
-      "startServerReadyPattern": "Local:",
+      "startServerReadyPattern": "Local",
       "url": ["http://localhost:4173/monopo/"],
       "numberOfRuns": 3
     },
