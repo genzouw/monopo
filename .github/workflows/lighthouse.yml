@@ -18,3 +18,5 @@ jobs:
         uses: treosh/lighthouse-ci-action@3e7e23fb74242897f95c0ba9cabad3d0227b9b18 # 12.6.2
         with:
           configPath: './.lighthouserc.json'
+          uploadArtifacts: true
+          artifactName: lighthouse-results

@@ -59,9 +59,8 @@ Issue から自動でコード変更・PRを生成する Sweep AI GitHub App 向
 フロントエンドの品質向上ツールとして Lighthouse CI (`treosh/lighthouse-ci-action`) を導入しました。
 
 1. **動作の確認**
-   - `.lighthouserc.json` の `upload.target: "temporary-public-storage"` により、レポートは一時的な公開ストレージ（7日間で削除）にアップロードされます。
-     - 参考: `treosh/lighthouse-ci-action` の入力引数では同等の指定が `temporaryPublicStorage: true` という名称になりますが、本リポジトリでは設定を `.lighthouserc.json` 側に集約しているため、ワークフロー側ではこの入力引数を使用していません。
-   - よりセキュアな運用が必要な場合は、プライベートなLHCIサーバーを構築し、シークレット（`LHCI_SERVER_URL`, `LHCI_SERVER_TOKEN`）を登録した上で `.lighthouserc.json` の `upload.target` を `lhci` に変更する運用を検討してください。
+   - レポートは `treosh/lighthouse-ci-action` の `uploadArtifacts: true` により、GitHub Actions の Artifact `lighthouse-results` に保存されます。`.lighthouserc.json` には `upload` 節がないため、外部の公開ストレージへはレポートを送りません。
+   - `.lighthouserc.json` の `assert` 節でスコアと転送量を判定します。アクセシビリティとベストプラクティスのスコア、JS の転送量（`resource-summary:script:size`）は `error` で、閾値を外れるとジョブが失敗します。パフォーマンスのスコアと総転送量（`resource-summary:total:size`）は `warn` で、閾値を外れても警告を出すだけです。パフォーマンスのスコアはランナーの CPU 負荷で上下するため、誤検知でジョブが失敗しないようにしています。
 
 ## 新規: AI Accessibility Reviewer の設定
 
