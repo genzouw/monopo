@@ -262,6 +262,24 @@ function getPropertyState(
   return propState;
 }
 
+/**
+ * 指定したマスが、銀行から購入できる空き物件かどうかを判定する。
+ * 税金マスも税額を `price` に持つため、`price` の有無では判定できない。
+ * 物件の状態は `createPropertyStates` が `property` / `railroad` / `utility` の分だけ作るため、
+ * 状態が存在し、かつ持ち主がいないマスだけを購入できるマスとみなす。
+ *
+ * @param propertyStates - 物件 ID から物件の状態への対応
+ * @param spaceId - 判定するマスの ID
+ * @returns 購入できる空き物件なら `true`
+ */
+function isPurchasableSpace(
+  propertyStates: Record<string, PropertyState>,
+  spaceId: string,
+): boolean {
+  const propState = propertyStates[spaceId];
+  return propState !== undefined && propState.ownerId === null;
+}
+
 function nextActivePlayer(players: Player[], currentIndex: number): number {
   const total = players.length;
   let next = (currentIndex + 1) % total;
@@ -956,9 +974,12 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     case 'BUY_PROPERTY': {
       const player = getCurrentPlayer(state);
       const space = getSpaceAt(state.board, player.position);
-      if (!space || !space.price) return state;
-      // 税マスなど、物件の状態を持たないマスは購入できない
-      if (!state.propertyStates[space.id]) return state;
+      if (
+        !space ||
+        !space.price ||
+        !isPurchasableSpace(state.propertyStates, space.id)
+      )
+        return state;
 
       // 信用スコア拡張: スコアが低い場合、高額物件の購入を制限
       if (
@@ -997,7 +1018,9 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
     case 'DECLINE_PURCHASE': {
       const player = getCurrentPlayer(state);
       const space = getSpaceAt(state.board, player.position);
-      if (!space) return state;
+      // 購入できないマスでオークションを始めると、落札時に物件の状態が見つからず例外になる
+      if (!space || !isPurchasableSpace(state.propertyStates, space.id))
+        return state;
 
       const startingBid = space.price ?? 0;
       const auction: AuctionState = {

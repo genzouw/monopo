@@ -206,6 +206,35 @@ describe('BUY_PROPERTY', () => {
     expect(next.turnPhase).toBe('endTurn');
   });
 
+  it('税金マスでは例外を投げず、状態を変えない（#926）', () => {
+    let state = startedGame();
+    // position=4 は income-tax（税額 200 を price に持つが購入できない）
+    state = {
+      ...state,
+      players: state.players.map((p, i) =>
+        i === 0 ? { ...p, position: 4 } : p,
+      ),
+    };
+    const next = gameReducer(state, { type: 'BUY_PROPERTY' });
+    expect(next).toBe(state);
+  });
+
+  it('ほかのプレイヤーが持っている物件は買えない', () => {
+    let state = startedGame();
+    state = {
+      ...state,
+      players: state.players.map((p, i) =>
+        i === 0 ? { ...p, position: 1 } : p,
+      ),
+      propertyStates: {
+        ...state.propertyStates,
+        mediterranean: { ownerId: 'player-1', houses: 0, isMortgaged: false },
+      },
+    };
+    const next = gameReducer(state, { type: 'BUY_PROPERTY' });
+    expect(next).toBe(state);
+  });
+
   it('税マス（propertyStates を持たないマス）では state が変わらない', () => {
     let state = startedGame();
     const taxSpace = state.board.find((s) => s.id === 'income-tax');
