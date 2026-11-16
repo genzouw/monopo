@@ -234,6 +234,20 @@ describe('BUY_PROPERTY', () => {
     const next = gameReducer(state, { type: 'BUY_PROPERTY' });
     expect(next).toBe(state);
   });
+
+  it('税マス（propertyStates を持たないマス）では state が変わらない', () => {
+    let state = startedGame();
+    const taxSpace = state.board.find((s) => s.id === 'income-tax');
+    expect(taxSpace).toBeDefined();
+    state = {
+      ...state,
+      players: state.players.map((p, i) =>
+        i === 0 ? { ...p, position: taxSpace?.position ?? 4 } : p,
+      ),
+    };
+    const next = gameReducer(state, { type: 'BUY_PROPERTY' });
+    expect(next).toBe(state);
+  });
 });
 
 // ── END_TURN ──

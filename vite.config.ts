@@ -40,10 +40,18 @@ export default defineConfig(({ command }) => ({
         'src/main.tsx',
       ],
       thresholds: {
-        lines: 45,
-        functions: 26,
-        branches: 34,
-        statements: 45,
+        // 実測値が閾値を上回ったら、切り捨てて 1 ポイントの余裕を残した値へ閾値を引き上げる。
+        // 分岐カバレッジが実行ごとに小数点以下で揺れるため余裕を残す。
+        // Math.max で前回値を下回らないようにし、閾値が下がる方向には更新しない。
+        // CI ランナー上で書き換えても結果に残らないため、CI では無効にする
+        autoUpdate: process.env.CI
+          ? false
+          : (newThreshold: number, previousThreshold: number): number =>
+              Math.max(previousThreshold, Math.floor(newThreshold) - 1),
+        lines: 73,
+        functions: 58,
+        branches: 60,
+        statements: 71,
       },
     },
   },
