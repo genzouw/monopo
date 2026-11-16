@@ -194,6 +194,24 @@ describe('DECLINE_PURCHASE', () => {
     expect(next.auction?.currentBid).toBe(60);
     expect(next.auction?.currentBidderId).toBeNull();
   });
+
+  it('税金マスではオークションを始めない（#926）', () => {
+    let state = startedGame();
+    // position=4 は income-tax（物件の状態を持たない）
+    state = withCurrentPlayer(state, { position: 4 });
+    state = { ...state, turnPhase: 'action' };
+    const next = gameReducer(state, { type: 'DECLINE_PURCHASE' });
+    expect(next).toBe(state);
+  });
+
+  it('持ち主のいる物件ではオークションを始めない', () => {
+    let state = startedGame();
+    state = withCurrentPlayer(state, { position: 1 });
+    state = withPropertyOwner(state, 'mediterranean', 'player-1');
+    state = { ...state, turnPhase: 'action' };
+    const next = gameReducer(state, { type: 'DECLINE_PURCHASE' });
+    expect(next).toBe(state);
+  });
 });
 
 // ── PLACE_BID / PASS_AUCTION ──
