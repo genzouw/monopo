@@ -81,6 +81,7 @@
 .miniToken {
   font-size: clamp(12px, 3.2cqi, 24px);
   position: absolute;
+  z-index: 1;
 }
 .miniOwnerToken {
   position: absolute;
@@ -99,9 +100,6 @@
   line-height: 1;
   z-index: 0;
   pointer-events: none;
-}
-.miniToken {
-  z-index: 1;
 }
 
 @media (hover: hover) {
