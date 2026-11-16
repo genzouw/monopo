@@ -48,6 +48,8 @@ bun run typecheck
 bun run test
 ```
 
+fast-check のプロパティテストはシードを固定して実行します。定期実行（`property-explore`）が失敗したときは、ログのシードを渡すと反例を再現できます（`FC_SEED=<ログの seed> bun run test .property.test`）。
+
 すべてのチェックとテストが通過することを確認してからコミットを行ってください。
 
 テストを追加したら `bun run test:coverage` も実行してください。カバレッジが閾値を上回ると `vite.config.ts` の `coverage.thresholds` が自動で引き上げられるので、更新された閾値もあわせてコミットしてください。CI（環境変数 `CI` が設定された環境）では閾値を書き換えません。
