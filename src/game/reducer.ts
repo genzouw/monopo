@@ -957,6 +957,8 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
       const player = getCurrentPlayer(state);
       const space = getSpaceAt(state.board, player.position);
       if (!space || !space.price) return state;
+      // 税マスなど、物件の状態を持たないマスは購入できない
+      if (!state.propertyStates[space.id]) return state;
 
       // 信用スコア拡張: スコアが低い場合、高額物件の購入を制限
       if (
