@@ -263,7 +263,11 @@ export const SetupConfigSchema = v.object({
         v.string(),
         // サロゲートペア分解による DoS を防ぐため、[...n] 展開前にコードユニット長を絞る
         v.maxLength(MAX_NAME_LENGTH * RAW_LENGTH_LIMIT_MULTIPLIER),
-        v.check((n) => [...n].length <= MAX_NAME_LENGTH),
+        v.check(
+          (n) =>
+            n.length <= MAX_NAME_LENGTH * RAW_LENGTH_LIMIT_MULTIPLIER &&
+            [...n].length <= MAX_NAME_LENGTH,
+        ),
         v.regex(NO_CONTROL_CHARS),
       ),
     ),
