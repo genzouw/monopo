@@ -135,6 +135,54 @@ describe('saveGame / loadGame', () => {
     expect(loadGame()).toBeNull();
   });
 
+  describe('スキーマ検証（Issue #932）', () => {
+    it('現行の saveGame が書き出した状態を、そのまま読み戻せる', () => {
+      const state = createPlayingState();
+      saveGame(state);
+      expect(loadGame()).toEqual(state);
+    });
+
+    it.each(['propertyStates', 'dice', 'cards', 'turnPhase', 'message'])(
+      '必須フィールド %s を欠いた保存データは null を返す',
+      (key) => {
+        const data: Record<string, unknown> = { ...createPlayingState() };
+        delete data[key];
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        expect(loadGame()).toBeNull();
+      },
+    );
+
+    it('players[].properties を欠いた保存データは null を返す', () => {
+      const state = createPlayingState();
+      const players = state.players.map((p) => {
+        const copy: Record<string, unknown> = { ...p };
+        delete copy.properties;
+        return copy;
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...state, players }));
+      expect(loadGame()).toBeNull();
+    });
+
+    it('省略可能なフィールドを持たない（拡張前の）保存データは復元できる', () => {
+      const state = createPlayingState();
+      saveGame(state);
+      const loaded = loadGame();
+      expect(loaded).not.toBeNull();
+      expect(loaded?.features).toBeUndefined();
+      expect(loaded?.stockMarket).toBeUndefined();
+    });
+
+    it('money が数値でない保存データは null を返す', () => {
+      const state = createPlayingState();
+      const players = [
+        { ...state.players[0], money: '1500' },
+        state.players[1],
+      ];
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...state, players }));
+      expect(loadGame()).toBeNull();
+    });
+  });
+
   describe('手番と位置の範囲検証', () => {
     /**
      * 保存データの一部を書き換えて localStorage に置く。
@@ -709,8 +757,13 @@ describe('loadGame: behavioralBias の検証', () => {
 
   it('配列・文字列など object でない値は undefined に落とす', () => {
     saveWithBias([1, 2]);
+    expect(loadGame()).not.toBeNull();
     expect(loadGame()?.behavioralBias).toBeUndefined();
     saveWithBias('x');
+    expect(loadGame()).not.toBeNull();
+    expect(loadGame()?.behavioralBias).toBeUndefined();
+    saveWithBias(null);
+    expect(loadGame()).not.toBeNull();
     expect(loadGame()?.behavioralBias).toBeUndefined();
   });
 
