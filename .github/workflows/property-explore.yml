@@ -1,0 +1,35 @@
+name: property-explore
+
+# fast-check のプロパティテストを、ランダムなシードと多い実行回数で定期実行する。
+# PR の CI はシード固定なので、新しい反例はこのワークフローで見つける。
+# 失敗したらログの seed を FC_SEED に渡して手元で再現する
+on:
+  schedule:
+    - cron: '0 18 * * *' # 03:00 JST
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  explore:
+    name: Property test exploration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: package.json
+      - run: bun install --frozen-lockfile --ignore-scripts
+      - name: Run property tests with random seeds
+        env:
+          FC_SEED: random
+          FC_NUM_RUNS: '10000'
+        run: bun run test .property.test
