@@ -757,8 +757,13 @@ describe('loadGame: behavioralBias の検証', () => {
 
   it('配列・文字列など object でない値は undefined に落とす', () => {
     saveWithBias([1, 2]);
+    expect(loadGame()).not.toBeNull();
     expect(loadGame()?.behavioralBias).toBeUndefined();
     saveWithBias('x');
+    expect(loadGame()).not.toBeNull();
+    expect(loadGame()?.behavioralBias).toBeUndefined();
+    saveWithBias(null);
+    expect(loadGame()).not.toBeNull();
     expect(loadGame()?.behavioralBias).toBeUndefined();
   });
 

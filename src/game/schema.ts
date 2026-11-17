@@ -246,7 +246,8 @@ export const GameStateSchema = v.object({
   // 累進課税拡張: 累進課税で徴収した税を蓄積する公共基金
   publicFund: v.optional(v.number()),
   // 行動経済学拡張: 色ごとのバイアス状態
-  behavioralBias: v.optional(BehavioralBiasStateSchema),
+  // 不正値はこのフィールドだけ破棄し、ゲーム全体の復元は続ける
+  behavioralBias: v.fallback(v.optional(BehavioralBiasStateSchema), undefined),
 });
 
 /** セットアップ設定。名前はコードユニット長・コードポイント長の両方で上限を確かめる。 */
