@@ -61,7 +61,7 @@
     "lint-staged": "^17.0.5",
     "prettier": "^3.9.4",
     "repomix": "1.19.0",
-    "secretlint": "^13.0.4",
+    "secretlint": "^14.0.0",
     "stylelint": "18.0.0",
     "stylelint-config-recommended": "19.0.0",
     "textlint": "15.8.0",
