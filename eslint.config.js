@@ -56,5 +56,43 @@ export default defineConfig([
       eslintReact.configs['disable-type-checked'],
     ],
   },
+  // ゲームロジック層（src/game）は UI に依存させない。React なしで単体テスト・ミューテーションテストを行う前提を守るため
+  {
+    files: ['src/game/**/*.ts'],
+    ignores: ['src/game/__tests__/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'react',
+              message: 'src/game は React に依存させない。UI 側で扱う。',
+            },
+            {
+              name: 'react-dom',
+              message: 'src/game は React に依存させない。UI 側で扱う。',
+            },
+          ],
+          patterns: [
+            {
+              regex: '^react(-dom)?/',
+              message: 'src/game は React に依存させない。UI 側で扱う。',
+            },
+            {
+              regex:
+                '(^|/)(components|sound|hooks)(/|$)|(^|/)(App|main)(\\.[cm]?[jt]sx?)?$',
+              message:
+                'src/game から UI 層を import しない。依存の向きは UI → game の一方向にする。',
+            },
+            {
+              regex: '\\.css$',
+              message: 'src/game から CSS を import しない。',
+            },
+          ],
+        },
+      ],
+    },
+  },
   eslintConfigPrettier,
 ]);
