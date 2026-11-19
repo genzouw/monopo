@@ -65,3 +65,6 @@ export function boxMuller(u1: number, u2: number): number {
   const safe = u1 <= 0 ? 1e-10 : u1;
   return Math.sqrt(-2 * Math.log(safe)) * Math.cos(2 * Math.PI * u2);
 }
+
+/** 検証用: どこからも参照されない export（Knip の必須チェックの動作確認用。マージしない） */
+export const unusedForKnipVerification = 0;
