@@ -76,7 +76,12 @@ export default defineConfig([
           ],
           patterns: [
             {
-              regex: '(^|/)(components|sound|hooks)(/|$)|(^|/)(App|main)$',
+              regex: '^react(-dom)?/',
+              message: 'src/game は React に依存させない。UI 側で扱う。',
+            },
+            {
+              regex:
+                '(^|/)(components|sound|hooks)(/|$)|(^|/)(App|main)(\\.[cm]?[jt]sx?)?$',
               message:
                 'src/game から UI 層を import しない。依存の向きは UI → game の一方向にする。',
             },
