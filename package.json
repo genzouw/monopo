@@ -38,7 +38,6 @@
     "@eslint-react/eslint-plugin": "^5.30.2",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.63.0",
-    "@secretlint/secretlint-rule-preset-recommend": "^13.0.4",
     "@stryker-mutator/core": "^10.0.0",
     "@stryker-mutator/vitest-runner": "^10.0.0",
     "@testing-library/jest-dom": "^7.0.0",
