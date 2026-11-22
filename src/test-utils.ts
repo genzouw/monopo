@@ -6,6 +6,30 @@
  * 存在しなければ原因が分かるメッセージで例外を投げてテストを失敗させる。
  */
 
+import axe from 'axe-core';
+import { expect } from 'vitest';
+
+// e2e/a11y.spec.ts と同じく WCAG 2.1 の A / AA 相当のルールに限る
+const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
+
+/**
+ * 描画済みの DOM に WCAG 2.1 A/AA 違反が無いことを検査する。
+ * jsdom では color-contrast ルールが動かないため止める（コントラストは e2e で検査する）。
+ * axe.run は同時に 2 回呼べないため、concurrent なテストの中では呼ばない。
+ *
+ * @param node - 検査対象の要素
+ */
+export async function expectNoA11yViolations(node: Element): Promise<void> {
+  const results = await axe.run(node, {
+    runOnly: { type: 'tag', values: WCAG_TAGS },
+    rules: { 'color-contrast': { enabled: false } },
+  });
+  expect(
+    results.violations.map((v) => `${v.id} (${v.nodes.length} node(s))`),
+    JSON.stringify(results.violations, null, 2),
+  ).toEqual([]);
+}
+
 /**
  * 配列（または配列風オブジェクト）から指定位置の要素を取り出す。
  *
