@@ -4,6 +4,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import eslintReact from '@eslint-react/eslint-plugin';
 import tseslint from 'typescript-eslint';
+import vitest from '@vitest/eslint-plugin';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import { defineConfig, globalIgnores } from 'eslint/config';
 
@@ -91,6 +92,19 @@ export default defineConfig([
             },
           ],
         },
+      ],
+    },
+  },
+  // テストの書き方の誤り（アサーションの無いテスト、条件付きの expect、重複したタイトルなど）を検出する
+  {
+    files: ['src/**/*.test.{ts,tsx}'],
+    ...vitest.configs.recommended,
+    rules: {
+      ...vitest.configs.recommended.rules,
+      // fast-check の fc.assert と、expectInvariants のような expect で始まる検証ヘルパーもアサーションとして扱う
+      'vitest/expect-expect': [
+        'error',
+        { assertFunctionNames: ['expect', 'expect*', 'fc.assert'] },
       ],
     },
   },
