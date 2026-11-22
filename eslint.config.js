@@ -46,6 +46,14 @@ export default defineConfig([
       '@eslint-react/static-components': 'off',
       '@eslint-react/unsupported-syntax': 'off',
       '@eslint-react/use-memo': 'off',
+      // ユニオン型の switch で case の書き忘れを検出する。到達しない default は、書き忘れを隠すため書かせない
+      '@typescript-eslint/switch-exhaustiveness-check': [
+        'error',
+        {
+          allowDefaultCaseForExhaustiveSwitch: false,
+          considerDefaultExhaustiveForUnions: false,
+        },
+      ],
     },
   },
   // tsconfig の projectService が拾えないファイル（Bun 用スクリプト・Playwright 設定）は型情報つきルールの対象外にする

@@ -585,13 +585,6 @@ function handleLanding(state: GameState): GameState {
         message: `${owner.name}に$${rent}のとまり賃をはらったよ`,
       };
     }
-
-    default:
-      return {
-        ...state,
-        turnPhase: 'endTurn',
-        message: `${space.name}にとまったよ！`,
-      };
   }
 }
 
@@ -772,9 +765,6 @@ function applyCardEffect(state: GameState, card: Card): GameState {
         message: `🔥ブラックスワン！${affected}エリアに災害が発生したよ！`,
       };
     }
-
-    default:
-      return { ...state, turnPhase: 'endTurn' };
   }
 }
 
@@ -2153,9 +2143,6 @@ function gameReducerInner(state: GameState, action: GameAction): GameState {
         message: `${space?.name ?? action.propertyId}の保険をかいじょしたよ`,
       };
     }
-
-    default:
-      return state;
   }
 }
 
