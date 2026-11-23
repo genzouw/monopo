@@ -156,8 +156,7 @@ describe('validateBuyInsurance', () => {
       itemAt(stateWithProp.players, 0).id,
       'prop-brown-1',
     );
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.reason).toBe('INSURANCE_DISABLED');
+    expect(result).toMatchObject({ ok: false, reason: 'INSURANCE_DISABLED' });
   });
 
   it('物件を所有していない場合はNOT_OWNERを返す', () => {
@@ -167,8 +166,7 @@ describe('validateBuyInsurance', () => {
       itemAt(state.players, 0).id,
       'prop-brown-1',
     );
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.reason).toBe('NOT_OWNER');
+    expect(result).toMatchObject({ ok: false, reason: 'NOT_OWNER' });
   });
 
   it('残金不足の場合はINSUFFICIENT_FUNDSを返す', () => {
@@ -185,8 +183,7 @@ describe('validateBuyInsurance', () => {
       itemAt(stateWithPropNoMoney.players, 0).id,
       propId,
     );
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.reason).toBe('INSUFFICIENT_FUNDS');
+    expect(result).toMatchObject({ ok: false, reason: 'INSUFFICIENT_FUNDS' });
   });
 });
 
