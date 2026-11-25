@@ -18,13 +18,23 @@ fc.configureGlobal({
 // このファイルで src/game/reducer を import すると、モックが効かなくなる（Vitest の仕様）。
 
 /**
+ * 値がまだ凍結されていないオブジェクト（配列を含む）かを判定する。
+ *
+ * @param value - 判定する値
+ * @returns 未凍結のオブジェクトなら true
+ */
+function isUnfrozenObject(value: unknown): value is object {
+  return typeof value === 'object' && value !== null && !Object.isFrozen(value);
+}
+
+/**
  * オブジェクトと、その子のオブジェクト・配列をすべて凍結する。
  *
  * @param value - 凍結する値。プリミティブはそのまま返す
  * @returns 凍結した value
  */
 function deepFreeze<T>(value: T): T {
-  if (value !== null && typeof value === 'object' && !Object.isFrozen(value)) {
+  if (isUnfrozenObject(value)) {
     Object.freeze(value);
     for (const child of Object.values(value)) deepFreeze(child);
   }
