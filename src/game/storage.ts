@@ -161,6 +161,8 @@ export function loadGame(): GameState | null {
     const saved = readWithLegacyFallback(STORAGE_KEY, LEGACY_STORAGE_KEY);
     if (!saved) return null;
     // スキーマに合わない保存データ（旧形式・破損・改ざん）は復元しない。
+    // スキーマを変えて既存の保存データが復元できなくなるときは、
+    // save-compat.test.ts（固定ファイルの保存データ）で気付き、PR で判断する。
     // economyStatus の未知の値はスキーマの fallback で undefined に落ちる。
     const parsed = v.safeParse(
       GameStateSchema,

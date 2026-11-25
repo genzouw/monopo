@@ -1,0 +1,702 @@
+{
+  "phase": "playing",
+  "players": [
+    {
+      "id": "player-0",
+      "name": "たろう",
+      "token": "🚗",
+      "money": 1500,
+      "position": 0,
+      "properties": [],
+      "inJail": false,
+      "jailTurns": 0,
+      "getOutOfJailCards": 0,
+      "isBankrupt": false,
+      "creditScore": 500
+    },
+    {
+      "id": "player-1",
+      "name": "はなこ",
+      "token": "🎩",
+      "money": 1500,
+      "position": 0,
+      "properties": [],
+      "inJail": false,
+      "jailTurns": 0,
+      "getOutOfJailCards": 0,
+      "isBankrupt": false,
+      "creditScore": 500
+    }
+  ],
+  "currentPlayerIndex": 0,
+  "board": [
+    { "id": "go", "position": 0, "type": "corner", "name": "GO" },
+    {
+      "id": "mediterranean",
+      "position": 1,
+      "type": "property",
+      "name": "ちちぶ通り",
+      "color": "brown",
+      "price": 60,
+      "rent": [2, 10, 30, 90, 160, 250],
+      "houseCost": 50,
+      "mortgageValue": 30
+    },
+    {
+      "id": "community-chest-1",
+      "position": 2,
+      "type": "communityChest",
+      "name": "おたすけカード"
+    },
+    {
+      "id": "baltic",
+      "position": 3,
+      "type": "property",
+      "name": "おくたま通り",
+      "color": "brown",
+      "price": 60,
+      "rent": [4, 20, 60, 180, 320, 450],
+      "houseCost": 50,
+      "mortgageValue": 30
+    },
+    {
+      "id": "income-tax",
+      "position": 4,
+      "type": "tax",
+      "name": "ぜいきん ($200)",
+      "price": 200
+    },
+    {
+      "id": "reading-rr",
+      "position": 5,
+      "type": "railroad",
+      "name": "ひがし鉄道",
+      "color": "railroad",
+      "price": 200,
+      "rent": [25, 50, 100, 200],
+      "mortgageValue": 100
+    },
+    {
+      "id": "oriental",
+      "position": 6,
+      "type": "property",
+      "name": "あさくさ通り",
+      "color": "lightblue",
+      "price": 100,
+      "rent": [6, 30, 90, 270, 400, 550],
+      "houseCost": 50,
+      "mortgageValue": 50
+    },
+    {
+      "id": "chance-1",
+      "position": 7,
+      "type": "chance",
+      "name": "チャンスカード"
+    },
+    {
+      "id": "vermont",
+      "position": 8,
+      "type": "property",
+      "name": "うえの通り",
+      "color": "lightblue",
+      "price": 100,
+      "rent": [6, 30, 90, 270, 400, 550],
+      "houseCost": 50,
+      "mortgageValue": 50
+    },
+    {
+      "id": "connecticut",
+      "position": 9,
+      "type": "property",
+      "name": "あきはばら通り",
+      "color": "lightblue",
+      "price": 120,
+      "rent": [8, 40, 100, 300, 450, 600],
+      "houseCost": 50,
+      "mortgageValue": 60
+    },
+    { "id": "jail", "position": 10, "type": "corner", "name": "刑務所" },
+    {
+      "id": "stcharles",
+      "position": 11,
+      "type": "property",
+      "name": "しぶや通り",
+      "color": "pink",
+      "price": 140,
+      "rent": [10, 50, 150, 450, 625, 750],
+      "houseCost": 100,
+      "mortgageValue": 70
+    },
+    {
+      "id": "electric",
+      "position": 12,
+      "type": "utility",
+      "name": "でんりょく会社",
+      "price": 150,
+      "mortgageValue": 75
+    },
+    {
+      "id": "states",
+      "position": 13,
+      "type": "property",
+      "name": "はらじゅく通り",
+      "color": "pink",
+      "price": 140,
+      "rent": [10, 50, 150, 450, 625, 750],
+      "houseCost": 100,
+      "mortgageValue": 70
+    },
+    {
+      "id": "virginia",
+      "position": 14,
+      "type": "property",
+      "name": "おもてさんどう",
+      "color": "pink",
+      "price": 160,
+      "rent": [12, 60, 180, 500, 700, 900],
+      "houseCost": 100,
+      "mortgageValue": 80
+    },
+    {
+      "id": "pennsylvania-rr",
+      "position": 15,
+      "type": "railroad",
+      "name": "みなみ鉄道",
+      "color": "railroad",
+      "price": 200,
+      "rent": [25, 50, 100, 200],
+      "mortgageValue": 100
+    },
+    {
+      "id": "stjames",
+      "position": 16,
+      "type": "property",
+      "name": "いけぶくろ通り",
+      "color": "orange",
+      "price": 180,
+      "rent": [14, 70, 200, 550, 750, 950],
+      "houseCost": 100,
+      "mortgageValue": 90
+    },
+    {
+      "id": "community-chest-2",
+      "position": 17,
+      "type": "communityChest",
+      "name": "おたすけカード"
+    },
+    {
+      "id": "tennessee",
+      "position": 18,
+      "type": "property",
+      "name": "しんじゅく通り",
+      "color": "orange",
+      "price": 180,
+      "rent": [14, 70, 200, 550, 750, 950],
+      "houseCost": 100,
+      "mortgageValue": 90
+    },
+    {
+      "id": "newyork",
+      "position": 19,
+      "type": "property",
+      "name": "ろっぽんぎ通り",
+      "color": "orange",
+      "price": 200,
+      "rent": [16, 80, 220, 600, 800, 1000],
+      "houseCost": 100,
+      "mortgageValue": 100
+    },
+    {
+      "id": "free-parking",
+      "position": 20,
+      "type": "corner",
+      "name": "むりょう駐車場"
+    },
+    {
+      "id": "kentucky",
+      "position": 21,
+      "type": "property",
+      "name": "あかさか通り",
+      "color": "red",
+      "price": 220,
+      "rent": [18, 90, 250, 700, 875, 1050],
+      "houseCost": 150,
+      "mortgageValue": 110
+    },
+    {
+      "id": "chance-2",
+      "position": 22,
+      "type": "chance",
+      "name": "チャンスカード"
+    },
+    {
+      "id": "indiana",
+      "position": 23,
+      "type": "property",
+      "name": "あおやま通り",
+      "color": "red",
+      "price": 220,
+      "rent": [18, 90, 250, 700, 875, 1050],
+      "houseCost": 150,
+      "mortgageValue": 110
+    },
+    {
+      "id": "illinois",
+      "position": 24,
+      "type": "property",
+      "name": "ぎんざ通り",
+      "color": "red",
+      "price": 240,
+      "rent": [20, 100, 300, 750, 925, 1100],
+      "houseCost": 150,
+      "mortgageValue": 120
+    },
+    {
+      "id": "bo-rr",
+      "position": 25,
+      "type": "railroad",
+      "name": "にし鉄道",
+      "color": "railroad",
+      "price": 200,
+      "rent": [25, 50, 100, 200],
+      "mortgageValue": 100
+    },
+    {
+      "id": "atlantic",
+      "position": 26,
+      "type": "property",
+      "name": "しながわ通り",
+      "color": "yellow",
+      "price": 260,
+      "rent": [22, 110, 330, 800, 975, 1150],
+      "houseCost": 150,
+      "mortgageValue": 130
+    },
+    {
+      "id": "ventnor",
+      "position": 27,
+      "type": "property",
+      "name": "めぐろ通り",
+      "color": "yellow",
+      "price": 260,
+      "rent": [22, 110, 330, 800, 975, 1150],
+      "houseCost": 150,
+      "mortgageValue": 130
+    },
+    {
+      "id": "water",
+      "position": 28,
+      "type": "utility",
+      "name": "すいどう会社",
+      "price": 150,
+      "mortgageValue": 75
+    },
+    {
+      "id": "marvin",
+      "position": 29,
+      "type": "property",
+      "name": "しろかね通り",
+      "color": "yellow",
+      "price": 280,
+      "rent": [24, 120, 360, 850, 1025, 1200],
+      "houseCost": 150,
+      "mortgageValue": 140
+    },
+    {
+      "id": "go-to-jail",
+      "position": 30,
+      "type": "corner",
+      "name": "刑務所へいけ！"
+    },
+    {
+      "id": "pacific",
+      "position": 31,
+      "type": "property",
+      "name": "まるのうち通り",
+      "color": "green",
+      "price": 300,
+      "rent": [26, 130, 390, 900, 1100, 1275],
+      "houseCost": 200,
+      "mortgageValue": 150
+    },
+    {
+      "id": "northcarolina",
+      "position": 32,
+      "type": "property",
+      "name": "おおてまち通り",
+      "color": "green",
+      "price": 300,
+      "rent": [26, 130, 390, 900, 1100, 1275],
+      "houseCost": 200,
+      "mortgageValue": 150
+    },
+    {
+      "id": "community-chest-3",
+      "position": 33,
+      "type": "communityChest",
+      "name": "おたすけカード"
+    },
+    {
+      "id": "pennsylvania",
+      "position": 34,
+      "type": "property",
+      "name": "にほんばし通り",
+      "color": "green",
+      "price": 320,
+      "rent": [28, 150, 450, 1000, 1200, 1400],
+      "houseCost": 200,
+      "mortgageValue": 160
+    },
+    {
+      "id": "shortline-rr",
+      "position": 35,
+      "type": "railroad",
+      "name": "きた鉄道",
+      "color": "railroad",
+      "price": 200,
+      "rent": [25, 50, 100, 200],
+      "mortgageValue": 100
+    },
+    {
+      "id": "chance-3",
+      "position": 36,
+      "type": "chance",
+      "name": "チャンスカード"
+    },
+    {
+      "id": "parkplace",
+      "position": 37,
+      "type": "property",
+      "name": "みなとみらい通り",
+      "color": "blue",
+      "price": 350,
+      "rent": [35, 175, 500, 1100, 1300, 1500],
+      "houseCost": 200,
+      "mortgageValue": 175
+    },
+    {
+      "id": "luxury-tax",
+      "position": 38,
+      "type": "tax",
+      "name": "ぜいたくぜい ($100)",
+      "price": 100
+    },
+    {
+      "id": "boardwalk",
+      "position": 39,
+      "type": "property",
+      "name": "とうきょうタワー通り",
+      "color": "blue",
+      "price": 400,
+      "rent": [50, 200, 600, 1400, 1700, 2000],
+      "houseCost": 200,
+      "mortgageValue": 200
+    }
+  ],
+  "propertyStates": {
+    "mediterranean": { "ownerId": null, "houses": 0, "isMortgaged": false },
+    "baltic": { "ownerId": null, "houses": 0, "isMortgaged": false },
+    "reading-rr": { "ownerId": null, "houses": 0, "isMortgaged": false },
+    "oriental": { "ownerId": null, "houses": 0, "isMortgaged": false },
+    "vermont": { "ownerId": null, "houses": 0, "isMortgaged": false },
+    "connecticut": { "ownerId": null, "houses": 0, "isMortgaged": false },
+    "stcharles": { "ownerId": null, "houses": 0, "isMortgaged": false },
+    "electric": { "ownerId": null, "houses": 0, "isMortgaged": false },
+    "states": { "ownerId": null, "houses": 0, "isMortgaged": false },
+    "virginia": { "ownerId": null, "houses": 0, "isMortgaged": false },
+    "pennsylvania-rr": { "ownerId": null, "houses": 0, "isMortgaged": false },
+    "stjames": { "ownerId": null, "houses": 0, "isMortgaged": false },
+    "tennessee": { "ownerId": null, "houses": 0, "isMortgaged": false },
+    "newyork": { "ownerId": null, "houses": 0, "isMortgaged": false },
+    "kentucky": { "ownerId": null, "houses": 0, "isMortgaged": false },
+    "indiana": { "ownerId": null, "houses": 0, "isMortgaged": false },
+    "illinois": { "ownerId": null, "houses": 0, "isMortgaged": false },
+    "bo-rr": { "ownerId": null, "houses": 0, "isMortgaged": false },
+    "atlantic": { "ownerId": null, "houses": 0, "isMortgaged": false },
+    "ventnor": { "ownerId": null, "houses": 0, "isMortgaged": false },
+    "water": { "ownerId": null, "houses": 0, "isMortgaged": false },
+    "marvin": { "ownerId": null, "houses": 0, "isMortgaged": false },
+    "pacific": { "ownerId": null, "houses": 0, "isMortgaged": false },
+    "northcarolina": { "ownerId": null, "houses": 0, "isMortgaged": false },
+    "pennsylvania": { "ownerId": null, "houses": 0, "isMortgaged": false },
+    "shortline-rr": { "ownerId": null, "houses": 0, "isMortgaged": false },
+    "parkplace": { "ownerId": null, "houses": 0, "isMortgaged": false },
+    "boardwalk": { "ownerId": null, "houses": 0, "isMortgaged": false }
+  },
+  "cards": {
+    "chance": [
+      {
+        "id": "ch4",
+        "type": "chance",
+        "text": "いちばん近い鉄道にいこう！",
+        "action": { "type": "moveNearest", "spaceType": "railroad" }
+      },
+      {
+        "id": "ch7",
+        "type": "chance",
+        "text": "ぎんこうから$50もらえるよ！",
+        "action": { "type": "money", "amount": 50 }
+      },
+      {
+        "id": "ch12",
+        "type": "chance",
+        "text": "スピードいはんで$15はらってね",
+        "action": { "type": "money", "amount": -15 }
+      },
+      {
+        "id": "ch8",
+        "type": "chance",
+        "text": "刑務所から出られるカードをゲット！",
+        "action": { "type": "jailFree" }
+      },
+      {
+        "id": "ch16",
+        "type": "chance",
+        "text": "たてものの投資がうまくいったよ！$150もらえる！",
+        "action": { "type": "money", "amount": 150 }
+      },
+      {
+        "id": "ch13",
+        "type": "chance",
+        "text": "ひがし鉄道にいこう！",
+        "action": { "type": "move", "position": 5 }
+      },
+      {
+        "id": "ch9",
+        "type": "chance",
+        "text": "3マスもどってね",
+        "action": { "type": "moveRelative", "spaces": -3 }
+      },
+      {
+        "id": "ch15",
+        "type": "chance",
+        "text": "みんなに$50ずつくばってね",
+        "action": { "type": "moneyFromPlayers", "amount": -50 }
+      },
+      {
+        "id": "ch2",
+        "type": "chance",
+        "text": "ぎんざ通りにいこう！",
+        "action": { "type": "move", "position": 24 }
+      },
+      {
+        "id": "ch10",
+        "type": "chance",
+        "text": "刑務所にいってね…",
+        "action": { "type": "jail" }
+      },
+      {
+        "id": "ch6",
+        "type": "chance",
+        "text": "いちばん近いでんき・すいどう会社にいこう！",
+        "action": { "type": "moveNearest", "spaceType": "utility" }
+      },
+      {
+        "id": "ch3",
+        "type": "chance",
+        "text": "しぶや通りにいこう！",
+        "action": { "type": "move", "position": 11 }
+      },
+      {
+        "id": "ch5",
+        "type": "chance",
+        "text": "いちばん近い鉄道にいこう！",
+        "action": { "type": "moveNearest", "spaceType": "railroad" }
+      },
+      {
+        "id": "ch14",
+        "type": "chance",
+        "text": "みなとみらい通りにいこう！",
+        "action": { "type": "move", "position": 39 }
+      },
+      {
+        "id": "ch11",
+        "type": "chance",
+        "text": "おうちのしゅうり代！家1けんにつき$25、ホテル1つにつき$100はらってね",
+        "action": { "type": "repair", "perHouse": 25, "perHotel": 100 }
+      },
+      {
+        "id": "ch1",
+        "type": "chance",
+        "text": "GOまですすもう！$200もらえるよ！",
+        "action": { "type": "move", "position": 0 }
+      }
+    ],
+    "communityChest": [
+      {
+        "id": "cc7",
+        "type": "communityChest",
+        "text": "おやすみボーナス！$100もらえるよ！",
+        "action": { "type": "money", "amount": 100 }
+      },
+      {
+        "id": "cc5",
+        "type": "communityChest",
+        "text": "刑務所から出られるカードをゲット！",
+        "action": { "type": "jailFree" }
+      },
+      {
+        "id": "cc2",
+        "type": "communityChest",
+        "text": "ぎんこうのまちがいで$200もらえるよ！",
+        "action": { "type": "money", "amount": 200 }
+      },
+      {
+        "id": "cc16",
+        "type": "communityChest",
+        "text": "おじいちゃんからおこづかい！$100もらえるよ！",
+        "action": { "type": "money", "amount": 100 }
+      },
+      {
+        "id": "cc3",
+        "type": "communityChest",
+        "text": "おいしゃさんに$50はらってね",
+        "action": { "type": "money", "amount": -50 }
+      },
+      {
+        "id": "cc6",
+        "type": "communityChest",
+        "text": "刑務所にいってね…",
+        "action": { "type": "jail" }
+      },
+      {
+        "id": "cc4",
+        "type": "communityChest",
+        "text": "かぶがうれたよ！$50もらえる！",
+        "action": { "type": "money", "amount": 50 }
+      },
+      {
+        "id": "cc14",
+        "type": "communityChest",
+        "text": "どうろのしゅうり！家1けんにつき$40、ホテル1つにつき$115はらってね",
+        "action": { "type": "repair", "perHouse": 40, "perHotel": 115 }
+      },
+      {
+        "id": "cc10",
+        "type": "communityChest",
+        "text": "ほけんがおりたよ！$100もらえる！",
+        "action": { "type": "money", "amount": 100 }
+      },
+      {
+        "id": "cc15",
+        "type": "communityChest",
+        "text": "びじんコンテストで2位！$10もらえるよ！",
+        "action": { "type": "money", "amount": 10 }
+      },
+      {
+        "id": "cc13",
+        "type": "communityChest",
+        "text": "コンサルのおしごとで$25もらえるよ！",
+        "action": { "type": "money", "amount": 25 }
+      },
+      {
+        "id": "cc8",
+        "type": "communityChest",
+        "text": "ぜいきんのもどりで$20もらえるよ！",
+        "action": { "type": "money", "amount": 20 }
+      },
+      {
+        "id": "cc11",
+        "type": "communityChest",
+        "text": "びょういんに$100はらってね",
+        "action": { "type": "money", "amount": -100 }
+      },
+      {
+        "id": "cc9",
+        "type": "communityChest",
+        "text": "たんじょうび！みんなから$10ずつもらえるよ！",
+        "action": { "type": "moneyFromPlayers", "amount": 10 }
+      },
+      {
+        "id": "cc1",
+        "type": "communityChest",
+        "text": "GOまですすもう！$200もらえるよ！",
+        "action": { "type": "move", "position": 0 }
+      },
+      {
+        "id": "cc12",
+        "type": "communityChest",
+        "text": "がっこうのぜいきんで$150はらってね",
+        "action": { "type": "money", "amount": -150 }
+      }
+    ]
+  },
+  "dice": { "values": [4, 6], "doubles": 0, "rolled": true },
+  "turnPhase": "moving",
+  "auction": null,
+  "trade": null,
+  "currentCard": null,
+  "message": "4と6がでたよ！",
+  "winnerId": null,
+  "turnCount": 0,
+  "features": {
+    "stocks": true,
+    "altAssets": true,
+    "insurance": true,
+    "macroEconomy": true,
+    "creditScore": true,
+    "loan": true,
+    "progressiveTax": true,
+    "behavioralBias": true
+  },
+  "stockMarket": {
+    "brown": {
+      "color": "brown",
+      "pricePerShare": 100,
+      "totalShares": 100,
+      "bankShares": 100
+    },
+    "lightblue": {
+      "color": "lightblue",
+      "pricePerShare": 100,
+      "totalShares": 100,
+      "bankShares": 100
+    },
+    "pink": {
+      "color": "pink",
+      "pricePerShare": 100,
+      "totalShares": 100,
+      "bankShares": 100
+    },
+    "orange": {
+      "color": "orange",
+      "pricePerShare": 100,
+      "totalShares": 100,
+      "bankShares": 100
+    },
+    "red": {
+      "color": "red",
+      "pricePerShare": 100,
+      "totalShares": 100,
+      "bankShares": 100
+    },
+    "yellow": {
+      "color": "yellow",
+      "pricePerShare": 100,
+      "totalShares": 100,
+      "bankShares": 100
+    },
+    "green": {
+      "color": "green",
+      "pricePerShare": 100,
+      "totalShares": 100,
+      "bankShares": 100
+    },
+    "blue": {
+      "color": "blue",
+      "pricePerShare": 100,
+      "totalShares": 100,
+      "bankShares": 100
+    },
+    "railroad": {
+      "color": "railroad",
+      "pricePerShare": 100,
+      "totalShares": 100,
+      "bankShares": 100
+    }
+  },
+  "insuranceState": {},
+  "economyStatus": "normal",
+  "publicFund": 0,
+  "behavioralBias": {}
+}
