@@ -41,7 +41,7 @@
         "prettier": "^3.9.4",
         "repomix": "1.19.0",
         "secretlint": "^14.0.0",
-        "stylelint": "18.0.0",
+        "stylelint": "18.1.0",
         "stylelint-config-recommended": "19.1.0",
         "textlint": "16.1.2",
         "textlint-rule-preset-ja-technical-writing": "12.0.2",
@@ -1669,7 +1669,7 @@
 
     "structured-source": ["structured-source@4.0.0", "", { "dependencies": { "boundary": "^2.0.0" } }, "sha512-qGzRFNJDjFieQkl/sVOI2dUjHKRyL9dAJi2gCPGJLbJHBIkyOHxjuocpIEfbLioX+qSJpvbYdT49/YCdMznKxA=="],
 
-    "stylelint": ["stylelint@18.0.0", "", { "dependencies": { "@csstools/css-calc": "^3.4.3", "@csstools/css-parser-algorithms": "^4.0.2", "@csstools/css-syntax-patches-for-csstree": "^1.1.15", "@csstools/css-tokenizer": "^4.0.2", "@csstools/media-query-list-parser": "^5.0.2", "@csstools/selector-resolve-nested": "^4.0.2", "@csstools/selector-specificity": "^6.0.1", "colord": "^2.10.0", "cosmiconfig": "^10.0.1", "css-tree": "^3.2.1", "ignore": "^7.0.14", "import-meta-resolve": "^4.2.0", "picomatch": "^4.0.7", "postcss": "^8.5.31", "postcss-safe-parser": "^7.1.0", "postcss-selector-parser": "^7.1.7", "postcss-value-parser": "^4.2.0", "tinyglobby": "^0.2.17", "write-file-atomic": "^8.0.0" }, "bin": { "stylelint": "bin/stylelint.mjs" } }, "sha512-kI10GsHXQvsH/AcklVZdQgwDuxtHi+A+h1Ujzd7h9LDf3e5jQiLQkWFlPtpynX3E6oVWHG1wo9v6dL0Mr+nnSA=="],
+    "stylelint": ["stylelint@18.1.0", "", { "dependencies": { "@csstools/css-calc": "^3.4.3", "@csstools/css-parser-algorithms": "^4.0.2", "@csstools/css-syntax-patches-for-csstree": "^1.1.16", "@csstools/css-tokenizer": "^4.0.2", "@csstools/media-query-list-parser": "^5.0.2", "@csstools/selector-resolve-nested": "^4.0.2", "@csstools/selector-specificity": "^6.0.1", "colord": "^2.13.0", "cosmiconfig": "^10.0.1", "css-tree": "^3.2.1", "ignore": "^7.0.14", "import-meta-resolve": "^4.2.0", "picomatch": "^4.0.7", "postcss": "^8.5.33", "postcss-safe-parser": "^7.1.0", "postcss-selector-parser": "^7.2.1", "postcss-value-parser": "^4.2.0", "tinyglobby": "^0.2.17", "write-file-atomic": "^8.0.0" }, "bin": { "stylelint": "bin/stylelint.mjs" } }, "sha512-QbF/IY7KY6lZRhYU/vmPU1KYxc71wgkXdgeptqzTh3lbnZps6WHaskfPjpL6Fh4JaCzwkKKitVcMrpfQTSwwPA=="],
 
     "stylelint-config-recommended": ["stylelint-config-recommended@19.1.0", "", { "peerDependencies": { "stylelint": "^18.0.0" } }, "sha512-DurXBzvz2cmVX2rM1JMDCbPIq+MRKhIPY743lFk1DjUoyx7giLfN+HR8Hilw+kE2nE5blaXhVf66edvQGnLdwA=="],
 
