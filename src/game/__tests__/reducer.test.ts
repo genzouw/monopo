@@ -19,6 +19,21 @@ function startedGame(count = 2): GameState {
   });
 }
 
+// ── 入力の状態の凍結（src/test-setup.ts の vi.mock が外れていないことの確認）──
+
+describe('入力の状態の凍結', () => {
+  it('テストから gameReducer に渡した状態は凍結される', () => {
+    const state = createInitialGameState();
+    gameReducer(state, {
+      type: 'START_GAME',
+      playerNames: ['A', 'B'],
+      playerTokens: ['🚗', '🎩'],
+    });
+    expect(Object.isFrozen(state)).toBe(true);
+    expect(Object.isFrozen(state.players)).toBe(true);
+  });
+});
+
 // ── createInitialGameState ──
 
 describe('createInitialGameState', () => {
