@@ -8,7 +8,7 @@ type DialogProps = {
   children: ReactNode;
   actions?: ReactNode;
   /** 指定時のみ Escape でクローズ可能。業務的に強制遷移が必要な Dialog（破産・オークション等）では意図的に未指定にする。 */
-  onClose?: () => void;
+  onClose?: (() => void) | undefined;
 };
 
 export default function Dialog({

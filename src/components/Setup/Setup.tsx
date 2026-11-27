@@ -13,7 +13,7 @@ import styles from './Setup.module.css';
 
 type SetupProps = {
   onStart: (names: string[], tokens: string[], features: FeatureFlags) => void;
-  onResume?: () => void;
+  onResume?: (() => void) | undefined;
   savedGame?: GameState | null;
 };
 

@@ -19,9 +19,9 @@ type PlayerPanelProps = {
 type MemoizedPlayerChipProps = {
   player: Player;
   isActive: boolean;
-  onPlayerClick?: (playerId: string) => void;
+  onPlayerClick?: ((playerId: string) => void) | undefined;
   /** 他プレイヤーの操作・処理中であるかどうか */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
 };
 
 // ⚡ Bolt: React.memo() のカスタム比較関数を追加し、PlayerChip の不要な再レンダリングを防止する。

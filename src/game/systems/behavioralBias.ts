@@ -1,6 +1,6 @@
 // 行動経済学バイアス（FOMO・バブル）の純粋計算関数層
 // reducer.ts を肥大化させないため、バブルの判定・乗数合成・崩壊はここに集約する。
-// 本モジュールはゲーム状態（GameState）に依存せず、自前の型だけで完結する。
+// 本モジュールはゲーム状態（GameState）に依存せず完結する。
 // 乱数は使わない（閾値比較のみ）ため、Math.random / getSecureRandomInt は不要。
 //
 // 設計方針（Issue #670 のコメントで補正済み）:
@@ -8,7 +8,7 @@
 // - バブル崩壊は状態を消すだけで、価格は景気乗数のみの水準へ自然に戻る。
 //   そのため、金融危機（景気乗数 0.4）と同時に崩壊しても減少率が二重に適用されない。
 
-import type { ColorGroup, EconomyStatus } from '../types';
+import type { ColorGroup, EconomyStatus, FeatureFlags } from '../types';
 import {
   applyEconomyFactor,
   ECONOMY_FACTORS,
@@ -74,10 +74,9 @@ const COLOR_LABELS: Record<ColorGroup, string> = {
  * @param features 機能フラグ（`behavioralBias` と `stocks`）。
  * @returns 両方が true のときだけ true。
  */
-export function isBehavioralBiasActive(features?: {
-  stocks?: boolean;
-  behavioralBias?: boolean;
-}): boolean {
+export function isBehavioralBiasActive(
+  features?: Pick<FeatureFlags, 'stocks' | 'behavioralBias'>,
+): boolean {
   return features?.stocks === true && features?.behavioralBias === true;
 }
 

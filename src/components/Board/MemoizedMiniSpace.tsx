@@ -65,8 +65,8 @@ type MemoizedMiniSpaceProps = {
   row: number;
   col: number;
   playersHere: readonly Player[];
-  propState?: PropertyState;
-  owner?: Player;
+  propState?: PropertyState | undefined;
+  owner?: Player | undefined;
   onSpaceClick: (position: number) => void;
 };
 

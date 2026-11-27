@@ -14,14 +14,14 @@ type StockDialogProps = {
   currentPlayer: Player;
   stockMarket: Partial<Record<ColorGroup, ColorGroupStock>>;
   /** 景気を加味した実効株価を表示するための現在の景気ステータス（macroEconomy 無効時は未指定）。 */
-  economyStatus?: EconomyStatus;
+  economyStatus?: EconomyStatus | undefined;
   /** バブルが有効（買い価格に乗数が掛かる）なカラーグループ。機能 OFF のときは未指定。 */
-  bubbleColors?: ColorGroup[];
+  bubbleColors?: ColorGroup[] | undefined;
   /**
    * 色ごとの買い価格（請求額と同じ getStockBuyPrice の値）。
    * 未指定の色は景気補正のみの価格（バブルなし）を使う。
    */
-  buyPrices?: Partial<Record<ColorGroup, number>>;
+  buyPrices?: Partial<Record<ColorGroup, number>> | undefined;
   onBuy: (color: ColorGroup, shares: number) => void;
   onSell: (color: ColorGroup, shares: number) => void;
   onClose: () => void;

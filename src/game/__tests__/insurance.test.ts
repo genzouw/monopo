@@ -25,7 +25,7 @@ function startGame(features?: { insurance?: boolean }): GameState {
     type: 'START_GAME',
     playerNames: ['たろう', 'はなこ'],
     playerTokens: ['🚗', '🎩'],
-    features,
+    ...(features && { features }),
   });
 }
 

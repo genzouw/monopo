@@ -45,7 +45,7 @@ function startGame(features?: FeatureFlags): GameState {
     type: 'START_GAME',
     playerNames: ['たろう', 'はなこ'],
     playerTokens: ['🚗', '🎩'],
-    features,
+    ...(features && { features }),
   });
 }
 
