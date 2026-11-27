@@ -20,7 +20,7 @@ function startGame(features?: FeatureFlags): GameState {
     type: 'START_GAME',
     playerNames: ['たろう', 'はなこ'],
     playerTokens: ['🚗', '🎩'],
-    features,
+    ...(features && { features }),
   });
   // 資金は十分に持たせ、買いの検証が資金不足で落ちないようにする
   return {

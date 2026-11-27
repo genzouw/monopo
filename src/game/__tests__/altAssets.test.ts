@@ -22,7 +22,7 @@ function startGame(features?: { altAssets?: boolean }): GameState {
     type: 'START_GAME',
     playerNames: ['たろう', 'はなこ'],
     playerTokens: ['🚗', '🎩'],
-    features,
+    ...(features && { features }),
   });
 }
 
